@@ -881,6 +881,21 @@
       "lag": "one quarter (partly hedged)",
       "pricing_power": null,
       "note": "Marine fuel prices off the distillate and residual cracks; the 10-K carries the fuel share of cost and the hedge book. Figure not pulled yet."
+    },
+    {
+      "code": "SOLS",
+      "label": "Solaris Energy Infrastructure",
+      "industry": "Oilfield services",
+      "commodities": [
+        "wti",
+        "brent",
+        "natgas_us"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "2-4 quarters (activity follows price; power-generation leases are contracted)",
+      "pricing_power": null,
+      "note": "Oilfield equipment and a mobile power fleet; the oilfield leg follows drilling activity, the power leg is contracted. Figure not pulled yet."
     }
   ]
 }
