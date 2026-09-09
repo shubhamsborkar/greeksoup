@@ -52,11 +52,11 @@
         "wti",
         "brent"
       ],
-      "intensity": null,
-      "intensity_source": null,
+      "intensity": "4,269 million gallons burned in 2025 at $2.30 a gallon; one cent a gallon is about $43 million a year; fuel roughly 17% of operating expense. The Monroe refinery lowered the price by 4 cents in 2025 and was guided to a $300 million benefit in Q2 2026 when fuel was projected at $4.30",
+      "intensity_source": "Delta Form 10-K 2025 (operating statistics); Q4 2025 and Q1 2026 releases",
       "lag": "one quarter",
       "pricing_power": null,
-      "note": "Owns a refinery (Trainer); figures not pulled yet."
+      "note": "Owns a refinery (Trainer);"
     },
     {
       "code": "UAL",
@@ -80,11 +80,11 @@
         "wti",
         "brent"
       ],
-      "intensity": null,
-      "intensity_source": null,
+      "intensity": "Its own sensitivity for 2026: $1 a barrel on Brent is about $700 million of after-tax upstream earnings a year; $0.10 per MMBtu on Henry Hub about $90 million; $0.10 on TTF about $20 million. Production 4.7 million boe/d, a 40-year high",
+      "intensity_source": "Exxon Mobil Form 10-K 2025, Market Risks",
       "lag": "same quarter",
       "pricing_power": null,
-      "note": "Figures not pulled yet."
+      "note": ""
     },
     {
       "code": "COP",
@@ -107,11 +107,11 @@
       "commodities": [
         "coal"
       ],
-      "intensity": null,
-      "intensity_source": null,
+      "intensity": "2025 revenue $3.86 billion, adjusted EBITDA $455 million, a net loss, on lower seaborne prices. 2026 guide: seaborne thermal 12-13 million short tons, seaborne met 9.3-10.3 million, met sales realising about 80% of the premium hard coking coal index",
+      "intensity_source": "Peabody Q4 2025 results and 2026 guidance; Form 10-K 2025",
       "lag": "same quarter (seaborne thermal from Australia)",
       "pricing_power": null,
-      "note": "Figures not pulled yet."
+      "note": ""
     },
     {
       "code": "NUE",
@@ -121,11 +121,11 @@
         "hrc_us",
         "steel_cn"
       ],
-      "intensity": null,
-      "intensity_source": null,
+      "intensity": "Scrap cost $394-403 a gross ton in H1 2025 and about 70% of production cost; contracts of 6-12 months adjust on steel and scrap indices with a lag. 25.3 million tons shipped in 2025",
+      "intensity_source": "Nucor Form 10-K 2025; Q1 and Q2 2025 releases; ScrapMonster (cost share)",
       "lag": "same quarter (mini-mill, scrap-based)",
       "pricing_power": null,
-      "note": "Scrap-fed, so coking coal does not apply; figures not pulled yet."
+      "note": "Scrap-fed, so coking coal does not apply;"
     },
     {
       "code": "CLF",
@@ -139,11 +139,11 @@
       "sides": {
         "ironore": "revenue"
       },
-      "intensity": null,
-      "intensity_source": null,
+      "intensity": "Adjusted EBITDA $37 million in 2025 against $773 million in 2024 on weak auto volumes; integrated with its own iron ore and one metallurgical coal mine in West Virginia plus coke plants",
+      "intensity_source": "Cleveland-Cliffs Form 10-K 2025",
       "lag": "one quarter",
-      "pricing_power": null,
-      "note": "Integrated with own ore; figures not pulled yet."
+      "pricing_power": "The 10-K's Item 7A carries the $10/t HRC sensitivity table; not pulled yet",
+      "note": "Integrated with own ore;"
     },
     {
       "code": "NEM",
@@ -154,11 +154,11 @@
         "silver",
         "copper"
       ],
-      "intensity": null,
-      "intensity_source": null,
+      "intensity": "2026 guidance at $4,500 gold: each $100 an ounce is about $505 million of pretax revenue, with all-in sustaining cost rising about $6 an ounce per $100 through royalties; $10 a barrel on Brent is about $60 million of cost. 2025: 5.9 million attributable ounces, realised $3,498, free cash flow $7.3 billion",
+      "intensity_source": "Newmont Q4 2025 results and 2026 guidance (February 2026)",
       "lag": "same quarter",
       "pricing_power": null,
-      "note": "Figures not pulled yet.",
+      "note": "",
       "sides": {
         "silver": "revenue",
         "copper": "revenue"
@@ -188,11 +188,11 @@
       "sides": {
         "natgas_us": "cost"
       },
-      "intensity": null,
-      "intensity_source": null,
+      "intensity": "Natural gas $3.31/MMBtu in 2025, 34% of production cost; 352 million MMBtu consumed. Granular urea sold at $433/t against $229/t cost. Company table: $50/t on urea is about $800 million of annual adjusted EBITDA; roughly $270-280 million per $1/MMBtu of gas (derived from the table)",
+      "intensity_source": "CF Industries Form 10-K 2025; Q4 2025 earnings deck sensitivity table",
       "lag": "same quarter",
       "pricing_power": null,
-      "note": "Sells urea, buys Henry Hub gas: the two cards point opposite ways; figures not pulled yet."
+      "note": "Sells urea, buys Henry Hub gas: the two cards point opposite ways;"
     },
     {
       "code": "ADM",
@@ -219,11 +219,11 @@
         "soymeal",
         "corn"
       ],
-      "intensity": null,
-      "intensity_source": null,
+      "intensity": "Corn, soybean meal and other feed ingredients were about 53% of the cost of growing a live chicken in fiscal 2025 (69% in 2012, 37% in 2006)",
+      "intensity_source": "Tyson Foods Form 10-K fiscal 2025",
       "lag": "one quarter",
       "pricing_power": null,
-      "note": "Figures not pulled yet."
+      "note": ""
     },
     {
       "code": "SBUX",
@@ -232,11 +232,11 @@
       "commodities": [
         "coffee"
       ],
-      "intensity": null,
-      "intensity_source": null,
+      "intensity": "Committed to $129 million of fixed-price green coffee and about $1.1 billion of price-to-be-fixed contracts at fiscal year-end 2025, after cutting fixed-price cover from $1 billion in 2019; commitments are physical delivery and not marked to market",
+      "intensity_source": "Starbucks Form 10-K fiscal 2025, Note 5 and Item 7A",
       "lag": "2-4 quarters (hedged a year out)",
-      "pricing_power": null,
-      "note": "Figures not pulled yet."
+      "pricing_power": "Reduced hedging means a coffee spike reaches the P&L faster than it used to",
+      "note": ""
     },
     {
       "code": "HSY",
