@@ -1,0 +1,1068 @@
+{
+ "_comment": "The commodity board. Edit freely; the server re-reads this file on every rebuild. Each entry: id, label, group, unit (display only), sources (yahoo = daily history + live level from Yahoo's keyless chart API; te = Trading Economics summary sentence, level plus day/month/year change only, no chart; fred = monthly IMF/World Bank history from FRED, two to three months behind, used for the long chart and the vs-peak read when Yahoo has no contract). cost = industries that BUY this commodity (a rise squeezes their margin); revenue = industries that SELL it or own the resource (a rise helps them). These two lists are the universal, geography-free layer of the exposure map. The names behind each industry live in exposure_<market>.json per market so the same board works in any country. Pass-through notes are general: a specific company's raw-material share and pricing power come from its own filings, never from here. fred_unit is the unit of the FRED series (IMF units differ from the exchange contract), shown only when FRED is the level on screen.",
+ "groups": [
+  "Energy",
+  "Base metals",
+  "Precious",
+  "Ags & softs",
+  "Industrial inputs",
+  "Freight",
+  "Currency"
+ ],
+ "commodities": [
+  {
+   "id": "wti",
+   "label": "WTI crude",
+   "group": "Energy",
+   "unit": "$/bbl",
+   "sources": {
+    "yahoo": "CL=F",
+    "fred": "DCOILWTICO"
+   },
+   "cost": [
+    "Airlines",
+    "Shipping & logistics",
+    "Refiners (feedstock)",
+    "Petrochemicals",
+    "Paints & coatings",
+    "Plastics & packaging",
+    "Cement (fuel)",
+    "Fertiliser"
+   ],
+   "revenue": [
+    "Oil & gas producers",
+    "Oilfield services",
+    "Oil-exporting sovereigns"
+   ],
+   "note": "Airlines pass it through with a lag of one to two quarters via fares; refiners care about the crack spread, not the level.",
+   "fred_unit": "$/bbl"
+  },
+  {
+   "id": "brent",
+   "label": "Brent crude",
+   "group": "Energy",
+   "unit": "$/bbl",
+   "sources": {
+    "yahoo": "BZ=F",
+    "fred": "DCOILBRENTEU"
+   },
+   "cost": [
+    "Airlines",
+    "Shipping & logistics",
+    "Refiners (feedstock)",
+    "Petrochemicals",
+    "Oil-importing sovereigns (India, Japan, Europe)"
+   ],
+   "revenue": [
+    "Oil & gas producers",
+    "Oilfield services",
+    "Oil-exporting sovereigns"
+   ],
+   "note": "The import benchmark for India and Asia. A sustained move shows up in the current-account and the currency before it shows up in any income statement.",
+   "fred_unit": "$/bbl"
+  },
+  {
+   "id": "natgas_us",
+   "label": "Nat gas (Henry Hub)",
+   "group": "Energy",
+   "unit": "$/MMBtu",
+   "sources": {
+    "yahoo": "NG=F",
+    "fred": "DHHNGSP"
+   },
+   "cost": [
+    "US utilities (fuel)",
+    "Fertiliser (ammonia, urea)",
+    "Chemicals",
+    "Glass & ceramics",
+    "Steel (DRI)",
+    "City gas distributors (spot-linked share)"
+   ],
+   "revenue": [
+    "US gas producers",
+    "LNG exporters",
+    "Gas pipelines (volume-linked)",
+    "LNG import terminals (volume, not price)"
+   ],
+   "note": "US nitrogen fertiliser makers are the most direct cost play; US gas is cheap versus Europe and Asia, so the spread matters more than the level.",
+   "fred_unit": "$/MMBtu"
+  },
+  {
+   "id": "natgas_eu",
+   "label": "EU gas (TTF)",
+   "group": "Energy",
+   "unit": "EUR/MWh",
+   "sources": {
+    "te": "eu-natural-gas",
+    "fred": "PNGASEUUSDM"
+   },
+   "cost": [
+    "European chemicals",
+    "European fertiliser",
+    "European glass, ceramics, steel",
+    "European utilities (fuel)",
+    "Aluminium smelters (Europe)"
+   ],
+   "revenue": [
+    "LNG exporters (US, Qatar, Australia)",
+    "Gas producers (Norway)",
+    "LNG shipping"
+   ],
+   "note": "The energy-intensity gap between Europe and the US is the whole story for European heavy industry margins.",
+   "fred_unit": "$/MMBtu"
+  },
+  {
+   "id": "gasoline",
+   "label": "Gasoline (RBOB)",
+   "group": "Energy",
+   "unit": "$/gal",
+   "sources": {
+    "yahoo": "RB=F"
+   },
+   "cost": [
+    "Road logistics",
+    "Consumers (discretionary spend)",
+    "Ride-hailing & delivery"
+   ],
+   "revenue": [
+    "Refiners (crack spread)",
+    "Fuel retailers (with a lag)"
+   ],
+   "note": "A consumer-wallet read more than an industrial input; a rise taxes discretionary spend."
+  },
+  {
+   "id": "coal",
+   "label": "Thermal coal (Newcastle)",
+   "group": "Energy",
+   "unit": "$/t",
+   "sources": {
+    "te": "coal",
+    "fred": "PCOALAUUSDM"
+   },
+   "cost": [
+    "Power utilities (coal-fired)",
+    "Cement",
+    "Steel (coking coal is separate)",
+    "Aluminium smelters (captive power)",
+    "Paper"
+   ],
+   "revenue": [
+    "Coal miners",
+    "Coal-exporting sovereigns (Australia, Indonesia)",
+    "Dry-bulk shipping"
+   ],
+   "note": "In India the domestic e-auction price and Coal India's notified price move far less than the seaborne benchmark; the seaborne number hits importers and the merchant power tariff.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "uranium",
+   "label": "Uranium (U3O8)",
+   "group": "Energy",
+   "unit": "$/lb",
+   "sources": {
+    "te": "uranium",
+    "fred": "PURANUSDM"
+   },
+   "cost": [
+    "Nuclear utilities (fuel, small share of cost)"
+   ],
+   "revenue": [
+    "Uranium miners",
+    "Enrichment & fuel fabrication",
+    "Physical uranium trusts"
+   ],
+   "note": "Fuel is a small share of a nuclear plant's cost, so the price barely touches utilities; it is a pure miner and enricher story.",
+   "fred_unit": "$/lb"
+  },
+  {
+   "id": "copper",
+   "label": "Copper",
+   "group": "Base metals",
+   "unit": "$/lb",
+   "sources": {
+    "yahoo": "HG=F",
+    "fred": "PCOPPUSDM"
+   },
+   "cost": [
+    "Cables & wires",
+    "Electrical equipment & transformers",
+    "Air conditioners & appliances",
+    "Autos & EVs",
+    "Construction",
+    "Data-centre build"
+   ],
+   "revenue": [
+    "Copper miners",
+    "Copper smelters (TC/RC dependent)",
+    "Scrap recyclers"
+   ],
+   "note": "Cable makers usually pass it through on a formula with a one-quarter lag; the risk is inventory revaluation on a sharp reversal.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "aluminium",
+   "label": "Aluminium",
+   "group": "Base metals",
+   "unit": "$/t",
+   "sources": {
+    "yahoo": "ALI=F",
+    "fred": "PALUMUSDM"
+   },
+   "cost": [
+    "Autos",
+    "Aerospace",
+    "Packaging (cans, foil)",
+    "Construction (extrusions)",
+    "Consumer durables",
+    "Power transmission"
+   ],
+   "revenue": [
+    "Aluminium smelters",
+    "Bauxite & alumina producers",
+    "Aluminium rollers (with a lag)"
+   ],
+   "note": "Smelters are a power-cost story as much as a metal-price story; check captive power before the LME price.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "zinc",
+   "label": "Zinc",
+   "group": "Base metals",
+   "unit": "$/t",
+   "sources": {
+    "te": "zinc",
+    "fred": "PZINCUSDM"
+   },
+   "cost": [
+    "Galvanised steel makers",
+    "Die-casting (autos)",
+    "Batteries (alkaline)",
+    "Construction"
+   ],
+   "revenue": [
+    "Zinc miners & smelters",
+    "Silver by-product producers"
+   ],
+   "note": "Galvanising is the dominant use, so zinc rides construction and auto volumes.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "nickel",
+   "label": "Nickel",
+   "group": "Base metals",
+   "unit": "$/t",
+   "sources": {
+    "te": "nickel",
+    "fred": "PNICKUSDM"
+   },
+   "cost": [
+    "Stainless steel makers",
+    "EV battery cell makers (NMC chemistry)",
+    "Alloys & aerospace"
+   ],
+   "revenue": [
+    "Nickel miners (Indonesia, Philippines, Russia, Canada)",
+    "Nickel refiners"
+   ],
+   "note": "Stainless is the bigger buyer; the battery narrative moves the price more than the tonnage justifies.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "lead",
+   "label": "Lead",
+   "group": "Base metals",
+   "unit": "$/t",
+   "sources": {
+    "te": "lead",
+    "fred": "PLEADUSDM"
+   },
+   "cost": [
+    "Lead-acid battery makers (auto, inverter, telecom)",
+    "Cable sheathing"
+   ],
+   "revenue": [
+    "Lead miners & smelters",
+    "Battery recyclers"
+   ],
+   "note": "Battery makers price on a formula, so the cost is passed on within a quarter unless competition breaks the formula.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "tin",
+   "label": "Tin",
+   "group": "Base metals",
+   "unit": "$/t",
+   "sources": {
+    "te": "tin",
+    "fred": "PTINUSDM"
+   },
+   "cost": [
+    "Electronics assembly (solder)",
+    "Tinplate packaging",
+    "Chemicals"
+   ],
+   "revenue": [
+    "Tin miners (Indonesia, Myanmar, Peru, Congo)"
+   ],
+   "note": "Solder is a tiny share of an electronics bill of materials; the price matters to miners, not to buyers.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "ironore",
+   "label": "Iron ore (62% Fe)",
+   "group": "Base metals",
+   "unit": "$/t",
+   "sources": {
+    "te": "iron-ore",
+    "fred": "PIORECRUSDM"
+   },
+   "cost": [
+    "Steel makers (non-integrated)",
+    "Pellet & sponge iron makers"
+   ],
+   "revenue": [
+    "Iron ore miners",
+    "Steel makers with captive mines",
+    "Dry-bulk shipping"
+   ],
+   "note": "Who owns the mine decides the sign: an integrated steel maker with captive ore is a beneficiary, a converter without one is squeezed.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "steel_cn",
+   "label": "Steel (China HRC)",
+   "group": "Base metals",
+   "unit": "CNY/t",
+   "sources": {
+    "te": "steel"
+   },
+   "cost": [
+    "Autos",
+    "Construction & real estate",
+    "Capital goods & machinery",
+    "Shipbuilding",
+    "Consumer durables",
+    "Pipes & tubes"
+   ],
+   "revenue": [
+    "Steel makers",
+    "Steel traders & service centres (inventory gain)"
+   ],
+   "note": "China sets the marginal price for Asia; Indian steel prices trade at a premium set by import parity and duties, so check the landed price, not only Shanghai."
+  },
+  {
+   "id": "lithium",
+   "label": "Lithium carbonate",
+   "group": "Base metals",
+   "unit": "CNY/t",
+   "sources": {
+    "te": "lithium"
+   },
+   "cost": [
+    "EV battery cell makers",
+    "EV makers",
+    "Energy-storage integrators",
+    "Consumer electronics"
+   ],
+   "revenue": [
+    "Lithium miners & brine producers",
+    "Lithium refiners"
+   ],
+   "note": "Cell makers pass most of it through on indexed contracts; the EV maker with a fixed-price sales list eats the residual."
+  },
+  {
+   "id": "cobalt",
+   "label": "Cobalt",
+   "group": "Base metals",
+   "unit": "$/t",
+   "sources": {
+    "te": "cobalt"
+   },
+   "cost": [
+    "EV battery cell makers (NMC)",
+    "Superalloys (aerospace)",
+    "Consumer electronics"
+   ],
+   "revenue": [
+    "Cobalt miners (Congo, Indonesia)",
+    "Cobalt refiners (China)"
+   ],
+   "note": "Supply is Congo policy; a price spike is usually an export decision, not demand."
+  },
+  {
+   "id": "gold",
+   "label": "Gold",
+   "group": "Precious",
+   "unit": "$/oz",
+   "sources": {
+    "yahoo": "GC=F"
+   },
+   "cost": [
+    "Jewellery retailers (inventory financing, demand elasticity)"
+   ],
+   "revenue": [
+    "Gold miners",
+    "Gold royalty & streaming companies",
+    "Gold loan lenders (LTV cushion, a rise helps)",
+    "Central banks (reserves)"
+   ],
+   "note": "Miners are levered to the price through fixed costs; a jeweller's margin is on making charges, so a rise mostly hurts volumes and helps inventory value."
+  },
+  {
+   "id": "silver",
+   "label": "Silver",
+   "group": "Precious",
+   "unit": "$/oz",
+   "sources": {
+    "yahoo": "SI=F"
+   },
+   "cost": [
+    "Solar cell makers (paste)",
+    "Electronics",
+    "Jewellery & silverware"
+   ],
+   "revenue": [
+    "Silver miners",
+    "Base-metal miners (by-product credit)"
+   ],
+   "note": "Half industrial, half monetary; solar paste demand is the marginal industrial buyer."
+  },
+  {
+   "id": "platinum",
+   "label": "Platinum",
+   "group": "Precious",
+   "unit": "$/oz",
+   "sources": {
+    "yahoo": "PL=F"
+   },
+   "cost": [
+    "Auto catalysts (diesel)",
+    "Jewellery",
+    "Glass & chemicals catalysts",
+    "Hydrogen electrolysers"
+   ],
+   "revenue": [
+    "PGM miners (South Africa, Russia)"
+   ],
+   "note": "Diesel share of autos drives it; the electrolyser story is future demand, not present."
+  },
+  {
+   "id": "palladium",
+   "label": "Palladium",
+   "group": "Precious",
+   "unit": "$/oz",
+   "sources": {
+    "yahoo": "PA=F"
+   },
+   "cost": [
+    "Auto catalysts (petrol)",
+    "Electronics"
+   ],
+   "revenue": [
+    "PGM miners (Russia, South Africa)"
+   ],
+   "note": "Pure petrol-car catalyst metal; EV penetration is the structural bear case."
+  },
+  {
+   "id": "wheat",
+   "label": "Wheat (CBOT)",
+   "group": "Ags & softs",
+   "unit": "USc/bu",
+   "sources": {
+    "yahoo": "ZW=F",
+    "fred": "PWHEAMTUSDM"
+   },
+   "cost": [
+    "Flour millers",
+    "Bakery & biscuits",
+    "Packaged foods",
+    "Pasta & noodles",
+    "Animal feed"
+   ],
+   "revenue": [
+    "Grain traders (volatility)",
+    "Farm equipment (farm income)",
+    "Fertiliser & seed (farm income)"
+   ],
+   "note": "Packaged-food makers pass it through with a two-quarter lag and usually keep the price when wheat falls back.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "corn",
+   "label": "Corn",
+   "group": "Ags & softs",
+   "unit": "USc/bu",
+   "sources": {
+    "yahoo": "ZC=F",
+    "fred": "PMAIZMTUSDM"
+   },
+   "cost": [
+    "Poultry & livestock (feed)",
+    "Ethanol producers",
+    "Starch & sweetener makers",
+    "Packaged foods"
+   ],
+   "revenue": [
+    "Grain traders",
+    "Farm equipment",
+    "Fertiliser & seed"
+   ],
+   "note": "Feed is the biggest use; poultry margins move inversely with corn and soymeal.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "soybeans",
+   "label": "Soybeans",
+   "group": "Ags & softs",
+   "unit": "USc/bu",
+   "sources": {
+    "yahoo": "ZS=F",
+    "fred": "PSOYBUSDM"
+   },
+   "cost": [
+    "Poultry & livestock (soymeal feed)",
+    "Edible oil refiners",
+    "Packaged foods"
+   ],
+   "revenue": [
+    "Crushers (crush margin)",
+    "Grain traders",
+    "Farm equipment"
+   ],
+   "note": "Crushers earn the spread between beans and meal plus oil; the level matters less than the crush margin.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "soyoil",
+   "label": "Soybean oil",
+   "group": "Ags & softs",
+   "unit": "USc/lb",
+   "sources": {
+    "yahoo": "ZL=F"
+   },
+   "cost": [
+    "Edible oil refiners & packers",
+    "Packaged foods & snacks",
+    "Restaurants"
+   ],
+   "revenue": [
+    "Soybean crushers",
+    "Renewable diesel feedstock sellers"
+   ],
+   "note": "Competes with palm oil; the palm-soy spread decides which importer switches."
+  },
+  {
+   "id": "palmoil",
+   "label": "Palm oil (Malaysia)",
+   "group": "Ags & softs",
+   "unit": "MYR/t",
+   "sources": {
+    "te": "palm-oil",
+    "fred": "PPOILUSDM"
+   },
+   "cost": [
+    "Edible oil refiners & packers",
+    "Packaged foods & snacks",
+    "Soaps & personal care (oleochemicals)",
+    "Biodiesel blenders"
+   ],
+   "revenue": [
+    "Palm plantations & oil palm mills",
+    "Oleochemical producers"
+   ],
+   "note": "The largest edible oil import for India; consumer-staples margins in India move with it, with a one-quarter lag.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "rice",
+   "label": "Rough rice",
+   "group": "Ags & softs",
+   "unit": "$/cwt",
+   "sources": {
+    "yahoo": "ZR=F",
+    "fred": "PRICENPQUSDM"
+   },
+   "cost": [
+    "Rice millers & exporters (procurement)",
+    "Packaged foods"
+   ],
+   "revenue": [
+    "Basmati exporters (India, Pakistan)",
+    "Farm equipment"
+   ],
+   "note": "Export policy moves it more than weather; India's export bans and duties are the swing factor.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "sugar",
+   "label": "Sugar (No. 11)",
+   "group": "Ags & softs",
+   "unit": "USc/lb",
+   "sources": {
+    "yahoo": "SB=F",
+    "fred": "PSUGAISAUSDM"
+   },
+   "cost": [
+    "Confectionery & beverages",
+    "Packaged foods",
+    "Bakery"
+   ],
+   "revenue": [
+    "Sugar mills",
+    "Ethanol (sugar-based) producers",
+    "Sugar-exporting sovereigns (Brazil, India)"
+   ],
+   "note": "Indian mills sell at a government-set minimum, so the world price matters to them mainly through export quotas.",
+   "fred_unit": "USc/lb"
+  },
+  {
+   "id": "coffee",
+   "label": "Coffee (Arabica)",
+   "group": "Ags & softs",
+   "unit": "USc/lb",
+   "sources": {
+    "yahoo": "KC=F",
+    "fred": "PCOFFOTMUSDM"
+   },
+   "cost": [
+    "Coffee chains & cafes",
+    "Packaged coffee brands",
+    "Food service"
+   ],
+   "revenue": [
+    "Coffee growers & estates",
+    "Instant coffee exporters (cost-plus, volume not price)"
+   ],
+   "note": "Cafes hedge a year out, so a spike hits their P&L two to four quarters later.",
+   "fred_unit": "USc/lb"
+  },
+  {
+   "id": "cocoa",
+   "label": "Cocoa",
+   "group": "Ags & softs",
+   "unit": "$/t",
+   "sources": {
+    "yahoo": "CC=F",
+    "fred": "PCOCOUSDM"
+   },
+   "cost": [
+    "Chocolate & confectionery makers",
+    "Packaged foods"
+   ],
+   "revenue": [
+    "Cocoa growers (Ivory Coast, Ghana)",
+    "Cocoa processors (grind margin)"
+   ],
+   "note": "Confectioners shrink the bar before they raise the price; watch volume, not just gross margin.",
+   "fred_unit": "$/t"
+  },
+  {
+   "id": "cotton",
+   "label": "Cotton",
+   "group": "Ags & softs",
+   "unit": "USc/lb",
+   "sources": {
+    "yahoo": "CT=F",
+    "fred": "PCOTTINDUSDM"
+   },
+   "cost": [
+    "Spinning mills",
+    "Textiles & apparel makers",
+    "Home textiles",
+    "Apparel brands"
+   ],
+   "revenue": [
+    "Cotton growers & ginners",
+    "Cotton-exporting sovereigns (US, Brazil, India)"
+   ],
+   "note": "Spinners carry three to six months of inventory; a fall after a spike is the dangerous leg because they are stuck with expensive cotton.",
+   "fred_unit": "USc/lb"
+  },
+  {
+   "id": "lumber",
+   "label": "Lumber",
+   "group": "Ags & softs",
+   "unit": "$/mbf",
+   "sources": {
+    "yahoo": "LBR=F"
+   },
+   "cost": [
+    "Homebuilders",
+    "Furniture makers",
+    "DIY & home improvement retail"
+   ],
+   "revenue": [
+    "Timber REITs",
+    "Sawmills & lumber producers"
+   ],
+   "note": "A US housing-starts proxy; homebuilders pass it through only in a strong market."
+  },
+  {
+   "id": "rubber",
+   "label": "Natural rubber",
+   "group": "Industrial inputs",
+   "unit": "USc/kg",
+   "sources": {
+    "te": "rubber",
+    "fred": "PRUBBUSDM"
+   },
+   "cost": [
+    "Tyre makers",
+    "Auto components (belts, hoses, seals)",
+    "Latex gloves & medical rubber",
+    "Footwear",
+    "Conveyor belts & industrial rubber goods"
+   ],
+   "revenue": [
+    "Rubber plantations (Thailand, Indonesia, Vietnam, Kerala)",
+    "Latex processors",
+    "Rubber-exporting sovereigns"
+   ],
+   "note": "Rubber is the largest single raw material for a tyre maker; the hit lands one to two quarters later, and only the maker with pricing power recovers it. The India domestic grade (RSS4) and the global benchmark can diverge for months.",
+   "fred_unit": "USc/lb"
+  },
+  {
+   "id": "synthetic_rubber",
+   "label": "Synthetic rubber",
+   "group": "Industrial inputs",
+   "unit": "CNY/t",
+   "sources": {
+    "te": "synthetic-rubber"
+   },
+   "cost": [
+    "Tyre makers",
+    "Auto components",
+    "Adhesives & sealants",
+    "Footwear"
+   ],
+   "revenue": [
+    "Petrochemical producers (SBR, PBR)",
+    "Butadiene producers"
+   ],
+   "note": "Tracks butadiene and therefore crude; when natural and synthetic rise together the tyre maker has no substitution escape."
+  },
+  {
+   "id": "urea",
+   "label": "Urea",
+   "group": "Industrial inputs",
+   "unit": "$/t",
+   "sources": {
+    "te": "urea"
+   },
+   "cost": [
+    "Farmers (farm income)",
+    "Fertiliser importers",
+    "Subsidy-paying sovereigns (India)",
+    "Fertiliser makers on imported gas (margin is the subsidy formula)"
+   ],
+   "revenue": [
+    "Urea producers (gas-advantaged: Middle East, US, Russia)",
+    "Ammonia producers"
+   ],
+   "note": "In India the farmer price is fixed, so a rise in world urea is a fiscal subsidy cost, not a company cost; the producer with cheap gas wins."
+  },
+  {
+   "id": "polypropylene",
+   "label": "Polypropylene",
+   "group": "Industrial inputs",
+   "unit": "CNY/t",
+   "sources": {
+    "te": "polypropylene"
+   },
+   "cost": [
+    "Plastics packaging",
+    "Auto components (interiors)",
+    "Consumer durables & appliances",
+    "Textiles (non-wovens)",
+    "Pipes & fittings"
+   ],
+   "revenue": [
+    "Petrochemical crackers",
+    "Refiners with polymer integration"
+   ],
+   "note": "Converters pass it through monthly on a formula; the margin risk is a sharp reversal on inventory."
+  },
+  {
+   "id": "methanol",
+   "label": "Methanol",
+   "group": "Industrial inputs",
+   "unit": "CNY/t",
+   "sources": {
+    "te": "methanol"
+   },
+   "cost": [
+    "Formaldehyde & resin makers (plywood, laminates)",
+    "Acetic acid & solvents",
+    "Olefins via MTO (China)",
+    "Biodiesel"
+   ],
+   "revenue": [
+    "Methanol producers (gas or coal based)"
+   ],
+   "note": "A coal and gas derivative; China's MTO plants set the marginal demand."
+  },
+  {
+   "id": "naphtha",
+   "label": "Naphtha",
+   "group": "Industrial inputs",
+   "unit": "$/t",
+   "sources": {
+    "te": "naphtha"
+   },
+   "cost": [
+    "Petrochemical crackers (Asia, feedstock)",
+    "Fertiliser (naphtha-based)",
+    "Solvents & paints"
+   ],
+   "revenue": [
+    "Refiners (naphtha yield)",
+    "Condensate producers"
+   ],
+   "note": "The Asian cracker feedstock; a naphtha spike with flat polymer prices is a direct margin squeeze on non-integrated chemical makers."
+  },
+  {
+   "id": "ethanol",
+   "label": "Ethanol",
+   "group": "Industrial inputs",
+   "unit": "$/gal",
+   "sources": {
+    "te": "ethanol"
+   },
+   "cost": [
+    "Fuel blenders",
+    "Beverage & industrial alcohol users",
+    "Chemicals (ethyl acetate)"
+   ],
+   "revenue": [
+    "Ethanol producers (corn, sugarcane, grain)",
+    "Sugar mills with distilleries"
+   ],
+   "note": "In India the blending price is administered; the world price matters to exporters and to the corn-versus-sugar feedstock choice."
+  },
+  {
+   "id": "baltic",
+   "label": "Baltic Dry Index",
+   "group": "Freight",
+   "unit": "index",
+   "sources": {
+    "te": "baltic"
+   },
+   "cost": [
+    "Steel makers (ore & coal freight)",
+    "Grain importers",
+    "Cement & fertiliser importers"
+   ],
+   "revenue": [
+    "Dry-bulk shipowners",
+    "Ship lessors",
+    "Shipbuilders (with a long lag)"
+   ],
+   "note": "A demand-for-raw-materials read: iron ore, coal and grain tonnage. It leads industrial commodity prices by weeks when the move is real."
+  },
+  {
+   "id": "heating_oil",
+   "label": "Heating oil (diesel proxy)",
+   "group": "Energy",
+   "unit": "$/gal",
+   "sources": {
+    "yahoo": "HO=F"
+   },
+   "cost": [
+    "Road logistics",
+    "Railways & trucking",
+    "Farmers (diesel)",
+    "Airlines (jet fuel tracks it)",
+    "Mining & construction fleets"
+   ],
+   "revenue": [
+    "Refiners (diesel crack)"
+   ],
+   "note": "Diesel and jet fuel price off this distillate crack, not off crude alone; a wide crack with flat crude is a refiner's quarter and a trucker's problem."
+  },
+  {
+   "id": "carbon_eu",
+   "label": "EU carbon permits",
+   "group": "Energy",
+   "unit": "EUR/t",
+   "sources": {
+    "te": "carbon"
+   },
+   "cost": [
+    "European heavy industry (steel, cement, chemicals)",
+    "Exporters to the EU under CBAM (steel, aluminium, cement, fertiliser)",
+    "European utilities (coal & gas)"
+   ],
+   "revenue": [
+    "Renewable generators (Europe)",
+    "Nuclear generators (Europe)"
+   ],
+   "note": "From 2026 the EU's border levy (CBAM) prices this into Indian steel and aluminium exports to Europe; the permit price is the levy rate."
+  },
+  {
+   "id": "coking_coal",
+   "label": "Coking coal (Australia)",
+   "group": "Base metals",
+   "unit": "$/t",
+   "sources": {
+    "te": "coking-coal"
+   },
+   "cost": [
+    "Steel makers",
+    "Coke makers"
+   ],
+   "revenue": [
+    "Coking coal miners (Australia, US, Mozambique)",
+    "Dry-bulk shipping"
+   ],
+   "note": "The single largest imported input for Indian blast-furnace steel; India imports most of its metallurgical coal, mainly from Australia. Lands in steel cost with a one-quarter lag through inventory."
+  },
+  {
+   "id": "hrc_us",
+   "label": "Steel (US Midwest HRC)",
+   "group": "Base metals",
+   "unit": "$/t",
+   "sources": {
+    "yahoo": "HRC=F"
+   },
+   "cost": [
+    "Autos",
+    "Construction",
+    "Capital goods & machinery",
+    "Appliances",
+    "Pipes & tubes"
+   ],
+   "revenue": [
+    "Steel makers",
+    "Steel service centres"
+   ],
+   "note": "The tariff-protected US price; the gap to China HRC is the tariff wall and the export opportunity for everyone outside it."
+  },
+  {
+   "id": "tea_in",
+   "label": "Tea (India auction)",
+   "group": "Ags & softs",
+   "unit": "INR/kg",
+   "sources": {
+    "te": "tea"
+   },
+   "cost": [
+    "Packaged tea brands"
+   ],
+   "revenue": [
+    "Tea estates (Assam, Darjeeling, Kenya)"
+   ],
+   "note": "An Indian auction price in rupees; packaged brands pass it through slowly and estates take it at once."
+  },
+  {
+   "id": "sunflower_oil",
+   "label": "Sunflower oil",
+   "group": "Ags & softs",
+   "unit": "INR/10kg",
+   "sources": {
+    "te": "sunflower-oil",
+    "fred": "PSUNOUSDM"
+   },
+   "fred_unit": "$/t",
+   "cost": [
+    "Edible oil refiners & packers",
+    "Packaged foods & snacks"
+   ],
+   "revenue": [
+    "Sunflower growers & crushers (Ukraine, Russia, Argentina)"
+   ],
+   "note": "India's second imported edible oil after palm; Black Sea supply sets it. The palm-sunflower spread decides which one the Indian refiner buys."
+  },
+  {
+   "id": "soymeal",
+   "label": "Soybean meal",
+   "group": "Ags & softs",
+   "unit": "$/short ton",
+   "sources": {
+    "yahoo": "ZM=F"
+   },
+   "cost": [
+    "Poultry & livestock (feed)",
+    "Aquaculture feed"
+   ],
+   "revenue": [
+    "Soybean crushers",
+    "Soymeal exporters"
+   ],
+   "note": "Feed is two-thirds of a poultry producer's cost and soymeal is the protein half of feed; corn is the other half."
+  },
+  {
+   "id": "bitumen",
+   "label": "Bitumen",
+   "group": "Industrial inputs",
+   "unit": "CNY/t",
+   "sources": {
+    "te": "bitumen"
+   },
+   "cost": [
+    "Road builders & infrastructure contractors",
+    "Roofing"
+   ],
+   "revenue": [
+    "Refiners (bottom of the barrel)"
+   ],
+   "note": "Road contracts in India carry a price-variation clause that lags by a quarter or more; the contractor eats the gap."
+  },
+  {
+   "id": "pulp",
+   "label": "Kraft pulp",
+   "group": "Industrial inputs",
+   "unit": "CNY/t",
+   "sources": {
+    "te": "kraft-pulp"
+   },
+   "cost": [
+    "Paper & packaging makers (non-integrated)",
+    "Tissue makers"
+   ],
+   "revenue": [
+    "Pulp producers (Brazil, Canada, Nordics)",
+    "Integrated paper makers with own pulp"
+   ],
+   "note": "Who owns the pulp mill decides the sign, same as iron ore for steel."
+  },
+  {
+   "id": "usdinr",
+   "label": "USD/INR",
+   "group": "Currency",
+   "unit": "₹ per $",
+   "sources": {
+    "yahoo": "USDINR=X"
+   },
+   "cost": [
+    "Importers of dollar-priced inputs (every commodity above, in rupee terms)",
+    "Airlines (dollar leases and fuel)",
+    "Oil refiners & fertiliser importers",
+    "Borrowers in dollars"
+   ],
+   "revenue": [
+    "IT services exporters",
+    "Pharma exporters",
+    "Textile & apparel exporters",
+    "Auto-component exporters"
+   ],
+   "note": "A rise here is a weaker rupee. It multiplies every dollar commodity on this board for an Indian buyer, so a flat crude price with a 5% weaker rupee is a 5% fuel-cost rise."
+  },
+  {
+   "id": "usdcny",
+   "label": "USD/CNY",
+   "group": "Currency",
+   "unit": "¥ per $",
+   "sources": {
+    "yahoo": "CNY=X"
+   },
+   "cost": [
+    "Indian makers competing with Chinese imports (steel, chemicals, solar modules, electronics)",
+    "Chinese importers of dollar-priced commodities"
+   ],
+   "revenue": [
+    "Chinese exporters"
+   ],
+   "note": "A rise is a weaker yuan, which makes Chinese steel, chemicals and modules cheaper on Indian shores; the China-priced cards above (steel, lithium, polypropylene, methanol) read in this currency."
+  }
+ ]
+}

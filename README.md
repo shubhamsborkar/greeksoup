@@ -1,6 +1,6 @@
 # One-person equity research desk
 
-A research desk that runs on your own computer: twelve screens with your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, and a page for any ticker, priced live. It reads your broker, the public record (SEC EDGAR, CBOE, FINRA, FRED) and one optional data feed, and it opens as a tab inside Obsidian or in any browser.
+A research desk that runs on your own computer: thirteen screens with your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a commodity board that names the industries each move squeezes or helps, and a page for any ticker, priced live. It reads your broker, the public record (SEC EDGAR, CBOE, FINRA, FRED) and one optional data feed, and it opens as a tab inside Obsidian or in any browser.
 
 You do not write any of it. An AI coding agent (Claude Code, Codex, Kimi Code or Grok Build) installs it, connects it to your broker and changes it when you ask. This is the whole desk from the newsletter edition [How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity), without the author's positions. The screenshots there show the author's own copy.
 
@@ -75,7 +75,7 @@ The desk has two account screens, and they are built differently on purpose.
 
 So a reader in the US uses Desk · US and never opens Home. A reader in Australia has the agent write an ASX broker adapter for Home and uses Desk · US as shipped. A reader in India runs both as they are.
 
-## The twelve screens
+## The thirteen screens
 
 - **Desk · Home** and **Desk · US**: above.
 - **Risk**: beta, volatility, worst drawdown and correlation for every book against its index, leverage at underlying notional, margin cushion, a 5 percent stress line, sector concentration.
@@ -86,11 +86,22 @@ So a reader in the US uses Desk · US and never opens Home. A reader in Australi
 - **Short**: FINRA short interest and the daily short-volume ratio, kept apart.
 - **Capitol**: Senate and House trading disclosures on your names, plus members you track.
 - **Chain**: a value-chain map, receipt-graded and priced live.
+- **Commodities**: 51 commodities in seven groups, from crude and copper to rubber, coking coal, palm oil, tea and the dollar against the rupee and the yuan, each with the level, five change windows and the distance from its five-year high. Click one and it shows the industries a rise squeezes and the industries it helps, the same in any country, and under each industry the listed names you have mapped to it, priced live, with the raw-material share from their own filings. A names-under-pressure panel adds up every commodity a name sits on and ranks who is squeezed and who is helped this month. It ships with the US names; you add your own market in one file (below).
 - **Any ticker**: Cmd+K, type a symbol: chart, valuation, quality, estimates, insiders, dividends, news, and with a feed key six years of statements, ratios, segments, peers and a DCF sandbox.
 
 ## What runs with no key at all
 
-With no broker key and no feed key the desk still starts, and ten of the twelve screens are live: Desk · US, Watch · US, Global, Risk, Macro, Funds, Flow, Short, Capitol, Chain, and the ticker page's chart, quote, ratios and insider table. The broker key lights up Desk · Home and Watch · Home. The feed key adds the parsed statements, ratio history, segments, estimates, peers, dividends and news on the ticker page, the 50 and 200 day columns on the US watch grid, a market-wide insider scan, and cleaner Congress rows.
+With no broker key and no feed key the desk still starts, and eleven of the thirteen screens are live: Desk · US, Watch · US, Global, Risk, Macro, Funds, Flow, Short, Capitol, Chain, Commodities, and the ticker page's chart, quote, ratios and insider table. The broker key lights up Desk · Home and Watch · Home. The feed key adds the parsed statements, ratio history, segments, estimates, peers, dividends and news on the ticker page, the 50 and 200 day columns on the US watch grid, a market-wide insider scan, and cleaner Congress rows.
+
+## Your own market on the Commodities screen
+
+The commodity board is the same everywhere: crude squeezes airlines and helps oil producers whether you are in Toronto or Chennai. What differs is the names. The desk ships `data/exposure_us.json`, the US names behind those industries, and `data/exposure_example.json`, a template for any other market. To add yours, open the desk folder in your agent and paste:
+
+```
+Read data/commodities.json and data/exposure_example.json. Build data/exposure_<my market>.json for the companies I follow in <my market>, one commodity at a time, from each company's latest annual report and results: the industry each name belongs to, the commodities it attaches to, its raw-material share of revenue with the document it came from, how long a commodity move takes to reach its margin, and what the company itself has said about passing costs on. Leave the figure empty where you cannot find a filing, never guess one.
+```
+
+The desk reads every `data/exposure_*.json` on the next rebuild. The figures in these files are annual and quarterly numbers, so refresh them once a quarter after results, with the same prompt.
 
 ## Changing it
 

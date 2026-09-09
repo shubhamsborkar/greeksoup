@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Commodities — Research Desk</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23ED5A24'/><text x='16' y='22' font-size='15' font-weight='800' font-family='Arial' fill='white' text-anchor='middle'>FD</text></svg>">
+<link rel="stylesheet" href="/assets/desk.css">
+<script src="/assets/desk.js" defer></script>
+<style>
+body{padding-bottom:50px}
+main{max-width:1420px;margin:0 auto;padding:20px 22px}
+.sub{color:var(--muted);font-size:12px;margin-bottom:16px;line-height:1.5}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.toolbar input{background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:8px;
+  padding:7px 12px;font-size:12.5px;width:280px}
+.toolbar .cnt{color:var(--muted);font-size:11px}
+h2.grp{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink2);
+  margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;
+  cursor:pointer;transition:border-color .15s;position:relative}
+.card:hover{border-color:var(--line2)}
+.card .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink2);display:flex;gap:8px;align-items:center}
+.card .row{display:flex;align-items:baseline;gap:8px;margin-top:7px;flex-wrap:wrap}
+.card .v{font-size:21px;font-weight:800}
+.card .u{font-size:11px;color:var(--muted)}
+.card .d{font-size:12px;font-weight:700;margin-left:auto}
+.chips{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.chip{font-size:10px;font-weight:700;border-radius:5px;padding:2px 6px;background:var(--panel2);color:var(--muted);
+  font-family:Menlo,monospace;letter-spacing:.02em}
+.chip b{font-weight:600;color:var(--muted);margin-right:3px}
+.chip.pos{color:var(--pos)} .chip.neg{color:var(--neg)}
+.peak{font-size:10.5px;color:var(--muted);margin-top:8px;font-family:Menlo,monospace}
+.peak .at{color:var(--accent);font-weight:800}
+.peak .near{color:#e8a13c;font-weight:700}
+.card .meta{font-size:10px;color:var(--muted);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .loc{font-size:10.5px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-family:Menlo,monospace;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .loc .k{color:var(--accent);font-weight:800;font-size:9px;letter-spacing:.08em;margin-right:5px}
+.card .nn{font-size:9.5px;color:var(--muted);margin-left:auto;font-weight:600;letter-spacing:.04em;text-transform:none}
+.map ul.nm{list-style:none;padding-left:0;margin:4px 0 8px}
+.map ul.nm li{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 9px;margin:4px 0;font-size:11.5px;line-height:1.45}
+.map ul.nm .hd{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.map ul.nm .hd b{font-size:12px}
+.map ul.nm .hd .cd{font-family:Menlo,monospace;color:var(--muted);font-size:10.5px}
+.map ul.nm .hd .px{margin-left:auto;font-family:Menlo,monospace;font-size:11px}
+.map ul.nm .int{color:var(--ink2);margin-top:3px}
+.map ul.nm .src{color:var(--muted);font-size:10px;margin-top:2px}
+.map ul.nm .src.todo{color:#e8a13c}
+.map ul.nm .pp{color:var(--ink2);margin-top:3px;font-size:11px}
+.stat.loc{border:1px solid var(--accent)}
+.badge{font-size:9px;font-weight:800;border-radius:4px;padding:1.5px 5px;letter-spacing:.06em}
+.badge.stale{background:rgba(241,100,114,.14);color:var(--neg)}
+.badge.mo{background:rgba(91,184,212,.13);color:#5bb8d4}
+.pos{color:var(--pos)} .neg{color:var(--neg)} .dim{color:var(--muted)}
+.loading{padding:60px;text-align:center;color:var(--muted)}
+/* movers */
+.movers{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:13px;margin-bottom:8px}
+.mv{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 14px}
+.mv h3{margin:0 0 8px;font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2)}
+.mv .r{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:12px}
+.mv .r:last-child{border-bottom:none}
+.mv .r:hover{color:var(--accent)}
+.mv .r .p{margin-left:auto;font-family:Menlo,monospace;font-weight:700;font-size:11.5px}
+.mv .bar{height:3px;border-radius:2px;flex:0 0 auto;opacity:.75}
+.nearpk{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
+.nearpk .pk{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:11.5px;cursor:pointer}
+.nearpk .pk:hover{border-color:var(--accent)}
+.nearpk .pk b{color:var(--accent)}
+.nearpk .pk .m{color:var(--muted);font-family:Menlo,monospace;font-size:10.5px;margin-left:6px}
+/* names under pressure */
+.press{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media (max-width:820px){.press{grid-template-columns:1fr}}
+.press .col{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 14px}
+.press h3{margin:0 0 8px;font-size:10.5px;text-transform:uppercase;letter-spacing:.12em}
+.press h3.sq{color:var(--neg)} .press h3.hp{color:var(--pos)}
+.press .r{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);cursor:pointer;flex-wrap:wrap}
+.press .r:last-child{border-bottom:none}
+.press .r:hover .nm{color:var(--accent)}
+.press .r .nm{font-weight:700;font-size:12.5px}
+.press .r .cd{font-family:Menlo,monospace;color:var(--muted);font-size:10.5px}
+.press .r .px{font-family:Menlo,monospace;font-size:11px;color:var(--ink2)}
+.press .r .net{margin-left:auto;font-family:Menlo,monospace;font-weight:800;font-size:12px}
+.press .parts{flex-basis:100%;display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
+.pc{font-size:10px;font-family:Menlo,monospace;border-radius:5px;padding:2px 6px;background:var(--panel2);color:var(--muted)}
+.pc.sq{color:var(--neg)} .pc.hp{color:var(--pos)}
+.press .hint{color:var(--muted);font-size:10.5px;margin-top:8px;line-height:1.45}
+/* the cross-card line under a name in the modal */
+.map ul.nm .also{margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.map ul.nm .also .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.map ul.nm .also .pc{cursor:pointer}
+.map ul.nm .also .pc:hover{border:1px solid var(--accent);padding:1px 5px}
+.netc{font-size:10px;font-family:Menlo,monospace;font-weight:800;border-radius:5px;padding:2px 7px;margin-left:auto}
+.netc.sq{background:rgba(241,100,114,.14);color:var(--neg)} .netc.hp{background:rgba(66,196,131,.14);color:var(--pos)}
+footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:11px;line-height:1.6}
+/* modal */
+#modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(6,8,11,.82);
+  backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:24px;overflow:auto}
+#modal .box{background:var(--panel);border:1px solid var(--line2);border-radius:14px;
+  width:min(1000px,100%);padding:18px 22px 22px;max-height:calc(100vh - 48px);overflow:auto}
+#modal .head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;flex-wrap:wrap}
+#modal .head .t{font-size:15px;font-weight:800}
+#modal .head .lv{font-size:15px;font-weight:700}
+#modal .head .close{margin-left:auto;cursor:pointer;color:var(--muted);font-size:20px;border:none;background:none;padding:2px 8px}
+#modal .head .close:hover{color:var(--neg)}
+.ranges{display:flex;gap:6px;margin:6px 0 10px;align-items:center}
+.ranges button{background:var(--panel2);color:var(--ink2);border:1px solid var(--line2);border-radius:6px;padding:3px 12px;font-size:11px;cursor:pointer}
+.ranges button.on{color:var(--ink);border-color:var(--accent)}
+.ranges .src{margin-left:auto;color:var(--muted);font-size:10.5px}
+#bigchart{width:100%}
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+.stat{background:var(--panel2);border-radius:9px;padding:9px 12px}
+.stat .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.stat .n{font-size:14px;font-weight:800;margin-top:3px;font-family:Menlo,monospace}
+.stat .s{font-size:10px;color:var(--muted);margin-top:2px}
+.map{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+@media (max-width:720px){.map{grid-template-columns:1fr}}
+.map .col{background:var(--panel2);border-radius:10px;padding:11px 14px}
+.map h4{margin:0 0 7px;font-size:10.5px;text-transform:uppercase;letter-spacing:.12em}
+.map h4.cost{color:var(--neg)} .map h4.rev{color:var(--pos)}
+.map ul{margin:0;padding-left:16px;font-size:12.5px;line-height:1.6}
+.map .empty{color:var(--muted);font-size:12px}
+.note{margin-top:12px;font-size:12.5px;line-height:1.55;color:var(--ink2);border-left:3px solid var(--accent);padding:6px 12px}
+.nochart{padding:28px;text-align:center;color:var(--muted);font-size:12px;background:var(--panel2);border-radius:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">RESEARCH <span>DESK</span></div>
+  <nav></nav>
+  <div class="right"><span id="asof"></span></div>
+</header>
+<main>
+  <div class="sub">Forty commodities, grouped the way an income statement meets them. Level, five change
+  windows, and the distance from the five-year high so nobody has to remember an old peak by eye.
+  <b style="color:var(--ink2)">Click any card for the full history and the industries it squeezes or helps.</b>
+  Exchange contracts price live from Yahoo; benchmarks without a contract (rubber, zinc, urea, freight)
+  carry Trading Economics' daily read, with FRED's monthly IMF series for the long chart.</div>
+
+  <h2 class="grp" style="margin-top:0">Movers</h2>
+  <div class="movers" id="movers"><div class="loading" style="padding:24px">Loading…</div></div>
+  <div class="nearpk" id="nearpk"></div>
+
+  <h2 class="grp">Names under commodity pressure · this month</h2>
+  <div class="press" id="press"></div>
+
+  <div class="toolbar" style="margin-top:18px">
+    <input id="q" placeholder="filter: copper, tyre makers, airlines, energy…" autocomplete="off">
+    <span class="cnt" id="cnt"></span>
+  </div>
+  <div id="cards"><div class="loading">Loading the board…</div></div>
+</main>
+<footer>Read-only reference. Universal layer only: each card names the industries a move squeezes or helps, in any
+country. The names behind an industry, their raw-material share and their pricing power come from each company's
+own filings and live in the market exposure files, not here. A price move is never the trade; the pass-through lag
+and pricing power are.</footer>
+
+<div id="modal"><div class="box">
+  <div class="head"><span class="t" id="m_title"></span><span class="lv mono" id="m_val"></span>
+    <button class="close" id="m_close" title="Close (Esc)">×</button></div>
+  <div class="ranges" id="m_ranges"></div>
+  <div id="bigchart"></div>
+  <div class="statrow" id="m_stats"></div>
+  <div class="map">
+    <div class="col"><h4 class="cost">Squeezed by a rise (they buy it)</h4><ul id="m_cost"></ul></div>
+    <div class="col"><h4 class="rev">Helped by a rise (they sell it)</h4><ul id="m_rev"></ul></div>
+  </div>
+  <div class="note" id="m_note"></div>
+</div></div>
+
+<script>
+"use strict";
+let DATA=null, CARDS=[];
+const fmtN=v=>{ if(v==null)return "—"; const a=Math.abs(v);
+  const dp=a<10?2:(a<1000?2:0); return v.toLocaleString("en-US",{minimumFractionDigits:dp,maximumFractionDigits:dp}); };
+const pct=(p,dp=1)=>p==null?"—":(p>=0?"+":"")+p.toFixed(dp)+"%";
+const cls=p=>p==null?"":(p>=0?"pos":"neg");
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let SPID=0;
+function spark(series,w=200,h=44){
+  if(!series||series.length<2)return "";
+  const min=Math.min(...series),max=Math.max(...series),span=(max-min)||1;
+  const xy=series.map((v,i)=>[i/(series.length-1)*w, h-4-((v-min)/span*(h-10))]);
+  const pts=xy.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+  const up=series[series.length-1]>=series[0];
+  const col=up?"var(--pos)":"var(--neg)"; const id="sg"+(++SPID); const [lx,ly]=xy[xy.length-1];
+  return `<svg width="${w}" height="${h}" style="width:100%;margin-top:8px" preserveAspectRatio="none" viewBox="0 0 ${w} ${h}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${col}" stop-opacity="0.30"/><stop offset="100%" stop-color="${col}" stop-opacity="0.02"/></linearGradient></defs>
+    <polygon class="anim-fade" points="0,${h} ${pts} ${w},${h}" fill="url(#${id})"/>
+    <polyline class="drawline" pathLength="1" points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+    <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2.4" fill="${col}"/></svg>`;
+}
+function peakLine(c){
+  const f=c.from_5y_high; if(f==null||!c.hi5y) return "";
+  const when=(c.hi5y.date||"").slice(0,7);
+  const mo=c.peak_basis==="monthly"?" <span class=\"badge mo\" title=\"five-year high read off the monthly IMF series (its own grade and unit), not the daily level above\">MONTHLY</span>":"";
+  const pu=c.peak_basis==="monthly"&&c.peak_unit?" "+esc(c.peak_unit):"";
+  if(f>=-1) return `<div class="peak"><span class="at">AT 5Y HIGH</span> ${fmtN(c.hi5y.v)}${pu} · ${when}${mo}</div>`;
+  const near=f>=-5?"near":"";
+  return `<div class="peak"><span class="${near}">${pct(f)}</span> vs 5Y high ${fmtN(c.hi5y.v)}${pu} (${when})${mo}</div>`;
+}
+function cardHtml(c){
+  const ch=c.chg||{};
+  const d1=ch["1d"]==null?"":`<span class="d ${cls(ch["1d"])}">${ch["1d"]>=0?"▲":"▼"} ${Math.abs(ch["1d"]).toFixed(2)}%</span>`;
+  const chips=["1w","1m","3m","1y"].filter(k=>ch[k]!=null).map(k=>`<span class="chip ${cls(ch[k])}"><b>${k.toUpperCase()}</b>${pct(ch[k])}</span>`).join("");
+  const stale=c.stale?`<span class="badge stale" title="the live source did not answer; showing the last good value">STALE</span>`:"";
+  const nn=(c.names||[]).length?`<span class="nn">${c.names.length} name${c.names.length>1?"s":""}</span>`:"";
+  const loc=(c.local||[]).map(l=>{
+    if(l.kind==="MCX") return `<div class="loc" title="front-month MCX future through the broker feed"><span class="k">MCX</span>${fmtN(l.level)} ${esc(l.unit)} <span class="${cls(l.day_pct)}">${pct(l.day_pct)}</span> · OI ${l.oi==null?"—":Number(l.oi).toLocaleString("en-IN")} · ${esc((l.ts||"").slice(5,16))}</div>`;
+    return `<div class="loc" title="the domestic grade Indian tyre makers buy"><span class="k">INDIA</span>Kottayam RSS4 ₹${fmtN(l.level)}/kg · ${fmtN(l.usc_per_kg)} USc/kg · ${esc((l.ts||"").slice(5))}${l.stale?' <span class="badge stale">STALE</span>':""}</div>`;
+  }).join("");
+  return `<div class="card" data-id="${c.id}" title="click for history and the exposure map">
+    <div class="l">${esc(c.label)}${stale}${nn}</div>
+    <div class="row"><span class="v mono">${fmtN(c.value)}</span><span class="u">${esc(c.unit)}</span>${d1}</div>
+    <div class="chips">${chips}</div>
+    ${peakLine(c)}
+    ${spark(c.spark)}
+    <div class="meta mono">${esc(c.src_live||c.src_hist||"")} · ${esc(c.date||"")}</div>${loc}</div>`;
+}
+function nmHtml(n){
+  const px=n.ltp!=null?`<span class="px">${n.ccy||""}${fmtN(n.ltp)} <span class="${cls(n.day_pct)}">${pct(n.day_pct)}</span></span>`:`<span class="px dim">no quote</span>`;
+  const src=n.intensity_source?`<div class="src">${esc(n.intensity_source)}${n.lag?" · lag "+esc(n.lag):""}</div>`:`<div class="src todo">figure not pulled from a filing yet${n.lag?" · lag "+esc(n.lag):""}</div>`;
+  const also=(n.also||[]).filter(p=>p.chg!=null);
+  const net=n.net==null?"":`<span class="netc ${n.net<0?"sq":"hp"}" title="net of all its commodities this month, unweighted">net ${n.net>0?"+":""}${n.net.toFixed(1)} this month</span>`;
+  const alsoHtml=(also.length||net)?`<div class="also">${also.length?`<span class="k">also on</span>${also.map(partChip).join("")}`:""}${net}</div>`:"";
+  return `<li><div class="hd"><b>${esc(n.label)}</b><span class="cd">${esc(n.code)} · ${n.region==="us"?"US":"IN"}</span>${px}</div>
+    ${n.intensity?`<div class="int">${esc(n.intensity)}</div>`:""}${src}
+    ${n.pricing_power?`<div class="pp">${esc(n.pricing_power)}</div>`:""}${n.note?`<div class="src">${esc(n.note)}</div>`:""}${alsoHtml}</li>`;
+}
+function colHtml(inds, names, side){
+  const used=new Set();
+  let html=(inds||[]).map(ind=>{
+    const ns=names.filter(n=>n.side===side&&(n.industry||"").toLowerCase()===ind.toLowerCase());
+    ns.forEach(n=>used.add(n));
+    return `<li>${esc(ind)}${ns.length?`<ul class="nm">${ns.map(nmHtml).join("")}</ul>`:""}</li>`;
+  }).join("");
+  const rest=names.filter(n=>n.side===side&&!used.has(n));
+  if(rest.length) html+=`<li>${rest.map(n=>esc(n.industry)).filter((v,i,a)=>a.indexOf(v)===i).join(", ")}<ul class="nm">${rest.map(nmHtml).join("")}</ul></li>`;
+  return html||`<li class="empty">none listed</li>`;
+}
+function render(){
+  const q=(document.getElementById("q").value||"").trim().toLowerCase();
+  const hit=c=>!q||[c.label,c.group,c.unit,...(c.cost||[]),...(c.revenue||[]),c.note].join(" ").toLowerCase().includes(q);
+  const groups=[]; for(const c of CARDS) if(!groups.includes(c.group)) groups.push(c.group);
+  let html="", n=0;
+  for(const g of groups){
+    const cs=CARDS.filter(c=>c.group===g&&hit(c)); if(!cs.length) continue;
+    n+=cs.length;
+    html+=`<h2 class="grp">${esc(g)} <span class="dim" style="letter-spacing:0;text-transform:none;font-weight:400">· ${cs.length}</span></h2><div class="grid">${cs.map(cardHtml).join("")}</div>`;
+  }
+  document.getElementById("cards").innerHTML=html||'<div class="loading">Nothing matches.</div>';
+  document.getElementById("cnt").textContent=`${n} of ${CARDS.length}`+(DATA.n_live<DATA.n_total?` · ${DATA.n_total-DATA.n_live} without a live read`:"");
+  document.querySelectorAll(".card").forEach(el=>el.onclick=()=>openModal(el.dataset.id));
+}
+function renderMovers(){
+  const M=DATA.movers||{}; const T={"1d":"Today","1w":"This week","1m":"This month","1y":"One year"};
+  let html="";
+  for(const k of ["1d","1w","1m","1y"]){
+    const rows=(M[k]||[]).slice(0,7); if(!rows.length) continue;
+    const mx=Math.max(...rows.map(r=>Math.abs(r.pct)))||1;
+    html+=`<div class="mv"><h3>${T[k]}</h3>${rows.map(r=>`<div class="r" data-id="${r.id}">
+      <span class="bar" style="width:${Math.max(6,Math.abs(r.pct)/mx*46)}px;background:${r.pct>=0?"var(--pos)":"var(--neg)"}"></span>
+      <span>${esc(r.label)}</span><span class="p ${cls(r.pct)}">${pct(r.pct)}</span></div>`).join("")}</div>`;
+  }
+  document.getElementById("movers").innerHTML=html||'<div class="loading" style="padding:24px">No moves yet.</div>';
+  const np=(DATA.near_peak||[]);
+  document.getElementById("nearpk").innerHTML=np.length?`<span class="dim" style="font-size:11px;align-self:center">Within 5% of a five-year high:</span>`+
+    np.map(r=>`<span class="pk" data-id="${r.id}"><b>${esc(r.label)}</b><span class="m">${r.from>=-1?"at high":pct(r.from)} · ${fmtN(r.peak.v)}${r.basis==="monthly"&&r.peak_unit?" "+esc(r.peak_unit):""} (${(r.peak.date||"").slice(0,7)})${r.basis==="monthly"?" · monthly series":""}</span></span>`).join(""):"";
+  document.querySelectorAll(".mv .r, .nearpk .pk").forEach(el=>el.onclick=()=>openModal(el.dataset.id));
+  renderPressure();
+}
+const partChip=p=>`<span class="pc ${p.side==="cost"?"sq":"hp"}" data-id="${p.id}" title="${p.side==="cost"?"squeezed by":"helped by"} ${esc(p.label)}">${esc(p.label)} ${p.chg>=0?"▲":"▼"}${Math.abs(p.chg).toFixed(1)}%</span>`;
+function renderPressure(){
+  const P=DATA.pressure||{};
+  const col=(title,hc,rows)=>`<div class="col"><h3 class="${hc}">${title}</h3>${rows.length?rows.map(r=>`<div class="r" data-id="${(r.parts[0]||{}).id||""}">
+      <span class="nm">${esc(r.label)}</span><span class="cd">${esc(r.code)} · ${r.region==="us"?"US":"IN"}</span>
+      ${r.ltp!=null?`<span class="px">${r.ccy||""}${fmtN(r.ltp)} <span class="${cls(r.day_pct)}">${pct(r.day_pct)}</span></span>`:""}
+      <span class="net ${r.net<0?"neg":"pos"}">${r.net>0?"+":""}${r.net.toFixed(1)}</span>
+      <span class="parts">${r.parts.map(partChip).join("")}</span></div>`).join(""):'<div class="dim" style="font-size:12px">nothing yet</div>'}</div>`;
+  document.getElementById("press").innerHTML=col("Squeezed most","sq",P.squeezed||[])+col("Helped most","hp",P.helped||[])+
+    `<div class="hint" style="grid-column:1/-1">Score = the one-month move of every commodity a name sits on, added up with the sign of its side (a cost-side rise counts against, a revenue-side rise for). Unweighted, so it ranks who is under pressure, it does not size it. A name on opposite sides of two cards nets out here; open either card to see both.</div>`;
+  document.querySelectorAll("#press .r").forEach(el=>el.onclick=e=>{const id=(e.target.closest(".pc")||el).dataset.id; if(id) openModal(id);});
+}
+async function load(){
+  const r=await fetch("/api/commods"); DATA=await r.json();
+  document.getElementById("asof").textContent="as of "+DATA.ts;
+  CARDS=DATA.cards||[];
+  renderMovers(); render();
+}
+document.getElementById("q").addEventListener("input",render);
+
+/* ---- expand modal ---- */
+let mCard=null, mRange="5Y";
+const RANGES={"1Y":1,"5Y":5,"10Y":10,"MAX":999};
+function openModal(id){
+  mCard=CARDS.find(c=>c.id===id); if(!mCard) return;
+  document.getElementById("modal").style.display="flex";
+  document.getElementById("m_title").textContent=mCard.label;
+  document.getElementById("m_val").textContent=fmtN(mCard.value)+" "+mCard.unit+"  ("+(mCard.date||"")+")";
+  const has=mCard.full&&mCard.full.length>1;
+  document.getElementById("m_ranges").innerHTML=has?Object.keys(RANGES).map(r=>`<button class="${r===mRange?"on":""}" data-r="${r}">${r}</button>`).join("")+
+    `<span class="src">${esc(mCard.src_hist||"")}${mCard.hist_kind==="monthly"?" · monthly, through "+esc(mCard.hist_through||""):""}</span>`:"";
+  document.querySelectorAll("#m_ranges button").forEach(b=>b.onclick=()=>{mRange=b.dataset.r;openModal(id);});
+  if(has) drawBig(); else document.getElementById("bigchart").innerHTML=`<div class="nochart">No free price history for this one. The level and the day, month and year changes are Trading Economics' daily read; the industries below still apply.</div>`;
+  const ch=mCard.chg||{}, st=[];
+  const S=(k,n,s)=>st.push(`<div class="stat"><div class="k">${k}</div><div class="n">${n}</div>${s?`<div class="s">${s}</div>`:""}</div>`);
+  for(const k of ["1d","1w","1m","3m","1y"]) if(ch[k]!=null) S(k.toUpperCase()+" change",`<span class="${cls(ch[k])}">${pct(ch[k],2)}</span>`,"");
+  const mo=mCard.peak_basis==="monthly", pu=mo&&mCard.peak_unit?" "+esc(mCard.peak_unit):"", ms=mo?" · monthly series":"";
+  if(mCard.hi52&&mCard.lo52) S("52-week range",`${fmtN(mCard.lo52.v)} – ${fmtN(mCard.hi52.v)}${pu}`,mo?"monthly series":"");
+  if(mCard.hi5y) S("5-year high",fmtN(mCard.hi5y.v)+pu,(mCard.hi5y.date||"").slice(0,7)+(mCard.from_5y_high!=null?" · now "+pct(mCard.from_5y_high):"")+ms);
+  if(mCard.hiall&&mCard.years) S(`High, ${mCard.years}y of data`,fmtN(mCard.hiall.v)+pu,(mCard.hiall.date||"").slice(0,7)+(mCard.from_all_high!=null?" · now "+pct(mCard.from_all_high):"")+ms);
+  if(mCard.fred_level!=null) S("IMF monthly benchmark",fmtN(mCard.fred_level)+" "+esc(mCard.fred_unit||""),"FRED, "+(mCard.fred_date||"").slice(0,7)+" (different grade and unit)");
+  for(const l of (mCard.local||[])){
+    if(l.kind==="MCX") st.push(`<div class="stat loc"><div class="k">${esc(l.label)}</div><div class="n">${fmtN(l.level)} ${esc(l.unit)} <span class="${cls(l.day_pct)}">${pct(l.day_pct)}</span></div><div class="s">open interest ${l.oi==null?"—":Number(l.oi).toLocaleString("en-IN")} · broker feed ${esc(l.ts||"")}</div></div>`);
+    else st.push(`<div class="stat loc"><div class="k">India domestic · ${esc(l.label)}</div><div class="n">₹${fmtN(l.level)}/kg</div><div class="s">${fmtN(l.usc_per_kg)} USc/kg on the board's own dollar column, against ${fmtN(mCard.value)} ${esc(mCard.unit)} global${l.stale?" · STALE":""}</div></div>`);
+  }
+  document.getElementById("m_stats").innerHTML=st.join("");
+  const names=mCard.names||[];
+  document.getElementById("m_cost").innerHTML=colHtml(mCard.cost,names,"cost");
+  document.getElementById("m_rev").innerHTML=colHtml(mCard.revenue,names,"revenue");
+  document.getElementById("m_note").textContent=mCard.note||"";
+  document.getElementById("m_note").style.display=mCard.note?"":"none";
+  // a chip on another card jumps to that card
+  document.querySelectorAll("#modal .also .pc").forEach(el=>el.onclick=ev=>{ev.stopPropagation(); openModal(el.dataset.id); document.querySelector('#modal .box').scrollTop=0;});
+}
+function niceStep(span){const raw=span/5,mag=Math.pow(10,Math.floor(Math.log10(raw)));for(const m of [1,2,2.5,5,10]) if(raw<=m*mag) return m*mag;return 10*mag;}
+function drawBig(){
+  const el=document.getElementById("bigchart");
+  const W=el.clientWidth||880, H=360, PL=60, PR=14, PT=12, PB=26;
+  const yrs=RANGES[mRange];
+  const cutoff=new Date(); cutoff.setFullYear(cutoff.getFullYear()-yrs);
+  const cut=cutoff.toISOString().slice(0,10);
+  let pts=mCard.full.filter(p=>mRange==="MAX"||p[0]>=cut);
+  if(pts.length<2) pts=mCard.full;
+  const vals=pts.map(p=>p[1]);
+  let min=Math.min(...vals),max=Math.max(...vals);
+  const pad=(max-min)*0.06||1; min-=pad; max+=pad;
+  const X=i=>PL+(i/(pts.length-1))*(W-PL-PR);
+  const Y=v=>PT+(1-(v-min)/(max-min))*(H-PT-PB);
+  const up=vals[vals.length-1]>=vals[0];
+  const col=up?"var(--pos)":"var(--neg)";
+  let grid="",labels="";
+  const step=niceStep(max-min);
+  for(let v=Math.ceil(min/step)*step; v<=max; v+=step){
+    grid+=`<line x1="${PL}" y1="${Y(v)}" x2="${W-PR}" y2="${Y(v)}" stroke="var(--grid)" stroke-width="1"/>`;
+    labels+=`<text x="${PL-8}" y="${Y(v)+3.5}" text-anchor="end" font-size="10.5" fill="var(--muted)" font-family="Menlo,monospace">${Math.abs(v)<10?v.toFixed(2):v.toLocaleString("en-US",{maximumFractionDigits:0})}</text>`;
+  }
+  const nx=Math.min(7,pts.length);
+  for(let i=0;i<nx;i++){
+    const idx=Math.round(i*(pts.length-1)/(nx-1));
+    const anchor=i===0?"start":(i===nx-1?"end":"middle");
+    labels+=`<text x="${X(idx)}" y="${H-8}" text-anchor="${anchor}" font-size="10.5" fill="var(--muted)" font-family="Menlo,monospace">${pts[idx][0].slice(0,7)}</text>`;
+  }
+  // the five-year-high line, so the "vs peak" number has a picture
+  let pk="";
+  if(mCard.hi5y&&mCard.hi5y.v<=max&&mCard.hi5y.v>=min){
+    pk=`<line x1="${PL}" y1="${Y(mCard.hi5y.v)}" x2="${W-PR}" y2="${Y(mCard.hi5y.v)}" stroke="#e8a13c" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="${PL+6}" y="${Y(mCard.hi5y.v)-4}" font-size="10" fill="#e8a13c" font-family="Menlo,monospace">5Y high ${fmtN(mCard.hi5y.v)}</text>`;
+  }
+  const line=pts.map((p,i)=>`${X(i).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(" ");
+  const area=`${PL},${Y(vals[0]).toFixed(1)} ${line} ${(W-PR).toFixed(1)},${(H-PB)} ${PL},${H-PB}`;
+  const first=pts[0][1], last=vals[vals.length-1];
+  const chg=first?((last-first)/Math.abs(first)*100):null;
+  el.innerHTML=`<svg id="bigsvg" width="${W}" height="${H}" style="cursor:crosshair">
+    <defs><linearGradient id="bigfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${col}" stop-opacity="0.22"/><stop offset="100%" stop-color="${col}" stop-opacity="0.01"/></linearGradient></defs>
+    ${grid}${labels}${pk}
+    <polygon class="anim-fade" points="${area}" fill="url(#bigfade)"/>
+    <polyline class="drawline" pathLength="1" points="${line}" fill="none" stroke="${col}" stroke-width="1.8"/>
+    <circle cx="${X(pts.length-1)}" cy="${Y(last)}" r="3" fill="${col}"/>
+    <text x="${W-PR}" y="${PT+10}" text-anchor="end" font-size="11.5" fill="${col}" font-family="Menlo,monospace">${mRange}: ${chg==null?"—":(chg>=0?"+":"")+chg.toFixed(1)}%</text>
+    <g id="xh" style="display:none">
+      <line id="xh_v" y1="${PT}" y2="${H-PB}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3,3"/>
+      <circle id="xh_c" r="3.5" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+      <rect id="xh_bg" height="20" rx="5" fill="var(--panel2)" stroke="var(--line2)"/>
+      <text id="xh_t" font-size="11" fill="var(--ink)" font-family="Menlo,monospace" text-anchor="middle"></text>
+    </g></svg>`;
+  const svg=document.getElementById("bigsvg"), xh=document.getElementById("xh");
+  svg.onmousemove=e=>{
+    const box=svg.getBoundingClientRect(); const mx=e.clientX-box.left;
+    if(mx<PL||mx>W-PR){xh.style.display="none";return;}
+    const i=Math.max(0,Math.min(pts.length-1,Math.round((mx-PL)/(W-PL-PR)*(pts.length-1))));
+    const px=X(i), py=Y(pts[i][1]);
+    const label=`${pts[i][0]}  ${fmtN(pts[i][1])}`;
+    const tw=label.length*6.6+16; const tx=Math.max(PL+tw/2,Math.min(W-PR-tw/2,px));
+    xh.style.display="";
+    document.getElementById("xh_v").setAttribute("x1",px); document.getElementById("xh_v").setAttribute("x2",px);
+    const c=document.getElementById("xh_c"); c.setAttribute("cx",px); c.setAttribute("cy",py);
+    const bg=document.getElementById("xh_bg"); bg.setAttribute("x",tx-tw/2); bg.setAttribute("y",PT-2); bg.setAttribute("width",tw);
+    const t=document.getElementById("xh_t"); t.setAttribute("x",tx); t.setAttribute("y",PT+12); t.textContent=label;
+  };
+  svg.onmouseleave=()=>{xh.style.display="none";};
+}
+function closeModal(){document.getElementById("modal").style.display="none";}
+document.getElementById("m_close").onclick=closeModal;
+document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")closeModal();};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+window.addEventListener("resize",()=>{if(document.getElementById("modal").style.display==="flex"&&mCard&&mCard.full)drawBig();});
+load();
+setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>

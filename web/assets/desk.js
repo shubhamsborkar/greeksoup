@@ -28,6 +28,7 @@
     short: '<path d="M2 4.5l4.6 4.6 2.6-2.6 4.8 4.8"/><path d="M14 8.5v2.8h-2.8"/>',
     capitol: '<path d="M2.5 13.5h11"/><path d="M4 13.5V7m2.7 6.5V7m2.6 6.5V7m2.7 6.5V7"/><path d="M2.5 7L8 2.5 13.5 7z"/>',
     chain: '<circle cx="3.5" cy="12" r="1.8"/><circle cx="8" cy="4" r="1.8"/><circle cx="12.5" cy="12" r="1.8"/><path d="M4.5 10.4L7 5.8m2 0l2.5 4.6M5.3 12h5.4"/>',
+    commods: '<path d="M3 5.5l5-3 5 3v5l-5 3-5-3z"/><path d="M3 5.5l5 3 5-3M8 8.5v5"/>',
   };
   const TABS = [
     /* Labels: "Home" is your broker account (whatever market), "US" is the US public-record desk. Rename here. */
@@ -42,6 +43,7 @@
     ["/short", "Short", "Intelligence", I.short],
     ["/capitol", "Capitol", "Intelligence", I.capitol],
     ["/macro", "Macro", "Market", I.macro],
+    ["/commods", "Commodities", "Market", I.commods],
     ["/chain", "Chain", "Market", I.chain],
   ];
   function current() {

@@ -1,6 +1,20 @@
 {
- "_comment": "Alert rules for the desk. Edit freely; the server re-reads this file every cycle. Types: day_move (scope held|watch_in|watch_us, threshold_pct), margin_util (threshold_pct), fno_dte (days), earnings_within (days), price_level (symbol, region in|us|global, above and/or below), insider_cluster (fires when a 30-day insider buy cluster appears on a book/watch name), activist_13d (a SCHEDULE 13D or 13D/A filed on a book/watch name within N days). Each rule fires once per day per symbol. Read-only: alerts notify, they never act.",
+ "_comment": "Alert rules for the desk. Edit freely; the server re-reads this file every cycle. Types: day_move (scope held|watch_in|watch_us, threshold_pct), margin_util (threshold_pct), fno_dte (days), earnings_within (days), price_level (symbol, region in|us|global, above and/or below), insider_cluster (fires when a 30-day insider buy cluster appears on a book/watch name), activist_13d (a SCHEDULE 13D or 13D/A filed on a book/watch name within N days), commodity_move (window 1d|1w|1m|3m|1y, threshold_pct: a commodity on the Commodities board moved more than this over the window), commodity_peak (within_pct: a commodity is within this much of its five-year high). Each rule fires once per day per symbol. Read-only: alerts notify, they never act.",
  "rules": [
+  {
+   "type": "commodity_move",
+   "window": "1d",
+   "threshold_pct": 5
+  },
+  {
+   "type": "commodity_move",
+   "window": "1m",
+   "threshold_pct": 20
+  },
+  {
+   "type": "commodity_peak",
+   "within_pct": 2
+  },
   {
    "type": "day_move",
    "scope": "held",

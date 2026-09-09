@@ -23,7 +23,9 @@ from urllib.parse import urlparse, parse_qs
 import requests
 
 import activist
+import commods
 import insiders
+import local_in
 import nse_fund
 import options_us
 import risk
@@ -62,9 +64,10 @@ _cache = {"snap": (0.0, None), "tape": (0.0, None),
           "funds": (0.0, None), "capitol": (0.0, None), "econcal": (0.0, None),
           "burry": (0.0, None), "pulse": (0.0, None), "insiders": (0.0, None),
           "risk": (0.0, None), "act13d": (0.0, None), "flow": (0.0, None),
-          "short": (0.0, None)}
+          "short": (0.0, None), "commods": (0.0, None), "chain": (0.0, None)}
 _locks = {k: threading.Lock() for k in _cache}
 EARN_TTL, MACRO_TTL, FUNDS_TTL, CAPITOL_TTL = 12 * 3600, 6 * 3600, 24 * 3600, 6 * 3600
+COMMODS_TTL = 10 * 60   # Yahoo tail + TE sentence refresh; histories cache 12h inside
 
 
 def _account_label(name, breeze):
@@ -1932,6 +1935,31 @@ def _eval_alerts():
                               f"{r['form']} on {'held ' if r.get('tag') == 'held' else ''}"
                               f"{r['symbol']} by {who} (filed {r['date']})")
 
+            elif rtype == "commodity_move":
+                # a commodity moved more than the threshold over the window
+                # (1d, 1w, 1m, 3m, 1y). Fires once per day per commodity.
+                cm = _cache["commods"][1]
+                win = rule.get("window", "1m")
+                thr = float(rule.get("threshold_pct") or 15)
+                for c in (cm or {}).get("cards", []):
+                    p = (c.get("chg") or {}).get(win)
+                    if p is not None and abs(p) >= thr:
+                        _fire(f"cmove|{c['id']}|{win}", "hot" if abs(p) >= thr * 1.6 else "warn",
+                              f"{c['label']} {p:+.1f}% over {win} "
+                              f"({c['value']:,.2f} {c.get('unit', '')})")
+
+            elif rtype == "commodity_peak":
+                # within N% of its five-year high (the vs-peak column, spoken)
+                cm = _cache["commods"][1]
+                within = float(rule.get("within_pct") or 3)
+                for c in (cm or {}).get("cards", []):
+                    f5 = c.get("from_5y_high")
+                    if f5 is not None and f5 >= -within and c.get("hi5y"):
+                        basis = " (monthly series)" if c.get("peak_basis") == "monthly" else ""
+                        _fire(f"cpeak|{c['id']}", "warn",
+                              f"{c['label']} within {abs(f5):.1f}% of its 5-year high "
+                              f"{c['hi5y']['v']:,.2f} set {c['hi5y']['date'][:7]}{basis}")
+
             elif rtype == "price_level":
                 sym = (rule.get("symbol") or "").upper()
                 region = rule.get("region", "in")
@@ -1958,16 +1986,12 @@ def alerts_loop():
 
 # ---- supply chain (vault research rendered live) -----------------------------
 CHAIN_TTL = 180
-_chain_cache = {"at": 0.0, "data": None}
 
 
 def build_chain():
     """data/supply_chain.json (one or more chains) + a live quote per name — Breeze
     for India chains, FMP/watch cache for US ones. Research content lives in
     the JSON; this only prices it."""
-    now = time.time()
-    if _chain_cache["data"] and now - _chain_cache["at"] < CHAIN_TTL:
-        return _chain_cache["data"]
     with open(os.path.join(DATA_DIR, "supply_chain.json")) as fh:
         blob = json.load(fh)
     chains = blob.get("chains", [])
@@ -1997,8 +2021,72 @@ def build_chain():
                     nm["ltp"], nm["day_pct"] = q.get("ltp"), q.get("day_pct")
     data = {"chains": chains, "ts": datetime.now().strftime("%H:%M"),
             "session_dead": breeze_health["dead"]}
-    _chain_cache.update(at=now, data=data)
     return data
+
+
+# ---- commodities (board + the priced names layer + India local reads) --------
+def build_commods():
+    """commods.build() is broker-free (it ships in the replica); this wrapper
+    prices the exposure names and adds the local reads a market plugin
+    provides (shipped: local_in.py for ICICI Direct, MCX front-month futures and the
+    Rubber Board's sheet; both only when that broker is connected)."""
+    d = commods.build()
+    breeze = clients.get("father") or next(iter(clients.values()), None)
+    live = bool(breeze) and not breeze_health["dead"]
+    seen = {}
+    for c in d["cards"]:
+        for nm in c.get("names", []):
+            key = f"{nm['region']}:{nm['code']}"
+            if key not in seen:
+                q = None
+                if nm["region"] == "us":
+                    with _watch_lock:
+                        q = WATCH_US.get(nm["code"])
+                    if not q:
+                        q = fetch_us_quote(nm["code"]) or fetch_yahoo_quote(nm["code"])
+                else:
+                    with _watch_lock:
+                        q = WATCH.get(nm["code"])
+                    if not q and live:
+                        q = (fetch_watch_quote(breeze, nm["code"], "NSE")
+                             or fetch_watch_quote(breeze, nm["code"], "BSE"))
+                seen[key] = q
+            q = seen[key]
+            if q:
+                nm["ltp"], nm["day_pct"] = q.get("ltp"), q.get("day_pct")
+                nm["ccy"] = "$" if nm["region"] == "us" else "₹"
+    # local reads belong to the market the broker is on; with no broker
+    # connected the board stays global (a reader elsewhere never sees them)
+    rb, mcx = None, {}
+    if live:
+        try:
+            rb = local_in.rubber_board()
+        except Exception:  # noqa: BLE001
+            rb = None
+        try:
+            mcx = local_in.mcx_quotes(breeze)
+        except Exception:  # noqa: BLE001
+            mcx = {}
+    for c in d["cards"]:
+        loc = []
+        short = local_in.MCX_MAP.get(c["id"])
+        if short and short in mcx:
+            m = mcx[short]
+            loc.append({"kind": "MCX", "label": f"MCX {m['name']} {m['expiry']}",
+                        "level": m["level"], "unit": m["unit"], "day_pct": m["day_pct"],
+                        "oi": m["oi"], "ts": m["ts"], "hist": m["hist"]})
+        if c["id"] == "rubber" and rb and rb.get("grades", {}).get("RSS4"):
+            g = rb["grades"]["RSS4"]
+            loc.append({"kind": "Rubber Board", "label": f"Kottayam RSS4 · Rubber Board {rb.get('date', '')}",
+                        "level": g["inr_per_kg"], "unit": "₹/kg", "usc_per_kg": g["usc_per_kg"],
+                        "stale": rb.get("stale", False), "ts": rb.get("date")})
+        if loc:
+            c["local"] = loc
+    d["mcx_live"] = bool(mcx)
+    # the pressure ranking is rebuilt here so its rows carry the live prices
+    d["pressure"] = commods.pressure(d["cards"], commods.cross_link(d["cards"]))
+    return d
+
 
 
 # ---- Burry watch (Cassandra Unchained on Substack; RSS is public) ------------
@@ -2432,32 +2520,73 @@ def build_capitol():
 DISKLESS = {"snap", "tape"}   # position data: never serve a restart a stale book
 
 
+_building = set()
+_building_lock = threading.Lock()
+
+
+def _store(kind, data):
+    _cache[kind] = (time.time(), data)
+    if kind not in DISKLESS:
+        try:
+            with open(os.path.join(HIST_CACHE_DIR, f"api_{kind}.json"), "w") as fh:
+                json.dump({"at": time.time(), "data": data}, fh)
+        except OSError:
+            pass
+
+
+def _rebuild(kind, builder):
+    try:
+        data = builder()
+        if data is not None:
+            _store(kind, data)
+    except Exception:  # noqa: BLE001 - a failed rebuild keeps the old copy
+        pass
+    finally:
+        with _building_lock:
+            _building.discard(kind)
+
+
+def _spawn(kind, builder):
+    """Start one background rebuild of a kind; no-op if one is running."""
+    with _building_lock:
+        if kind in _building:
+            return False
+        _building.add(kind)
+    threading.Thread(target=_rebuild, args=(kind, builder), daemon=True).start()
+    return True
+
+
 def _cached(kind, ttl, builder):
+    """Serve what we have and refresh behind the page. Once a kind has been
+    built once (or has a disk copy from an earlier run), a click never waits
+    for a rebuild: the stale copy goes out at once and the rebuild runs in a
+    thread, so the next click gets the fresh one. His complaint: Commodities
+    and Chain took minutes on every visit because the old version rebuilt
+    inline whenever the TTL had passed. Only the very first build blocks."""
     with _locks[kind]:
         stamp, data = _cache[kind]
-        if data is not None and (time.time() - stamp) < ttl:
-            return data
-        dpath = os.path.join(HIST_CACHE_DIR, f"api_{kind}.json")
         if data is None and kind not in DISKLESS:
-            # a fresh process serves yesterday's cache instantly instead of a
-            # spinner (his "time it takes to load" complaint)
             try:
-                with open(dpath) as fh:
+                with open(os.path.join(HIST_CACHE_DIR, f"api_{kind}.json")) as fh:
                     c = json.load(fh)
-                if time.time() - c["at"] < ttl:
-                    _cache[kind] = (c["at"], c["data"])
-                    return c["data"]
+                _cache[kind] = (c["at"], c["data"])
+                stamp, data = _cache[kind]
             except (OSError, ValueError, KeyError):
                 pass
-        data = builder()
-        _cache[kind] = (time.time(), data)
-        if kind not in DISKLESS:
-            try:
-                with open(dpath, "w") as fh:
-                    json.dump({"at": time.time(), "data": data}, fh)
-            except OSError:
-                pass
-        return data
+        if data is not None:
+            if time.time() - stamp >= ttl:
+                _spawn(kind, builder)
+            return data
+    _spawn(kind, builder)
+    for _ in range(1200):            # first ever build: wait for it, up to 10 min
+        data = _cache[kind][1]
+        if data is not None:
+            return data
+        with _building_lock:
+            if kind not in _building:
+                break
+        time.sleep(0.5)
+    return _cache[kind][1] if _cache[kind][1] is not None else {}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -2501,6 +2630,12 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/macro":
                 with open(os.path.join(HERE, "web", "macro.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
+            elif path == "/commods":
+                with open(os.path.join(HERE, "web", "commods.html"), "rb") as fh:
+                    self._send(fh.read(), "text/html; charset=utf-8")
+            elif path == "/api/commods":
+                self._send(json.dumps(_cached("commods", COMMODS_TTL, build_commods)).encode(),
+                           "application/json")
             elif path == "/funds":
                 with open(os.path.join(HERE, "web", "funds.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
@@ -2530,7 +2665,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/short":
                 self._send(json.dumps(_cached("short", SHORT_TTL, build_short)).encode(), "application/json")
             elif path == "/api/chain":
-                self._send(json.dumps(build_chain()).encode(), "application/json")
+                self._send(json.dumps(_cached("chain", CHAIN_TTL, build_chain)).encode(), "application/json")
             elif path == "/api/insiders":
                 data = _cached("insiders", INSIDERS_TTL, build_insiders)
                 self._send(json.dumps(data or {"error": "insider feed unreachable"}).encode(),
@@ -2734,24 +2869,33 @@ def main():
     threading.Thread(target=alerts_loop, daemon=True).start()
     threading.Thread(target=quote_saver_loop, daemon=True).start()
 
+    REFRESH = (("earn", EARN_TTL, build_earnings),
+               ("macro", MACRO_TTL, build_macro),
+               ("capitol", CAPITOL_TTL, build_capitol),
+               ("funds", FUNDS_TTL, build_funds),
+               ("earn_in", EARN_TTL, build_earnings_in),
+               ("insiders", INSIDERS_TTL, build_insiders),
+               ("risk", RISK_TTL, build_risk),
+               ("act13d", ACT_TTL, build_activist),
+               ("flow", FLOW_TTL, build_flow),
+               ("short", SHORT_TTL, build_short),
+               ("commods", COMMODS_TTL, build_commods),
+               ("chain", CHAIN_TTL, build_chain))
+
     def warmup():
-        # pre-build the slow caches so the first click on any tab is instant;
-        # each also refreshes on its TTL while the server runs
-        for kind, ttl, builder in (("earn", EARN_TTL, build_earnings),
-                                   ("macro", MACRO_TTL, build_macro),
-                                   ("capitol", CAPITOL_TTL, build_capitol),
-                                   ("funds", FUNDS_TTL, build_funds),
-                                   ("earn_in", EARN_TTL, build_earnings_in),
-                                   ("insiders", INSIDERS_TTL, build_insiders),
-                                   ("risk", RISK_TTL, build_risk),
-                                   ("act13d", ACT_TTL, build_activist),
-                                   ("flow", FLOW_TTL, build_flow),
-                                   ("short", SHORT_TTL, build_short)):
-            try:
-                _cached(kind, ttl, builder)
-            except Exception:  # noqa: BLE001
-                pass
-            time.sleep(2)
+        # first pass builds every slow cache once so the first click on any
+        # tab is instant; after that the loop keeps each one fresh in the
+        # background on its TTL, so a click never waits for a rebuild
+        while True:
+            for kind, ttl, builder in REFRESH:
+                stamp, data = _cache[kind]
+                if data is None or time.time() - stamp >= ttl:
+                    try:
+                        _cached(kind, ttl, builder)
+                    except Exception:  # noqa: BLE001
+                        pass
+                    time.sleep(2)
+            time.sleep(20)
     threading.Thread(target=warmup, daemon=True).start()
     print(f"\nDesk is live:  http://localhost:{PORT}")
     print(f"Watch Home:    http://localhost:{PORT}/watch")

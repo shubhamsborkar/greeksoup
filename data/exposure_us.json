@@ -1,0 +1,871 @@
+{
+  "_comment": "US names behind the industries on the Commodities board. Same shape as exposure_in.json: code is the ticker (the desk prices it through the US watch feed), industry must match a cost/revenue industry string in commodities.json, commodities lists the board ids the name attaches to. Every number traces to the document in intensity_source. Built commodity by commodity from 2026-09-09; a name may carry `sides` {commodity id: cost|revenue} to override the industry's side on one card (an integrated steel maker: coking coal cost, iron ore revenue).",
+  "market": "us",
+  "names": [
+    {
+      "code": "GT",
+      "label": "Goodyear Tire & Rubber",
+      "industry": "Tyre makers",
+      "commodities": [
+        "rubber",
+        "synthetic_rubber",
+        "naphtha",
+        "wti"
+      ],
+      "intensity": "Raw materials ~45% of tire cost of goods; natural rubber 22% of raw-material spend, synthetic rubber 22%, carbon black 16%, pigments/oils/chemicals 21%, wire/other 11%, fabric 8%; about two-thirds of raw materials are petroleum based. The company's own sensitivity: a 1% move in natural rubber is ~$8M a year, with a 4 to 6 month lag",
+      "intensity_source": "Goodyear Q4 2025 Earnings Supplemental Information (February 2026) and Form 10-K for 2025",
+      "lag": "4-6 months (company's own figure)",
+      "pricing_power": "Does not hedge commodity prices (10-K); offsets through central procurement, substitution and less material per tire. Sold the chemical business (synthetic rubber plants) on 31 October 2025 and now buys that too",
+      "note": "Buys all its natural rubber on the world market (10-K)."
+    },
+    {
+      "code": "FCX",
+      "label": "Freeport-McMoRan",
+      "industry": "Copper miners",
+      "commodities": [
+        "copper"
+      ],
+      "intensity": "Each $0.10/lb change in copper is about $400 million of annual EBITDA at 2027-2028 production; 2026 sales guided at 3.4 billion lb of copper with unit net cash cost $1.75/lb; 2025 realised $4.75/lb, adjusted EBITDA near $10 billion. 2026 operating cash flow ~$8 billion at $5.00 copper, ~$11 billion at $5.75",
+      "intensity_source": "Freeport-McMoRan Q4 2025 results (Form 8-K, January 2026) and Q4 2025 earnings call; Form 10-K 2025",
+      "lag": "same quarter",
+      "pricing_power": "Pure price taker; the COMEX premium over LME adds about $135 million per $0.10 on top",
+      "note": "Grasberg mud rush in September 2025 cut the sensitivity from $430 million to $400 million per $0.10."
+    },
+    {
+      "code": "SCCO",
+      "label": "Southern Copper",
+      "industry": "Copper miners",
+      "commodities": [
+        "copper"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "DAL",
+      "label": "Delta Air Lines",
+      "industry": "Airlines",
+      "commodities": [
+        "wti",
+        "brent"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "one quarter",
+      "pricing_power": null,
+      "note": "Owns a refinery (Trainer); figures not pulled yet."
+    },
+    {
+      "code": "UAL",
+      "label": "United Airlines",
+      "industry": "Airlines",
+      "commodities": [
+        "wti",
+        "brent"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "one quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "XOM",
+      "label": "Exxon Mobil",
+      "industry": "Oil & gas producers",
+      "commodities": [
+        "wti",
+        "brent"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "COP",
+      "label": "ConocoPhillips",
+      "industry": "Oil & gas producers",
+      "commodities": [
+        "wti",
+        "brent"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Pure upstream; figures not pulled yet."
+    },
+    {
+      "code": "BTU",
+      "label": "Peabody Energy",
+      "industry": "Coal miners",
+      "commodities": [
+        "coal"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter (seaborne thermal from Australia)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "NUE",
+      "label": "Nucor",
+      "industry": "Steel makers",
+      "commodities": [
+        "hrc_us",
+        "steel_cn"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter (mini-mill, scrap-based)",
+      "pricing_power": null,
+      "note": "Scrap-fed, so coking coal does not apply; figures not pulled yet."
+    },
+    {
+      "code": "CLF",
+      "label": "Cleveland-Cliffs",
+      "industry": "Steel makers",
+      "commodities": [
+        "hrc_us",
+        "coking_coal",
+        "ironore"
+      ],
+      "sides": {
+        "ironore": "revenue"
+      },
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "one quarter",
+      "pricing_power": null,
+      "note": "Integrated with own ore; figures not pulled yet."
+    },
+    {
+      "code": "NEM",
+      "label": "Newmont",
+      "industry": "Gold miners",
+      "commodities": [
+        "gold",
+        "silver",
+        "copper"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet.",
+      "sides": {
+        "silver": "revenue",
+        "copper": "revenue"
+      }
+    },
+    {
+      "code": "CCJ",
+      "label": "Cameco",
+      "industry": "Uranium miners",
+      "commodities": [
+        "uranium"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "contract-lagged (term contracts)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "CF",
+      "label": "CF Industries",
+      "industry": "Urea producers (gas-advantaged: Middle East, US, Russia)",
+      "commodities": [
+        "urea",
+        "natgas_us"
+      ],
+      "sides": {
+        "natgas_us": "cost"
+      },
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Sells urea, buys Henry Hub gas: the two cards point opposite ways; figures not pulled yet."
+    },
+    {
+      "code": "ADM",
+      "label": "Archer-Daniels-Midland",
+      "industry": "Crushers (crush margin)",
+      "commodities": [
+        "soybeans",
+        "soymeal",
+        "soyoil",
+        "corn",
+        "wheat"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Earns the crush and the merchandising spread, not the price; figures not pulled yet."
+    },
+    {
+      "code": "TSN",
+      "label": "Tyson Foods",
+      "industry": "Poultry & livestock (feed)",
+      "commodities": [
+        "soymeal",
+        "corn"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "one quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "SBUX",
+      "label": "Starbucks",
+      "industry": "Coffee chains & cafes",
+      "commodities": [
+        "coffee"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "2-4 quarters (hedged a year out)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "HSY",
+      "label": "Hershey",
+      "industry": "Chocolate & confectionery makers",
+      "commodities": [
+        "cocoa",
+        "sugar"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "2-4 quarters (hedged)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "WY",
+      "label": "Weyerhaeuser",
+      "industry": "Timber REITs",
+      "commodities": [
+        "lumber"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "DHI",
+      "label": "D.R. Horton",
+      "industry": "Homebuilders",
+      "commodities": [
+        "lumber",
+        "hrc_us",
+        "copper"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "1-2 quarters",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "AA",
+      "label": "Alcoa",
+      "industry": "Aluminium smelters",
+      "commodities": [
+        "aluminium",
+        "natgas_us"
+      ],
+      "sides": {
+        "natgas_us": "cost"
+      },
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "IP",
+      "label": "International Paper",
+      "industry": "Integrated paper makers with own pulp",
+      "commodities": [
+        "pulp"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "one quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "CVX",
+      "label": "Chevron",
+      "industry": "Oil & gas producers",
+      "commodities": [
+        "wti",
+        "brent",
+        "natgas_us"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Integrated; upstream dominates; figures not pulled yet."
+    },
+    {
+      "code": "OXY",
+      "label": "Occidental Petroleum",
+      "industry": "Oil & gas producers",
+      "commodities": [
+        "wti",
+        "brent"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "DVN",
+      "label": "Devon Energy",
+      "industry": "Oil & gas producers",
+      "commodities": [
+        "wti",
+        "natgas_us"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "SLB",
+      "label": "Schlumberger",
+      "industry": "Oilfield services",
+      "commodities": [
+        "wti",
+        "brent"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "2-4 quarters (capex budgets follow price)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "VLO",
+      "label": "Valero Energy",
+      "industry": "Refiners (crack spread)",
+      "commodities": [
+        "gasoline",
+        "heating_oil",
+        "wti"
+      ],
+      "sides": {
+        "heating_oil": "revenue",
+        "wti": "cost"
+      },
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Earns the crack, so gasoline and diesel help and crude hurts; figures not pulled yet."
+    },
+    {
+      "code": "MPC",
+      "label": "Marathon Petroleum",
+      "industry": "Refiners (crack spread)",
+      "commodities": [
+        "gasoline",
+        "heating_oil",
+        "wti"
+      ],
+      "sides": {
+        "heating_oil": "revenue",
+        "wti": "cost"
+      },
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "AAL",
+      "label": "American Airlines",
+      "industry": "Airlines",
+      "commodities": [
+        "wti",
+        "brent",
+        "heating_oil"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "one quarter (unhedged)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "LUV",
+      "label": "Southwest Airlines",
+      "industry": "Airlines",
+      "commodities": [
+        "wti",
+        "heating_oil"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "one quarter (historically hedged)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "JBHT",
+      "label": "J.B. Hunt",
+      "industry": "Road logistics",
+      "commodities": [
+        "heating_oil"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "weeks (fuel surcharges)",
+      "pricing_power": null,
+      "note": "Surcharges pass diesel through with a lag of weeks; figures not pulled yet."
+    },
+    {
+      "code": "UNP",
+      "label": "Union Pacific",
+      "industry": "Railways & trucking",
+      "commodities": [
+        "heating_oil",
+        "coal"
+      ],
+      "sides": {
+        "coal": "revenue"
+      },
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "weeks (fuel surcharges)",
+      "pricing_power": null,
+      "note": "Buys diesel, hauls coal; figures not pulled yet."
+    },
+    {
+      "code": "EQT",
+      "label": "EQT",
+      "industry": "US gas producers",
+      "commodities": [
+        "natgas_us"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter (hedged share varies)",
+      "pricing_power": null,
+      "note": "Largest US gas producer; figures not pulled yet."
+    },
+    {
+      "code": "LNG",
+      "label": "Cheniere Energy",
+      "industry": "LNG exporters",
+      "commodities": [
+        "natgas_us",
+        "natgas_eu"
+      ],
+      "sides": {
+        "natgas_us": "cost",
+        "natgas_eu": "revenue"
+      },
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "mostly contracted; spot cargoes see the spread",
+      "pricing_power": null,
+      "note": "Buys Henry Hub, sells against TTF and JKM: the two gas cards point opposite ways; figures not pulled yet."
+    },
+    {
+      "code": "HCC",
+      "label": "Warrior Met Coal",
+      "industry": "Coking coal miners (Australia, US, Mozambique)",
+      "commodities": [
+        "coking_coal"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "US met coal exporter; figures not pulled yet."
+    },
+    {
+      "code": "X",
+      "label": "United States Steel",
+      "industry": "Steel makers",
+      "commodities": [
+        "hrc_us",
+        "coking_coal",
+        "ironore"
+      ],
+      "sides": {
+        "ironore": "revenue"
+      },
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "one quarter",
+      "pricing_power": null,
+      "note": "Integrated with own ore in Minnesota; figures not pulled yet."
+    },
+    {
+      "code": "STLD",
+      "label": "Steel Dynamics",
+      "industry": "Steel makers",
+      "commodities": [
+        "hrc_us"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter (mini-mill, scrap-based)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "CENX",
+      "label": "Century Aluminum",
+      "industry": "Aluminium smelters",
+      "commodities": [
+        "aluminium",
+        "natgas_us"
+      ],
+      "sides": {
+        "natgas_us": "cost"
+      },
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Power is the cost; figures not pulled yet."
+    },
+    {
+      "code": "ALB",
+      "label": "Albemarle",
+      "industry": "Lithium miners & brine producers",
+      "commodities": [
+        "lithium"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "one quarter (indexed contracts)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "BG",
+      "label": "Bunge",
+      "industry": "Crushers (crush margin)",
+      "commodities": [
+        "soybeans",
+        "soymeal",
+        "soyoil",
+        "sunflower_oil"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "DE",
+      "label": "Deere",
+      "industry": "Farm equipment (farm income)",
+      "commodities": [
+        "corn",
+        "soybeans",
+        "wheat"
+      ],
+      "sides": {
+        "corn": "revenue",
+        "soybeans": "revenue",
+        "wheat": "revenue"
+      },
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "2-4 quarters (farm income to orders)",
+      "pricing_power": null,
+      "note": "Grain prices drive farm income drive tractor orders, with a long lag; figures not pulled yet."
+    },
+    {
+      "code": "GIS",
+      "label": "General Mills",
+      "industry": "Packaged foods",
+      "commodities": [
+        "wheat",
+        "corn",
+        "sugar",
+        "soyoil"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "2-4 quarters (hedged)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "MDLZ",
+      "label": "Mondelez",
+      "industry": "Chocolate & confectionery makers",
+      "commodities": [
+        "cocoa",
+        "sugar",
+        "wheat"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "2-4 quarters (hedged)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "PEP",
+      "label": "PepsiCo",
+      "industry": "Confectionery & beverages",
+      "commodities": [
+        "sugar",
+        "corn",
+        "aluminium",
+        "soyoil"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "2-4 quarters",
+      "pricing_power": null,
+      "note": "Sweetener, cans and frying oil; figures not pulled yet."
+    },
+    {
+      "code": "PPC",
+      "label": "Pilgrim's Pride",
+      "industry": "Poultry & livestock (feed)",
+      "commodities": [
+        "soymeal",
+        "corn"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "one quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "LEVI",
+      "label": "Levi Strauss",
+      "industry": "Apparel brands",
+      "commodities": [
+        "cotton"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "2-4 quarters",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "LEN",
+      "label": "Lennar",
+      "industry": "Homebuilders",
+      "commodities": [
+        "lumber",
+        "hrc_us",
+        "copper"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "1-2 quarters",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "LPX",
+      "label": "Louisiana-Pacific",
+      "industry": "Sawmills & lumber producers",
+      "commodities": [
+        "lumber"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "OSB rather than lumber, same housing cycle; figures not pulled yet."
+    },
+    {
+      "code": "GOLD",
+      "label": "Barrick Mining",
+      "industry": "Gold miners",
+      "commodities": [
+        "gold",
+        "copper"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "AEM",
+      "label": "Agnico Eagle",
+      "industry": "Gold miners",
+      "commodities": [
+        "gold"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "PAAS",
+      "label": "Pan American Silver",
+      "industry": "Silver miners",
+      "commodities": [
+        "silver",
+        "gold"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "HL",
+      "label": "Hecla Mining",
+      "industry": "Silver miners",
+      "commodities": [
+        "silver",
+        "gold"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "SBSW",
+      "label": "Sibanye Stillwater",
+      "industry": "PGM miners (South Africa, Russia)",
+      "commodities": [
+        "platinum",
+        "palladium",
+        "gold"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "UEC",
+      "label": "Uranium Energy",
+      "industry": "Uranium miners",
+      "commodities": [
+        "uranium"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "same quarter (spot-exposed)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "CAT",
+      "label": "Caterpillar",
+      "industry": "Capital goods & machinery",
+      "commodities": [
+        "hrc_us",
+        "copper"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "1-2 quarters",
+      "pricing_power": null,
+      "note": "Steel is the largest input; mining capex follows metal prices on the demand side; figures not pulled yet."
+    },
+    {
+      "code": "WHR",
+      "label": "Whirlpool",
+      "industry": "Appliances",
+      "commodities": [
+        "hrc_us",
+        "copper",
+        "aluminium"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "1-2 quarters",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "CARR",
+      "label": "Carrier Global",
+      "industry": "Air conditioners & appliances",
+      "commodities": [
+        "copper",
+        "aluminium",
+        "hrc_us"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "1-2 quarters",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "GM",
+      "label": "General Motors",
+      "industry": "Autos",
+      "commodities": [
+        "hrc_us",
+        "aluminium",
+        "palladium",
+        "platinum",
+        "copper"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "1-2 quarters (annual steel contracts)",
+      "pricing_power": null,
+      "note": "Figures not pulled yet."
+    },
+    {
+      "code": "F",
+      "label": "Ford Motor",
+      "industry": "Autos",
+      "commodities": [
+        "hrc_us",
+        "aluminium",
+        "palladium",
+        "copper"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "1-2 quarters",
+      "pricing_power": null,
+      "note": "Aluminium-bodied F-150; figures not pulled yet."
+    }
+  ]
+}

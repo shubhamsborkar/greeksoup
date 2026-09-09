@@ -4,7 +4,7 @@ The README is written for a reader who hands the folder to a coding agent. This 
 
 ## What this folder is, and what it is not
 
-This folder is only the desk: the program that draws the twelve tabs, the pages, the broker adapter and the data templates. It is not the Obsidian vault. The vault (your notes, the rulebook file, the raw inbox, the wiki and output folders, the skills) is a separate folder that the newsletter edition walks you through building, and the desk works with or without it. The two connect in two places only: the `obsidian/Live Desk.md` note, which shows the desk inside Obsidian, and the optional `VAULT_OUTPUT_DIR` setting, which drops the desk's daily reports into your vault as notes. The desk folder can sit anywhere on your computer, inside the vault or next to it.
+This folder is only the desk: the program that draws the thirteen tabs, the pages, the broker adapter and the data templates. It is not the Obsidian vault. The vault (your notes, the rulebook file, the raw inbox, the wiki and output folders, the skills) is a separate folder that the newsletter edition walks you through building, and the desk works with or without it. The two connect in two places only: the `obsidian/Live Desk.md` note, which shows the desk inside Obsidian, and the optional `VAULT_OUTPUT_DIR` setting, which drops the desk's daily reports into your vault as notes. The desk folder can sit anywhere on your computer, inside the vault or next to it.
 
 Day to day you do not need the coding agent to run the desk; it starts with your computer (or with the start file) and you look at it in a browser or in Obsidian. The agent (Claude Code, Codex, Kimi Code, Grok Build, in a terminal or in its desktop app) is for setting it up, adapting it to your broker, and changing it later by describing what you want.
 
@@ -80,6 +80,8 @@ All of them sit in the `data/` folder, plain JSON you can open in any text edito
 | `data/supply_chain.json` | Your value-chain maps (an example ships). |
 | `data/alerts.json` | Alert rules: day moves, margin used, futures expiry, earnings, price levels, insider clusters, 13Ds. Checked every minute; fires a macOS notification and an on-desk chip once per rule per day. |
 | `data/watch_levels.json` | Optional price levels per holding. |
+| `data/commodities.json` | The commodity board: 51 commodities, their free sources, and for each the industries a rise squeezes (`cost`) and helps (`revenue`). No company names, no country prices: it is the universal layer. |
+| `data/exposure_us.json`, `data/exposure_<market>.json` | The names behind those industries for one market, with filing-sourced figures. `data/exposure_example.json` is the template; the README has the prompt that fills one. |
 
 ## More than one account
 
@@ -105,6 +107,7 @@ The fastest route is to open this folder in your coding agent, give it your brok
 
 - Broker API: your account, live ticks during market hours (shipped adapter: ICICI Direct, India; any broker with an API can replace it).
 - SEC EDGAR, keyless: Form 4 insider filings on your names (`sec_form4.py`), plus the 13F and 13D/G feeds.
+- Commodities (`commods.py`), all keyless: Yahoo's chart feed for exchange-traded contracts (gold, copper, crude, wheat, cotton ...), FRED's monthly IMF series for the long history of benchmarks with no contract, and one sentence per page from Trading Economics for those benchmarks' current level and day, month and year change (rubber, zinc, urea, coking coal, freight). The scraped sentence is date-stamped and the last good value persists, so a changed page degrades to stale, never to blank. `local_in.py` is the shipped local-read plugin for the ICICI adapter: MCX front-month futures through the broker's history endpoint and the Rubber Board of India's daily sheet; it runs only when that broker is connected, and it is the pattern for a `local_<market>.py` of your own (two functions: a second price line on a card, a tile in the card's detail).
 - House Clerk, keyless: periodic transaction reports as PDFs, parsed with pypdf (`house_ptr.py`).
 - Yahoo Finance, keyless: quotes, candles, and the ticker page basics when there is no feed (`freefeed.py`).
 - Financial Modeling Prep (optional): US quotes, statements, estimates, peers, insider filings, Congress trades. The desk was built on the Starter plan; `scripts/audit_fmp.py` probes which endpoints your plan allows.
