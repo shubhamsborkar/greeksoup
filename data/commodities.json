@@ -27,7 +27,8 @@
     "Paints & coatings",
     "Plastics & packaging",
     "Cement (fuel)",
-    "Fertiliser"
+    "Fertiliser",
+    "Cruise lines"
    ],
    "revenue": [
     "Oil & gas producers",
@@ -51,7 +52,8 @@
     "Shipping & logistics",
     "Refiners (feedstock)",
     "Petrochemicals",
-    "Oil-importing sovereigns (India, Japan, Europe)"
+    "Oil-importing sovereigns (India, Japan, Europe)",
+    "Cruise lines"
    ],
    "revenue": [
     "Oil & gas producers",
@@ -872,7 +874,8 @@
     "Railways & trucking",
     "Farmers (diesel)",
     "Airlines (jet fuel tracks it)",
-    "Mining & construction fleets"
+    "Mining & construction fleets",
+    "Cruise lines"
    ],
    "revenue": [
     "Refiners (diesel crack)"

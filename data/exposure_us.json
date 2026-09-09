@@ -866,6 +866,21 @@
       "lag": "1-2 quarters",
       "pricing_power": null,
       "note": "Aluminium-bodied F-150; figures not pulled yet."
+    },
+    {
+      "code": "NCLH",
+      "label": "Norwegian Cruise Line",
+      "industry": "Cruise lines",
+      "commodities": [
+        "heating_oil",
+        "brent",
+        "wti"
+      ],
+      "intensity": null,
+      "intensity_source": null,
+      "lag": "one quarter (partly hedged)",
+      "pricing_power": null,
+      "note": "Marine fuel prices off the distillate and residual cracks; the 10-K carries the fuel share of cost and the hedge book. Figure not pulled yet."
     }
   ]
 }
