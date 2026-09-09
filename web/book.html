@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Book — Research Desk</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23ED5A24'/><text x='16' y='22' font-size='15' font-weight='800' font-family='Arial' fill='white' text-anchor='middle'>FD</text></svg>">
+<link rel="stylesheet" href="/assets/desk.css">
+<script src="/assets/desk.js" defer></script>
+<style>
+main{max-width:1180px;margin:0 auto;padding:18px 22px}
+.sub{color:var(--muted);font-size:12px;margin-bottom:16px;line-height:1.5}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 16px}
+.tile .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink2);margin-bottom:7px}
+.tile .v{font-size:20px;font-weight:700}
+.tile .s{font-size:10.5px;color:var(--muted);margin-top:5px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.panel-h{padding:11px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.panel-h h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2)}
+.panel-h .sub{font-size:11px;color:var(--muted);margin:0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 13px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--panel2)}
+td.name b{font-weight:700}
+td.name .co{color:var(--muted);font-size:10.5px;font-weight:400;display:block}
+.pos{color:var(--pos)} .neg{color:var(--neg)} .dim{color:var(--muted)}
+.wbar{display:inline-block;height:5px;border-radius:3px;background:var(--accent);opacity:.7;vertical-align:middle;margin-right:6px}
+.x{background:none;border:1px solid var(--line2);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px}
+.x:hover{color:var(--neg);border-color:var(--neg)}
+.form{display:flex;gap:8px;flex-wrap:wrap;padding:12px 15px;align-items:center}
+.form input,.form textarea{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:inherit}
+.form input.sym{width:150px;text-transform:uppercase}
+.form input.num{width:120px;font-family:Menlo,monospace}
+.form button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:12.5px}
+.form button.ghost{background:var(--panel2);color:var(--ink2);border:1px solid var(--line2)}
+.form textarea{width:100%;min-height:96px;font-family:Menlo,monospace;font-size:12px;line-height:1.5}
+.msg{font-size:11.5px;padding:0 15px 12px;color:var(--muted);line-height:1.5}
+.msg.err{color:var(--neg)} .msg.ok{color:var(--pos)}
+.note{font-size:11.5px;color:var(--muted);line-height:1.6;padding:13px 15px}
+.note b{color:var(--ink2)}
+.empty{padding:26px 15px;color:var(--muted);font-size:12.5px;line-height:1.6}
+.cc{font-size:9.5px;font-weight:800;border-radius:4px;padding:1.5px 6px;letter-spacing:.05em;background:var(--panel2);color:var(--ink2);margin-left:6px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">RESEARCH <span>DESK</span></div>
+  <nav></nav>
+  <div class="right"><span id="asof"></span></div>
+</header>
+<main>
+  <div class="sub">A portfolio you keep by hand, with no broker and no feed key: any symbol Yahoo Finance knows, in any market, priced from Yahoo's free feed. US listings are close to live; most other exchanges, NSE included, run 15 to 20 minutes behind. Add a line, or paste your whole holdings list below.</div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="panel">
+    <div class="panel-h"><h2>Positions</h2><span class="sub" id="cnt"></span></div>
+    <div id="table"><div class="empty">Loading…</div></div>
+    <div class="form" id="addform">
+      <input class="sym" id="f_sym" placeholder="symbol (AAPL, RELIANCE.NS, MC.PA)" autocomplete="off">
+      <input class="num" id="f_sh" placeholder="shares" inputmode="decimal">
+      <input class="num" id="f_ac" placeholder="avg cost" inputmode="decimal">
+      <button id="f_add">Add</button>
+      <span class="dim" style="font-size:11px">Same symbol again replaces the line.</span>
+    </div>
+    <div class="msg" id="addmsg"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><h2>Paste your holdings</h2><span class="sub">one position per line: symbol, shares, average cost. Commas, tabs or spaces. A header row is fine. Most broker exports paste straight in once the symbols are Yahoo's.</span></div>
+    <div class="form" style="flex-direction:column;align-items:stretch">
+      <textarea id="csv" placeholder="symbol,shares,avg_cost&#10;AAPL,10,172.40&#10;RELIANCE.NS,25,2890&#10;MC.PA,3,610"></textarea>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button id="imp">Import (merge into the book)</button>
+        <button class="ghost" id="impfile">Choose a file…</button><input type="file" id="file" accept=".csv,.txt,.tsv" style="display:none">
+        <span class="dim" style="font-size:11px">Every symbol is checked against Yahoo before it is saved; the ones it cannot price are listed back to you.</span>
+      </div>
+    </div>
+    <div class="msg" id="impmsg"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><h2>Cash</h2><span class="sub">per currency, so a book across markets adds up honestly</span></div>
+    <div class="form">
+      <input class="sym" id="c_ccy" placeholder="currency (USD, INR, EUR)" style="width:120px">
+      <input class="num" id="c_amt" placeholder="amount" inputmode="decimal">
+      <button class="ghost" id="c_set">Set</button>
+      <span id="cashlist" class="dim" style="font-size:11.5px"></span>
+    </div>
+  </div>
+
+  <div class="note"><b>What this is:</b> the desk reads <span class="mono">data/book.json</span>, which these forms edit. Nothing here places orders and nothing leaves your computer except the price lookups. Each currency is totalled on its own; the desk does not convert between them, because a converted total hides which market moved. <b>Symbols:</b> Yahoo's, so <span class="mono">RELIANCE.NS</span> not RELIANCE, <span class="mono">0700.HK</span>, <span class="mono">MC.PA</span>, <span class="mono">BHP.AX</span>. Type a company name into Yahoo Finance to find the symbol.</div>
+</main>
+
+<script>
+"use strict";
+const fmt=(v,ccy,dp)=>{ if(v==null||isNaN(v)) return "—"; try{ return new Intl.NumberFormat("en-US",{style:"currency",currency:ccy||"USD",maximumFractionDigits:dp??2,minimumFractionDigits:dp??2}).format(v);}catch(e){ return (ccy||"")+" "+v.toFixed(dp??2);} };
+const num=(v,dp=2)=>v==null||isNaN(v)?"—":v.toLocaleString("en-US",{maximumFractionDigits:dp,minimumFractionDigits:dp});
+const pct=x=>x==null?"—":(x>=0?"+":"−")+Math.abs(x).toFixed(2)+"%";
+const cls=x=>x==null?"dim":(x>=0?"pos":"neg");
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let D=null;
+function tile(l,v,k,s){return `<div class="tile"><div class="l">${l}</div><div class="v mono ${k||""}">${v}</div><div class="s">${s||""}</div></div>`;}
+async function load(){
+  const r=await fetch("/api/book"); D=await r.json();
+  document.getElementById("asof").textContent="Yahoo · "+(D.ts||"");
+  const groups=D.groups||[];
+  let t="";
+  for(const g of groups){
+    t+=tile(`${g.currency} · value`,fmt(g.total,g.currency,0),"",`${g.n} position${g.n===1?"":"s"}${g.cash?" · cash "+fmt(g.cash,g.currency,0):""}`);
+    t+=tile(`${g.currency} · today`,fmt(g.day_pnl,g.currency,0),cls(g.day_pnl),pct(g.day_pct));
+    t+=tile(`${g.currency} · since cost`,fmt(g.pnl,g.currency,0),cls(g.pnl),pct(g.pnl_pct));
+  }
+  document.getElementById("tiles").innerHTML=t;
+  const ps=D.positions||[];
+  document.getElementById("cnt").textContent=ps.length?`${ps.length} lines · prices ${D.market_note||""}`:"";
+  if(!ps.length){document.getElementById("table").innerHTML=`<div class="empty">No positions yet. Add one below, or paste your holdings. The example line in <span class="mono">data/book.json</span> has zero shares and is ignored.</div>`;}
+  else{
+    let h=`<table><thead><tr><th>Name</th><th>Shares</th><th>Avg cost</th><th>Last</th><th>Day</th><th>Value</th><th>P&amp;L</th><th>P&amp;L %</th><th>Weight</th><th></th></tr></thead><tbody>`;
+    for(const p of ps){
+      h+=`<tr><td class="name"><b>${esc(p.symbol)}</b><span class="cc">${esc(p.currency||"")}</span><span class="co">${esc(p.name||"")}${p.exch?" · "+esc(p.exch):""}</span></td>
+        <td class="mono">${num(p.shares,p.shares%1?2:0)}</td><td class="mono">${num(p.avg_cost)}</td>
+        <td class="mono">${p.ltp==null?'<span class="dim">no quote</span>':num(p.ltp)}</td>
+        <td class="mono ${cls(p.day_pct)}">${pct(p.day_pct)}</td>
+        <td class="mono">${p.value==null?"—":num(p.value,0)}</td>
+        <td class="mono ${cls(p.pnl)}">${p.pnl==null?"—":num(p.pnl,0)}</td>
+        <td class="mono ${cls(p.pnl_pct)}">${pct(p.pnl_pct)}</td>
+        <td class="mono"><span class="wbar" style="width:${Math.max(2,Math.round((p.weight||0)*0.8))}px"></span>${p.weight==null?"—":p.weight.toFixed(1)+"%"}</td>
+        <td><button class="x" data-sym="${esc(p.symbol)}" title="remove this line">✕</button></td></tr>`;
+    }
+    document.getElementById("table").innerHTML=h+"</tbody></table>";
+    document.querySelectorAll("button.x").forEach(b=>b.onclick=async()=>{ if(!confirm(`Remove ${b.dataset.sym} from the book?`)) return; await post("/api/book/remove",{symbol:b.dataset.sym}); load(); });
+  }
+  document.getElementById("cashlist").textContent=(D.cash||[]).filter(c=>c.amount).map(c=>`${c.currency} ${num(c.amount,0)}`).join(" · ")||"no cash recorded";
+}
+async function post(url,body){ const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}); return r.json(); }
+function say(id,text,k){ const el=document.getElementById(id); el.textContent=text; el.className="msg "+(k||""); }
+document.getElementById("f_add").onclick=async()=>{
+  const symbol=document.getElementById("f_sym").value.trim().toUpperCase(), shares=parseFloat(document.getElementById("f_sh").value), avg_cost=parseFloat(document.getElementById("f_ac").value);
+  if(!symbol||isNaN(shares)||isNaN(avg_cost)) return say("addmsg","Symbol, shares and average cost are all needed.","err");
+  say("addmsg","Checking "+symbol+" on Yahoo…");
+  const r=await post("/api/book/add",{symbol,shares,avg_cost});
+  if(r.ok){ say("addmsg",`${symbol} saved${r.name?" · "+r.name:""}${r.currency?" · "+r.currency:""}`,"ok"); document.getElementById("f_sym").value="";document.getElementById("f_sh").value="";document.getElementById("f_ac").value=""; load(); }
+  else say("addmsg",r.error||"could not save","err");
+};
+document.getElementById("f_sym").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("f_add").click();});
+document.getElementById("f_ac").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("f_add").click();});
+document.getElementById("imp").onclick=async()=>{
+  const csv=document.getElementById("csv").value.trim(); if(!csv) return say("impmsg","Nothing to import.","err");
+  say("impmsg","Checking every symbol on Yahoo, this takes a second per line…");
+  const r=await post("/api/book/import",{csv});
+  if(r.ok){ say("impmsg",`${r.added} line${r.added===1?"":"s"} saved.`+(r.errors&&r.errors.length?" Not saved: "+r.errors.join("; "):""),r.errors&&r.errors.length?"":"ok"); load(); }
+  else say("impmsg",r.error||"import failed","err");
+};
+document.getElementById("impfile").onclick=()=>document.getElementById("file").click();
+document.getElementById("file").onchange=e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{document.getElementById("csv").value=rd.result;}; rd.readAsText(f); };
+document.getElementById("c_set").onclick=async()=>{
+  const currency=document.getElementById("c_ccy").value.trim().toUpperCase(), amount=parseFloat(document.getElementById("c_amt").value);
+  if(!currency||isNaN(amount)) return;
+  await post("/api/book/cash",{currency,amount}); document.getElementById("c_amt").value=""; load();
+};
+load(); setInterval(load,60*1000);
+</script>
+</body>
+</html>

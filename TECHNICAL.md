@@ -4,7 +4,7 @@ The README is written for a reader who hands the folder to a coding agent. This 
 
 ## What this folder is, and what it is not
 
-This folder is only the desk: the program that draws the thirteen tabs, the pages, the broker adapter and the data templates. It is not the Obsidian vault. The vault (your notes, the rulebook file, the raw inbox, the wiki and output folders, the skills) is a separate folder that the newsletter edition walks you through building, and the desk works with or without it. The two connect in two places only: the `obsidian/Live Desk.md` note, which shows the desk inside Obsidian, and the optional `VAULT_OUTPUT_DIR` setting, which drops the desk's daily reports into your vault as notes. The desk folder can sit anywhere on your computer, inside the vault or next to it.
+This folder is only the desk: the program that draws the fourteen tabs, the pages, the broker adapter and the data templates. It is not the Obsidian vault. The vault (your notes, the rulebook file, the raw inbox, the wiki and output folders, the skills) is a separate folder that the newsletter edition walks you through building, and the desk works with or without it. The two connect in two places only: the `obsidian/Live Desk.md` note, which shows the desk inside Obsidian, and the optional `VAULT_OUTPUT_DIR` setting, which drops the desk's daily reports into your vault as notes. The desk folder can sit anywhere on your computer, inside the vault or next to it.
 
 Day to day you do not need the coding agent to run the desk; it starts with your computer (or with the start file) and you look at it in a browser or in Obsidian. The agent (Claude Code, Codex, Kimi Code, Grok Build, in a terminal or in its desktop app) is for setting it up, adapting it to your broker, and changing it later by describing what you want.
 
@@ -73,6 +73,7 @@ All of them sit in the `data/` folder, plain JSON you can open in any text edito
 | File | What it is |
 |---|---|
 | `data/us_book.json` | Your US positions and cash. The desk prices them. |
+| `data/book.json` | The hand-kept book for anyone with no broker: Yahoo symbols from any market, shares, average cost, cash per currency. The Desk · Book page edits it (add, remove, paste-import). |
 | `data/watchlist.json`, `data/watchlist_us.json`, `data/watchlist_global.json` | The three watch grids (also editable in the page). Home codes are your broker's stock codes. |
 | `data/fno_watchlist.json` | Names for the home options tape (indices and large caps). |
 | `data/funds.json` | The 13F filers you follow (name + CIK). |
@@ -114,5 +115,5 @@ The fastest route is to open this folder in your coding agent, give it your brok
 - SEC EDGAR: 13F and 13D/G filings, read directly. Set `EDGAR_CONTACT` in `.env`; the SEC asks for it.
 - CBOE delayed option chains, FINRA short files, FRED, the home exchange's public filings and results calendar, Yahoo Finance quotes and history: all free, no key.
 
-Yahoo's quote endpoints are unofficial and can change; the code degrades to the feed or to the last saved quotes when they do.
+Yahoo's free quotes are near live for US listings and 15 to 20 minutes delayed for most other exchanges. Yahoo's quote endpoints are unofficial and can change; the code degrades to the feed or to the last saved quotes when they do.
 

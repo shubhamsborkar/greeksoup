@@ -1,0 +1,17 @@
+{
+  "_comment": "The hand-kept book: any symbol Yahoo Finance knows, in any market (AAPL, RELIANCE.NS, MC.PA, 0700.HK). Edit here or in the Desk \u00b7 Book page, which writes this file. Prices come from Yahoo's free feed: US listings close to live, most other exchanges 15 to 20 minutes behind. Lines with zero shares are ignored. Each currency is totalled on its own; the desk never converts between them.",
+  "cash": [
+    {
+      "currency": "USD",
+      "amount": 0
+    }
+  ],
+  "positions": [
+    {
+      "symbol": "AAPL",
+      "name": "Apple",
+      "shares": 0,
+      "avg_cost": 0
+    }
+  ]
+}

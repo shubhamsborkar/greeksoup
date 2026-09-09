@@ -13,6 +13,7 @@ same daily flow as everything else) and reused.
 
 import json
 import os
+import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -64,7 +65,8 @@ _cache = {"snap": (0.0, None), "tape": (0.0, None),
           "funds": (0.0, None), "capitol": (0.0, None), "econcal": (0.0, None),
           "burry": (0.0, None), "pulse": (0.0, None), "insiders": (0.0, None),
           "risk": (0.0, None), "act13d": (0.0, None), "flow": (0.0, None),
-          "short": (0.0, None), "commods": (0.0, None), "chain": (0.0, None)}
+          "short": (0.0, None), "commods": (0.0, None), "chain": (0.0, None),
+          "book": (0.0, None)}
 _locks = {k: threading.Lock() for k in _cache}
 EARN_TTL, MACRO_TTL, FUNDS_TTL, CAPITOL_TTL = 12 * 3600, 6 * 3600, 24 * 3600, 6 * 3600
 COMMODS_TTL = 10 * 60   # Yahoo tail + TE sentence refresh; histories cache 12h inside
@@ -2050,6 +2052,8 @@ def build_commods():
                     if not q and live:
                         q = (fetch_watch_quote(breeze, nm["code"], "NSE")
                              or fetch_watch_quote(breeze, nm["code"], "BSE"))
+                    if not q and not live:
+                        q = fetch_yahoo_quote(nm["code"])   # no broker: the code is a Yahoo symbol
                 seen[key] = q
             q = seen[key]
             if q:
@@ -2087,6 +2091,109 @@ def build_commods():
     d["pressure"] = commods.pressure(d["cards"], commods.cross_link(d["cards"]))
     return d
 
+
+
+# ---- the hand-kept book (no broker, no feed: Yahoo symbols, any market) ------
+BOOK_PATH = os.path.join(DATA_DIR, "book.json")
+BOOK_TTL = 60
+_book_lock = threading.Lock()
+
+
+def load_book():
+    try:
+        with open(BOOK_PATH) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return {"cash": [], "positions": []}
+
+
+def save_book(book):
+    book.setdefault("_comment", "The hand-kept book: any symbol Yahoo Finance knows. "
+                    "Edit here or in the Desk · Book page. Lines with zero shares are ignored.")
+    with _book_lock:
+        with open(BOOK_PATH, "w") as fh:
+            json.dump(book, fh, indent=2)
+
+
+def _book_quote(symbol):
+    with _watch_lock:
+        q = WATCH_GLOBAL.get(symbol)
+    return q or fetch_yahoo_quote(symbol) or freefeed.quote(symbol)
+
+
+def build_book():
+    """Price data/book.json through Yahoo, one currency group at a time."""
+    book = load_book()
+    rows = []
+    for p in book.get("positions", []):
+        try:
+            shares = float(p.get("shares") or 0)
+            avg = float(p.get("avg_cost") or 0)
+        except (TypeError, ValueError):
+            continue
+        if not p.get("symbol") or shares == 0:
+            continue
+        q = _book_quote(p["symbol"])
+        ltp = q.get("ltp") if q else None
+        prev = q.get("prev") if q else None
+        value = ltp * shares if ltp is not None else None
+        cost = avg * shares
+        rows.append({
+            "symbol": p["symbol"], "name": p.get("name") or (q or {}).get("name") or "",
+            "exch": (q or {}).get("exch") or "", "currency": (q or {}).get("currency") or p.get("currency") or "",
+            "shares": shares, "avg_cost": avg, "ltp": ltp, "prev": prev,
+            "day_pct": (q or {}).get("day_pct"), "value": value,
+            "day_pnl": ((ltp - prev) * shares) if (ltp is not None and prev) else None,
+            "pnl": (value - cost) if value is not None else None,
+            "pnl_pct": ((value - cost) / cost * 100) if (value is not None and cost) else None,
+        })
+        time.sleep(0.3)      # keyless feed: polite
+    cash = {c.get("currency", "").upper(): float(c.get("amount") or 0)
+            for c in book.get("cash", []) if c.get("currency")}
+    groups = []
+    for ccy in sorted({r["currency"] for r in rows if r["currency"]} | {c for c, a in cash.items() if a}):
+        rs = [r for r in rows if r["currency"] == ccy]
+        val = sum(r["value"] for r in rs if r["value"] is not None)
+        total = val + cash.get(ccy, 0)
+        for r in rs:
+            r["weight"] = (r["value"] / total * 100) if (r["value"] is not None and total) else None
+        day = sum(r["day_pnl"] for r in rs if r["day_pnl"] is not None)
+        prev_val = sum(r["prev"] * r["shares"] for r in rs if r["prev"])
+        pnl = sum(r["pnl"] for r in rs if r["pnl"] is not None)
+        cost = sum(r["avg_cost"] * r["shares"] for r in rs)
+        groups.append({"currency": ccy, "n": len(rs), "value": val, "cash": cash.get(ccy, 0),
+                       "total": total, "day_pnl": day,
+                       "day_pct": (day / prev_val * 100) if prev_val else None,
+                       "pnl": pnl, "pnl_pct": (pnl / cost * 100) if cost else None})
+    rows.sort(key=lambda r: (r["currency"], -(r["value"] or 0)))
+    return {"positions": rows, "groups": groups,
+            "cash": [{"currency": c, "amount": a} for c, a in cash.items()],
+            "market_note": "from Yahoo's free feed; US near live, other exchanges 15 to 20 min behind",
+            "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
+
+
+def _parse_book_lines(text):
+    """symbol, shares, avg cost per line; commas, tabs, semicolons or spaces;
+    a header row and blank lines are skipped."""
+    out, errors = [], []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        parts = [x.strip().strip('"') for x in re.split(r"[,\t;]+|\s{2,}|\s+(?=[\d.-])", line) if x.strip()]
+        if len(parts) < 3:
+            errors.append(f"'{line[:30]}' needs symbol, shares, avg cost")
+            continue
+        sym = parts[0].upper()
+        try:
+            shares, avg = float(parts[1].replace(",", "")), float(parts[2].replace(",", ""))
+        except ValueError:
+            if sym in ("SYMBOL", "TICKER", "SCRIP", "NAME"):
+                continue          # header row
+            errors.append(f"'{line[:30]}' has a non-numeric shares or cost")
+            continue
+        out.append({"symbol": sym, "shares": shares, "avg_cost": avg})
+    return out, errors
 
 
 # ---- Burry watch (Cassandra Unchained on Substack; RSS is public) ------------
@@ -2517,7 +2624,7 @@ def build_capitol():
             "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
 
 
-DISKLESS = {"snap", "tape"}   # position data: never serve a restart a stale book
+DISKLESS = {"snap", "tape", "book"}   # position data: never serve a restart a stale book
 
 
 _building = set()
@@ -2636,6 +2743,11 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/commods":
                 self._send(json.dumps(_cached("commods", COMMODS_TTL, build_commods)).encode(),
                            "application/json")
+            elif path == "/book":
+                with open(os.path.join(HERE, "web", "book.html"), "rb") as fh:
+                    self._send(fh.read(), "text/html; charset=utf-8")
+            elif path == "/api/book":
+                self._send(json.dumps(_cached("book", BOOK_TTL, build_book)).encode(), "application/json")
             elif path == "/funds":
                 with open(os.path.join(HERE, "web", "funds.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
@@ -2742,6 +2854,55 @@ class Handler(BaseHTTPRequestHandler):
             except Exception:  # noqa: BLE001
                 pass
 
+    def _book_post(self, body):
+        """Desk · Book edits: add/replace a line, remove one, import many,
+        set cash. Writes data/book.json; places no orders anywhere."""
+        book = load_book()
+        book.setdefault("positions", []); book.setdefault("cash", [])
+        def upsert(sym, shares, avg, name=None):
+            book["positions"] = [p for p in book["positions"] if (p.get("symbol") or "").upper() != sym]
+            book["positions"].append({"symbol": sym, "name": name or "", "shares": shares, "avg_cost": avg})
+        if self.path == "/api/book/add":
+            sym = str(body.get("symbol", "")).strip().upper()
+            try:
+                shares, avg = float(body.get("shares")), float(body.get("avg_cost"))
+            except (TypeError, ValueError):
+                return self._send(b'{"ok":false,"error":"shares and avg cost must be numbers"}', "application/json")
+            q = fetch_yahoo_quote(sym) or freefeed.quote(sym)
+            if not q:
+                return self._send(json.dumps({"ok": False, "error": f"Yahoo has no quote for {sym}; use Yahoo's symbol (RELIANCE.NS, MC.PA, 0700.HK)"}).encode(), "application/json")
+            upsert(sym, shares, avg, q.get("name"))
+            save_book(book); _cache["book"] = (0.0, None)
+            return self._send(json.dumps({"ok": True, "name": q.get("name"), "currency": q.get("currency")}).encode(), "application/json")
+        if self.path == "/api/book/remove":
+            sym = str(body.get("symbol", "")).strip().upper()
+            book["positions"] = [p for p in book["positions"] if (p.get("symbol") or "").upper() != sym]
+            save_book(book); _cache["book"] = (0.0, None)
+            return self._send(b'{"ok":true}', "application/json")
+        if self.path == "/api/book/import":
+            lines, errors = _parse_book_lines(str(body.get("csv", "")))
+            added = 0
+            for ln in lines[:200]:
+                q = fetch_yahoo_quote(ln["symbol"]) or freefeed.quote(ln["symbol"])
+                if not q:
+                    errors.append(f"{ln['symbol']}: no Yahoo quote")
+                    continue
+                upsert(ln["symbol"], ln["shares"], ln["avg_cost"], q.get("name"))
+                added += 1
+                time.sleep(0.4)
+            save_book(book); _cache["book"] = (0.0, None)
+            return self._send(json.dumps({"ok": True, "added": added, "errors": errors[:30]}).encode(), "application/json")
+        if self.path == "/api/book/cash":
+            ccy = str(body.get("currency", "")).strip().upper()
+            try:
+                amt = float(body.get("amount"))
+            except (TypeError, ValueError):
+                return self._send(b'{"ok":false,"error":"amount must be a number"}', "application/json")
+            book["cash"] = [c for c in book["cash"] if (c.get("currency") or "").upper() != ccy] + [{"currency": ccy, "amount": amt}]
+            save_book(book); _cache["book"] = (0.0, None)
+            return self._send(b'{"ok":true}', "application/json")
+        return self._send(b'{"ok":false,"error":"unknown book action"}', "application/json")
+
     def do_POST(self):  # noqa: N802 - stdlib naming
         """Watchlist add/remove. Still zero order capability — these endpoints
         only edit which names the READ-ONLY watch grid quotes."""
@@ -2750,6 +2911,8 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(self.rfile.read(length) or b"{}")
             region = str(body.get("list", "in")).lower()
             code = str(body.get("code", "")).strip().upper()
+            if self.path.startswith("/api/book/"):
+                return self._book_post(body)
             if self.path == "/api/watch/add":
                 if not code:
                     return self._send(b'{"ok":false,"error":"empty code"}', "application/json")

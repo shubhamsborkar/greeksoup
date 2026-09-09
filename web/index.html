@@ -417,11 +417,8 @@ function render(snap){
     const app=document.getElementById("app");
     app.className="";
     app.innerHTML=`<div class="tokenbar">
-      <h3>Broker session expired — paste a fresh session token</h3>
-      <p>The broker session token has lapsed and no earlier book is saved yet.
-      To connect: <b>quit the desk</b> (close its terminal window), double-click
-      <b>Start&nbsp;Desk.command</b>, and paste today's session token when prompted.
-      US, Global, Macro and Funds pages keep running without tokens.</p></div>
+      <h3>No broker connected right now</h3>
+      <p>Two ways to see a book here. <b>Without a broker:</b> open <a href="/book" style="color:var(--accent)">Desk · Book</a> and add your holdings by hand with Yahoo symbols (AAPL, RELIANCE.NS, MC.PA); prices come from Yahoo's free feed, no key needed. <b>With the shipped ICICI adapter:</b> double-click <b>Paste Token</b> in the desk folder and paste today's session token; the token lapses at midnight, which is why this notice also appears each morning. Desk · US, Desk · Book, Global, Macro, Commodities and Funds run without any token.</p></div>
     <section class="panel" style="margin-top:14px">
       <div class="panel-h"><h2>Upcoming results · Home</h2>
         <span class="sub" id="einsub">board meetings with a Financial Results purpose (NSE) — runs without tokens</span></div>

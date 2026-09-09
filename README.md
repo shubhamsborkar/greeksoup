@@ -1,6 +1,6 @@
 # One-person equity research desk
 
-A research desk that runs on your own computer: thirteen screens with your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a commodity board that names the industries each move squeezes or helps, and a page for any ticker, priced live. It reads your broker, the public record (SEC EDGAR, CBOE, FINRA, FRED) and one optional data feed, and it opens as a tab inside Obsidian or in any browser.
+A research desk that runs on your own computer: fourteen screens with your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a commodity board that names the industries each move squeezes or helps, and a page for any ticker, priced live. It reads your broker, the public record (SEC EDGAR, CBOE, FINRA, FRED) and one optional data feed, and it opens as a tab inside Obsidian or in any browser.
 
 You do not write any of it. An AI coding agent (Claude Code, Codex, Kimi Code or Grok Build) installs it, connects it to your broker and changes it when you ask. This is the whole desk from the newsletter edition [How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity), without the author's positions. The screenshots there show the author's own copy.
 
@@ -18,7 +18,7 @@ Three things are involved, and it helps to know which is which.
 
 - A computer you leave on while you work. Mac or Windows.
 - One AI coding agent installed: Claude Code, Codex, Kimi Code or Grok Build. If you have none, search "how do I install Claude Code" and follow the two or three steps. You need it for the install and for changes, not for daily use.
-- Optional: an account with a broker that lets a program read it, which brokers call an API (Interactive Brokers, Alpaca, Robinhood, Zerodha, ICICI and most large brokers do). Without one, the US desk and every intelligence screen still work.
+- Optional: an account with a broker that lets a program read it, which brokers call an API (Interactive Brokers, Alpaca, Robinhood, Zerodha, ICICI and most large brokers do). Without one, you keep your holdings by hand on Desk · Book with Yahoo symbols, and the US desk and every intelligence screen still work.
 - Optional: a Financial Modeling Prep key for the parsed financial statements on the ticker page.
 
 ## Install it (about twenty minutes, the agent does the work)
@@ -75,9 +75,10 @@ The desk has two account screens, and they are built differently on purpose.
 
 So a reader in the US uses Desk · US and never opens Home. A reader in Australia has the agent write an ASX broker adapter for Home and uses Desk · US as shipped. A reader in India runs both as they are.
 
-## The thirteen screens
+## The fourteen screens
 
 - **Desk · Home** and **Desk · US**: above.
+- **Desk · Book**: a portfolio you keep by hand, for anyone with no broker to connect and no feed key. Any symbol Yahoo Finance knows, in any market (AAPL, RELIANCE.NS, MC.PA, 0700.HK); add a line in the page or paste your whole holdings list, and it is priced from Yahoo's free feed, US listings close to live and most other exchanges 15 to 20 minutes behind, with value, day move, profit since cost and weight, one currency at a time.
 - **Risk**: beta, volatility, worst drawdown and correlation for every book against its index, leverage at underlying notional, margin cushion, a 5 percent stress line, sector concentration.
 - **Watch · Home, Watch · US, Global**: three watch grids; add a name by typing it. Global takes any symbol from any exchange.
 - **Macro**: 23 FRED series in groups and an economic calendar.
@@ -91,7 +92,7 @@ So a reader in the US uses Desk · US and never opens Home. A reader in Australi
 
 ## What runs with no key at all
 
-With no broker key and no feed key the desk still starts, and eleven of the thirteen screens are live: Desk · US, Watch · US, Global, Risk, Macro, Funds, Flow, Short, Capitol, Chain, Commodities, and the ticker page's chart, quote, ratios and insider table. The broker key lights up Desk · Home and Watch · Home. The feed key adds the parsed statements, ratio history, segments, estimates, peers, dividends and news on the ticker page, the 50 and 200 day columns on the US watch grid, a market-wide insider scan, and cleaner Congress rows.
+With no broker key and no feed key the desk still starts, and twelve of the fourteen screens are live: Desk · US, Desk · Book, Watch · US, Global, Risk, Macro, Funds, Flow, Short, Capitol, Chain, Commodities, and the ticker page's chart, quote, ratios and insider table. The broker key lights up Desk · Home and Watch · Home. The feed key adds the parsed statements, ratio history, segments, estimates, peers, dividends and news on the ticker page, the 50 and 200 day columns on the US watch grid, a market-wide insider scan, and cleaner Congress rows.
 
 ## Your own market on the Commodities screen
 
