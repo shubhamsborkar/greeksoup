@@ -112,6 +112,21 @@ Your lists also sit as plain text files in the `data/` folder if you prefer to e
 
 The desk can hold several accounts at the same broker, and a US book next to a home account; the agent adds an account when you ask.
 
+## Getting a newer version
+
+The desk keeps growing (the list at the bottom of this section says what was added and when), and a copy you downloaded earlier does not update itself. Your keys and your lists live in two places the update never touches, the `.env` file and the `data/` folder, so bringing in a newer version is safe. Download the ZIP again from the green **Code** button, the same way as on install, so the new folder sits in your Downloads folder, then open your existing desk folder in your agent and paste:
+
+```
+A newer version of this desk is in my Downloads folder, in the folder that came out of the ZIP. Update this desk from it: bring over every program file and every page, keep my .env and everything in my data folder exactly as they are, add any file in the new data folder that mine does not have, add any alert rule from its data/alerts.json that mine is missing, then restart the desk and tell me what is new.
+```
+
+If you took the desk with git instead of the ZIP, `git pull` in the desk folder does the same, and the agent restarts it.
+
+What was added, newest first:
+
+- **2026-09-09**: the **Commodities** screen (51 commodities, the industries each one squeezes and helps, the names you map to them from their filings, a names-under-pressure panel, two new alert rules) and **Desk · Book**, the hand-kept portfolio for readers with no broker and no feed.
+- **2026-09-03**: first public version, twelve screens.
+
 ## For the technical reader
 
 Setup by hand, the file map, how to adapt the broker adapter, the data sources in detail, and how the always-on service works on Mac, Windows and Linux: [TECHNICAL.md](TECHNICAL.md).
