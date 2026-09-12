@@ -94,11 +94,11 @@
     "wti",
     "brent"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Pure upstream, 2,375 MBOED produced in 2025 (867 MMBOE), average realized $47.01 per BOE against $58.39 in 2024 (down 19%) on Brent $69.06 and WTI $64.81; crude realized $65.62/bbl, natural gas $4.44/Mcf (Lower 48 gas only $1.74/Mcf), NGL $21.07/bbl, bitumen $40.74/bbl. Lower 48 is 67% of liquids and 74% of gas production. No per-barrel cash-flow sensitivity is published in the 10-K, the Q2 2026 10-Q or the Q4 2025 and Q2 2026 earnings 8-Ks (checked); own arithmetic on the 10-K volumes: 867 MMBOE a year means a $1/BOE realized-price move is about $0.87 billion of pre-tax revenue",
+   "intensity_source": "ConocoPhillips Form 10-K for fiscal 2025 (accession 0001163165-26-000009, filed 17 February 2026), Item 7 Business Environment (industry prices and average realized prices) and Results of Operations production and price tables; Item 7A Commodity Price Risk",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Pure upstream; figures not pulled yet."
+   "pricing_power": "Own words, 10-K 2025 Item 7A: \"Consistent with our policy to generally remain exposed to market prices, we use swap contracts to convert fixed-price sales contracts, which are often requested by natural gas consumers, to floating market prices\", i.e. production is unhedged by policy; derivatives are used by the Commercial organization to optimise flows and capture location and time premiums",
+   "note": "The map's WTI/Brent link is direct and unhedged. Realized price includes bitumen and Lower 48 gas at deep discounts, so the barrel-equivalent realization ($47.01) sits well below WTI. The sensitivity is the reader's own arithmetic, not a company statement; COP publishes no $/bbl sensitivity in EDGAR documents"
   },
   {
    "code": "BTU",
@@ -319,11 +319,11 @@
     "brent",
     "natgas_us"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Upstream earned $12,822 million of 2025 earnings against $3,022 million for Downstream and $(3,545) million for All Other, on net income of $12,299 million, so Upstream is more than 100% of the group result. Worldwide net oil-equivalent production 3.7 million barrels a day in 2025 (up 12% on Hess). Average sales prices 2025: crude $63.22/bbl consolidated ($62.25 in the US), NGL $18.91/bbl, natural gas $4.86 per Mcf worldwide but $2.04 in the US; TCO (Kazakhstan affiliate) crude $56.88. Average production cost $9.71 per barrel. No $/bbl earnings sensitivity is published in the 10-K",
+   "intensity_source": "Chevron Form 10-K for fiscal 2025 (accession 0000093410-26-000078, filed 24 February 2026), MD&A Earnings by Major Operating Area, Production paragraph, Table IV Unit Prices and Costs; Item 7A cross-reference to Financial and Derivative Instruments",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Integrated; upstream dominates; figures not pulled yet."
+   "pricing_power": "Own words, 10-K 2025 Financial and Derivative Instruments: \"Chevron is exposed to market risks related to the price volatility of crude oil, refined products, NGLs, natural gas, LNG and refinery feedstocks. The company uses derivative commodity instruments to manage these exposures on a portion of its activity ... The results of these activities were not material to the company's financial position, results of operations or cash flows in 2025\". 2026 production guided up 7-10% \"assuming a Brent crude oil price of $60 per barrel\"; about 21% of 2025 production was in OPEC+ countries where entitlement volumes move inversely with price",
+   "note": "Integrated: Downstream (refining margins) partly offsets crude in a falling-price year, which is why the map keeps CVX on WTI/Brent/natgas_us but the integrated cushion is real ($3.0 billion Downstream in 2025 vs $1.7 billion in 2024 as crude fell). US gas realized $2.04/Mcf against a Henry Hub average of $3.43 quoted by ConocoPhillips for the same year. No company sensitivity figure; nothing from memory"
   },
   {
    "code": "OXY",
@@ -333,11 +333,11 @@
     "wti",
     "brent"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Company's own sensitivity for budgeted 2026: approximately $240 million of pre-tax cash for a $1 per barrel change in WTI and approximately $25 million for a $1 per barrel change in Brent; $0.50 per Mcf in domestic natural gas is about $120 million a year; a $0.25 change in the Midland-to-Gulf-Coast oil spread is about $55 million",
+   "intensity_source": "Occidental Petroleum Form 10-K for fiscal 2025 (accession 0001628280-26-009059, filed 18 February 2026), Item 7A Quantitative and Qualitative Disclosures About Market Risk, Commodity Price Risk",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "Own words, 10-K 2025 Item 7A: \"The Company's results are sensitive to fluctuations in oil, NGL and natural gas prices ... These price-change sensitivities include the impact of PSC and similar contract volume changes on income. If production levels differ from the Company's 2026 budgeted production, the sensitivity of the Company's results to prices also will change.\" The 2025 10-K lists no oil collars or swaps on production; derivatives are in marketing and trading under risk policies",
+   "note": "WTI carries almost ten times the weight of Brent in Occidental's book ($240 million vs $25 million per $1), so the map's WTI card should dominate. The sensitivity is the company's pre-tax cash on the 2026 budget and includes PSC volume effects; chemicals and midstream sit outside it"
   },
   {
    "code": "DVN",
@@ -347,11 +347,11 @@
     "wti",
     "natgas_us"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "2025 (pre-merger): oil production 389 MBbls/d; 2026 cash flow \"partly protected\" by hedges covering approximately 30% of anticipated oil and gas volumes; Item 7A: a 10% move in forward curves changes derivative positions by about $150 million at 31 December 2025 and about $350 million at 30 June 2026. Merger of equals with Coterra closed 7 May 2026: Q2 2026 production 1,359 MBoe/d including 503 MBbls/d of oil, combined company guided to 1,660-1,690 MBoe/d. Q2 2026 realizations: oil $95.10/bbl unhedged (103% of WTI $92.47), $88.09 with hedges (cash settlements $7.01/bbl paid away); gas $0.35/Mcf unhedged, 12% of Henry Hub $2.90, $1.05 with hedges. No $/bbl cash-flow sensitivity is stated",
+   "intensity_source": "Devon Energy Form 10-K for fiscal 2025 (accession 0001193125-26-056485, filed 18 February 2026), Item 7 Overview and Item 7A Commodity Price Risk; Form 10-Q for Q2 2026 (accession 0001193125-26-334340, filed 5 August 2026), Item 2 Overview, Realized Prices table and Item 3",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "Own words, 10-K 2025: \"Our 2026 cash flow is partly protected from commodity price volatility due to our current hedge position that covers approximately 30% of our anticipated oil and gas volumes. In order to further insulate our cash flow, we continue to examine and, when appropriate, execute attractive regional basis swap hedges\"; and \"if commodity prices decline further, we will adapt our plan by reducing activity in order to maximize free cash flow\". Gas realized only 12% of Henry Hub before hedges in Q2 2026, a regional basis effect the 10-Q table shows but does not name",
+   "note": "The company changed shape in May 2026 (Coterra, which brings Marcellus gas), so 2025 shares no longer describe the book; the Q2 2026 10-Q is the live reference. The map's natgas_us card matters more after the merger, and the Q2 2026 realization shows the gas tracks a local price well below Henry Hub. Hedge share for the combined company is not restated in the 10-Q; the 30% figure is from the 10-K, pre-merger"
   },
   {
    "code": "SLB",
@@ -361,11 +361,11 @@
     "wti",
     "brent"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Revenue $35.7 billion in 2025, down 2% year on year \"amidst lower upstream spending\"; excluding the $1.5 billion from ChampionX, revenue fell 6%. North America revenue ex-ChampionX fell 2% \"despite a 5% drop in upstream spending\", cushioned by Data Center Solutions (+121%). International revenue down 5% on Saudi Arabia, Mexico and Sub-Saharan Africa. No published elasticity of revenue to oil price; the link runs through customer E&P budgets",
+   "intensity_source": "Schlumberger (SLB) Form 10-K for fiscal 2025 (accession 0001193125-26-021017, filed 23 January 2026), Item 7 2025 Executive Overview and Item 1A Risk Factors",
    "lag": "2-4 quarters (capex budgets follow price)",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "Own words, 10-K 2025 Item 1A: \"The oil and gas industry has historically experienced periodic downturns, which have been characterized by diminished demand for our products and services and downward pressure on the prices that we are able to charge. Sustained market uncertainty can also result in lower demand and pricing for our products and services\"; Item 1: \"customer budget constraints in North America may lead to lower demand for our services and products in the fourth quarter of the year\". 2025 overview: \"a challenging backdrop for the industry, with lower commodity prices, geopolitical uncertainty and an oversupplied oil market\"",
+   "note": "Primary customers are national oil companies, integrateds and independents; no customer over 10% of revenue. The company is diversifying the commodity link (Digital, Data Center Solutions, production chemicals via ChampionX), so the revenue-to-oil-price beta is falling. Figures are the company's own statements of the direction and size of the spending move, not a sensitivity coefficient"
   },
   {
    "code": "VLO",
@@ -380,11 +380,11 @@
     "heating_oil": "revenue",
     "wti": "cost"
    },
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Refining is the book: Refining segment revenues $116,166 million of $122,687 million total in 2025 (94.7%) with cost of materials and other $96,080 million, so the refining margin pool was $20,086 million (own arithmetic) on throughput of 2,988 thousand barrels a day; 1,090.6 million barrels a year means a $1 per barrel move in the crack is about $1.09 billion of pre-tax margin (own arithmetic, not a company figure). Company's own attribution for 2025 vs 2024: distillate margins +$1.8 billion, gasoline +$650 million, other products +$940 million, throughput +76,000 b/d worth +$340 million, crude differentials narrowing -$1.1 billion, other feedstock differentials -$600 million",
+   "intensity_source": "Valero Energy Form 10-K for fiscal 2025 (accession 0001628280-26-011499, filed 25 February 2026), Item 7 Results of Operations (Refining segment margin bridge, throughput volumes) and Note on segment information (segment revenues and cost of materials); Item 7A Commodity Price Risk",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Earns the crack, so gasoline and diesel help and crude hurts; figures not pulled yet."
+   "pricing_power": "Own words, 10-K 2025 Item 7A: \"We are exposed to market risks related to the volatility in the price of feedstocks (primarily crude oil, waste and renewable feedstocks, and corn), the products we produce, and natural gas used in our operations\"; derivatives are used only to manage LIFO inventory-level differences and favourable forward prices, and \"the amount of gain or loss that would have resulted from a 10 percent increase or decrease in the underlying price for all of our commodity derivative instruments ... was not material\". The margin is earned as a spread, so gasoline and diesel help and crude hurts, with no hedging of the crack itself",
+   "note": "Valero publishes no crack-spread sensitivity; the $1.09 billion per $1/bbl is the reader's arithmetic on stated throughput. Renewable Diesel and Ethanol segments are small (revenues $4.6 billion and $5.0 billion) and 2025 carried a $1,131 million impairment on Benicia and Wilmington. Natural gas is a refinery input cost (energy costs up $197 million in 2025)"
   },
   {
    "code": "MPC",
@@ -399,11 +399,11 @@
     "heating_oil": "revenue",
     "wti": "cost"
    },
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Company's own 2026 sensitivities for annual Refining & Marketing segment adjusted EBITDA: $1,125 million per $1.00/barrel change in the blended crack spread (42% MEH/Gulf Coast, 40% WTI/Mid-Continent, 18% ANS/West Coast); $520 million per $1.00/barrel in the sour differential and $520 million in the sweet differential (each assumed at about 50% of crude processed); $360 million per $1.00/MMBtu in natural gas. 2025 actuals: net refinery throughput 2,989 mbpd at 94% utilisation, Refining & Marketing margin $16.87 per barrel ($16.01 in 2024, $23.00 in 2023), R&M adjusted EBITDA $5.63 per barrel; refining capacity 2,986 mbpcd",
+   "intensity_source": "Marathon Petroleum Form 10-K for fiscal 2025 (accession 0001510295-26-000009, filed 26 February 2026), Item 7 Overview of Segments (sensitivity table) and Refining & Marketing Operating Statistics; Item 7A derivative sensitivity table",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "Own words, 10-K 2025: \"Refining & Marketing margin is the difference between the prices of refined products sold and the costs of crude oil and other charge and blendstocks refined ... Crack spreads can fluctuate significantly, particularly when prices of refined products do not move in the same relationship as the cost of crude oil\"; sour and sweet crude bought at a discount to the benchmark, and \"larger sweet and sour differentials will enhance our Refining & Marketing margin\". Open derivatives are small: a 10% move in crude changes income from operations by only $10 million, refined products $13 million",
+   "note": "The crack sensitivity is the map's cleanest refiner figure; the sour differential is a second lever (Maya, WCS, ANS). Natural gas is an input cost here ($360 million per $1/MMBtu on the consumption side), which points the natgas card the other way from the gasoline and distillate cards. MPLX (midstream) is consolidated and sits outside the R&M sensitivity table"
   },
   {
    "code": "AAL",
@@ -441,11 +441,11 @@
    "commodities": [
     "heating_oil"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Fuel and fuel taxes $633.3 million in 2025 = 5.3% of total operating revenues $11,999.1 million (5.4% in 2024: $652.1 million on $12,087.2 million; 5.9% in 2023: $751.5 million on $12,829.7 million); the largest cost is rents and purchased transportation at 44.2% (rail and third-party carriers, which carry their own fuel). Fuel surcharge revenues $1,475.7 million in 2025 (12.3% of revenue), down 3.5% from $1,529.5 million; revenues excluding fuel surcharge $10,523.4 million",
+   "intensity_source": "J.B. Hunt Transport Services Form 10-K for fiscal 2025 (accession 0001437749-26-005294, filed 24 February 2026), Consolidated Statements of Earnings and Item 7 operating-expense table (percent of revenue) and consolidated revenue discussion; Item 1A Risk Factors",
    "lag": "weeks (fuel surcharges)",
-   "pricing_power": null,
-   "note": "Surcharges pass diesel through with a lag of weeks; figures not pulled yet."
+   "pricing_power": "Own words, 10-K 2025 Item 1A: \"We have a fuel surcharge revenue program in place with the majority of our customers, which has historically enabled us to recover the majority of higher fuel costs. Most of these programs automatically adjust weekly depending on the cost of fuel. However, there can be timing differences between a change in our fuel cost and the timing of the fuel surcharges billed to our customers ... we incur additional costs when fuel price increases cannot be fully recovered due to our engines being idled during cold or warm weather and empty or out-of-route miles that cannot be billed to customers. As of December 31, 2025, we had no derivative financial instruments to reduce our exposure to fuel-price fluctuations\"",
+   "note": "Surcharge revenue (12.3% of sales) is more than twice the direct fuel line (5.3%); the 10-K does not explain the gap, and purchased transportation (44.2% of revenue) carries its own fuel. Net exposure is the weekly lag and unbillable miles, not the fuel bill itself; a diesel spike lifts reported revenue and compresses the operating ratio for a few weeks"
   },
   {
    "code": "UNP",
@@ -458,11 +458,11 @@
    "sides": {
     "coal": "revenue"
    },
-   "intensity": null,
-   "intensity_source": null,
-   "lag": "weeks (fuel surcharges)",
-   "pricing_power": null,
-   "note": "Buys diesel, hauls coal; figures not pulled yet."
+   "intensity": "Fuel expense $2,390 million in 2025 = 16.3% of operating expenses $14,664 million and 9.8% of operating revenues $24,510 million (2024: $2,474 million, 17.0% of $14,537 million; 2023: $2,891 million, 19.2%). Locomotive diesel averaged $2.49 per gallon in 2025 vs $2.64 in 2024, and that 6% price fall alone cut expense by $138 million (company figure), so about $23 million per cent per gallon on 2025 volumes (own arithmetic). Coal & renewables freight revenue $1,786 million in 2025 = 7.7% of freight revenues $23,220 million (up 20% on 797 thousand carloads), inside Bulk at $7,586 million",
+   "intensity_source": "Union Pacific Form 10-K for fiscal 2025 (accession 0000100885-26-000037, filed 6 February 2026), Consolidated Statements of Income, Item 7 Operating Expenses (Fuel) and Freight revenues by commodity table; Item 1A Risk Factors",
+   "lag": "weeks (fuel surcharges); company states surcharges trail fuel by about two months",
+   "pricing_power": "Own words, 10-K 2025 Item 1A: \"Although we currently are able to recover a significant amount of our fuel expenses from our customers through revenues from fuel surcharges, we cannot be certain that we will always be able to mitigate rising or elevated fuel costs through our fuel surcharges ... As fuel prices fluctuate, our fuel surcharge programs trail such fluctuations in fuel prices by approximately two months and are from time-to-time a significant source of quarter-over-quarter and year-over-year volatility\". 2025 revenue grew 1% \"which more than offset business mix, lower fuel surcharge revenues\"; excluding fuel, freight revenues grew 3%",
+   "note": "Two-month surcharge lag is the company's own figure, so the map's lag should read about two months rather than weeks. Coal is a revenue card (7.7% of freight revenue) and fuel a cost card; the pending Norfolk Southern combination would change the mix. Gallons consumed are not disclosed in the 10-K; the per-cent figure is derived from the stated $138 million effect of a $0.15 price fall"
   },
   {
    "code": "EQT",
@@ -471,11 +471,11 @@
    "commodities": [
     "natgas_us"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "2025 natural gas sales volume 2,238.7 Bcf (total 2,382.4 Bcfe); NYMEX $3.42/MMBtu, realized $3.61/Mcf before a $(0.49) differential and $(0.04) of hedge settlements, average $3.08/Mcf with derivatives ($2.59 in 2024 when hedges added $0.64). Total sales including derivatives $7,598.6 million; own arithmetic: at 2,239 Bcf a $0.10/Mcf move is about $224 million of revenue before hedges. Hedge book: at 11 February 2026, 2026 hedged volume 588 MMDth (Q1 228, Q2 127, Q3 125, Q4 108) all as collars (long puts $3.50-4.25, short calls $4.94-6.29), roughly a quarter of 2025-level sales (own arithmetic); at 14 July 2026, Q3 2026 125 MMDth and Q4 108 MMDth, 2027 only 387 MMDth. Item 7A: a 10% rise in NYMEX cuts derivative fair value by about $93 million at 31 December 2025",
+   "intensity_source": "EQT Corporation Form 10-K for fiscal 2025 (accession 0000033213-26-000018, filed 18 February 2026), Item 7 Average Realized Price Reconciliation and Commodity Risk Management hedge table as of 11 February 2026, Item 7A; Form 10-Q for Q2 2026 (accession 0000033213-26-000043, filed 22 July 2026), hedge table as of 14 July 2026 and price reconciliation",
    "lag": "same quarter (hedged share varies)",
-   "pricing_power": null,
-   "note": "Largest US gas producer; figures not pulled yet."
+   "pricing_power": "Own words, 10-K 2025: \"The overall objective of our hedging program is to protect cash flows from undue exposure to the risk of changing commodity prices. The derivative commodity instruments that we use are primarily swap, collar and option agreements ... We have also entered into derivative instruments to hedge basis\"; Item 7A: \"Our primary market risk exposure is the volatility of future prices for natural gas and NGLs ... we are unable to predict future potential movements in the market prices ... and, thus, cannot predict the ultimate impact of prices on our operations\". Appalachian basis of about $(0.48)/Mcf is a second, structural discount to Henry Hub",
+   "note": "EQT states no $0.10/MMBtu sensitivity; the $224 million figure is the reader's arithmetic on 2025 volumes. The 2026 hedge is collars, so cash flow floats between roughly $3.50 and $5 on the hedged quarter, with the unhedged three quarters of volume fully exposed; Q2 2026 NYMEX was $2.89 and realized $2.51 with hedges. EQT's hedged share is low by its own history (2024 settlements added $0.64/Mcf)"
   },
   {
    "code": "LNG",
@@ -489,11 +489,11 @@
     "natgas_us": "cost",
     "natgas_eu": "revenue"
    },
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Approximately 90% of total anticipated production from Sabine Pass and Corpus Christi is contracted under SPAs and IPM agreements through the mid-2030s, with about 15 years of weighted-average remaining life at 31 December 2025 (excluding contracts under 10 years and conditional SPAs). Contract price = fixed liquefaction fee per MMBtu (part inflation-indexed) plus a variable fee generally equal to 115% of Henry Hub. 2025: LNG revenues $19,435 million of $19,976 million total, cost of sales $7,150 million; over 4,610 cargoes and 315 million tonnes exported cumulatively to 20 February 2026",
+   "intensity_source": "Cheniere Energy Form 10-K for fiscal 2025 (accession 0000003570-26-000005, filed 26 February 2026), Items 1 and 2 Business and Properties (contracted share, SPA pricing), Item 1A, Item 7 Results of Operations, Item 7A",
    "lag": "mostly contracted; spot cargoes see the spread",
-   "pricing_power": null,
-   "note": "Buys Henry Hub, sells against TTF and JKM: the two gas cards point opposite ways; figures not pulled yet."
+   "pricing_power": "Own words, 10-K 2025: \"The variable fees under our SPAs were generally sized with the intention to cover the supply and transportation of natural gas and the liquefaction fuel consumed to produce the LNG to be sold under each such SPA, thus limiting our exposure to future U.S. natural gas price increases\"; \"Certain customers may elect to cancel or suspend deliveries of LNG cargoes ... in which case the customers would still be required to pay the fixed fee\". New deals keep the shape: JERA (August 2025, ~1 mtpa 2029-2050) is Henry Hub plus a fixed fee; a Canadian Natural IPM (May 2025, 140,000 MMBtu/d from 2030) buys gas at JKM less shipping and a fixed fee, which is the TTF/JKM-linked leg",
+   "note": "For the contracted ~90% the Henry Hub card cancels (115% pass-through) and only the fixed fee is earned; the map's natgas_us cost card and natgas_eu revenue card apply only to the uncontracted ~10% sold by Cheniere Marketing and to IPM volumes. Item 7A sensitivity covers derivative fair values (liquefaction supply and IPM derivatives), not cash margin; no per-$/MMBtu cash sensitivity is published"
   },
   {
    "code": "HCC",
@@ -876,11 +876,11 @@
     "brent",
     "wti"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Fuel 12.0% of total cruise operating expense in 2025 (12.3% in 2024); 13.8% in Q2 2026 and 13.1% in H1 2026 (10.8% and 12.0% a year earlier). Company sensitivity at 31 December 2025: a 10% rise in the weighted-average fuel price adds $66.2 million to anticipated 2026 fuel expense, offset by a $27.6 million gain on fuel swaps (implies about $660 million of 2026 fuel expense, own arithmetic); at 30 June 2026 the remaining-2026 sensitivity is $39.7 million per 10%, offset by $18.5 million of swap gains. Hedged: 51% of 2026 and 22% of 2027 projected metric tons at 31 December 2025; 52% of remaining 2026 and 38% of 2027 at 30 June 2026. Designated fuel swaps covered about 694 thousand metric tons maturing through December 2027, plus 51 thousand tons undesignated",
+   "intensity_source": "Norwegian Cruise Line Holdings Form 10-K for fiscal 2025 (accession 0001104659-26-022067, filed 2 March 2026), Item 7A Fuel Price Risk and derivative note; Form 10-Q for Q2 2026 (accession 0001104659-26-089657, filed 3 August 2026), Item 3 Fuel Price Risk",
    "lag": "one quarter (partly hedged)",
-   "pricing_power": null,
-   "note": "Marine fuel prices off the distillate and residual cracks; the 10-K carries the fuel share of cost and the hedge book. Figure not pulled yet."
+   "pricing_power": "Own words, 10-K 2025 Item 7A: \"Our exposure to market risk for changes in fuel prices relates to the forecasted purchases of fuel on our ships ... We use fuel derivative agreements to mitigate the financial impact of fluctuations in fuel prices\"; 10-Q Q2 2026: \"The percentage of fuel purchases hedged changed between December 31, 2025 and June 30, 2026 primarily due to additional fuel swaps\". No fuel surcharge on passengers is mentioned; the hedge book is the only pass-through",
+   "note": "Fuel share of cruise operating expense rose to 13.8% in Q2 2026 from 10.8% a year earlier. The 10-K text does not give metric tons consumed for the year or a dollar-per-tonne figure in the sections read; the 51% hedge on 694 thousand tons implies roughly 1.36 million tons of 2026 purchases (own arithmetic, treat as indicative)"
   },
   {
    "code": "SOLS",
@@ -891,11 +891,11 @@
     "brent",
     "natgas_us"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Two legs, and the power leg has taken over: Solaris Power Solutions revenue $333.5 million (54% of $622.2 million total) and 68% of segment adjusted EBITDA in 2025, 58% and 70% in Q4 2025, 72% of revenue and 80% of segment EBITDA in Q2 2026 (69% for H1 2026, total revenue $415.6 million); deployed power capacity about 630 MW in 2025 vs 230 MW in 2024. Solaris Logistics Solutions (\"management of raw materials in oil and natural gas well completions\" in the company's words) $288.7 million in 2025 (46%), up 5% on last-mile tonnage but down $4.3 million on fully utilised systems. Power is contracted: one data-center customer was 88% of segment revenue in 2025 (96% in 2024) under a seven-year arrangement for up to ~900 MW starting 2026 via the 50.1%-owned Stateline Power JV, plus a Q1 2026 rental agreement for over 500 MW with an AI-computing company",
+   "intensity_source": "Solaris Energy Infrastructure (ticker SEI) Form 10-K for fiscal 2025 (accession 0001628280-26-012501, filed 27 February 2026), Item 1 Our Customers and Contracts, Item 1A, Item 7 Market Trends and Results of Operations; Form 10-Q for Q2 2026 (accession 0001628280-26-054349, filed 6 August 2026), Item 2 Market Trends and Outlook and statements of operations",
    "lag": "2-4 quarters (activity follows price; power-generation leases are contracted)",
-   "pricing_power": null,
-   "note": "Oilfield equipment and a mobile power fleet; the oilfield leg follows drilling activity, the power leg is contracted. Figure not pulled yet."
+   "pricing_power": "Own words, 10-K 2025 Item 1A on the oilfield leg: industry conditions are influenced by \"expected economic returns to E&P companies of new well completions; ... the level of prices, and expectations about future prices, of oil and natural gas ...; the supply of and demand for hydraulic fracturing equipment and consumables in the United States\", and a downturn can have \"a negative long-term impact on our business, even in an environment of stronger oil and natural gas prices\". On the power leg: the data-center contract \"has an initial term of seven years\" and capital spending \"should remain heavily weighted towards Solaris Power Solutions\"",
+   "note": "The map's oilfield tag is now the minority leg (46% of 2025 revenue, 28-31% by mid-2026). Commodity sensitivity runs through completion counts, not through a price the company quotes; no revenue-to-activity coefficient is published. Concentration risk in the power leg (one customer at 88%) is the bigger swing factor than WTI. EDGAR ticker is SEI, not SOLS"
   }
  ]
 }
