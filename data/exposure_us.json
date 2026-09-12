@@ -205,11 +205,11 @@
     "corn",
     "wheat"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "ADM does not publish a per-unit crush-margin sensitivity. Its stated commodity exposure is the net commodity position (merchandisable inventories, purchase and sales contracts, energy and freight contracts, derivatives): for 2025 the weekly highest long position had a fair value of $541 million, lowest $(37) million, average $279 million, and a hypothetical 10% adverse price move on those positions is $54 million, $(4) million and $28 million respectively (2024 average $168 million / $17 million). Scale of the crush business: Crushing subsegment revenue $10,353 million of total revenue $80,269 million in 2025 (12.9%), Crushing operating profit $159 million in 2025 vs $844 million in 2024; Ag Services and Oilseeds segment operating profit $1,759 million. Cost of products sold $75,236 million on revenue $80,269 million (93.7%). In H1 2026 Crushing operating profit recovered to $284 million (vs $79 million), Q2 2026 alone $363 million (vs $33 million), including about $100 million of net positive mark-to-market and timing effects",
+   "intensity_source": "ADM Form 10-K FY2025 (accession 0000007084-26-000011, filed 2026-02-17), Item 7A Commodity Price Risk table and Note 17 subsegment revenue/operating profit; Form 10-Q Q2 2026 (accession 0000007084-26-000042, filed 2026-08-04), Item 2 segment results; Q2 2026 earnings release (8-K Exhibit 99.1, accession 0000007084-26-000040, 2026-08-04)",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Earns the crush and the merchandising spread, not the price; figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 7A: 'The Company uses exchange-traded and OTC commodity instruments to manage its net position of merchandisable agricultural product inventories and forward cash purchase and sales contracts to reduce price risk caused by market fluctuations in agricultural commodities'; it also uses them 'as components of merchandising strategies designed to enhance margins'. Designated crush hedges (Note on derivatives, 10-K FY2025): futures and options hedge the purchase price of soybeans and the sale prices of soybean meal and oil 'proportionate to the soybean crushing process' at certain US crush plants; 'During the past 12 months, the Company hedged between 94% and 100% of the anticipated monthly soybean crush' at the designated facilities, with 0% to 100% of the next 12 months designated at 31 December 2025. Q2 2026 10-Q: past-12-month coverage 22% to 100%, 0% to 99% designated for the next 12 months. Corn: plants grind ~56 million bushels a month, 12% to 30% of monthly grind hedged in 2025. Q2 2026 release: crush margins 'supported by a constructive environment for biofuels, which was underpinned by the RVO, higher global energy prices'; the company 'expects to continue capitalizing on the constructive margin environment'",
+   "note": "Earns the crush spread (meal plus oil value less bean cost) and merchandising margins, not the flat price; the 10% table measures the residual unhedged net position, not crush economics. Crushing is 12.9% of revenue but the Ag Services and Oilseeds segment as a whole is $61.6 billion of the $80.3 billion. Mark-to-market timing effects on hedges of committed capacity swing quarterly results (about +$100 million in Q2 2026, about -$200 million in H1 2026). No $/bushel crush sensitivity is stated in any document read."
   },
   {
    "code": "TSN",
@@ -246,11 +246,11 @@
     "cocoa",
     "sugar"
    ],
-   "intensity": null,
-   "intensity_source": null,
-   "lag": "2-4 quarters (hedged)",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "intensity": "Cost of sales 66.5% of net sales in 2025 (cost of sales $7,769.9 million on net sales $11,692.6 million; gross margin 33.5% vs 47.3% in 2024). The 2025 cost-of-sales increase of $1,868.5 million included $736.6 million of higher commodity costs, $287.2 million of higher supply chain costs including tariffs, and $491.0 million of unfavourable mark-to-market on commodity derivatives hedging future years' purchases. Open commodity derivative notional $973.1 million at 31 December 2025 ($667.4 million at end-2024). Cocoa products are 'the most significant raw materials we use'; ICE cocoa futures averaged $3.65/lb in 2025 and $1.80/lb in H1 2026 (down about 51%). H1 2026 cost of sales $3,405.4 million included $142.4 million of favourable mark-to-market and lower commodity costs",
+   "intensity_source": "Hershey Form 10-K FY2025 (accession 0001628280-26-008586, filed 2026-02-17), Item 7 Consolidated Results of Operations and Item 7A / Note 5 Commodity Price Risk; Form 10-Q Q2 2026 (accession 0001628280-26-050900, filed 2026-07-30), Item 2 and Item 3 Cocoa Products",
+   "lag": "3 to 24 months (company's own hedge horizon)",
+   "pricing_power": "10-K FY2025: 'We attempt to minimize the effect of future raw material and energy price fluctuations by using derivatives and forward purchasing to cover future manufacturing requirements generally for 3 to 24 months... Our costs for major raw materials will not necessarily reflect market price fluctuations because of our forward purchasing and hedging practices.' 'Although we use forward contracts and commodity futures and options contracts to hedge commodity prices where possible, commodity price increases ultimately result in corresponding increases in our raw material and energy costs.' 2025 net sales carried about 6% price realization from higher list prices with about 1% volume loss from elasticity. Commodity derivatives are not hedge-accounted; mark-to-market runs through cost of sales and is excluded from segment income until the inventory is sold",
+   "note": "Cocoa share of cost of sales is not disclosed; only the aggregate commodity cost increase is. The 3-to-24-month hedge book means 2025 P&L carried cocoa bought in the 2024 spike while H1 2026 spot fell 51%. Commodity notional is stated in thousands ($973,083) in the filing."
   },
   {
    "code": "WY",
@@ -274,11 +274,11 @@
     "hrc_us",
     "copper"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Home sales cost of sales 77.7% of home sales revenue in fiscal 2025 (year ended 30 September 2025): $24,437.6 million on $31,432.0 million; home sales gross margin 21.5% vs 23.5% in fiscal 2024. Q3 fiscal 2026 (quarter to 30 June 2026): home sales cost of sales $6,809.6 million on home sales revenue $8,681.9 million (78.4%), gross margin 20.7% vs 21.8%; nine months $17,504.2 million on $22,240.1 million (78.7%). Lumber, steel and copper shares of home cost are not disclosed",
+   "intensity_source": "D.R. Horton Form 10-K fiscal 2025 (accession 0000882184-25-000081, filed 2025-11-19), Item 7 Overview and segment revenue/cost tables; Form 10-Q Q3 fiscal 2026 (accession 0000882184-26-000096, filed 2026-07-23), Item 2 Overview and segment tables",
    "lag": "1-2 quarters",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K fiscal 2025: 'We control construction costs by designing our homes efficiently, utilizing common house plans as consistently as possible and obtaining competitive bids for construction materials and labor'; 'we have contracts exceeding one year with certain suppliers of building materials that are cancelable at our option'. Risk factor: newly imposed tariffs on 'steel, aluminum and lumber, may raise our costs for these items'. Margin drivers stated are on the price side: fiscal 2025 'home sales gross margin decreased to 21.5% as we increased sales incentives, such as buydowns of mortgage rates'; Q3 fiscal 2026 margin 'reflecting the decline in our average sales price and higher sales incentives'; 'we currently expect sales incentives to remain elevated during the remainder of fiscal 2026 and into fiscal 2027'",
+   "note": "Cost of sales for homes includes land, lot development and construction; no split between 'stick and brick' and land is given in the filings, so lumber share cannot be derived. The company's stated margin swings in fiscal 2025-2026 are attributed to incentives and price, not materials. Average closing price $370,400 in fiscal 2025, $362,000 in Q3 fiscal 2026."
   },
   {
    "code": "AA",
@@ -561,11 +561,11 @@
     "soyoil",
     "sunflower_oil"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Bunge does not publish a per-ton crush-margin sensitivity. Its stated exposure is the daily net agricultural commodity position (inventory, forward purchase and sale contracts, OTC and exchange-traded derivatives): in 2025 the highest daily aggregated position value was $1,307 million and the lowest $(611) million, and a hypothetical 10% adverse price change is a loss of $131 million and $61 million respectively (2024: $762 million / $76 million and $(407) million / $41 million). For the six months to 30 June 2026 the range was $2,645 million high / $390 million low, market risk $265 million / $39 million. Scale: Soybean Processing and Refining net sales $36,313 million of total net sales $70,329 million in 2025 (51.6%), segment EBIT $1,225 million; Softseed Processing and Refining net sales $11,252 million, EBIT $521 million; Grain Merchandising and Milling $18,128 million; total reportable segment EBIT $2,329 million. Cost of goods sold $66,920 million on net sales $70,329 million (95.2%). Soybean Processing and Refining EBIT rose to $804 million in Q2 2026 (vs $460 million) and $1,013 million in H1 2026 on 'a more favorable processing environment'",
+   "intensity_source": "Bunge Global SA Form 10-K FY2025 (accession 0001628280-26-009842, filed 2026-02-19), Item 7A Commodities Risk table and Note 26 Segment Information; Form 10-Q Q2 2026 (accession 0001628280-26-050540, filed 2026-07-29), Item 3 and segment MD&A; Q2 2026 earnings release (8-K accession 0001628280-26-050334, 2026-07-29)",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 7A: 'We enter into various derivative contracts with the primary objective of managing our exposure to adverse price movements in the agricultural commodities used and produced in our business operations. We have established policies that limit the amount of unhedged fixed price agricultural commodity positions permissible for our operating companies, which are generally a combination of volumetric, drawdown, and value-at-risk (VaR) limits. We measure and review our commodity positions on a daily basis.' Segment description: 'Due to the commodity nature, markets for our soybeans, soybean meal, and crude soybean oil are highly competitive and subject to product substitution. Competition is principally based on price.' Q2 2026 release: full-year 2026 adjusted EPS outlook raised to $9.25 to $9.75 'taking into account second quarter results, the current margin and macro environment and forward curves'; mark-to-market timing on hedges of committed future capacity 'is expected to reverse over time'",
+   "note": "Reportable segments were reset in Q3 2025 after the Viterra acquisition (Soybean, Softseed, Other Oilseeds Processing and Refining, Grain Merchandising and Milling), so 2025 figures are not comparable with 2024. Bunge earns the crush spread and merchandising margin, not the flat price; the 10% loss table measures the residual unhedged net position. Sunflower and canola crush sit in Softseed Processing and Refining (53% of capacity in Europe, Ukraine plants included). No $/ton crush sensitivity is stated in any document read."
   },
   {
    "code": "DE",
@@ -581,11 +581,11 @@
     "soybeans": "revenue",
     "wheat": "revenue"
    },
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Production and Precision Agriculture (large ag) net sales $17,311 million in fiscal 2025 (year ended 2 November 2025), down 17% on $20,834 million, of equipment net sales $38,917 million (44.5%); segment operating profit $2,671 million (15.4% margin) vs $4,514 million (21.7%), with 'sales volumes decreased 30% in the U.S. and Canada'. Small Agriculture and Turf net sales $10,224 million (down 7%), operating profit $1,207 million. Total net sales and revenues $45,684 million. Q3 fiscal 2026 (quarter to 2 August 2026): Production and Precision Agriculture net sales $3,998 million (down 6%), operating profit $527 million (13.2%); nine months $11,664 million (down 7%) and $1,372 million (down 34%). No numeric farm-income sensitivity is stated; the linkage is qualitative",
+   "intensity_source": "Deere Form 10-K fiscal 2025 (accession 0001104659-25-122321, filed 2025-12-18), Item 1 Business 'Agricultural equipment' and Item 1A, Item 7 segment tables and 'Company Outlook for 2026'; Form 10-Q Q3 fiscal 2026 (accession 0001104659-26-102213, filed 2026-08-27), Item 2 segment tables and 'Agriculture and Turf Industry Outlook for 2026'",
    "lag": "2-4 quarters (farm income to orders)",
-   "pricing_power": null,
-   "note": "Grain prices drive farm income drive tractor orders, with a long lag; figures not pulled yet."
+   "pricing_power": "10-K fiscal 2025 Item 1: 'Sales of agricultural equipment are affected by total farm cash receipts, which reflect levels of farm commodity and protein prices, world grain stocks, acreage available and planted, crop yields, soil conditions, farm input costs, government policies, including global trade policies, and the amount and timing of government support.' Item 1A: 'The economic health of the agricultural industry is affected by numerous factors, including farm income, international trade, farmland values, debt levels, and financing costs. In addition, farm income is influenced by commodity and protein prices, world grain stocks, acreage available and planted, crop yields...' and 'Lower agricultural commodity prices directly affect farm incomes, which negatively affect sales of agricultural equipment and result in higher credit losses. While higher commodity prices benefit our crop-producing agricultural equipment customers, they could result in greater feed costs for dairy and livestock producers.' Outlook for 2026 (10-K): 'Demand in the U.S. and Canada for large agriculture equipment is expected to decrease further amidst challenging farm fundamentals for row crop farmers, which pressures short-term liquidity... partially offset by strong crop yields and consumption, recent U.S. trade agreements, growing demand for biofuels, and supportive government subsidies.' Q3 fiscal 2026 10-Q: 'elevated farm input costs, commodity price volatility, and ongoing market uncertainty continue to pressure demand'; price realization +3% in the quarter; in 2026 the company 'may experience... lower sales volumes, higher sales incentives, and elevated receivable write-offs'",
+   "note": "Revenue-side exposure: grain prices reach Deere through farm income and used-equipment values, not through its own cost line. The company never quantifies the farm-income-to-orders elasticity in its filings; the 30% volume drop in US and Canada large ag in fiscal 2025 against a flat-to-slightly-lower grain year is the stated outcome. Deere Financial Services carries the second-order credit exposure. Fiscal year ends late October/early November."
   },
   {
    "code": "GIS",
@@ -597,11 +597,11 @@
     "sugar",
     "soyoil"
    ],
-   "intensity": null,
-   "intensity_source": null,
-   "lag": "2-4 quarters (hedged)",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "intensity": "Cost of sales 66.4% of net sales in fiscal 2026 (year ended 31 May 2026): cost of sales $12,228.9 million on net sales $18,424.6 million. The company states 'broad-based global input cost inflation of 4 percent in fiscal 2026 and 4 percent in fiscal 2025' and expects 'approximately 4 percent to 5 percent input cost inflation in fiscal 2027'. Net notional value of commodity derivatives $126.0 million at 31 May 2026 ($48.2 million agricultural inputs, $77.8 million energy), down from $227.1 million a year earlier ($134.6 million agricultural); these contracts 'relate to inputs that generally will be utilized within the next 12 months'. One-day 95% VaR on commodity instruments $4 million at 31 May 2026 (average $3 million). Fiscal 2026 cost of sales fell $525 million: $1,009 million lower volume, offset by $506 million of product rate and mix; a $48 million mark-to-market gain on commodity positions and grain inventories",
+   "intensity_source": "General Mills Form 10-K fiscal 2026 (accession 0001628280-26-046466, filed 2026-07-01), Item 7 'Impact of Inflation' and Cost of sales discussion, Item 7A 'Commodity Price Risk' and 'Value at Risk' table, Consolidated Statements of Earnings",
+   "lag": "2-4 quarters (hedged); the company says its commodity contracts cover inputs used within the next 12 months",
+   "pricing_power": "10-K fiscal 2026 Item 7A: 'We utilize derivatives to manage price risk for our principal ingredients and energy costs, including grains (oats, wheat, and corn), oils (principally soybean), natural gas, and diesel fuel. Our primary objective when entering into these derivative contracts is to achieve certainty with regard to the future price of commodities purchased for use in our supply chain. We manage our exposures through a combination of purchase orders, long-term contracts with suppliers, exchange-traded futures and options, and over-the-counter options and swaps... generally seek to acquire the inputs at as close as possible to or below our planned cost.' Item 7: 'We attempt to minimize the effects of inflation through HMM [Holistic Margin Management], Strategic Revenue Management (SRM), planning, and operating practices.' Commodity derivatives are not hedge-accounted; gains and losses sit in unallocated corporate items until the inventory is sold",
+   "note": "No commodity-by-commodity share of cost is disclosed; wheat, corn, sugar and soybean oil are named as principal raw materials alongside oats, meat, dairy, packaging and energy. Fiscal 2026 includes the North America Yoghurt divestiture gain and large impairments, so operating profit is not comparable. Organic net sales fell 2% in fiscal 2026 with unfavourable net price realization, so the pricing lever was not being pulled in the year."
   },
   {
    "code": "MDLZ",
@@ -612,11 +612,11 @@
     "sugar",
     "wheat"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Cost of sales 71.6% of net revenues in 2025 (cost of sales $27,602 million on net revenues $38,537 million; gross profit fell to $10,935 million from $14,257 million). The company's constant-currency bridge for 2025: higher input costs $(3,621) million against higher net pricing $2,892 million and unfavourable volume/mix $(890) million, with cocoa named as the main driver ('soaring commodity prices (especially for cocoa beans)'). Gross notional of commodity contracts $14,463 million at 31 December 2025 ($16,210 million at end-2024). One-day 95% VaR on commodity derivatives: $32 million at 31 December 2025, average $46 million, high $104 million, low $22 million (pre-tax earnings impact). H1 2026 bridge: higher input costs $(496) million against higher net pricing $463 million",
+   "intensity_source": "Mondelez Form 10-K FY2025 (accession 0001628280-26-005345, filed 2026-02-04), Item 7 'Commodity Trends' and Key Drivers of Adjusted Operating Income table, Item 7A 'Value at Risk', Note 10 Notional Amounts of Derivatives; Form 10-Q Q2 2026 (accession 0001628280-26-050179, filed 2026-07-28), Item 2 'Commodity Trends' and drivers table",
    "lag": "2-4 quarters (hedged)",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-Q Q2 2026: 'Throughout 2026 the market for cocoa has experienced price volatility, however, changes in market prices are not immediately reflected in our cost of goods sold due to our commodity hedging program and the timing of inventory consumption.' 'While we have responded to elevated raw material costs with price increases for certain of our products, the elasticity impacts from those pricing increases have adversely impacted consumer demand, particularly in Europe.' 10-K FY2025: 'We adjust our product prices based on a number of variables including market factors, transportation, logistics and changes in our product input costs, and we have increased prices to mitigate costs given significant cost inflation.' 'While we expect cocoa costs to be lower in 2026 compared to the current year, we expect to continue to face elevated cocoa costs as compared to historical levels in the near- and medium-term.' Commodity derivatives are not hedge-accounted; forward physical contracts take the normal-purchases exception",
+   "note": "Cocoa's share of cost of sales is not disclosed; the $3.6 billion 2025 input-cost headwind is the aggregate. The hedge book is large relative to cost of sales (notional $14.5 billion vs cost of sales $27.6 billion) and the company says market moves reach cost of goods with a delay. Sugar and grains were cited as lower-cost items in 2025 and H1 2026."
   },
   {
    "code": "PEP",
@@ -628,11 +628,11 @@
     "aluminium",
     "soyoil"
    ],
-   "intensity": null,
-   "intensity_source": null,
-   "lag": "2-4 quarters",
-   "pricing_power": null,
-   "note": "Sweetener, cans and frying oil; figures not pulled yet."
+   "intensity": "Cost of sales 45.9% of net revenue in 2025 (cost of sales $43,066 million on net revenue $93,925 million). Company sensitivity: commodity derivative contracts had a notional of $1.5 billion at 27 December 2025 ($1.6 billion at 13 June 2026) and 'assuming a 10% decrease in the underlying commodity price, would have decreased our net unrealized gains in 2025 by $155 million, which would generally be offset by a reduction in the cost of the underlying commodity purchases'. Higher commodity costs were a 5-percentage-point drag on 2025 operating profit (operating profit down 11%), with tariffs a 6-point element in one segment and dairy, potatoes and cooking oil named as the main items in another",
+   "intensity_source": "PepsiCo Form 10-K FY2025 (accession 0000077476-26-000007, filed 2026-02-03), Item 7 'Market Risks: Commodity Prices' and Results of Operations, Note 9 'Commodity Prices'; Form 10-Q Q2 2026 (accession 0000077476-26-000035, filed 2026-07-09), Note on financial instruments notional table",
+   "lag": "2-4 quarters; the company hedges with derivatives of no more than two years",
+   "pricing_power": "10-K FY2025 Note 9: 'We are subject to commodity price risk because our ability to recover increased costs through higher pricing may be limited in the competitive environment in which we operate. This risk is managed through the use of fixed-price contracts and purchase orders, pricing agreements and derivative instruments, which primarily include swaps and futures... We use derivatives, with terms of no more than two years, to hedge price fluctuations related to a portion of our anticipated commodity purchases, primarily for agricultural products, energy and metals.' Item 7: 'we manage commodity price, foreign exchange and interest rate risks through a variety of strategies, including productivity initiatives, global purchasing programs and hedging'; 2025 impacts 'partially offset by productivity savings and effective net pricing'",
+   "note": "No commodity-by-commodity share of cost is disclosed; sweeteners, corn, aluminium cans and cooking oil are covered by the aggregate 'agricultural products, energy and metals' hedge description. The 10% sensitivity is on the derivative book ($1.5 billion notional), not on total commodity spend. Net revenue in the 10-Q is $43,624 million for the 24 weeks to 13 June 2026 with cost of sales $19,782 million (45.3%)."
   },
   {
    "code": "PPC",
@@ -642,11 +642,11 @@
     "soymeal",
     "corn"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Feed ingredient purchases $3,357.3 million in 2025 against cost of sales $16,139.4 million (20.8% of cost of sales; net sales $18,497.6 million, cost of sales 87.3% of sales). Company sensitivity: 'a 10% increase in the price of our feed ingredient purchases would have increased cost of sales' by $335.7 million for 2025 (feed inventory $172.2 million, 10% = $17.2 million). Within feed cost, 'corn, soybean meal and wheat accounted for approximately 45.9%, 33.7% and 4.6% of our feed costs, respectively' in 2025. Q2 2026: feed ingredient purchases $809.7 million (10% = $81.0 million) on cost of sales $4,286.5 million (18.9%) and net sales $4,626.2 million; H1 2026 net sales $9,158.9 million, cost of sales $8,473.6 million. Commodity derivative assets $8.2 million at 28 December 2025",
+   "intensity_source": "Pilgrim's Pride Form 10-K FY2025 (accession 0000802481-26-000011, filed 2026-02-12), Item 1 'Raw Materials: Grains' and Item 7A 'Commodity Prices' sensitivity table; Form 10-Q Q2 2026 (accession 0000802481-26-000051, filed 2026-07-30), Item 3 sensitivity table and income statement",
    "lag": "one quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 1: 'We attempt to mitigate the impact of price volatility on our profitability by decreasing the amount of our products that are sold under longer term fixed-price contracts, broadening our product portfolio and expanding the variety of contracts within our book of business.' Item 7A: 'We have from time to time attempted to minimize our exposure to the changing price and availability of such feed ingredients using various techniques, including... (1) executing purchase agreements with suppliers for future physical delivery of feed ingredients at established prices and (2) purchasing or selling derivative financial instruments such as futures and options'; hedges cover 'anticipated consumption of commodity inputs for the next 12 months'. Risk factor: fixed-price contract reduction 'will not eliminate the impact of changes in feed ingredient prices on our profitability'",
+   "note": "Feed share of cost of sales is computed here from the sensitivity table (feed purchases) over reported cost of sales; the company states the 10% dollar figure directly. Q2 2026 gross profit fell to $339.8 million from $715.3 million on lower sales and higher cost of sales, so the chicken price side, not feed, drove the 2026 squeeze. Europe and Mexico segments are inside the totals."
   },
   {
    "code": "LEVI",
@@ -655,11 +655,11 @@
    "commodities": [
     "cotton"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Cost of goods sold 38.3% of net revenues in fiscal 2025 (year ended 30 November 2025): cost of goods sold $2,404.2 million on net revenues $6,282.0 million, gross margin 61.7% (60.6% in fiscal 2024). Cotton share of product cost is not disclosed; the company states only that 'the majority of our products are made of cotton' and that 'the prices we pay our suppliers for our products are dependent in part on the market price for raw materials used to produce them, primarily cotton'. H1 fiscal 2026 (to 31 May 2026): cost of goods sold $1,247.1 million on net revenues $3,304.5 million (37.7%)",
+   "intensity_source": "Levi Strauss Form 10-K fiscal 2025 (accession 0000094845-26-000008, filed 2026-01-28), Item 1A risk factor on raw materials and Item 7 results table; Form 10-Q Q2 fiscal 2026 (accession 0000094845-26-000037, filed 2026-07-08), Item 2 gross margin discussion and income statement",
    "lag": "2-4 quarters",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K fiscal 2025 Item 1A: 'Cotton prices have fluctuated significantly over the past few years and we expect they will continue to experience variability and uncertainty. We do not currently hedge the price of cotton.' 'Increases in raw material costs, wage rates, energy costs and freight costs, unless sufficiently offset by our pricing actions, may cause a decrease in our profitability and negatively impact our sales volume.' 10-Q Q2 fiscal 2026: 'the change in gross margin reflects the favorable impacts of pricing actions and lower product costs and the unfavorable impact of tariffs'",
+   "note": "Levi's buys finished garments from contract manufacturers, so cotton reaches it inside supplier prices with a lag; no hedge, no stated sensitivity. Cost of goods sold also carries labour, sourcing, freight and tariffs."
   },
   {
    "code": "LEN",
@@ -670,11 +670,11 @@
     "hrc_us",
     "copper"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Costs of homes sold 82.3% of sales of homes in fiscal 2025 (year ended 30 November 2025): $26,423.6 million on $32,097.2 million (fiscal 2024: $26,255.4 million on $33,778.1 million, 77.7%). Q2 fiscal 2026 (quarter to 31 May 2026): costs of homes sold $6,412.6 million on sales of homes $7,595.0 million (84.4%); gross margin on home sales 15.6% vs 17.8%. Lumber, steel and copper shares of home cost are not disclosed",
+   "intensity_source": "Lennar Form 10-K fiscal 2025 (accession 0001628280-26-003870, filed 2026-01-28), Item 8 segment revenue and cost tables and Item 7 gross margin discussion; Form 10-Q Q2 fiscal 2026 (accession 0001628280-26-046019, filed 2026-06-29), segment tables and Item 2 results",
    "lag": "1-2 quarters",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K fiscal 2025: 'We have aimed to maintain operating margins by deferring home sale price commitments until construction costs are finalized to protect against cost escalations.' 'The price schedules may be subject to change to meet changes in labor and material costs or for other reasons.' Tariffs on 'lumber, steel, aluminum, solar panels and washing machines... have impacted our construction costs and caused disruptions in our supply chains.' Fiscal 2025 and Q2 fiscal 2026: gross margins fell 'primarily due to lower revenue per square foot and higher land costs year over year, which were partially offset by a decrease in construction costs, reflecting our continued focus on cost-saving initiatives'. Q2 fiscal 2026: 'Using incentives, we price to market in order to maintain sales at a consistent level as the market adjusts. This has given us a competitive edge, and has enabled us to drive down construction costs per square foot and to reduce cycle time to a record low'",
+   "note": "Costs of homes sold include land; the company reports construction cost per square foot only qualitatively in the filings ('decrease in construction costs'). Margin compression in 2025-2026 is stated to come from revenue per square foot and land, with materials a partial offset. Fiscal year ends 30 November."
   },
   {
    "code": "LPX",
@@ -780,11 +780,11 @@
     "hrc_us",
     "copper"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Cost of goods sold 66.2% of total sales and revenues in 2025: $44,752 million on $67,589 million (Q2 2026: $12,781 million on $20,543 million, 62.2%). Steel share of cost is not disclosed; the company states 'we are a significant user of steel and many other commodities'. The quantified 2025 cost driver is tariffs: 2025 profit of $8,884 million (vs $10,792 million) fell 'mainly due to unfavorable manufacturing costs and unfavorable price realization... Unfavorable manufacturing costs largely reflected the impact of higher tariffs'; the 10-K guided 2026 tariff impact of 'around $2.6 billion in 2026, which is $800 million higher than incurred in 2025' (implying about $1.8 billion in 2025), revised in the Q2 2026 10-Q to 'around $2.2 billion' after $392 million of IEEPA tariff recoveries; total IEEPA tariff costs were about $1.0 billion",
+   "intensity_source": "Caterpillar Form 10-K FY2025 (accession 0000018230-26-000008, filed 2026-02-13), Item 1 'Raw Materials and Component Products', Item 1A, Item 7 Overview and 2026 outlook, Consolidated Results of Operations; Form 10-Q Q2 2026 (accession 0000018230-26-000046, filed 2026-08-05), Note on tariff recoveries, Item 2 outlook and segment results",
    "lag": "1-2 quarters",
-   "pricing_power": null,
-   "note": "Steel is the largest input; mining capex follows metal prices on the demand side; figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 1A: 'Increases in the prices of such commodities would increase our costs, negatively impacting our business, results of operations and financial condition if we are unable to fully offset the effect of these increased costs through price increases, productivity improvements, cost reduction programs or hedging programs.' Item 7 2026 outlook: 'favorable price realization of about 2 percent of sales and revenues' expected; 'If we do not take the mitigating actions we plan to take in 2026, the impact from tariffs could be around 20 percent higher. We remain confident that we will manage the impact of tariffs over time.' Q2 2026 10-Q, Resource Industries: 'unfavorable manufacturing costs of $376 million... largely reflected higher tariff costs', offset by 'favorable price realization of $36 million'",
+   "note": "Item 7A carries no commodity sensitivity table; Caterpillar does not quantify a steel or copper cost share or a per-ton sensitivity in either filing. Copper shows up on the demand side through Resource Industries (mining capex), which the company discusses qualitatively. 2025 price realization was negative while tariffs raised costs, so pass-through lagged in 2025."
   },
   {
    "code": "WHR",
@@ -795,11 +795,11 @@
     "copper",
     "aluminium"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Cost of products sold 84.6% of net sales in 2025: $13,138 million on $15,524 million (gross margin $2,386 million, 15.4%). H1 2026: cost of products sold $5,933 million on net sales $6,790 million (87.4%); Q2 2026 $3,075 million on $3,517 million. Company sensitivity on its commodity hedge book: 'At December 31, 2025, a 10% favorable or unfavorable shift in commodity prices would have resulted in an incremental gain of approximately $26 million or loss of approximately $26 million, respectively, related to these contracts.' Steel, resins and base metals are named as the primary materials; their share of cost is not disclosed. 'Approximately 96% of the steel we use in the U.S. is domestically sourced'",
+   "intensity_source": "Whirlpool Form 10-K FY2025 (accession 0000106640-26-000009, filed 2026-02-11), Item 7A 'Commodity Price Risk', Item 7 Executive Overview and Results of Operations, Item 1A; Form 10-Q Q2 2026 (accession 0000106640-26-000061, filed 2026-08-04), income statement and Note on derivatives",
    "lag": "1-2 quarters",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 7A: 'We enter into commodity swap contracts to hedge the price risk associated with firmly committed and forecasted commodities purchases, the prices of which are not fixed directly through supply contracts.' Item 7: tariffs on imported steel, aluminum and copper 'have increased the cost of certain raw materials and components, impacting our cost of products sold'; 'approximately 80% of the major appliances we sell in the U.S. are produced in the U.S.'; 2026 guidance leans on 'margin expansion from previously announced promotional pricing actions, recent and new product launches, as well as strong net cost takeout actions expected to deliver over $150 million of benefit'. 2025 gross margin change was 'driven by the higher cost of tariffs, partially offset by the favorable impact of product and supply chain cost efficiencies'",
+   "note": "The $26 million per 10% figure is on the swap book only, not on total steel, copper and aluminium spend. Cash-flow hedge gains on commodity swaps were $50 million in OCI for H1 2026. No raw-material inflation dollar figure is given for 2025 in the 10-K beyond tariffs."
   },
   {
    "code": "CARR",
@@ -810,11 +810,11 @@
     "aluminium",
     "hrc_us"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Cost of products and services sold 74.1% of net sales in 2025: $16,123 million on $21,747 million (cost of products sold $14,232 million, cost of services sold $1,891 million; gross margin $5,624 million). H1 2026: cost of products sold $7,672 million on total net sales $11,692 million (product sales $10,301 million); Q2 2026 net sales $6,351 million, cost of products sold $4,081 million. Copper, aluminium and steel shares of cost are not disclosed and the company holds no commodity hedges",
+   "intensity_source": "Carrier Global Form 10-K FY2025 (accession 0001783180-26-000008, filed 2026-02-05), Item 1 'Raw Materials and Supplies', Item 7A 'Commodity Price Exposures', Item 7 results table and income statement; Form 10-Q Q2 2026 (accession 0001783180-26-000032, filed 2026-07-28), income statement and Item 2 'Business Summary'",
    "lag": "1-2 quarters",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 7A: 'We are exposed to volatility in the prices of commodities used in some of our products and when appropriate, we use fixed price contracts with suppliers to manage this exposure. In addition, we are exposed to fuel costs to ship our products and materials. We do not have commodity hedge contracts in place at December 31, 2025.' Item 1: 'We rely on suppliers and commodity markets to secure components and raw materials such as copper, aluminum and steel... we have a central strategic sourcing group that consolidates purchases of certain materials and components across our business segments.' Q2 2026 10-Q: 'We continue to invest in our business, take pricing actions to mitigate supply chain and inflationary pressures... Through a combination of supply-chain adjustments, productivity initiatives and pricing actions, we fully mitigated the 2025 impact of tariffs implemented in 2025'",
+   "note": "No hedge book, so commodity moves reach cost of sales through supplier contracts and fixed-price agreements; no sensitivity figure exists in the filings. 2025 net sales fell 3% and gross margin 6% but the drivers given are volume and mix, not materials."
   },
   {
    "code": "GM",
@@ -827,11 +827,11 @@
     "platinum",
     "copper"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Automotive and other cost of sales $159,128 million on automotive net sales $167,971 million in 2025 (94.7%; total net sales and revenue $185,019 million). The company states 'the most significant element of our Automotive and other cost of sales is material cost, which makes up approximately two-thirds of the total amount' (about $106 billion), the rest being labour, depreciation, engineering, freight, warranty and recalls. 2025 cost variance attributed to 'Cost' was $(13.0) billion unfavourable, of which tariffs were $3.1 billion of EBIT-adjusted impact. Hedge-book sensitivity: 'The potential change in fair value for such financial instruments from a 10% adverse change in the underlying commodity prices would have been $0.2 billion at December 31, 2025 and 2024' (net fair value of commodity derivatives an asset of $0.4 billion). Steel, aluminium, palladium and copper shares of material cost are not disclosed",
+   "intensity_source": "General Motors Form 10-K FY2025 (accession 0001467858-26-000013, filed 2026-01-27), Item 7 'Automotive and Other Cost of Sales' bridge and Overview (tariffs), Item 7A 'Commodity Risk', Consolidated Income Statement; Form 10-Q Q2 2026 (accession 0001467858-26-000051, filed 2026-07-21), Item 3 (no significant change) and Note 4 inventories",
    "lag": "1-2 quarters (annual steel contracts)",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 7A: 'At December 31, 2025 we used derivative instruments such as commodity forwards, swaps, and options to hedge a portion of our exposures with respect to forecasted commodity purchases of steel, copper, aluminum, palladium, lithium, and nickel.' Item 7: 'In 2025, impacts to earnings before interest and taxes (EBIT)-adjusted from tariffs were $3.1 billion. Based on the current tariff environment, we estimate that impacts to EBIT-adjusted could range from $3.0 billion to $4.0 billion' [2026]. 'Factors that most significantly influence a region's profitability are industry volume, market share, and the relative mix of vehicles (trucks, crossovers, cars) sold.' Q2 2026 10-Q: 'Tariffs, less available offsets and deductions, are capitalized into the cost of inventories as incurred'; 'There have been no significant changes in our exposure to market risk since December 31, 2025'",
+   "note": "Two-thirds-of-cost-of-sales is the company's own statement for material cost in aggregate; the $0.2 billion per 10% figure is on the derivative book only. GM North America cost of sales $146,178 million with a $(14.9) billion 'Cost' variance in 2025, which includes tariffs, warranty and EV-related charges as well as commodities."
   },
   {
    "code": "F",
@@ -843,11 +843,11 @@
     "palladium",
     "copper"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Cost of sales $174,466 million on Company-excluding-Ford-Credit revenues of $173,996 million in 2025 (100.3%; total revenues $187,267 million), a year with large EV-related charges inside cost of sales (operating loss $9,169 million). 2024: cost of sales $158,434 million on $172,706 million (91.7%). H1 2026: cost of sales $79,433 million (Q2 $44,245 million). Company sensitivity on its hedge book: 'The potential change in the fair value from a 10% change in the underlying commodity prices would have been $192 million at December 31, 2025, compared with $189 million at December 31, 2024' (net fair value of commodity forwards an asset of $177 million); at 30 June 2026 the 10% figure was $212 million. 2025 gross tariff costs 'about $3 billion... and the net EBIT impact was about $2 billion after offsets'. Steel, aluminium, palladium and copper shares of cost are not disclosed",
+   "intensity_source": "Ford Form 10-K FY2025 (accession 0000037996-26-000015, filed 2026-02-11), Item 7A 'Commodity Price Risk', Item 1 'Raw Materials', Item 7 'Key Trends: Commodity and Energy Prices' and 'Trade Policy and Tariffs', Consolidated Income Statement; Form 10-Q Q2 2026 (accession 0000037996-26-000156, filed 2026-07-29), Item 3 Commodity Price Risk and Item 2 Recent Developments",
    "lag": "1-2 quarters",
-   "pricing_power": null,
-   "note": "Aluminium-bodied F-150; figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 7A: 'Our practice is to use derivative instruments to hedge the price risk with respect to forecasted purchases of certain commodities... The extent to which we hedge is also impacted by materiality of the risk in the context of our overall portfolio, market liquidity, and/or our ability to achieve designated hedge accounting.' Item 7 Key Trends: 'base metals such as steel and aluminum face tariff-related impacts, and precious metals (e.g., palladium) also remain at elevated price levels due to geopolitical uncertainty... Overall, the net impact on us and our suppliers has been higher material costs. To help ensure supply of raw materials for critical components, we, like others in the industry, have entered into multi-year sourcing agreements.' Cost of sales includes 'material costs (including commodity and component costs); freight and duty (including tariff) costs'. Q2 2026 10-Q: expects 'about $3 billion related to tariff reimbursements from the federal government and suppliers', including about $1.3 billion under IEEPA rulings; 2026 adjusted EBIT guidance $10.0 to $11.0 billion",
+   "note": "The 10% sensitivity is on commodity forward contracts, not on total metal spend; Ford does not state material cost as a share of cost of sales. Aluminium-bodied F-Series exposure is not quantified anywhere in the filings read. 2025 cost of sales is distorted by EV impairments and special items, so the 2024 ratio is the cleaner base."
   },
   {
    "code": "NCLH",
