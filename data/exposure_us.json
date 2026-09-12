@@ -509,24 +509,6 @@
    "note": "Realized price is net of demurrage, quality adjustments and any freight Warrior bears (FOB Port of Mobile). The $8.7 million per $1/t figure is arithmetic on 2025 volume, not a company statement. Blue Creek mine adds volume from 2026 onward."
   },
   {
-   "code": "X",
-   "label": "United States Steel",
-   "industry": "Steel makers",
-   "commodities": [
-    "hrc_us",
-    "coking_coal",
-    "ironore"
-   ],
-   "sides": {
-    "ironore": "revenue"
-   },
-   "intensity": "Last annual filing before the Nippon Steel acquisition closed on 18 June 2025 (no 10-K or 10-Q filed since Q1 2025). FY2024: net sales $15,640 million (including $2,505 million to related parties); segment net sales Flat-Rolled $11,109 million, Mini Mill $2,678 million, USSE $3,550 million, Tubular $1,552 million before eliminations. Input ratios stated by the company: the integrated process consumes about 1.4 t of coal per t of coke, then about 0.3 t of coke, 0.3 t of scrap (about 60% internally generated) and 1.3 t of iron ore pellets plus about 10 mmbtu of natural gas per ton of raw steel; mini mills use about 0.8 t of scrap, 0.3 t of pig iron, 0.1 t of HBI and 0.6 MWh of electricity per ton. Minntac and Keetac pellet capability (about 23 million t a year including the Hibbing share) exceeds US steelmaking needs and surplus pellets are sold to third parties; Flat-Rolled is nearly self-sufficient in coke; all coking coal is bought from outside. No $/t HRC or scrap sensitivity is stated",
-   "intensity_source": "United States Steel Form 10-K FY2024 (accession 0001163302-25-000018, filed 2025-01-31), Item 1 'Raw Materials and Energy', 'Iron Ore', 'Coking Coal', contract-versus-spot disclosure, Item 7A 'Commodity Price Risk and Related Risks'; consolidated statement of operations and segment note",
-   "lag": "one quarter",
-   "pricing_power": "10-K FY2024 Item 1: 'In 2024, approximately 76 percent, 56 percent, 50 percent and 82 percent of sales by Flat-Rolled, Mini Mill, USSE and Tubular, respectively, were contract sales' (agreements with defined volume and price running longer than three months); 'Some contract pricing agreements include fixed prices while others are adjusted periodically based upon published prices of steel products or cost components.' Item 7A: 'U. S. Steel's market risk strategy has generally been to obtain competitive prices for our products and services and allow operating results to reflect market price movements dictated by supply and demand; however, from time to time U. S. Steel has made forward physical purchases to manage exposure to price risk related to the purchases of natural gas and certain non-ferrous metals.' Flat-Rolled coking coal contracts are negotiated yearly; USSE hedged about 25% of its 2024 iron ore purchases with financial swaps",
-   "note": "Company is now a Nippon Steel subsidiary; the figures are FY2024 and will not be refreshed by SEC filings. Iron ore is a net revenue line (third-party pellet sales) only for the US business; USSE buys all its ore, mainly from Ukraine. No cost-share percentages are disclosed, only the physical input ratios above."
-  },
-  {
    "code": "STLD",
    "label": "Steel Dynamics",
    "industry": "Steel makers",
@@ -708,7 +690,7 @@
    "note": "The map's commodity is lumber; LP sells OSB, which follows the same housing cycle but its own Random Lengths OSB print. Siding is now the larger and steadier segment, so commodity exposure is about a third of sales. Structural Solutions (value-added OSB) is a rising share of OSB volume and softens the pure-commodity swing."
   },
   {
-   "code": "GOLD",
+   "code": "B",
    "label": "Barrick Mining",
    "industry": "Gold miners",
    "commodities": [
@@ -719,7 +701,7 @@
    "intensity_source": "Barrick Mining Q4 and full-year 2025 MD&A (Exhibit 99.4 to Form 40-F, accession 0001193125-26-079253, filed 2026-02-27), 'Economic Sensitivity Analysis' table and operating results tables (realized prices); Barrick 2025 audited financial statements (Exhibit 99.3 to the same 40-F), revenue note (gold sales, copper sales, other sales); Barrick Annual Information Form (Exhibit 99.1), 'Gold and Copper Prices' section",
    "lag": "same quarter",
    "pricing_power": "AIF 2025: 'Based on current estimates of Barrick's 2026 gold production and sales, a $100 per ounce increase or decrease from the $4,500 per ounce gold price assumption used to determine guidance will result in an approximately $650 million increase or decrease, as applicable, in the Company's EBITDA.' Most gold is sold at spot; concentrate sales for both gold and copper are provisionally priced and adjusted to final settlement (the financial statements carry receivables from provisional copper and gold sales). The MD&A describes no gold or copper price hedges, only currency hedges (Chilean peso). Higher gold prices lift royalties and cost per ounce, e.g. Mali's 2023 Mining Code makes Loulo-Gounkoto costs more gold-price sensitive",
-   "note": "Ticker is now B on the NYSE (Barrick Mining Corporation, formerly Barrick Gold); the map's code GOLD is kept as given. Sensitivities are consolidated EBITDA on the 2026 guidance base; the attributable figure is lower because of Nevada Gold Mines (61.5%) and other joint ventures. Copper share of revenue rises from 2026 as Lumwana Super Pit and Reko Diq ramp."
+   "note": "Ticker changed to B on the NYSE in 2025 (Barrick Mining Corporation, formerly Barrick Gold); the map used GOLD until 2026-09-12, which Yahoo now resolves to an unrelated company, Gold.com. Sensitivities are consolidated EBITDA on the 2026 guidance base; the attributable figure is lower because of Nevada Gold Mines (61.5%) and other joint ventures. Copper share of revenue rises from 2026 as Lumwana Super Pit and Reko Diq ramp."
   },
   {
    "code": "AEM",
@@ -883,7 +865,7 @@
    "note": "Fuel share of cruise operating expense rose to 13.8% in Q2 2026 from 10.8% a year earlier. The 10-K text does not give metric tons consumed for the year or a dollar-per-tonne figure in the sections read; the 51% hedge on 694 thousand tons implies roughly 1.36 million tons of 2026 purchases (own arithmetic, treat as indicative)"
   },
   {
-   "code": "SOLS",
+   "code": "SEI",
    "label": "Solaris Energy Infrastructure",
    "industry": "Oilfield services",
    "commodities": [
@@ -895,7 +877,7 @@
    "intensity_source": "Solaris Energy Infrastructure (ticker SEI) Form 10-K for fiscal 2025 (accession 0001628280-26-012501, filed 27 February 2026), Item 1 Our Customers and Contracts, Item 1A, Item 7 Market Trends and Results of Operations; Form 10-Q for Q2 2026 (accession 0001628280-26-054349, filed 6 August 2026), Item 2 Market Trends and Outlook and statements of operations",
    "lag": "2-4 quarters (activity follows price; power-generation leases are contracted)",
    "pricing_power": "Own words, 10-K 2025 Item 1A on the oilfield leg: industry conditions are influenced by \"expected economic returns to E&P companies of new well completions; ... the level of prices, and expectations about future prices, of oil and natural gas ...; the supply of and demand for hydraulic fracturing equipment and consumables in the United States\", and a downturn can have \"a negative long-term impact on our business, even in an environment of stronger oil and natural gas prices\". On the power leg: the data-center contract \"has an initial term of seven years\" and capital spending \"should remain heavily weighted towards Solaris Power Solutions\"",
-   "note": "The map's oilfield tag is now the minority leg (46% of 2025 revenue, 28-31% by mid-2026). Commodity sensitivity runs through completion counts, not through a price the company quotes; no revenue-to-activity coefficient is published. Concentration risk in the power leg (one customer at 88%) is the bigger swing factor than WTI. EDGAR ticker is SEI, not SOLS"
+   "note": "Ticker is SEI (Solaris Energy Infrastructure). The map carried it as SOLS until 2026-09-12, which is Solstice Advanced Materials, a different company. The map's oilfield tag is now the minority leg (46% of 2025 revenue, 28-31% by mid-2026). Commodity sensitivity runs through completion counts, not through a price the company quotes; no revenue-to-activity coefficient is published. Concentration risk in the power leg (one customer at 88%) is the bigger swing factor than WTI. EDGAR ticker is SEI, not SOLS"
   }
  ]
 }
