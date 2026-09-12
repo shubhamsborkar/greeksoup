@@ -124,6 +124,7 @@ If you took the desk with git instead of the ZIP, `git pull` in the desk folder 
 
 What was added, newest first:
 
+- **2026-09-12**: the US names on the Commodities screen now carry their filed figures, 58 of 59, each with the document it came from; the one left blank says why. Three tickers corrected (Barrick is B, Solaris Energy Infrastructure is SEI, US Steel removed since it no longer trades).
 - **2026-09-09**: the **Commodities** screen (51 commodities, the industries each one squeezes and helps, the names you map to them from their filings, a names-under-pressure panel, two new alert rules) and **Desk · Book**, the hand-kept portfolio for readers with no broker and no feed.
 - **2026-09-03**: first public version, twelve screens.
 
