@@ -38,11 +38,11 @@
    "commodities": [
     "copper"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Copper 74.8% of net sales in 2025 (net sales a record $13,420.0 million; average LME copper $4.51/lb, COMEX $4.82/lb). Company sensitivity for 2026: a $0.10/lb change in the copper price changes estimated annual net income attributable to SCC by $120.0 million (a $1.00/lb molybdenum move $34.8 million, $0.10/lb zinc $25.6 million, $1.00/oz silver $14.1 million), assuming expected production and sales, unchanged 2025 tax rates and no cost changes. The Q2 2026 10-Q restates it for the remaining six months of 2026: $59.6 million per $0.10/lb copper ($18.0 million per $1.00/lb molybdenum, $13.3 million per $0.10/lb zinc, $7.1 million per $1.00/oz silver). 2025 operating cash cost $2.17/lb before by-product credits and $0.58/lb net of by-products; H1 2026 net cash cost was a credit of $(0.03)/lb on higher silver and molybdenum by-product revenue",
+   "intensity_source": "Southern Copper Form 10-K FY2025 (accession 0001104659-26-021492, filed 2026-02-27), Item 7 'Metal Prices' sensitivity table and 'Copper' market discussion; Form 10-Q Q2 2026 (accession 0001104659-26-089169, filed 2026-07-31), Item 2 'Metal Prices'",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 1: 'Prices for our products are principally a function of supply and demand and, with the exception of molybdenum, are established on COMEX and LME... From time to time, we have entered into hedging transactions to provide partial protection against future decreases in the market price of metals and we may do so under certain market conditions.' Item 7 Revenue Recognition: for certain copper and molybdenum sales, contracts allow pricing based on a month after shipment, 'in most cases within the following three months'; provisionally priced copper sales are marked to forward LME or COMEX prices each month until final settlement. 2025 net sales included $197.8 million of upward adjustments on provisionally priced sales",
+   "note": "Sensitivity is stated on net income after tax, not EBITDA or revenue. Provisional pricing means part of a quarter's copper move settles through the next quarter's revenue. Revenues in US dollars; a significant part of costs is in Peruvian sol and Mexican pesos. Copper 74.8% of sales is the company's own figure; the remainder is molybdenum, silver, zinc and sulphuric acid by-products."
   },
   {
    "code": "DAL",
@@ -171,11 +171,11 @@
    "commodities": [
     "uranium"
    ],
-   "intensity": null,
-   "intensity_source": null,
-   "lag": "contract-lagged (term contracts)",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "intensity": "Uranium segment revenue C$2,874 million of consolidated revenue C$3,481.9 million in 2025, i.e. 82.5% (2,874 / 3,481.9); the rest is fuel services (conversion and fabrication), with the 49% Westinghouse stake equity-accounted. 2025 uranium average realized price US$65.53/lb (2024: US$58.45) against a UxC spot price of US$81.40/lb at 31 December 2025; 33.0 million lb delivered and 9.6 million lb purchased (including JV Inkai) in 2025. Company sensitivity for 2026: a US$5/lb rise in the uranium spot price adds C$36 million of revenue and C$8 million of adjusted net earnings but cuts cash flow by C$9 million (JV Inkai purchase entitlement of 4.4 million lb priced at a 5% discount to spot); a US$5/lb fall cuts revenue C$55 million, adjusted net earnings C$22 million and cash flow C$4 million. Expected realized price table at 31 December 2025 (US$/lb, spot scenarios $40/$60/$80/$100/$120/$140/$160): 2026 = 50/58/65/68/69/70/71; 2027 = 46/57/69/74/76/78/79; 2028 = 49/59/72/79/84/88/91; 2029 = 51/61/74/84 (higher scenarios continue). Long-term commitments of about 230 million lb after 2025 deliveries, averaging about 28 million lb a year over the next five years",
+   "intensity_source": "Cameco 2025 annual MD&A dated 13 February 2026 (Exhibit 99.3 to Form 40-F, accession 0001193125-26-116229, filed 2026-03-19): 'Revenue, adjusted net earnings, and cash flow sensitivity analysis', 'Price sensitivity analysis: uranium segment', 2025 performance highlights and uranium segment results; Cameco 2025 consolidated financial statements (Exhibit 99.2 to the same 40-F), consolidated statement of earnings",
+   "lag": "contract-lagged (company: 'changes to our average realized price will generally lag changes in market prices in both rising and falling price conditions'; delivery generally begins two years or more after signing; market-related prices are generally set a month or more before delivery)",
+   "pricing_power": "MD&A 2025: 'We have a portfolio of long-term contracts, each bilaterally negotiated with customers, that have a mix of base-escalated pricing and market-related pricing mechanisms, including provisions that provide exposure to rising market prices while also protecting us when the market price is declining.' On the 2026 sensitivity: 'at the current price levels many of the market-related sales contracts we have delivered into or are delivering into this year are subject to ceiling prices and therefore are generally less sensitive than our purchase commitments.' Market-related contracts reference the spot or long-term price 'subject to specific terms unique to each contract, such as floors and ceilings set relative to market pricing at time of negotiation and typically escalated to time of delivery.' Fuel services is largely base-escalated. FX: US$1.01 billion of 2026 exposure hedged at 1.36 USDCAD",
+   "note": "All money figures are Canadian dollars except uranium prices, which are US dollars. The 2026 upside is capped by ceiling prices in the contracts being delivered into; the lag given in the map is the company's own description. Cash flow moves against spot in the year of a JV Inkai purchase because the offsetting dividend arrives the following year. The 2029 realized-price row was cut off in the filing text extraction beyond the $100 scenario."
   },
   {
    "code": "CF",
@@ -259,11 +259,11 @@
    "commodities": [
     "lumber"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "2025 net sales $6,905 million; within Wood Products, structural lumber $2,037 million (29.5% of company net sales; $1,906 million in 2024), oriented strand board $762 million (11.0%; $979 million in 2024), engineered solid section $649 million. Net sales fell $219 million (3%) in 2025 'primarily due to a $264 million decrease in Wood Products net sales attributable to decreased sales realizations across most product lines', with Timberlands log sales down $18 million and Real Estate up $63 million. No $/MBF earnings sensitivity is stated; Item 7A covers long-term debt only",
+   "intensity_source": "Weyerhaeuser Form 10-K FY2025 (accession 0001193125-26-051422, filed 2026-02-13), Item 7 'Consolidated Results' and 'Wood Products' segment net sales by product table; Item 1 'Five-Year Summary of Published Lumber Prices' and 'Published Oriented Strand Board Prices'; Item 7A",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 1A: 'Competition from lumber imports could vary significantly and have a material effect on U.S. timber and lumber prices'; European imports 'have been more robust during strong domestic lumber market cycles, which can limit the benefits we realize from high timber and lumber prices.' Item 1A: 'We rely heavily on certain raw materials (principally wood fiber and chemicals) and energy sources (principally natural gas, electricity and fuel oil) in our manufacturing processes.' No lumber or OSB price hedging is described; realizations track published Random Lengths prices with the company's own log supply as the natural hedge",
+   "note": "Timberlands (own fibre) and Real Estate are the rest of sales; log prices, not lumber, drive that segment. Lumber plus OSB is about 40% of company net sales, less of EBITDA in a weak year. The 10-K gives price tables, not a per-$10/MBF sensitivity."
   },
   {
    "code": "DHI",
@@ -291,11 +291,11 @@
    "sides": {
     "natgas_us": "cost"
    },
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Company statement for 2025: 'energy comprised approximately 24 percent of the Company's total alumina refining production costs and electric power comprised approximately 24 percent of the Company's primary aluminum production costs'; Alcoa generated about 11% of the power its smelters used in 2025 and bought the rest, generally under long-term arrangements. Revenue mix 2025: Aluminum segment third-party sales $8,359 million (third-party aluminum $8,515 million less $156 million of energy sales and hedge results) and Alumina segment third-party sales $4,447 million (alumina $3,710 million plus bauxite $737 million) against consolidated sales of $12,831 million, so the Aluminum segment is about 65% of sales (8,359 / 12,831) and Alumina about 35%. No dollars-per-tonne LME or alumina price sensitivity is stated in the 10-K; Item 7A refers only to Note P (derivatives). Q2 2026: adjusted EBITDA $901 million, up $306 million sequentially 'primarily due to higher aluminum prices and shipments', partly offset by 'higher energy prices, primarily fuel oil and diesel increases associated with the Middle East conflict' and Section 232 tariff costs on Canadian metal",
+   "intensity_source": "Alcoa Form 10-K FY2025 (accession 0001193125-26-077167, filed 2026-02-26), Item 1 'Energy Facilities and Sources' and 'Aluminum' pricing discussion, Item 7 segment tables (Alumina and Aluminum third-party sales) and Note E 'Sales'; Alcoa Q2 2026 results press release dated 16 July 2026 (Exhibit 99.1 to Form 8-K, accession 0001193125-26-306118)",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 1A: the price of primary aluminum is 'the underlying base metal component, which is typically based on quoted prices from the LME; (ii) the regional premium... associated with the physical delivery of metal to a particular region' plus a product premium; alumina is sold under contracts with 'the API price basis and a negotiated adjustment basis'. Energy: 'Pricing may be fixed, indexed to an underlying fuel source or other index such as LME, cost-based, or based on regional market pricing.' Note P: several power contracts are embedded derivatives that index the price of power to the LME price of aluminum (one also to the Midwest premium), so 'Increase in LME price and/or the Midwest premium results in a higher cost of power'. Q2 2026 release: Aluminum third-party revenue rose 31% sequentially 'partially offset by impacts from certain energy contracts linked to metal pricing'",
+   "note": "Both figures are the company's own cost-share statements, not a per-$100/t sensitivity; Alcoa publishes per-tonne sensitivities only in its earnings slide decks, which were not in the filings opened. LME-linked power contracts (Brazil, Norway, Quebec) claw back part of an aluminum price rise through power cost. Natural gas exposure is concentrated in the Western Australia and Spain refineries; the 10-K gives no gas share separate from the 24% energy share of refining cost."
   },
   {
    "code": "IP",
@@ -307,8 +307,8 @@
    "intensity": null,
    "intensity_source": null,
    "lag": "one quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 1A: 'We rely heavily on the use of certain raw materials (principally virgin wood fiber, recycled fiber, caustic soda, starch and adhesives), energy sources (principally biomass, natural gas, electricity and fuel oil) and third-party transport companies... we have not always been able to, and may in the future be unable to, recoup past or future increases in the costs of any raw materials, energy sources or transportation sources from customers... where we are able to recoup our cost increases, there may be a delay between the onset of the cost increases and the recoupment.' 'We have significant exposure to energy costs, in particular gas, electricity and other fuel costs... We have employed and expect to continue to employ, strategies, including hedging a portion of our energy costs.' Item 7A 'Commodity Price Risk': energy swaps and forward purchases had a net fair value of a $21 million liability at 31 December 2025 and 'the potential loss in fair value from a 10% adverse change in quoted commodity prices for these contracts would have been approximately $40 million'. Q4 2025 MD&A: EMEA 'input costs are expected to be higher primarily driven by elevated energy costs' in Q1 2026",
+   "note": "The 10-K and Q2 2026 10-Q name fibre (virgin wood fibre, recycled fibre/OCC) and energy (biomass, natural gas, electricity, fuel oil) as the principal inputs but give no percentage of cost of goods sold for either, and no $/t sensitivity; the only number is the 10% adverse-move test on the energy hedge book. IP is now a packaging company (DS Smith added in 2025; global cellulose fibers being divested), so 'own pulp' in the map label is integrated containerboard, not market pulp."
   },
   {
    "code": "CVX",
@@ -502,11 +502,11 @@
    "commodities": [
     "coking_coal"
    ],
-   "intensity": null,
-   "intensity_source": null,
-   "lag": "same quarter",
-   "pricing_power": null,
-   "note": "US met coal exporter; figures not pulled yet."
+   "intensity": "Substantially all revenue is premium steelmaking (met) coal sold into the seaborne market: 2025 total revenues $1,310.0 million on 8,735 thousand metric tons sold at an average net selling price of $146.20/t (2024: $207.32/t; 2023: $241.64/t) against a cash cost of sales of $111.66/t; cost of sales was $982.4 million or 75.0% of revenues in 2025 (66.0% in 2024). Arithmetic: a $1/t move in the realized price is about $8.7 million of revenue a year at 2025 volume (8.735 million t x $1). Q2 2026 average net selling price $151.91/t versus $143.31/t in Q2 2025. No formal price sensitivity is stated",
+   "intensity_source": "Warrior Met Coal Form 10-K FY2025 (accession 0001193125-26-048914, filed 2026-02-12), Item 1 'Overview', Item 7 'Sales Volumes and Average Net Selling Price', 'Cash Cost of Sales', results of operations and Item 7A 'Commodity Price Risk'; Form 10-Q Q2 2026 (accession 0001193125-26-335324, filed 2026-08-05), Item 2 operating metrics",
+   "lag": "same quarter (company: contract prices 'generally are set on daily index averages on a quarterly basis')",
+   "pricing_power": "10-K FY2025 Item 7A: 'We typically sell our steelmaking coal under contracts primarily with pricing terms of three months and volume terms of one to three years. Sales commitments in the steelmaking coal market are typically not long-term in nature, and we are, therefore, subject to fluctuations in market pricing.' Item 7: 'Our sales volume and sales prices are largely dependent upon the terms of our annual steelmaking coal sales contracts, for which prices generally are set on daily index averages on a quarterly basis.' Strategy is to keep 'strong correlation between realized coal prices and the S&P Platts Index', with opportunistic spot sales. No coal price hedges; occasional natural gas swaps on its gas by-product sales, none outstanding at 31 December 2025",
+   "note": "Realized price is net of demurrage, quality adjustments and any freight Warrior bears (FOB Port of Mobile). The $8.7 million per $1/t figure is arithmetic on 2025 volume, not a company statement. Blue Creek mine adds volume from 2026 onward."
   },
   {
    "code": "X",
@@ -520,11 +520,11 @@
    "sides": {
     "ironore": "revenue"
    },
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Last annual filing before the Nippon Steel acquisition closed on 18 June 2025 (no 10-K or 10-Q filed since Q1 2025). FY2024: net sales $15,640 million (including $2,505 million to related parties); segment net sales Flat-Rolled $11,109 million, Mini Mill $2,678 million, USSE $3,550 million, Tubular $1,552 million before eliminations. Input ratios stated by the company: the integrated process consumes about 1.4 t of coal per t of coke, then about 0.3 t of coke, 0.3 t of scrap (about 60% internally generated) and 1.3 t of iron ore pellets plus about 10 mmbtu of natural gas per ton of raw steel; mini mills use about 0.8 t of scrap, 0.3 t of pig iron, 0.1 t of HBI and 0.6 MWh of electricity per ton. Minntac and Keetac pellet capability (about 23 million t a year including the Hibbing share) exceeds US steelmaking needs and surplus pellets are sold to third parties; Flat-Rolled is nearly self-sufficient in coke; all coking coal is bought from outside. No $/t HRC or scrap sensitivity is stated",
+   "intensity_source": "United States Steel Form 10-K FY2024 (accession 0001163302-25-000018, filed 2025-01-31), Item 1 'Raw Materials and Energy', 'Iron Ore', 'Coking Coal', contract-versus-spot disclosure, Item 7A 'Commodity Price Risk and Related Risks'; consolidated statement of operations and segment note",
    "lag": "one quarter",
-   "pricing_power": null,
-   "note": "Integrated with own ore in Minnesota; figures not pulled yet."
+   "pricing_power": "10-K FY2024 Item 1: 'In 2024, approximately 76 percent, 56 percent, 50 percent and 82 percent of sales by Flat-Rolled, Mini Mill, USSE and Tubular, respectively, were contract sales' (agreements with defined volume and price running longer than three months); 'Some contract pricing agreements include fixed prices while others are adjusted periodically based upon published prices of steel products or cost components.' Item 7A: 'U. S. Steel's market risk strategy has generally been to obtain competitive prices for our products and services and allow operating results to reflect market price movements dictated by supply and demand; however, from time to time U. S. Steel has made forward physical purchases to manage exposure to price risk related to the purchases of natural gas and certain non-ferrous metals.' Flat-Rolled coking coal contracts are negotiated yearly; USSE hedged about 25% of its 2024 iron ore purchases with financial swaps",
+   "note": "Company is now a Nippon Steel subsidiary; the figures are FY2024 and will not be refreshed by SEC filings. Iron ore is a net revenue line (third-party pellet sales) only for the US business; USSE buys all its ore, mainly from Ukraine. No cost-share percentages are disclosed, only the physical input ratios above."
   },
   {
    "code": "STLD",
@@ -533,11 +533,11 @@
    "commodities": [
     "hrc_us"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Company statement for 2025: 'Metallic raw materials used in our electric arc furnaces represent our single most significant steel manufacturing cost, generally comprising approximately 55% to 65% of our steel mill operations' manufacturing costs.' 13.0 million tons of metallics were consumed in 2025, of which iron units other than scrap (pig iron, DRI, HBI, internal liquid pig iron) were about 13%. 2025 consolidated net sales $18,176.6 million, of which steel operations $13,412.8 million (74%), metals recycling $4,346.1 million, steel fabrication $1,418.7 million, aluminum $473.9 million; steel shipments a record 13.7 million tons (12.3 million excluding intra-segment). Steel segment average selling price fell 1%, or $14 per ton, in 2025 and metal spread fell 2%, taking steel operating income down 10% to $1.4 billion. No $/t HRC or scrap sensitivity is stated; Item 7A covers interest rates only",
+   "intensity_source": "Steel Dynamics Form 10-K FY2025 (accession 0001104659-26-021395, filed 2026-02-27), Item 1 'Raw Materials' (scrap and iron units), Item 7 'Steel Operations Segment Results 2025 vs. 2024' and net sales by segment, Item 7A; consolidated statement of income",
    "lag": "same quarter (mini-mill, scrap-based)",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 7: earnings are managed on metal spread, 'the difference between average steel mill selling prices and the cost of ferrous scrap consumed in our steel mills'; in 2025 'average selling prices decreas[ed] more than scrap costs' so the spread compressed. Item 1A: 'our inability to pass on all or a substantial part of any cost increases... may result in production slowdowns or curtailments'. Own recycling arm (Omni) supplies a large portion of the ferrous scrap the mills use, and the company notes 'overall steady domestic scrap pricing' in 2025",
+   "note": "Share is stated as a range of steel-mill manufacturing cost, not of revenue. Metals recycling revenue is partly intra-company (steel ops buy Omni scrap), so the scrap price hits both sides. Aluminum flat-rolled mill (Columbus) is ramping and is a new P1020 and aluminum-scrap exposure."
   },
   {
    "code": "CENX",
@@ -550,11 +550,11 @@
    "sides": {
     "natgas_us": "cost"
    },
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Company statement for 2025: alumina, electrical power, carbon products, labor and other controllable costs 'together represented over 84% of our Cost of goods sold'; no single-input share is given. Power sensitivity (Item 7A, at 100% capacity): expected load 1,328 MW and 11,633,280 MWh a year across Sebree, Mt. Holly and Grundartangi, so a $1/MWh change in power costs $15.9 million a year (Sebree $3.4 million, Mt. Holly $3.5 million, Grundartangi $4.8 million). 2025 net sales $2,527.9 million (related parties $1,365.5 million, Glencore is the main customer), gross profit $256.4 million. A 10% adverse price move on the outstanding LME/Midwest-premium forward sales, fixed-for-floating swaps, fuel-oil and Indiana Hub power swaps would move the derivative liability from $66.0 million to $92.0 million at 31 December 2025",
+   "intensity_source": "Century Aluminum Form 10-K FY2025 (accession 0001628280-26-013788, filed 2026-03-03), Item 1 'Key Production Costs' and 'Alumina Supply Agreements', Item 7A 'Commodity Price and Raw Material Costs Sensitivities', 'Electrical Power Price Sensitivity' table, 'Natural Economic Hedges' and 'Fair Values and Sensitivity Analysis'; consolidated statement of operations",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Power is the cost; figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 7A: 'Because we sell our products based principally on the LME price for primary aluminum, regional premiums and value-added product premiums, we are not able to directly pass on increased production costs to our customers.' Natural hedges: 'Certain of our alumina contracts and a substantial portion of Grundartangi's electrical power requirements are indexed to the LME price for primary aluminum and provide a natural hedge for a portion of our production.' Alumina from Glencore (500,000 tpy to December 2028) is LME-linked; Concord Resources (about 540,000 tpy to December 2029) has fixed, LME-linked and API-linked components; 31% of Jamalco's 2025 alumina output went to Century's own smelters. Sebree buys all its power at MISO market prices through Kenergy and Century Marketer; Mt. Holly is on Santee Cooper service-based rates through 2031; Grundartangi's HS and OR contracts are LME-based variable rate and the larger Landsvirkjun contract is fixed plus an LME-linked variable component",
+   "note": "No dollars-per-tonne LME sensitivity is stated in the filings; the company gives the power sensitivity per $1/MWh and the cost-group share only. Natural gas enters through MISO power prices at Sebree (the 10-K names 'the price of natural gas or other inputs' as the driver) rather than as a direct purchase share. Jamalco alumina refinery is Century's own."
   },
   {
    "code": "ALB",
@@ -563,11 +563,11 @@
    "commodities": [
     "lithium"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Energy Storage (lithium) net sales $2,710.0 million of consolidated net sales $5,142.7 million in 2025, i.e. 52.7% (2,710.0 / 5,142.7); the segment fell 10% in 2025 with a '$591.6 million decrease attributable to unfavorable pricing impacts, primarily in battery- and tech-grade lithium carbonate and hydroxide sold under index-referenced and variable-priced contracts', partly offset by a $285.7 million volume increase. H1 2026: Energy Storage net sales $2,167.8 million, up 75%, with a '$788.4 million increase attributable to favorable pricing impacts' under the same contract types (Q2 2026 alone: $1,276.7 million, up 78%, pricing +$522.5 million). Company statement: lithium prices fell about 85% to 95% from their January 2023 high through 2024 and into 2025 and began to rebound in the second half of 2025. No $/kg sensitivity is stated in the 10-K or 10-Q",
+   "intensity_source": "Albemarle Form 10-K FY2025 (accession 0000915913-26-000018, filed 2026-02-11), Item 7 'Energy Storage' segment results and 'Outlook', Item 1A lithium price risk factor, consolidated statement of income; Form 10-Q Q2 2026 (accession 0000915913-26-000102, filed 2026-08-05), Item 2 'Energy Storage' segment results for the quarter and six months",
    "lag": "one quarter (indexed contracts)",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K FY2025 Outlook: 'Energy Storage net sales and profitability are strongly dependent on lithium market prices, which are volatile... Because many of our contracts are index-referenced and variable-priced, our business is generally aligned with changes in market and index pricing. As a result, increases or decreases in lithium market pricing could have a material impact on our results.' Item 1A: 'although some of our long-term agreements include higher pricing, we are also party to index-referenced and variable-priced contracts.' Item 7A covers currency and interest rates only; no lithium hedging is described",
+   "note": "Specialties (bromine) and Ketjen (catalysts) make up the other 47% of sales and are not lithium-priced. Windfield/Greenbushes spodumene equity earnings add a second lithium-price channel outside net sales. The 10-K does not give the split of Energy Storage volume between index-referenced and fixed contracts."
   },
   {
    "code": "BG",
@@ -701,11 +701,11 @@
    "commodities": [
     "lumber"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "'OSB accounted for about 33% of our North American net sales in 2025 and 43% in each of 2024 and 2023.' Segment net sales 2025: Siding $1,689 million (up 8%), OSB $832 million (down 30%) of total net sales $2,708 million (2024: $2,941 million); 'net sales decreased by $352 million due to a $260 million decrease in OSB prices and an $84 million decrease in sales volumes'. Company sensitivity: 'Based upon an assumed North America annual production capacity in the OSB segment of 4.1 billion square feet (3/8 inch basis) or 3.5 billion square feet (7/16 inch basis), a $1 change in the annual average price per thousand square feet on 7/16 inch basis would change annual pre-tax profits by approximately $4 million'",
+   "intensity_source": "Louisiana-Pacific Form 10-K FY2025 (accession 0000060519-26-000012, filed 2026-02-17), Item 1A 'We have a high degree of product concentration in OSB', Item 7 segment results (Siding, OSB) and consolidated net sales, Item 7A 'Commodity Price Risk'",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "OSB rather than lumber, same housing cycle; figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 7A: 'Some of our products are sold as commodities, and therefore sales prices fluctuate daily based on market factors over which we have little or no control. The most significant commodity product we sell is OSB... We historically have not entered into material commodity futures and swaps, although we may do so in the future.' Item 1A: 'we, like other participants in the building products industry, have limited influence over the timing and extent of price changes for our commodity products.' Siding (SmartSide) is a specialty product priced against vinyl, fibre cement and other sidings, not the OSB print",
+   "note": "The map's commodity is lumber; LP sells OSB, which follows the same housing cycle but its own Random Lengths OSB print. Siding is now the larger and steadier segment, so commodity exposure is about a third of sales. Structural Solutions (value-added OSB) is a rising share of OSB volume and softens the pure-commodity swing."
   },
   {
    "code": "GOLD",
@@ -715,11 +715,11 @@
     "gold",
     "copper"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "2025 revenue $16,956 million: gold sales $15,147 million (89.3%; spot market $14,438 million, concentrate $674 million, provisional pricing $35 million), copper sales $1,475 million (8.7%; concentrate $1,411 million plus $64 million provisional adjustments), other $334 million. Realized gold price $3,501/oz in 2025 ($2,397 in 2024, $1,948 in 2023; Q4 2025 $4,177), realized copper $4.72/lb ($4.15 in 2024; Q4 2025 $5.42). Company sensitivity for 2026 guidance (gold assumption $4,500/oz, copper $5.50/lb): +/- $100/oz gold = +/- $650 million consolidated EBITDA (+/- $300 million attributable) and +/- $5/oz on TCC and AISC; +/- $0.25/lb copper = +/- $110 million EBITDA and +/- $0.02/lb on copper costs",
+   "intensity_source": "Barrick Mining Q4 and full-year 2025 MD&A (Exhibit 99.4 to Form 40-F, accession 0001193125-26-079253, filed 2026-02-27), 'Economic Sensitivity Analysis' table and operating results tables (realized prices); Barrick 2025 audited financial statements (Exhibit 99.3 to the same 40-F), revenue note (gold sales, copper sales, other sales); Barrick Annual Information Form (Exhibit 99.1), 'Gold and Copper Prices' section",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "AIF 2025: 'Based on current estimates of Barrick's 2026 gold production and sales, a $100 per ounce increase or decrease from the $4,500 per ounce gold price assumption used to determine guidance will result in an approximately $650 million increase or decrease, as applicable, in the Company's EBITDA.' Most gold is sold at spot; concentrate sales for both gold and copper are provisionally priced and adjusted to final settlement (the financial statements carry receivables from provisional copper and gold sales). The MD&A describes no gold or copper price hedges, only currency hedges (Chilean peso). Higher gold prices lift royalties and cost per ounce, e.g. Mali's 2023 Mining Code makes Loulo-Gounkoto costs more gold-price sensitive",
+   "note": "Ticker is now B on the NYSE (Barrick Mining Corporation, formerly Barrick Gold); the map's code GOLD is kept as given. Sensitivities are consolidated EBITDA on the 2026 guidance base; the attributable figure is lower because of Nevada Gold Mines (61.5%) and other joint ventures. Copper share of revenue rises from 2026 as Lumwana Super Pit and Reko Diq ramp."
   },
   {
    "code": "AEM",
@@ -728,11 +728,11 @@
    "commodities": [
     "gold"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "'Sales of precious metals (gold and silver) accounted for 99.5% of revenues from mining operations in 2025, consistent with the contribution levels in 2024 and 2023.' Revenues from mining operations $11,907.9 million in 2025, up 43.7%, 'primarily due to a 44.9% increase in realized gold prices' (average realized price $3,454/oz in 2025 versus $2,384 in 2024) on payable production of 3,447,367 oz; production costs $965/oz, total cash costs $979/oz by-product ($1,035 co-product), AISC $1,339/oz by-product in 2025, guided to $1,400 to $1,550 for 2026. No $100/oz earnings sensitivity is stated in the MD&A or AIF",
+   "intensity_source": "Agnico Eagle 2025 annual MD&A (Exhibit 99.3 to Form 40-F, accession 0001104659-26-032153, filed 2026-03-19), 'Revenues from Mining Operations' and 'Results of Operations'; 2025 audited consolidated financial statements (Exhibit 99.2), Note 19 'Revenues from mining operations and trade receivables'; Annual Information Form 2025 (Exhibit 99.1), risk factors on metal prices",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "Financial statements Note 19: 'The Company earns substantially all of its revenues from the production and sale of gold. The cash flow and profitability of the Company's operations are significantly affected by the market price of gold.' AIF: 'The Company has used, and may in the future use, various by-product metal derivative strategies, such as selling future contracts or purchasing put options'; no gold price hedging programme is described. Receivables on provisionally priced concentrate sales were $18.7 million at 31 December 2025 (doré is sold at spot). Costs are mostly in Canadian dollars, Australian dollars, euros and Mexican pesos, partly hedged; royalties rise with the gold price",
+   "note": "Pure gold price taker on doré; concentrate is a small part of sales. Four customers took 76.3% of 2025 revenue but gold can be sold to any bullion trader. The ratio 99.5% is the company's own; a per-$100/oz figure was not found in the filings opened."
   },
   {
    "code": "PAAS",
@@ -742,11 +742,11 @@
     "silver",
     "gold"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "2025 revenue $3,619 million. From the company's realized-price and quantity table: silver 20,067 thousand oz at a realized $40.78/oz = about $818 million (23% of revenue); gold 752.9 thousand oz at $3,459/oz = about $2,604 million (72%); zinc 44.5 kt at $2,865/t = about $127 million; lead 21.7 kt at $1,965/t = about $43 million (arithmetic on company figures, before Maverix stream effects). Company sensitivity for 2026 (base case $70.00/oz silver and $4,200/oz gold = 100%): revenue moves to 87% at $40 silver and 113% at $100 silver holding gold at $4,200; to 88% at $3,400 gold and 113% at $5,000 gold holding silver at $70; Silver Segment AISC ($33.25 to $35.75/oz guided) swings from 100% to 74% at $4,200 gold / $40 silver... to 125% at $70 silver / $3,400 gold; Gold Segment AISC moves about 7% per $15/oz of silver",
+   "intensity_source": "Pan American Silver MD&A for the year ended 31 December 2025 (Exhibit 1.2 to Form 40-F, accession 0000771992-26-000019, filed 2026-02-18): 'Selected Annual and Quarterly Financial Information', 'Quantities and realized prices of metal sold', 2026 guidance footnote (metal price assumptions) and 'Risks and Uncertainties: Price Risk' with the '2026 Revenue Metal Price Sensitivity', '2026 Silver Segment AISC Metal Price Sensitivity' and '2026 Gold Segment AISC Metal Price Sensitivity' tables",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "MD&A 2025: 'We take the view that our precious metals production should not be hedged, thereby allowing the maximum exposure to precious metal prices. However, in extreme circumstances, the Board of Directors may make exceptions to this approach.' 'From time to time, we mitigate the market price risk associated with our base metal production by committing some of our forecast base metal production to forward sales and options contracts'; 'The Company did not have any base metal or diesel contracts outstanding during the years ended December 31, 2025 or 2024.' Revenue sensitivity 'assumes that quantities of silver and gold produced and sold remain constant under all price scenarios'",
+   "note": "Gold, not silver, is now the larger revenue line after the Yamana and MAG (Juanicipio) deals; the map lists silver first. Metal-by-metal revenue is my arithmetic from the company's realized prices and quantities, not a reported split. Silver Segment AISC is net of gold by-product credits, so a gold price rise lowers the reported silver cost."
   },
   {
    "code": "HL",
@@ -756,11 +756,11 @@
     "silver",
     "gold"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "2025 sales of products $1,383.9 million: silver $689.4 million (49.8%), gold $484.1 million (35.0%), base metals (lead, zinc, copper) $226.4 million (16.4%), less smelter and refining charges $16.0 million. Price alone added $417.4 million of sales in 2025 versus 2024 (silver +$253.9 million, gold +$150.8 million). Realized prices 2025: silver $45.25/oz, gold $3,490/oz, zinc $1.39/lb, copper $4.75/lb. Company sensitivity: metals in concentrate still open to final pricing at 31 December 2025 were about 3.5 million oz silver, 2,272 oz gold, 14,028 t zinc and 8,322 t lead; a 10% price change on each would move the value of concentrates sold by about $18.3 million. Provisional-price adjustments added $51.0 million to 2025 sales",
+   "intensity_source": "Hecla Mining Form 10-K FY2025 (accession 0001193125-26-055059, filed 2026-02-17), Item 7 'Sales of products by metal' variance table, 'Average realized prices' table, and Item 7A 'Provisional Sales' and 'Commodity-Price Risk Management'; Form 10-Q Q2 2026 (accession 0001193125-26-333090, filed 2026-08-04), Note on derivative instruments (silver put options)",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K FY2025 Item 7A: 'Our risk management policy allows for up to 75% of our planned metals price exposure for five years into the future, with certain other limitations, to be covered under such programs that would establish a ceiling for prices to be realized on future sales.' Forward contracts on forecasted zinc and lead sales at 31 December 2025: 2026 settlements 53,407 thousand lb zinc at $1.33/lb and 42,108 thousand lb lead at $1.02/lb; 2027 settlements 23,810 thousand lb zinc at $1.36/lb; plus contracts on provisional sales. December 2025 silver put options: 6,767 thousand oz of 2026 silver sales protected at a $50.00/oz strike (net losses of $6.4 million in Q2 2026 and $7.6 million in H1 2026 on the puts). 'For concentrate sales, revenues are generally recorded at the time of shipment at forward prices for the estimated month of settlement'",
+   "note": "Silver is the larger line but gold (Casa Berardi, Keno Hill by-product, Greens Creek) is a third of sales; lead and zinc are a sixth. The silver puts set a floor, not a cap, so upside is kept; the zinc and lead forwards cap those metals. Greens Creek burns diesel for power when hydro is short."
   },
   {
    "code": "SBSW",
@@ -771,11 +771,11 @@
     "palladium",
     "gold"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Group revenue R129,677 million in 2025 (up 16%): SA PGM operations R60,883 million (47%), managed SA gold operations R27,930 million (21.5%), DRDGOLD R9,129 million (7.0%), US PGM underground (Stillwater) R6,718 million (5.2%), US PGM recycling R7,267 million (5.6%); the balance is the other segments (Sandouville, Reldan, Century zinc, Keliber and others). Company sensitivity on 2025 adjusted EBITDA (attributable production, before hedges): a 10% move in the gold price at the SA gold operations = R3,199 million; 10% in the 4E PGM basket at SA PGM = R4,971 million; 10% in the 2E basket at US PGM underground = R539 million; 10% in the zinc concentrate price = R420 million; 10% in all commodity prices = minus R8,099 million / plus R9,898 million; 10% rand strengthening = minus R10,137 million; 10% in operating costs = R8,902 million",
+   "intensity_source": "Sibanye Stillwater Form 20-F FY2025 (accession 0001628280-26-026991, filed 2026-04-24), Item 5 'Sensitivity Analysis' (adjusted EBITDA), Item 5 operating and financial review by segment (revenue), Item 11 quantitative and qualitative disclosures, and the financial-instruments note on gold hedge contracts",
    "lag": "same quarter",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "20-F FY2025: 'Stillwater does not generally enter into forward sales, commodity derivatives or other hedging arrangements in order to establish a price in advance of the sale of its production, unless these derivatives are used for risk mitigation and project funding initiatives.' SA gold is partly hedged with zero-cost collars: an agreement from 2 December 2024 for 182,000 oz over 13 months (14,000 oz a month) with a floor of R45,000/oz and cap of R58,500/oz, and one from 2 January 2025 for 168,000 oz over 12 months with floor R45,000 and cap R54,400/oz; realised losses on the gold hedges were R1,288 million in 2025 and the fair-value loss R1,736 million as the rand gold price hit records. The sensitivities 'exclude the impact of any hedging arrangements'",
+   "note": "All figures in South African rand; costs are 'predominantly denominated in South African rand' so the rand is the biggest single sensitivity. The map lists Russia; Sibanye has no Russian assets (the industry label is the map's). US PGM underground is now a small revenue line after the 2024 restructuring; palladium exposure runs through both the 2E basket (US) and the 4E basket (SA)."
   },
   {
    "code": "UEC",
@@ -784,11 +784,11 @@
    "commodities": [
     "uranium"
    ],
-   "intensity": null,
-   "intensity_source": null,
+   "intensity": "Fully spot-exposed by the company's own statement: 'As at July 31, 2025, we had no uranium supply or off-take agreements in place. Future sales of U3O8 are therefore expected to generally occur through the uranium spot market, with any fluctuations in the market price continuing to have a direct impact on our revenues and cash flows.' Revenue is still mostly resale of purchased inventory: sales and service revenue $66.84 million in fiscal 2025 (year to 31 July 2025) with realized gross profit $24.48 million, versus $0.22 million in fiscal 2024 and $164.39 million in fiscal 2023; $20.20 million of revenue and $10.03 million gross profit from sales of purchased uranium inventory in the nine months to 30 April 2026. Inventory is carried with reference to the UxC spot price",
+   "intensity_source": "Uranium Energy Corp Form 10-K for fiscal 2025 (accession 0001437749-25-029761, filed 2025-09-24), Item 1 'Uranium Sales', Item 7 results of operations and Item 7A 'Uranium Price Risk'; Form 10-Q for the quarter ended 30 April 2026 (accession 0001437749-26-019889, filed 2026-06-09), Item 2 results of operations",
    "lag": "same quarter (spot-exposed)",
-   "pricing_power": null,
-   "note": "Figures not pulled yet."
+   "pricing_power": "10-K fiscal 2025 Item 7A: 'Since future sales of uranium concentrates are expected to generally occur through the uranium spot market, fluctuations in the market price of uranium would have a direct impact on our revenues, results of operations and cash flows. We do not use derivative financial instruments for speculative trading purposes, nor do we hedge our uranium price exposure to manage our uranium price risk.' Sales contracts to date 'specify the quantity to be delivered, the price, payment terms and the period of delivery' for purchased U3O8 held at conversion facilities",
+   "note": "Revenue is lumpy because it is timed inventory sales, not steady production; there is no production cost per pound comparable to Cameco. No revenue-per-$1/lb sensitivity is stated. Fiscal year ends 31 July."
   },
   {
    "code": "CAT",
