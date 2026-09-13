@@ -12,10 +12,10 @@ Day to day you do not need the coding agent to run the desk; it starts with your
 
 The desk has two account pages, and they are built differently on purpose. If you invest in the US, Desk · US is your desk and it needs no broker at all; Desk · Home is the page that connects to a broker account in whatever market you trade, and it can stay dark.
 
-- **Desk · Home** is your broker account in whatever market you trade: holdings, open futures, funds, margin used as a bar, an options tape on the index, a ticker strip, a results calendar and the alert strip. It talks to the broker through an adapter, and the adapter shipped here is for ICICI Direct's Breeze API (India), because that is the broker the desk was built against. With any other broker you swap the adapter (see *Adapting to your broker*); until then, leave the broker keys empty and the desk still boots with everything else live. Because the shipped adapter is Indian, the Home page's currency, results calendar and index labels are Indian until the adapter is swapped, and the agent changes them along with it.
+- **Desk · Home** is your broker account in whatever market you trade: holdings, open futures, funds, margin used as a bar, an options tape on the index, a ticker strip, a results calendar and the alert strip. It talks to the broker through one file in `brokers/`, chosen on Settings (`BROKER` in `.env`). Six ship: Alpaca, ICICI Direct (Breeze), Interactive Brokers (Flex Web Service), Tradier, Trading 212 and Zerodha (Kite Connect), all read-only. The ICICI Direct file is the full one (live ticks, futures and options, margin, the index options tape, through `collect.py`, `stream_in.py` and `fno*.py`); the others return holdings and cash, and `server.py` marks any line without a price from Yahoo through the row's `ysym`. Currency and market hours come from the broker file's `META`. With no broker chosen the desk boots with everything else live.
 - **Desk · US** is the US market read from the public record and one optional feed: a book of US positions priced live, the earnings countdown, the insider tape from Form 4 filings (with cluster buys), and a market pulse. It needs no broker at all, so it works from anywhere, and the US intelligence tabs (Funds, Flow, Short, Capitol) sit on the same free sources.
 
-So a reader in Australia runs Desk · Home on an ASX broker adapter and Desk · US as it ships; a reader in the US can treat Desk · US as the home desk and leave Desk · Home dark; a reader in India runs both as they are. The labels are two strings at the top of `web/assets/desk.js`; rename them to your markets.
+So a reader in the US runs Desk · Home on Alpaca, Interactive Brokers or Tradier and Desk · US beside it; a reader in Australia has the agent write `brokers/<name>.py` for an ASX broker (the contract is `brokers/README.md`); a reader in India picks ICICI Direct or Zerodha. The labels are two strings at the top of `web/assets/desk.js`; rename them to your markets.
 
 ## What runs without any key
 
@@ -60,7 +60,7 @@ Two ways to run it. Pick one.
 
 Nothing on the desk needs a login of its own: Desk · US, the watch grids, Funds, Flow, Short, Capitol, Macro and Risk run from the public record and the optional feed key you set once.
 
-Whether Desk · Home needs anything each day is up to your broker, not the desk. Most brokers keep an API session alive for weeks or months once the key is set. The shipped ICICI adapter is the exception: that broker's regulator requires a fresh login every trading day, so on a morning you want the Home page live you paste the value after `apisession=` on the Settings page (or double-click `Paste Token.command` / `Paste Token.bat`, which asks in a window), and the desk reconnects without a restart (the token is cached for the day). A broker app whose redirect address is `http://localhost:8765/settings` delivers the token to the page by itself. Skip it and the desk keeps serving the last saved book re-priced live and shows a ribbon, and every other page is unaffected. Readers on other brokers can ignore the Paste Token files entirely.
+Whether Desk · Home needs anything each day is up to your broker, not the desk. Most brokers keep an API session alive for weeks or months once the key is set. A broker file with `daily_login` set (ICICI Direct and Zerodha as shipped) is the exception: that regulator requires a fresh login every trading day, so on a morning you want the Home page live you paste what the login redirect hands back on the Settings page (the file's `token_param` names it; `exchange_token` turns it into the day's token, cached in `session_token_primary.txt`), and the desk reconnects without a restart. A broker app whose redirect address is `http://localhost:8765/settings` delivers it to the page by itself. `Paste Token.command` / `.bat` still does the ICICI Direct login from a window. Skip it and the desk keeps serving the last saved book re-priced live and shows a ribbon, and every other page is unaffected. Readers on other brokers can ignore the Paste Token files entirely.
 
 To have the desk inside Obsidian: switch on the **Web Viewer** core plugin, copy `obsidian/Live Desk.md` into your vault, and (optional) copy `obsidian/desk.css` into `.obsidian/snippets/` and enable it, so the note uses the full width.
 
@@ -100,7 +100,7 @@ Two files at the root of the repository drive it. `VERSION` lists releases one p
 
 ## More than one account
 
-The desk supports several accounts at the same broker. Add a line to `ACCOUNTS` in `breeze_session.py` and the matching key pair in `.env`. Only the first account's session is required; the others are optional and fall back to their last saved book, re-priced live. The same shape works across markets: a home account on the broker adapter, a US book in `data/us_book.json` (or a live pull if your US broker has an API), and any other market on its own adapter.
+The ICICI Direct file supports several accounts at that broker: add a line to `ACCOUNTS` in `breeze_session.py` and the matching key pair in `.env`. Only the first account's session is required; the others fall back to their last saved book, re-priced live. The other broker files read one account each (Tradier takes an account number when the profile has several). Desk · Home reads one broker at a time; a US book sits in `data/us_book.json` beside it.
 
 ## Adapting to your broker
 
@@ -108,7 +108,7 @@ Everything that is specific to the shipped broker and its market sits in a short
 
 | File | What it does | What yours has to return |
 |---|---|---|
-| `breeze_session.py` | Login and the session (daily on the shipped adapter, longer-lived on most brokers) | A client object the reads below can call |
+| `breeze_session.py` | Login and the session for the ICICI Direct file (daily there, longer-lived on most brokers) | A client object the reads below can call |
 | `collect.py` | The four reads: holdings, open positions, funds, margin; plus a live quote | Lists of positions with code, quantity, average price and last price; funds and margin as numbers |
 | `stream_in.py` | Live ticks for Watch · Home during market hours | Optional; without it the grid polls quotes |
 | `secmaster.py` | The broker's symbol master (short code to name, exchange, 52-week range) | A lookup from your broker's codes to names |
@@ -116,11 +116,11 @@ Everything that is specific to the shipped broker and its market sits in a short
 | `nse_fund.py` and the results calendar in `server.py` | Home-market fundamentals and upcoming results from the exchange's public filings | Optional; the ticker page for home names shows quotes without it |
 | The two India rows in `MACRO_SERIES` (`server.py`) | Home-market macro cards | Swap for your market's FRED series |
 
-The fastest route is to open this folder in your coding agent, give it your broker's API documentation, and ask it to rewrite `breeze_session.py` and the four reads in `collect.py` for your broker first; that alone lights up Desk · Home, Risk and Watch · Home. Interactive Brokers, Alpaca, Zerodha and most large brokers publish an API; some charge for it.
+The table above is the shape of the full ICICI Direct path. For any other broker the job is smaller: one file in `brokers/` with `META`, `connect`, `label`, `equity` and `funds`, written to `brokers/README.md`, and one line in `REGISTRY`. Open this folder in your coding agent, give it the broker's API documentation and that README, and Desk · Home, Risk and the home watch grid light up; the futures, margin and options-tape reads are optional extras a file can add later. Charles Schwab (weekly login), Upstox, Angel One and Groww (daily login) follow the same pattern; Fidelity, Vanguard and Robinhood publish no stock API for individuals, so their holdings go into Desk · Book from an export.
 
 ## Data sources
 
-- Broker API: your account, live ticks during market hours (shipped adapter: ICICI Direct, India; any broker with an API can replace it).
+- Broker API: your account, through one of the six shipped broker files or one your agent writes; live ticks during market hours on the ICICI Direct file.
 - SEC EDGAR, keyless: Form 4 insider filings on your names (`sec_form4.py`), plus the 13F and 13D/G feeds.
 - Commodities (`commods.py`), all keyless: Yahoo's chart feed for exchange-traded contracts (gold, copper, crude, wheat, cotton ...), FRED's monthly IMF series for the long history of benchmarks with no contract, and one sentence per page from Trading Economics for those benchmarks' current level and day, month and year change (rubber, zinc, urea, coking coal, freight). The scraped sentence is date-stamped and the last good value persists, so a changed page degrades to stale, never to blank. `local_in.py` is the shipped local-read plugin for the ICICI adapter: MCX front-month futures through the broker's history endpoint and the Rubber Board of India's daily sheet; it runs only when that broker is connected, and it is the pattern for a `local_<market>.py` of your own (two functions: a second price line on a card, a tile in the card's detail).
 - House Clerk, keyless: periodic transaction reports as PDFs, parsed with pypdf (`house_ptr.py`).

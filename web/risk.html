@@ -106,14 +106,14 @@ footer{max-width:1420px;margin:28px auto 0;padding:14px 22px;border-top:1px soli
 <main>
   <div class="sub">How much each book moves, what moves it, and what a bad index day costs —
   <span id="window"></span>. Futures count at full underlying value, so a leveraged book shows
-  positions worth more than the account. Home books measure against their own index (<b>NIFTY</b> on the shipped adapter), the US book
+  positions worth more than the account. Home books measure against their own market's index, the US book
   against the <b>S&amp;P 500</b>.</div>
   <div id="banner"></div>
   <div id="body"><div class="loadingnote">Building risk view… first run of the day fetches price
   histories and can take a minute.</div></div>
 </main>
-<footer id="foot">Broker marks, read-only. Margin cushion = total F&amp;O limit (cash + pledged
-shares) minus blocked margin; ICICI squares off only when the whole limit is gone — there are no
+<footer id="foot">Broker marks, read-only. Where the broker reports a trading limit, margin cushion = that limit (cash + pledged
+shares) minus blocked margin; brokers differ on when they square off, so read your own broker's rule. There are no
 per-position stops. The −5% line is a straight beta estimate, not a promise about a gap day.
 When the home market and the US close hours apart, home↔US correlations understate the true linkage. Illiquid
 names are carried at their last print; a no-trade day counts as a 0% day, same as the NAV mark.</footer>
@@ -254,9 +254,9 @@ async function load(){
     document.getElementById("banner").innerHTML=
       `<div class="staleribbon"><span class="sr-k">Session expired</span>
        <span>Home books priced from the broker record of <b>${d.stale.broker_as_of}</b></span>
-       <span>· margin numbers frozen at that moment · paste tokens to go live</span></div>`;
+       <span>· margin numbers frozen at that moment · log in again on <a href="/settings" style="color:var(--accent)">Settings</a> to go live</span></div>`;
   if(!d.books||!d.books.length){
-    document.getElementById("body").innerHTML='<div class="loadingnote">No books available (no Breeze session and no US book file).</div>';
+    document.getElementById("body").innerHTML='<div class="loadingnote">No books yet: connect a broker on <a href="/settings" style="color:var(--accent)">Settings</a>, add positions on Desk · Book, or put US positions in the US book file.</div>';
     return;
   }
   let h=`<h2 class="grp">The three books <span class="why">headline risk per account — the small print under each number says what it means</span></h2>

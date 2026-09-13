@@ -175,9 +175,8 @@ footer b{color:var(--ink2)}
 
 <footer>
   <p><b>Marks:</b> the broker's own live marks, the prices it computes margin and square-off against.</p>
-  <p><b>Square-off:</b> the margin-used bars show blocked margin against the account's total limit,
-  the way the shipped adapter's broker reports it; other brokers report it differently, so cross-check
-  the exact limits on your broker's own page.</p>
+  <p><b>Margin:</b> where the broker reports a trading limit, the margin-used bar shows what is blocked against it;
+  brokers report this differently, so cross-check the exact figures on your broker's own page.</p>
   <p><b>Orders:</b> this copy reads the account and places no orders. Order routing against your broker's API is your own build.</p>
 </footer>
 
@@ -192,17 +191,20 @@ let lastSnap = null;
 
 /* ---------- formatting ---------- */
 function inr(x, dp=0){
+  /* plain number, grouped the way the account's currency groups (lakhs for rupees) */
   if(x==null || isNaN(x)) return "—";
-  const neg = x<0; x = Math.abs(x);
-  let [i,f] = x.toFixed(dp).split(".");
-  if(i.length>3){
-    let head=i.slice(0,-3), tail=i.slice(-3), parts=[];
-    while(head.length>2){parts.unshift(head.slice(-2)); head=head.slice(0,-2);}
-    parts.unshift(head); i=parts.join(",")+","+tail;
-  }
-  return (neg?"−":"")+i+(f?"."+f:"");
+  const loc = (!CCY || CCY==="INR") ? "en-IN" : "en-US";
+  return new Intl.NumberFormat(loc,{maximumFractionDigits:dp,minimumFractionDigits:dp}).format(x).replace("-","−");
 }
-function rupee(x,dp=0){ return x==null?"—":"₹"+inr(x,dp); }
+let CCY = "";   // the connected account's currency, set on every snapshot
+function money(x,dp=0,ccy){
+  if(x==null||isNaN(x)) return "—";
+  const c = ccy||CCY;
+  if(!c) return inr(x,dp);
+  try{ return new Intl.NumberFormat(c==="INR"?"en-IN":"en-US",{style:"currency",currency:c,maximumFractionDigits:dp,minimumFractionDigits:dp}).format(x).replace("-","−"); }
+  catch(e){ return c+" "+inr(x,dp); }
+}
+const rupee = money;   // older call sites
 function pct(x,dp=2){ return x==null?"—":(x>=0?"+":"−")+Math.abs(x).toFixed(dp)+"%"; }
 function cls(x){ return x==null?"dim":(x>=0?"pos":"neg"); }
 function signed(x,dp=0){ return x==null?"—":(x>=0?"+":"−")+inr(Math.abs(x),dp); }
@@ -303,9 +305,11 @@ function equityTable(acct, eq){
     ${th(id,"code","Name",st)}${th(id,"qty","Qty",st)}${th(id,"avg","Avg",st)}
     ${th(id,"ltp","Mark",st)}${th(id,"value","Value",st)}${th(id,"pnl","P&L",st)}
     ${th(id,"pnl_pct","P&L %",st)}${th(id,"day_pct","Day %",st)}<th>Wt</th></tr></thead><tbody>`;
+  const reg = (lastSnap && lastSnap.accounts && lastSnap.accounts[acct] && lastSnap.accounts[acct].region) || "in";
   for(const e of sorted){
     const wt = total?(e.value/total*100):null;
-    html+=`<tr><td class="name"><a href="/t?symbol=${e.code}&region=in" style="color:inherit;text-decoration:none">${e.code}</a></td>
+    const sym = reg==="in" ? e.code : (e.ysym||e.code);
+    html+=`<tr><td class="name"><a href="/t?symbol=${encodeURIComponent(sym)}&region=${reg}" style="color:inherit;text-decoration:none" title="${e.name||""}">${e.code}</a></td>
       ${cell("q"+acct+e.code, inr(e.qty))}
       ${cell("a"+acct+e.code, inr(e.avg,2))}
       ${cell("m"+acct+e.code, inr(e.ltp,2))}
@@ -349,20 +353,24 @@ function allocBar(eq){
 function accountPanel(name,a){
   const t=a.totals,f=a.funds;
   const frozen = a.stale_funds ?
-    `<span class="mini mono" style="color:var(--amber,#d9a441)" title="No token pasted for this account today. Stock and futures marks are LIVE (priced via the other session — quotes are market data); cash, margin and quantities are the broker's state from the time shown.">no token today · marks LIVE · funds/margin as of ${a.broker_as_of||"?"}</span>` : "";
+    `<span class="mini mono" style="color:var(--amber,#d9a441)" title="No login for this account today. Marks are live; cash, margin and quantities are the broker's state from the time shown.">no login today · marks live · funds as of ${a.broker_as_of||"?"}</span>` : "";
+  const ccy = a.currency||CCY;
+  const hasLimit = t.limit_total!=null;
+  const hasFno = (a.futures&&a.futures.length) || t.fno_mtm;
   return `<section class="panel">
-    <div class="acct-head"><h2>${a.label||name}</h2>${frozen}
-      <span class="mini mono">margin used ${t.util_pct!=null?t.util_pct.toFixed(1)+"%":"—"}</span></div>
+    <div class="acct-head"><h2>${a.label||name}</h2>${a.broker?`<span class="mini dim">${a.broker}</span>`:""}${frozen}
+      ${hasLimit?`<span class="mini mono">margin used ${t.util_pct!=null?t.util_pct.toFixed(1)+"%":"—"}</span>`:""}</div>
     <div class="acct-tiles">
-      <div class="at"><div class="l">Equity</div><div class="v mono" data-k="ae_${name}">${rupee(t.equity_value)}</div></div>
-      <div class="at"><div class="l">Eq P&L</div><div class="v mono ${cls(t.equity_pnl)}" data-k="ap_${name}">${signed(t.equity_pnl)}</div></div>
-      <div class="at"><div class="l">F&O MTM</div><div class="v mono ${cls(t.fno_mtm)}" data-k="af_${name}">${signed(t.fno_mtm)}</div></div>
-      <div class="at"><div class="l">Cash</div><div class="v mono" data-k="ac_${name}">${rupee(t.cash)}</div></div>
-      <div class="at"><div class="l">Free limit</div><div class="v mono" data-k="al_${name}">${rupee(t.free_limit)}</div></div>
-      <div class="at"><div class="l">Collateral (impl.)</div><div class="v mono dim">${rupee(f.implied_collateral)}</div></div>
+      <div class="at"><div class="l">Holdings</div><div class="v mono" data-k="ae_${name}">${money(t.equity_value,0,ccy)}</div></div>
+      <div class="at"><div class="l">P&L</div><div class="v mono ${cls(t.equity_pnl)}" data-k="ap_${name}">${signed(t.equity_pnl)}</div></div>
+      ${hasFno?`<div class="at"><div class="l">Futures & options</div><div class="v mono ${cls(t.fno_mtm)}" data-k="af_${name}">${signed(t.fno_mtm)}</div></div>`:""}
+      <div class="at"><div class="l">Cash</div><div class="v mono" data-k="ac_${name}">${money(t.cash,0,ccy)}</div></div>
+      ${hasLimit?`<div class="at"><div class="l">Free limit</div><div class="v mono" data-k="al_${name}">${money(t.free_limit,0,ccy)}</div></div>
+      <div class="at"><div class="l">Collateral (impl.)</div><div class="v mono dim">${money(f.implied_collateral,0,ccy)}</div></div>`
+      : (f.buying_power!=null?`<div class="at"><div class="l">Buying power</div><div class="v mono dim">${money(f.buying_power,0,ccy)}</div></div>`:"")}
     </div>
-    <div style="padding:10px 15px 4px">${utilBar(t.util_pct)}
-      <div class="s dim" style="font-size:10px;margin-top:5px">blocked ${rupee(t.blocked)} of ${rupee(t.limit_total)} F&O limit</div></div>
+    ${hasLimit?`<div style="padding:10px 15px 4px">${utilBar(t.util_pct)}
+      <div class="s dim" style="font-size:10px;margin-top:5px">blocked ${money(t.blocked,0,ccy)} of ${money(t.limit_total,0,ccy)} trading limit</div></div>`:""}
     ${allocBar(a.equity)}
     ${equityTable(name,a.equity)}
   </section>`;
@@ -371,8 +379,8 @@ function accountPanel(name,a){
 function tapePanel(tape){
   if(!tape) return `<div class="loading">Loading options tape&hellip;</div>`;
   if(!tape.names||!tape.names.length)
-    return `<div class="tape-card dim" style="padding:24px 15px">Needs a live Breeze session —
-      the chain read resumes when tokens are pasted.</div>`;
+    return `<div class="tape-card dim" style="padding:24px 15px">This tape reads index option chains from the connected
+      broker, and only some brokers serve them. The US options tape from CBOE is on the Flow screen for every reader.</div>`;
   let html="";
   for(const n of tape.names){
     if(n.error){ html+=`<div class="tape-card dim">${n.code}: ${n.error}</div>`; continue; }
@@ -420,8 +428,8 @@ function render(snap){
       <h3>No broker connected right now</h3>
       <p>This screen shows a broker account: holdings, open futures, cash and margin, priced live. Three ways to get a book on the desk.</p>
       <p style="margin-top:8px"><b>Without a broker:</b> open <a href="/book" style="color:var(--accent)">Desk · Book</a> and add your holdings by hand with Yahoo symbols (AAPL, MC.PA, 0700.HK). Prices come from Yahoo's free feed, no key needed, any market.</p>
-      <p style="margin-top:8px"><b>With the broker adapter that ships in the desk</b> (ICICI Direct): open <a href="/settings" style="color:var(--accent)">Settings</a>, save the app key and secret, then paste the day's token there each morning you want the account live; that broker's regulator makes the login daily, which is why this notice also appears each morning.</p>
-      <p style="margin-top:8px"><b>With any other broker</b> that offers an API (Interactive Brokers, Alpaca, Robinhood, Zerodha and most large brokers do): open the desk folder in your AI agent and ask it to write the adapter from your broker's documentation. Until then this screen stays dark and every other screen works.</p></div>`;
+      <p style="margin-top:8px"><b>With your broker:</b> open <a href="/settings" style="color:var(--accent)">Settings</a> and pick it from the list. The desk connects to Alpaca, ICICI Direct, Interactive Brokers, Tradier, Trading 212 and Zerodha as it comes, read-only, with what each one hands out from its own dashboard. Two of those ask for a fresh login every trading day, which is why this notice can also appear in the morning.</p>
+      <p style="margin-top:8px"><b>With any other broker</b> that offers an API: open the desk folder in your AI agent and ask it to write the broker's file from its documentation; Settings lists the ones the desk knows about and the way in for each. Until then this screen stays dark and every other screen works.</p></div>`;
     document.getElementById("ticker").innerHTML="";
     return;
   }
@@ -431,8 +439,11 @@ function render(snap){
       <span>broker book as of <b>${stale.broker_as_of}</b></span>
       <span>· stock marks refreshed via Yahoo (delayed${stale.yahoo_marks<stale.eq_rows?`, ${stale.eq_rows-stale.yahoo_marks} names frozen at the broker mark`:""})</span>
       <span>· futures &amp; margin frozen at broker time</span>
-      <span class="dim">· to go live: paste today's token on <a href="/settings" style="color:var(--accent)">Settings</a></span></div>`;
+      <span class="dim">· to go live: log in again on <a href="/settings" style="color:var(--accent)">Settings</a></span></div>`;
   const acc=snap.accounts;
+  CCY = (Object.values(acc)[0]||{}).currency || "";
+  const anyLimit = Object.values(acc).some(a=>a.totals.limit_total!=null);
+  const anyFno = Object.values(acc).some(a=>(a.futures&&a.futures.length)||a.totals.fno_mtm);
   const fam={eq:0,pnl:0,mtm:0,cash:0,free:0,blocked:0,limit:0};
   for(const a of Object.values(acc)){
     fam.eq+=a.totals.equity_value||0; fam.pnl+=a.totals.equity_pnl||0;
@@ -448,25 +459,25 @@ function render(snap){
   if(firstPaint) setTimeout(()=>app.classList.remove("firstpaint"), 1600);
   app.innerHTML=`${ribbon}
     <div class="grid family-strip">
-      ${tile("Total equity", rupee(fam.eq))}
-      ${tile("Equity P&L", signed(fam.pnl), cls(fam.pnl),
+      ${tile("Holdings", money(fam.eq))}
+      ${tile("P&L since cost", signed(fam.pnl), cls(fam.pnl),
         pct(fam.eq-fam.pnl ? fam.pnl/(fam.eq-fam.pnl)*100 : null))}
-      ${tile("F&O MTM", signed(fam.mtm), cls(fam.mtm))}
-      ${tile("Cash", rupee(fam.cash))}
-      ${tile("Free F&O limit", rupee(fam.free), "", "cash + collateral headroom")}
-      ${tile("Margin used", famUtil!=null?famUtil.toFixed(1)+"%":"—",
-        famUtil>75?"neg":famUtil>50?"":"", `blocked ${rupee(fam.blocked)}`, utilBar(famUtil))}
+      ${anyFno?tile("Futures & options", signed(fam.mtm), cls(fam.mtm)):""}
+      ${tile("Cash", money(fam.cash))}
+      ${anyLimit?tile("Free trading limit", money(fam.free), "", "cash + collateral headroom"):""}
+      ${anyLimit?tile("Margin used", famUtil!=null?famUtil.toFixed(1)+"%":"—",
+        famUtil>75?"neg":famUtil>50?"":"", `blocked ${money(fam.blocked)}`, utilBar(famUtil)):""}
     </div>
-    <div class="grid mid">
+    ${(anyFno||tapeData&&tapeData.names&&tapeData.names.length)?`<div class="grid mid">
       <section class="panel">
-        <div class="panel-h"><h2>F&amp;O positions</h2><span class="sub">futures and options, every account · click headers to sort</span></div>
+        <div class="panel-h"><h2>Futures &amp; options</h2><span class="sub">open positions, every account · click headers to sort</span></div>
         ${futuresTable(acc, snap.sparks||{})}
       </section>
       <section class="panel">
         <div class="panel-h"><h2>Options tape</h2><span class="sub">index positioning</span></div>
         <div id="tape">${tapePanel(tapeData)}</div>
       </section>
-    </div>
+    </div>`:""}
     <div class="grid accounts">
       ${Object.entries(acc).map(([n,a])=>accountPanel(n,a)).join("")}
     </div>
@@ -498,6 +509,12 @@ async function pullTape(){
 let einHtml=null;
 async function pullEarningsIn(){
   try{
+    const reg = lastSnap && lastSnap.accounts && (Object.values(lastSnap.accounts)[0]||{}).region;
+    if(reg && reg!=="in"){
+      einHtml='<span class="dim" style="font-size:12px">This calendar reads the home exchange\'s filings. The earnings countdown for US names is on Desk · US.</span>';
+      const el0=document.getElementById("einrail"); if(el0) el0.innerHTML=einHtml;
+      return;
+    }
     const r=await fetch("/api/earnings_in"); if(!r.ok) return;
     const d=await r.json();
     const today=new Date();

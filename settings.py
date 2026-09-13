@@ -21,18 +21,28 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ENV_PATH = os.path.join(HERE, ".env")
 EXAMPLE_PATH = os.path.join(HERE, ".env.example")
 
-# name -> (secret?, one-line meaning for the /agent page)
+# name -> (secret?, one-line meaning). Every broker file adds its own fields.
 ALLOWED = {
-    "BREEZE_API_KEY": (True, "broker app key (shipped adapter)"),
-    "BREEZE_API_SECRET": (True, "broker app secret (shipped adapter)"),
-    "FMP_API_KEY": (True, "data key, optional"),
-    "AI_PROVIDER": (False, "anthropic, openai, google or compatible"),
+    "BROKER": (False, "which broker file Desk · Home reads through"),
+    "DATA_PROVIDER": (False, "fmp, or the name of a provider module the reader's agent wrote"),
+    "FMP_API_KEY": (True, "Financial Modeling Prep key, optional"),
+    "DATA_API_KEY": (True, "another data provider's key, optional"),
+    "DATA_BASE_URL": (False, "another data provider's address, optional"),
+    "AI_PROVIDER": (False, "which AI provider preset"),
+    "AI_FORMAT": (False, "openai or anthropic: the request shape the endpoint speaks"),
     "AI_API_KEY": (True, "AI key, optional"),
     "AI_MODEL": (False, "model name at that provider"),
-    "AI_BASE_URL": (False, "address of a compatible endpoint (local models too)"),
+    "AI_BASE_URL": (False, "address of the endpoint (local models too)"),
     "EDGAR_CONTACT": (False, "the e-mail the SEC asks for on every request"),
     "DESK_AUTO_UPDATE": (False, "on: bring a newer version in without the click"),
 }
+try:
+    import brokers as _brokers
+    for _m in _brokers.all_meta():
+        for _f in _m["fields"]:
+            ALLOWED[_f["env"]] = (bool(_f.get("secret")), f"{_m['label']}: {_f['label']}")
+except Exception:  # noqa: BLE001 - the key file still works without the broker list
+    pass
 
 
 # ---- the key file ------------------------------------------------------------
@@ -111,11 +121,12 @@ def current():
     """What the page shows: which keys exist, never the keys themselves."""
     env = read_env()
     g = lambda k: _real(env.get(k) or os.getenv(k, ""))  # noqa: E731
+    provider = (g("DATA_PROVIDER") or ("fmp" if g("FMP_API_KEY") else "")).lower()
     return {
-        "broker": {"key": masked(g("BREEZE_API_KEY")), "secret": masked(g("BREEZE_API_SECRET")),
-                   "key_raw_for_login": g("BREEZE_API_KEY")},
-        "data": {"key": masked(g("FMP_API_KEY"))},
-        "ai": {"provider": g("AI_PROVIDER") or "", "key": masked(g("AI_API_KEY")),
+        "data": {"provider": provider, "key": masked(g("FMP_API_KEY")),
+                 "other_key": masked(g("DATA_API_KEY")), "other_base": g("DATA_BASE_URL"),
+                 "other_name": g("DATA_PROVIDER") if provider not in ("", "fmp") else ""},
+        "ai": {"provider": g("AI_PROVIDER") or "", "format": g("AI_FORMAT") or "", "key": masked(g("AI_API_KEY")),
                "model": g("AI_MODEL"), "base_url": g("AI_BASE_URL")},
         "edgar_contact": g("EDGAR_CONTACT"),
         "auto_update": (env.get("DESK_AUTO_UPDATE") or os.getenv("DESK_AUTO_UPDATE", "off")).strip().lower() == "on",

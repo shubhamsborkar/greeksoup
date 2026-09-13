@@ -42,6 +42,7 @@ import updater          # the daily version check and the one-click update
 import settings as desk_settings   # the Settings screen: keys, token, switches
 import ai as desk_ai               # the reader's own AI key, tested here
 import breeze_session
+import brokers                     # the broker layer: one file per broker, read-only
 from breeze_session import ACCOUNTS, get_client, get_client_if_cached
 import freefeed          # keyless Yahoo fallbacks for the US pages
 import sec_form4         # keyless Form 4 from EDGAR
@@ -66,6 +67,17 @@ TAPE_NAMES = [("NIFTY", "NFO"), ("CNXBAN", "NFO")]
 
 clients = {}
 ACCOUNT_LABELS = {}   # account key -> "A/C ··1234" (last four digits, never a name)
+# The broker the reader chose on Settings: its id and its module. clients["primary"]
+# is that broker's client object. The shipped India adapter also serves live
+# ticks, futures, margin and the options tape; _breeze() returns its client only
+# when it is the active one, so the India-only reads stay quiet for everyone else.
+ADAPTER = {"id": "", "mod": None}
+
+
+def _breeze():
+    if ADAPTER["id"] == "icici_breeze":
+        return next(iter(clients.values()), None)
+    return None
 # Tokens die at midnight (SEBI). When every Breeze pull comes back empty the UI
 # shows a "paste tokens" banner instead of misleading zeros.
 breeze_health = {"dead": not clients}
@@ -489,7 +501,7 @@ def build_ticker_in(code):
     master meta + account positions (labelled by account number) + futures book.
     Fundamentals/news need a non-FMP source (Starter is US-only) — sections the
     page simply hides."""
-    breeze = next(iter(clients.values()), None)
+    breeze = _breeze()
     meta = secmaster.lookup(code) or {}
     exch = meta.get("exch") or "NSE"
     q = None
@@ -507,7 +519,7 @@ def build_ticker_in(code):
         return {"symbol": code, "region": "in", "error": f"no Breeze quote for {code} right now — try again"}
 
     held, fut_expiries = {}, []
-    for account, cli in clients.items():
+    for account, cli in (clients.items() if breeze else []):
         label = ACCOUNT_LABELS.get(account, account)
         try:
             for e in _equity(cli):
@@ -924,9 +936,20 @@ def watch_loop():
     Gentle pacing keeps us well inside Breeze's rate limit; slower off-hours."""
     first_cycle = True
     while True:
-        breeze = next(iter(clients.values()), None)
+        breeze = _breeze()
         if breeze is None:
-            time.sleep(60)     # no Breeze session yet; India watch idles
+            # No broker that serves quotes: the home grid prices through Yahoo,
+            # so a reader on any broker (or none) still has a home watchlist.
+            names = load_watchlist()
+            for entry in names:
+                if entry.get("source") == "breeze" and ADAPTER["id"] == "icici_breeze":
+                    continue
+                q = fetch_yahoo_quote(entry["code"])
+                if q:
+                    with _watch_lock:
+                        WATCH[entry["code"]] = q
+                time.sleep(0.5)
+            time.sleep(60)
             continue
         names = load_watchlist()
         any_ok = False
@@ -987,14 +1010,56 @@ def market_open(now=None):
     return (9 * 60 + 15) <= hm <= (15 * 60 + 30)
 
 
+def _home_market_open():
+    """Market hours for the connected broker's market: US hours for a US
+    broker, the shipped home-market hours otherwise."""
+    mod = ADAPTER["mod"]
+    if mod and mod.META.get("region") == "us":
+        return us_market_open()
+    return market_open()
+
+
+def _fill_marks(rows):
+    """Brokers that hand out no price get every line marked from Yahoo."""
+    for e in rows:
+        if e.get("ltp") is not None or not e.get("ysym"):
+            continue
+        q = fetch_yahoo_quote(e["ysym"])
+        if not q or not q.get("ltp"):
+            if e.get("close_mark") is not None:
+                e["ltp"] = e["close_mark"]
+            else:
+                continue
+        else:
+            e["ltp"], e["day_pct"] = q["ltp"], q.get("day_pct")
+        brokers.derive(e)
+    return rows
+
+
+def _reads(cli):
+    """equity, futures, funds through the active broker's file."""
+    mod = ADAPTER["mod"]
+    if mod is None:
+        return [], [], {}
+    equity = _fill_marks(mod.equity(cli))
+    futures = mod.futures(cli) if hasattr(mod, "futures") else []
+    funds = mod.funds(cli) if hasattr(mod, "funds") else {}
+    return equity, futures, funds
+
+
 def build_snapshot():
     accounts = {}
     alive = False
     live_client = None
     for name, breeze in clients.items():
-        equity = _equity(breeze)
-        futures = _futures(breeze)
-        funds = _funds(breeze)
+        try:
+            equity, futures, funds = _reads(breeze)
+        except brokers.BrokerError as exc:
+            print(f"  broker: {exc}")
+            equity, futures, funds = [], [], {}
+        except Exception as exc:  # noqa: BLE001 - a broker outage is not a desk outage
+            print(f"  broker read failed: {exc}")
+            equity, futures, funds = [], [], {}
         if equity or futures or funds.get("cash") is not None:
             alive = True
             live_client = live_client or breeze
@@ -1005,6 +1070,9 @@ def build_snapshot():
         blocked = funds.get("fno_blocked") or 0
         accounts[name] = {
             "label": ACCOUNT_LABELS.get(name, name),
+            "broker": (ADAPTER["mod"].META["label"] if ADAPTER["mod"] else ""),
+            "region": (ADAPTER["mod"].META.get("region", "in") if ADAPTER["mod"] else "in"),
+            "currency": funds.get("currency") or (equity[0].get("currency") if equity else "") or "",
             "equity": equity,
             "futures": futures,
             "funds": funds,
@@ -1026,7 +1094,7 @@ def build_snapshot():
     # every MARKET mark re-priced through the live session — quotes are market
     # data, so one daily token prices every account's names. Funds and margin
     # stay frozen because those really are account-scoped at the broker.
-    if alive:
+    if alive and _breeze():
         for name in ACCOUNTS:
             if name in accounts and (accounts[name].get("equity")
                                      or accounts[name].get("futures")
@@ -1061,7 +1129,7 @@ def build_snapshot():
 
     # Sparkline series off the first client (any client works for market data).
     sparks = {}
-    spark_client = next(iter(clients.values()), None)
+    spark_client = _breeze()
     if spark_client:
         for code, exch in SPARK_NAMES:
             candles = _pull_candles(spark_client, code, exch, days=3)
@@ -1071,7 +1139,7 @@ def build_snapshot():
     breeze_health["dead"] = not alive
     data = {
         "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "market_open": market_open(),
+        "market_open": _home_market_open(),
         "session_dead": not alive,
         "accounts": accounts,
         "sparks": sparks,
@@ -1126,8 +1194,14 @@ def _stale_snapshot():
     broker_as_of = datetime.fromtimestamp(c["at"]).strftime("%a %d %b, %H:%M")
     codes = sorted({e["code"] for a in data["accounts"].values()
                     for e in a.get("equity", []) if e.get("code")})
+    ysyms = {e["code"]: e.get("ysym") for a in data["accounts"].values()
+             for e in a.get("equity", []) if e.get("code")}
+
+    def _mark(code):
+        ys = ysyms.get(code)
+        return fetch_yahoo_quote(ys) if ys else _yahoo_in_quote(code)
     with ThreadPoolExecutor(max_workers=6) as ex:
-        quotes = dict(zip(codes, ex.map(_yahoo_in_quote, codes)))
+        quotes = dict(zip(codes, ex.map(_mark, codes)))
     fresh = 0
     for a in data["accounts"].values():
         for e in a.get("equity", []):
@@ -1155,7 +1229,7 @@ def _stale_snapshot():
 
 
 def build_tape():
-    breeze = next(iter(clients.values()), None)
+    breeze = _breeze()
     if breeze is None:
         return {"ts": datetime.now().strftime("%H:%M:%S"), "names": []}
     out = []
@@ -2006,7 +2080,7 @@ def build_chain():
     with open(os.path.join(DATA_DIR, "supply_chain.json")) as fh:
         blob = json.load(fh)
     chains = blob.get("chains", [])
-    breeze = next(iter(clients.values()), None)
+    breeze = _breeze()
     quoted = {}
     for chain in chains:
         region = chain.get("region", "in")
@@ -2042,7 +2116,7 @@ def build_commods():
     provides (shipped: local_in.py for ICICI Direct, MCX front-month futures and the
     Rubber Board's sheet; both only when that broker is connected)."""
     d = commods.build()
-    breeze = clients.get("father") or next(iter(clients.values()), None)
+    breeze = _breeze()
     live = bool(breeze) and not breeze_health["dead"]
     seen = {}
     for c in d["cards"]:
@@ -2338,7 +2412,7 @@ def build_risk():
         equity, futures, funds = [], [], {}
         if cli is not None:
             try:
-                equity, futures, funds = _equity(cli), _futures(cli), _funds(cli)
+                equity, futures, funds = _reads(cli)
             except Exception:  # noqa: BLE001
                 pass
         if not equity and not futures:
@@ -2722,34 +2796,80 @@ def _start_stream(cli):
 
 
 def connect_broker_now(account="primary"):
-    """Build the broker session from today's cached token, at runtime. Returns
-    plain words for the page."""
-    cli = get_client_if_cached(account)
+    """Connect the broker the reader chose on Settings, at boot or from the page,
+    with no restart. Returns plain words for the page."""
+    bid = brokers.active_id()
+    ADAPTER["id"], ADAPTER["mod"] = bid, (brokers.load(bid) if bid else None)
+    if not bid:
+        clients.clear()
+        breeze_health["dead"] = True
+        _cache["snap"] = (0.0, None)
+        return {"ok": False, "error": "No broker chosen."}
+    mod = ADAPTER["mod"]
+    if not brokers.configured(bid):
+        return {"ok": False, "error": "Save the broker's keys first."}
+    cfg = brokers.config(bid)
+    token = brokers.read_token() if mod.META["daily_login"] else None
+    if mod.META["daily_login"] and not token:
+        return {"ok": False, "need_token": True, "error": "No login for today yet. Open the broker login below and paste what it hands back."}
+    try:
+        cli = mod.connect(cfg, token)
+    except brokers.BrokerError as exc:
+        return {"ok": False, "error": str(exc)}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": "Could not connect: " + str(exc)[:160]}
     if cli is None:
-        return {"ok": False, "error": "The broker did not accept that token. It may be from an earlier day, or pasted with a character missing."}
+        return {"ok": False, "need_token": True, "error": "The broker did not accept today's login. It may be from an earlier day, or pasted with a character missing."}
+    clients.clear()
     clients[account] = cli
-    ACCOUNT_LABELS[account] = _account_label(account, cli)
+    try:
+        ACCOUNT_LABELS[account] = mod.label(cli)
+    except Exception:  # noqa: BLE001
+        ACCOUNT_LABELS[account] = "account"
     breeze_health["dead"] = False
     _cache["snap"] = (0.0, None)
-    _start_stream(cli)
-    return {"ok": True, "label": ACCOUNT_LABELS[account]}
+    _cache["risk"] = (0.0, None)
+    if bid == "icici_breeze":
+        _start_stream(cli)
+    try:
+        n = len(mod.equity(cli))
+    except Exception:  # noqa: BLE001
+        n = None
+    return {"ok": True, "label": ACCOUNT_LABELS[account], "positions": n}
+
+
+def _masked(v):
+    return desk_settings.masked(v)
+
+
+def broker_state():
+    bid = brokers.active_id()
+    mod = brokers.load(bid) if bid else None
+    st = {"id": bid, "connected": bool(clients), "account": ACCOUNT_LABELS.get("primary", ""),
+          "configured": brokers.configured(bid) if bid else False}
+    if mod:
+        m = mod.META
+        cfg = brokers.config(bid)
+        fields = []
+        for f in m["fields"]:
+            v = cfg.get(f["env"], "")
+            fields.append({**f, "saved": ("on" if v.lower() in ("on", "1", "true", "yes") else "off") if f.get("switch") else _masked(v)})
+        st.update({"label": m["label"], "where": m["where"], "daily_login": m["daily_login"], "how": m["how"],
+                   "docs": m["docs"], "fields": fields, "token_hint": m.get("token_hint", ""),
+                   "token_param": m.get("token_param", ""), "region": m.get("region", "in")})
+        if m["daily_login"]:
+            st["token_today"] = brokers.read_token() is not None
+            st["login_url"] = mod.login_url(cfg) if (st["configured"] and hasattr(mod, "login_url")) else ""
+    return st
 
 
 def settings_state():
     st = desk_settings.current()
-    key = st["broker"].pop("key_raw_for_login", "")
-    login_url = ""
-    if key:
-        from urllib.parse import quote
-        login_url = "https://api.icicidirect.com/apiuser/login?api_key=" + quote(key, safe="")
-    st["broker"].update({
-        "adapter": "ICICI Direct (Breeze)",
-        "login_url": login_url,
-        "token_today": breeze_session._read_cached_token("primary") is not None,
-        "connected": bool(clients),
-        "label": ACCOUNT_LABELS.get("primary", ""),
-    })
-    st["ai"]["providers"] = {k: {"label": v[0], "model": v[1], "base_url": v[2]} for k, v in desk_ai.PROVIDERS.items()}
+    st["broker"] = broker_state()
+    st["brokers"] = [{k: v for k, v in m.items() if k != "fields"} | {"fields": m["fields"]} for m in brokers.all_meta()]
+    st["others"] = [{"name": n, "path": p} for n, p in brokers.OTHERS]
+    st["ai"]["providers"] = desk_ai.PROVIDERS
+    st["ai"]["formats"] = desk_ai.FORMATS
     st["desk"] = {"port": PORT, "folder": HERE, "version": updater.local_version(),
                   "autostart": desk_settings.autostart_status(),
                   "agent_url": f"http://localhost:{PORT}/agent",
@@ -2958,7 +3078,7 @@ class Handler(BaseHTTPRequestHandler):
                     else:
                         data = {"region": "in", "quotes": WATCH,
                                 "names": load_watchlist(),
-                                "market_open": market_open(),
+                                "market_open": _home_market_open(),
                                 "stream": stream_in.healthy(),
                                 "session_dead": breeze_health["dead"]}
                 self._send(json.dumps(data).encode(), "application/json")
@@ -3039,6 +3159,10 @@ class Handler(BaseHTTPRequestHandler):
                 fields["DESK_AUTO_UPDATE"] = "on" if fields["DESK_AUTO_UPDATE"].lower() in ("on", "1", "true") else "off"
             if "AI_PROVIDER" in fields and fields["AI_PROVIDER"] and fields["AI_PROVIDER"] not in desk_ai.PROVIDERS:
                 return self._send(b'{"ok":false,"error":"unknown provider"}', "application/json")
+            if "AI_FORMAT" in fields and fields["AI_FORMAT"] and fields["AI_FORMAT"] not in desk_ai.FORMATS:
+                return self._send(b'{"ok":false,"error":"unknown request shape"}', "application/json")
+            if "DATA_PROVIDER" in fields:
+                fields["DATA_PROVIDER"] = re.sub(r"[^a-z0-9_]", "", fields["DATA_PROVIDER"].lower())[:32]
             saved = desk_settings.write_env(fields)
             if "FMP_API_KEY" in saved:
                 for k in ("earn", "capitol", "insiders", "econcal", "pulse"):
@@ -3048,24 +3172,55 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(json.dumps(desk_settings.check_fmp()).encode(), "application/json")
         if self.path == "/api/settings/check_ai":
             return self._send(json.dumps(desk_ai.ping()).encode(), "application/json")
+        if self.path == "/api/settings/broker":
+            # pick a broker and save its fields; "" = no broker
+            bid = str(body.get("broker", "")).strip().lower()
+            if bid and bid not in brokers.REGISTRY:
+                return self._send(b'{"ok":false,"error":"unknown broker"}', "application/json")
+            fields = {}
+            mod = brokers.load(bid) if bid else None
+            allowed = {f["env"]: f for f in (mod.META["fields"] if mod else [])}
+            for k, v in (body.get("fields") or {}).items():
+                if k in allowed and isinstance(v, str):
+                    fields[k] = ("on" if v.lower() in ("on", "1", "true", "yes") else "off") if allowed[k].get("switch") else v
+            fields["BROKER"] = bid
+            desk_settings.write_env(fields)
+            rep = {"ok": True}
+            if bid:
+                rep = connect_broker_now("primary")
+                if rep.get("need_token"):
+                    rep["ok"] = True   # keys saved; the login comes next
+                    rep["saved_only"] = True
+            else:
+                connect_broker_now("primary")
+            rep["state"] = settings_state()
+            return self._send(json.dumps(rep).encode(), "application/json")
+        if self.path == "/api/settings/broker/test":
+            rep = connect_broker_now("primary")
+            rep["state"] = settings_state()
+            return self._send(json.dumps(rep).encode(), "application/json")
         if self.path == "/api/settings/token":
-            token = str(body.get("token", "")).strip()
+            bid = brokers.active_id()
+            mod = brokers.load(bid) if bid else None
+            if not mod or not mod.META["daily_login"]:
+                return self._send(b'{"ok":false,"error":"The chosen broker has no daily login."}', "application/json")
+            if not brokers.configured(bid):
+                return self._send(b'{"ok":false,"error":"Save the broker keys first, then log in."}', "application/json")
+            raw = str(body.get("token", "")).strip()
             # a whole redirect address pasted by mistake still works
-            m = re.search(r"apisession=([^&\s]+)", token)
+            m = re.search(re.escape(mod.META.get("token_param", "token")) + r"=([^&\s]+)", raw)
             if m:
-                token = m.group(1)
-            if not token:
-                return self._send(b'{"ok":false,"error":"Paste the token first."}', "application/json")
-            key, secret = breeze_session._creds("primary")
-            if not key or not secret or key.startswith(("your_", "paste_")):
-                return self._send(b'{"ok":false,"error":"Save the broker key and secret first, then paste the token."}', "application/json")
-            breeze_session.cache_token("primary", token)
+                raw = m.group(1)
+            if not raw:
+                return self._send(b'{"ok":false,"error":"Paste what the login handed back first."}', "application/json")
+            try:
+                access = mod.exchange_token(brokers.config(bid), raw)
+            except brokers.BrokerError as exc:
+                return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
+            brokers.write_token(access)
             rep = connect_broker_now("primary")
             if not rep.get("ok"):
-                try:
-                    os.remove(breeze_session._cache_path("primary"))
-                except OSError:
-                    pass
+                brokers.clear_token()
             rep["state"] = settings_state()
             return self._send(json.dumps(rep).encode(), "application/json")
         if self.path == "/api/settings/profile":
@@ -3133,7 +3288,19 @@ class Handler(BaseHTTPRequestHandler):
                 exch = str(body.get("exch", "NSE")).strip().upper()
                 if any(n["code"] == code for n in names):
                     return self._send(b'{"ok":false,"error":"already on the list"}', "application/json")
-                breeze = next(iter(clients.values()), None)
+                breeze = _breeze()
+                if breeze is None:
+                    # no quote-serving broker: the home grid takes Yahoo symbols
+                    q = fetch_yahoo_quote(code)
+                    if not q:
+                        return self._send(
+                            json.dumps({"ok": False, "error": f"no Yahoo quote for {code}; use Yahoo's symbol (AAPL, RELIANCE.NS, MC.PA)"}).encode(),
+                            "application/json")
+                    names.append({"code": code, "exch": "", "source": "yahoo"})
+                    save_watchlist(names)
+                    with _watch_lock:
+                        WATCH[code] = q
+                    return self._send(b'{"ok":true}', "application/json")
                 q = fetch_watch_quote(breeze, code, exch)
                 if not q and exch == "NSE":       # try the other exchange
                     exch, q = "BSE", fetch_watch_quote(breeze, code, "BSE")
@@ -3169,30 +3336,18 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    print("Authenticating accounts (ONE daily token is enough, the first account's; "
-          "quotes are market data and price every account's names)...")
-    for account in ACCOUNTS:
-        try:
-            if not clients:
-                clients[account] = get_client(account)
-            else:
-                cli = get_client_if_cached(account)
-                if cli is None:
-                    print(f"  {account}: no token pasted today — book served from the "
-                          f"last saved broker state, marks re-priced LIVE via the "
-                          f"first session; funds/margin frozen. Paste {account}'s "
-                          f"token any day you want those live too.")
-                    continue
-                clients[account] = cli
-            ACCOUNT_LABELS[account] = _account_label(account, clients[account])
-            print(f"  {account}: OK ({ACCOUNT_LABELS[account]})")
-        except BaseException as exc:  # noqa: BLE001 - incl. SystemExit/EOFError from the prompt
-            print(f"  {account}: SKIPPED ({type(exc).__name__}) - home-desk data offline "
-                  f"until a fresh token; US/Global still live")
+    bid = brokers.active_id()
+    if bid:
+        print(f"Connecting the broker chosen on Settings ({brokers.load(bid).META['label']})...")
+        rep = connect_broker_now("primary")
+        if rep.get("ok"):
+            print(f"  connected: {rep.get('label')}, {rep.get('positions')} holdings")
+        else:
+            print(f"  not connected: {rep.get('error')}")
     breeze_health["dead"] = not clients
     if not clients:
-        print("  NOTE: no broker session. The home desk and its watch grid show the last "
-              "saved book (or nothing on a fresh install); US and Global run fine.")
+        print("  NOTE: no broker session. Desk · Home shows the last saved book (or nothing "
+              "on a fresh install) until a broker is connected on Settings; everything else runs.")
     # Dead tokens must not cost the account-number labels 
     # or re-fire yesterday's alert chips — both restore from disk.
     prev_snap = load_last_snapshot()
@@ -3202,7 +3357,7 @@ def main():
                 ACCOUNT_LABELS[account] = a["label"]
     _restore_alerts()
     restore_quotes()
-    stream_client = next(iter(clients.values()), None)
+    stream_client = _breeze()
     if stream_client:
         _start_stream(stream_client)
     threading.Thread(target=watch_loop, daemon=True).start()
