@@ -1,7 +1,7 @@
 {
  "version": "2026-09-13.7",
- "generated": "2026-09-13 14:19",
- "commits_scanned": 36,
+ "generated": "2026-09-13 14:20",
+ "commits_scanned": 37,
  "files": {
   ".env.example": "43330bedb87300deca19061687c34bc8c4991d071a2ee6697840e8eaae44d9b3",
   "Keep Desk Running.bat": "aa4ba519ee5f2565c0d2f6f31b53d869a08f6c61ca41d7ee974baec02a10f5be",
@@ -19,6 +19,14 @@
   "activist.py": "78089c14f53da696553d3c3cd74f88553496d2504b7ebc94a36e6ec4f4db1062",
   "ai.py": "ef9d147c696baec7e3f8a0cf8a61abe89d8658b9fefb0b3f046cb8d0453dd2b8",
   "breeze_session.py": "9062187bd4b808c7b224845705cf75facb01261b9e56ea0844ff09e4ccec074a",
+  "brokers/README.md": "d7e609840decd454696b0b4440f92f13cb46ebc67f22751826795c924c114417",
+  "brokers/__init__.py": "a07e7baeff9ad2c9d6dd887fab80f7b2d4804f47342b09f90a7657514f3ee7b5",
+  "brokers/alpaca.py": "5102077a207b1c9b0cd6f183325fe2a9200a4f65daaf2b063d79530b3551a4b0",
+  "brokers/ibkr_flex.py": "6639deb5db871021759b35399156449b405a15ad50278479090fb7c0745bfa87",
+  "brokers/icici_breeze.py": "8fe58b8616e5f12055905a5d02f27bc4fd523600a251b04d68194d8a990195cf",
+  "brokers/tradier.py": "f5e149f8914b4b1f905b66687e7194bb8a52a4a1feedce9b8daac93c4bccc8e9",
+  "brokers/trading212.py": "1890979e247f81e01b58cd9406f843c5b4e691080fa57e9dda4b1a882142dcfa",
+  "brokers/zerodha_kite.py": "e6e28890077a52631e046f36625262372b5e10a1c992d65a7be4763fb2af8aad",
   "collect.py": "9d1fed4a98124e7db66e5dd1608f6afae02f70bd3978ea2eaa5579990af3b2a6",
   "commods.py": "8e2ebf65ee48c31c2dcc6ab765b0e87b1d1b8eb61f4c5f31e1383bb9608686ef",
   "daily.py": "a1118e1a4abdb4cf886d12116ada7dc5795dc04d96e53f0016ecfa04cfc57037",
@@ -39,6 +47,7 @@
   "data/watchlist.json": "c210f122e94d58b15d6722c7833616a9543f690069fc680fdd1c0c07eb246bfb",
   "data/watchlist_global.json": "0ae632483ff19919ac62851ab485711af2f2e891001297d2fc485f9072333d04",
   "data/watchlist_us.json": "80df2706440ce11df268b5823f2e9a2e0f99af321accaf97e98901a40e45293d",
+  "data_providers/CONTRACT.md": "fbca552a5a92f9edc37c2cde22a17e21306b90b3a0160bb33f498fae734b6610",
   "desk-service.ps1": "4deba886c36bf2062b13b69079786031a940700e91c99c880e92fff3c7fe7acf",
   "docs/.nojekyll": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "docs/CNAME": "fdf78eb60e2a60d4225eb979eac6055ee7c9ab66191256263825d70f842b8464",
@@ -97,7 +106,7 @@
   "web/short.html": "3dbcc795bcd760a520bd795b14423c312488e736d20a46d1674a59d6ebe8748f",
   "web/ticker.html": "39ff1f76b30b35a7ecd79aa03a1f98b7df8da35cfe4aea5307f5e123a1932da5",
   "web/usdesk.html": "d50fcae1773befd52a394ea74ddaa0ec54061c6c7a694a3f2377ec00ccaae059",
-  "web/watch.html": "a5b1bfaa8f6b4cc5a0fa31044d01052343ce7ad11aecaaa7d37387e0159830b0"
+  "web/watch.html": "64ff37206540f81dafc48fbee0736a9da28729a51fab8c47962e524a5a54c6f0"
  },
  "history": {
   ".env.example": [
@@ -192,6 +201,30 @@
    "525c287c7cf156d22aabc75fe3ae551a5489155061780a7d2ac4929644ec5c5b",
    "9062187bd4b808c7b224845705cf75facb01261b9e56ea0844ff09e4ccec074a"
   ],
+  "brokers/README.md": [
+   "d7e609840decd454696b0b4440f92f13cb46ebc67f22751826795c924c114417"
+  ],
+  "brokers/__init__.py": [
+   "a07e7baeff9ad2c9d6dd887fab80f7b2d4804f47342b09f90a7657514f3ee7b5"
+  ],
+  "brokers/alpaca.py": [
+   "5102077a207b1c9b0cd6f183325fe2a9200a4f65daaf2b063d79530b3551a4b0"
+  ],
+  "brokers/ibkr_flex.py": [
+   "6639deb5db871021759b35399156449b405a15ad50278479090fb7c0745bfa87"
+  ],
+  "brokers/icici_breeze.py": [
+   "8fe58b8616e5f12055905a5d02f27bc4fd523600a251b04d68194d8a990195cf"
+  ],
+  "brokers/tradier.py": [
+   "f5e149f8914b4b1f905b66687e7194bb8a52a4a1feedce9b8daac93c4bccc8e9"
+  ],
+  "brokers/trading212.py": [
+   "1890979e247f81e01b58cd9406f843c5b4e691080fa57e9dda4b1a882142dcfa"
+  ],
+  "brokers/zerodha_kite.py": [
+   "e6e28890077a52631e046f36625262372b5e10a1c992d65a7be4763fb2af8aad"
+  ],
   "collect.py": [
    "9d1fed4a98124e7db66e5dd1608f6afae02f70bd3978ea2eaa5579990af3b2a6",
    "d9529d4242c22d59dfde9828141a6836e296c6a8a44dbfbbc4afb5df97f2be94"
@@ -265,6 +298,9 @@
   ],
   "data/watchlist_us.json": [
    "80df2706440ce11df268b5823f2e9a2e0f99af321accaf97e98901a40e45293d"
+  ],
+  "data_providers/CONTRACT.md": [
+   "fbca552a5a92f9edc37c2cde22a17e21306b90b3a0160bb33f498fae734b6610"
   ],
   "desk-service.ps1": [
    "4deba886c36bf2062b13b69079786031a940700e91c99c880e92fff3c7fe7acf"
@@ -538,6 +574,7 @@
    "d50fcae1773befd52a394ea74ddaa0ec54061c6c7a694a3f2377ec00ccaae059"
   ],
   "web/watch.html": [
+   "64ff37206540f81dafc48fbee0736a9da28729a51fab8c47962e524a5a54c6f0",
    "a5b1bfaa8f6b4cc5a0fa31044d01052343ce7ad11aecaaa7d37387e0159830b0",
    "bba19ee3fc654a48934b7f1594ba4480c26d15f363d922956abb3a1754e390eb",
    "bdd65e009a6302e8be4620c0be7da0a9ebfdb018120359a9902e1a1add06cfa0",
