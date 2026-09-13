@@ -84,6 +84,20 @@ All of them sit in the `data/` folder, plain JSON you can open in any text edito
 | `data/commodities.json` | The commodity board: 51 commodities, their free sources, and for each the industries a rise squeezes (`cost`) and helps (`revenue`). No company names, no country prices: it is the universal layer. |
 | `data/exposure_us.json`, `data/exposure_<market>.json` | The names behind those industries for one market, with filing-sourced figures. `data/exposure_example.json` is the template; the README has the prompt that fills one. |
 
+## How the update works
+
+Two files at the root of the repository drive it. `VERSION` lists releases one per line, newest first, as a date and one line of notes; the first line is the current version. `MANIFEST.json` carries the sha256 of every tracked file in that version and, under `history`, every hash each file has ever shipped with on the branch (`scripts/make_manifest.py` writes it from the git history; line endings are folded before hashing so a Windows checkout matches the ZIP).
+
+`updater.py` runs a daily check in a background thread: one keyless GET of the raw `VERSION` on `main`, cached for a day in `cache/update_check.json`, compared as strings against the local `VERSION`. `GET /api/update` serves the result (add `?check=1` to ask GitHub now); the shared page chrome in `web/assets/desk.js` draws the strip. `POST /api/update/apply` downloads the branch ZIP from codeload, unpacks it in a temporary folder, and walks the new manifest:
+
+- `.env`, `cache/`, `logs/`, `output/`, the virtual environment and the daily tokens are never written.
+- A program file or page is copied over when the local copy is absent or its hash appears in the file's history (it is some shipped version, unchanged here). A local file whose hash appears in no shipped version was changed on this computer, so it is kept as it is and listed in the reply and the strip for the agent to merge. Files removed upstream are left in place.
+- Under `data/`, a file the reader lacks is added; `alerts.json` is merged by rule identity (type plus window, scope or symbol), so a threshold the reader tuned survives and only missing rules are appended; the desk's own reference tables (`commodities.json`, `exposure_us.json`, `exposure_example.json`) are refreshed only when the local copy is byte-identical to a shipped version. Every other file under `data/` is the reader's and is never touched.
+- If `requirements.txt` changed, `pip install -r requirements.txt` runs with the desk's own interpreter.
+- `VERSION` and `MANIFEST.json` land last, the report is written to `cache/update_result.json`, and the process replaces itself with `os.execv` on the same command line, so the new files take effect whether or not the always-on service is installed; the page's heartbeat reloads when the desk answers again.
+
+`DESK_AUTO_UPDATE=on` in `.env` makes the daily thread apply a newer version without the click. `DESK_UPDATE_VERSION_URL` and `DESK_UPDATE_ZIP_URL` point a fork or a private mirror at its own `VERSION` and ZIP. To cut a release from a fork: edit `VERSION`, run `python scripts/make_manifest.py`, commit both. The README paste under *Getting a newer version* remains the manual path and does the same job through the agent.
+
 ## More than one account
 
 The desk supports several accounts at the same broker. Add a line to `ACCOUNTS` in `breeze_session.py` and the matching key pair in `.env`. Only the first account's session is required; the others are optional and fall back to their last saved book, re-priced live. The same shape works across markets: a home account on the broker adapter, a US book in `data/us_book.json` (or a live pull if your US broker has an API), and any other market on its own adapter.

@@ -114,16 +114,21 @@ The desk can hold several accounts at the same broker, and a US book next to a h
 
 ## Getting a newer version
 
-The desk keeps growing (the list at the bottom of this section says what was added and when), and a copy you downloaded earlier does not update itself. Your keys and your lists live in two places the update never touches, the `.env` file and the `data/` folder, so bringing in a newer version is safe. Download the ZIP again from the green **Code** button, the same way as on install, so the new folder sits in your Downloads folder, then open your existing desk folder in your agent and paste:
+The desk keeps growing (the list at the bottom of this section says what was added and when), and it tells you itself. Once a day it looks at the page you downloaded it from, and when a newer version exists a strip appears at the top of every screen with the date and what changed, and one button, **Update the desk**. Click it and the desk brings the new version in, keeps your keys and every list in your `data/` folder exactly as they are, adds any new list or alert rule, keeps any file your agent changed for you (a rewritten broker adapter, say) and names it so you can ask the agent to merge the changes into it, then restarts by itself. It takes under a minute. **Not now** hides the strip until the next version.
+
+If you would rather not click at all, open the `.env` file in the desk folder and set `DESK_AUTO_UPDATE=on`. The desk then brings a new version in the day it appears and tells you what changed the next time you open it.
+
+A copy from before 13 September 2026 does not have the strip yet, so bring it up to date once by hand, and from then on the desk tells you itself. Download the ZIP again from the green **Code** button, the same way as on install, so the new folder sits in your Downloads folder, then open your existing desk folder in your agent and paste:
 
 ```
 A newer version of this desk is in my Downloads folder, in the folder that came out of the ZIP. Update this desk from it: bring over every program file and every page, keep my .env and everything in my data folder exactly as they are, add any file in the new data folder that mine does not have, add any alert rule from its data/alerts.json that mine is missing, then restart the desk and tell me what is new.
 ```
 
-If you took the desk with git instead of the ZIP, `git pull` in the desk folder does the same, and the agent restarts it.
+That paste also works on any copy, at any time, if you would rather not use the strip. If you took the desk with git instead of the ZIP, `git pull` in the desk folder does the same, and the agent restarts it.
 
 What was added, newest first:
 
+- **2026-09-13**: the desk looks for a newer version once a day and, when there is one, says so on every screen and brings it in with one click, keeping your keys, your lists and any file your agent changed.
 - **2026-09-12**: the US names on the Commodities screen now carry their filed figures, 58 of 59, each with the document it came from; the one left blank says why. Three tickers corrected (Barrick is B, Solaris Energy Infrastructure is SEI, US Steel removed since it no longer trades).
 - **2026-09-09**: the **Commodities** screen (51 commodities, the industries each one squeezes and helps, the names you map to them from their filings, a names-under-pressure panel, two new alert rules) and **Desk · Book**, the hand-kept portfolio for readers with no broker and no feed.
 - **2026-09-03**: first public version, twelve screens.

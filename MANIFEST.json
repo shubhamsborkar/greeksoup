@@ -1,0 +1,419 @@
+{
+ "version": "2026-09-13",
+ "generated": "2026-09-13 09:39",
+ "commits_scanned": 28,
+ "files": {
+  ".env.example": "2a50369a333d0c1f602faef1bde4851e0cb51447d9bd0cf11b184166b1470368",
+  "Keep Desk Running.bat": "aa4ba519ee5f2565c0d2f6f31b53d869a08f6c61ca41d7ee974baec02a10f5be",
+  "Keep Desk Running.command": "116bce9df1d76a0d00939fd42113ddec21bae26471c552f88c2fb0b339af3371",
+  "LICENSE": "b59a114146e0ccad301604d7dd2187dc34482692688795bf5b50324eea0419de",
+  "Paste Token.bat": "a19b41ab6b4d4832fe8d1f7e85d354cc11d806a0dfc74d650e3bbd34737f33a7",
+  "Paste Token.command": "42c85b2dc9c1e916fc89aa744290585fd3a48c1b372121f9d235a9f78444efe8",
+  "README.md": "af1ecaaac728cc3ccd8c01f4a3826b914b92f16e1299cd82fafedddc850258dd",
+  "Start Desk.bat": "2522a0a06fd06c23a9b864c28cf4b184af2f6309b59536e5ef520bb1d0272091",
+  "Start Desk.command": "da51e007fba5835d5c82434024ba8f54578634f7280edb8a5b747f0044265435",
+  "Stop Desk.bat": "cc994291ab4f13840c963ff2d50364e38835e0dd853b808a5a7de86984b57aea",
+  "Stop Desk.command": "1292b0b254b48c86f5cab6143e36f6d81bb21778517382e36095c26304c39de9",
+  "TECHNICAL.md": "ac7bfb1b9318598fff774ecbd8cdbd8aa6c5ee736ed5172b6c86e217bbc61bde",
+  "VERSION": "8d84cc288a7ecb7bcac68e1102c3a7ddf1a77cdec0e6a8f927a6cd0bb7ceec93",
+  "activist.py": "78089c14f53da696553d3c3cd74f88553496d2504b7ebc94a36e6ec4f4db1062",
+  "breeze_session.py": "9062187bd4b808c7b224845705cf75facb01261b9e56ea0844ff09e4ccec074a",
+  "collect.py": "9d1fed4a98124e7db66e5dd1608f6afae02f70bd3978ea2eaa5579990af3b2a6",
+  "commods.py": "8e2ebf65ee48c31c2dcc6ab765b0e87b1d1b8eb61f4c5f31e1383bb9608686ef",
+  "daily.py": "a1118e1a4abdb4cf886d12116ada7dc5795dc04d96e53f0016ecfa04cfc57037",
+  "dashboard.py": "1d971a29d1a89b1fb6f6b54037f4661a4d358479ec00aec8d8b5b0210ee0d106",
+  "dashboard_html.py": "53824fc111a4288cae8962638e58836150f31aae968d2e241334a6a8d97d1025",
+  "data/alerts.json": "f64145f61aef735aab27f604df7620bfc57ed7ac2af589e974914f227ab58d64",
+  "data/book.json": "edf62dd5acaecc061aace17a2403374925d97ca82e978e68bc835593058a4712",
+  "data/commodities.json": "9b8aab49e467cddd7bef211a5fae620041765abd57f3f471246d1240a1ae02a0",
+  "data/exposure_example.json": "61a643c97a688f165ef56218c0297977eac81ab327c01a27b2faa86dd592cdbc",
+  "data/exposure_us.json": "8dda192f79b546ab9b741584628eca9d6ebce093ecda2aaf5cee25e82f2343ad",
+  "data/fno_positions.json": "ac2d4ead5fc99eb4e4dc302eefbba4f741de2a146b2a5fc6a4b119292bb64b1a",
+  "data/fno_watchlist.json": "3d24bdf3cb3845f1310a4dc7fa8a335ee316cfa9367e75f9dc94cb156997e35b",
+  "data/funds.json": "f133cdd458e7bd840fea4c14b708a3f7aed667c8defc827ef65d7ebe76f8ce3d",
+  "data/members.json": "8b0aa0f741acb1718017a3d05ced006227a5b8b03f8f81f164638192180c9478",
+  "data/supply_chain.json": "6ed973738bb43e0d1a2e6f5a16b5b014717a6a457635e35dfef4f22ffbb07f9e",
+  "data/us_book.json": "ec85e8d40a80cd4af79bab12b0cf5ac1f71043fb179890756dd96c829768d43e",
+  "data/watch_levels.json": "c24468feef7053fdf4943661cdeb1492f391f7bd12f722b9bab6dc08f8496086",
+  "data/watchlist.json": "c210f122e94d58b15d6722c7833616a9543f690069fc680fdd1c0c07eb246bfb",
+  "data/watchlist_global.json": "0ae632483ff19919ac62851ab485711af2f2e891001297d2fc485f9072333d04",
+  "data/watchlist_us.json": "80df2706440ce11df268b5823f2e9a2e0f99af321accaf97e98901a40e45293d",
+  "desk-service.ps1": "4deba886c36bf2062b13b69079786031a940700e91c99c880e92fff3c7fe7acf",
+  "fno.py": "60c74e4cc2533f26886339626ef091a2d9d945f35255e90fe5149a60d4bc26a7",
+  "fno_positions.py": "f9943da62b903013e1b710a022ee8f81f51992d950665402fc736e55975f6f7e",
+  "fno_tape.py": "2b8ca00f15b8df961e04d1e3fcbf51dfffb3dbdf28837f67838697be06e5e354",
+  "freefeed.py": "96cbe460101c8482eedf6b1a48fdb6a0ebb7d001e6174f4108026be7bc13b035",
+  "house_ptr.py": "0d891b390a4bcc3a06d63a9da67fc34afadf52bfd29ed4af438dd5860d25dba7",
+  "insiders.py": "54e3750832a3ac6254e4944bc3d5bfc40ea6f8de744d17feba96a0df88fcf9e1",
+  "local_in.py": "eaa0b69c11117a40a2a6e604edce7899643ff8f9a68dd11eb43735af2ed6242f",
+  "morning.py": "51c365dca5be46738a6236baf325883300cf25e210964a40fd5a1a68cad7eb04",
+  "nse_fund.py": "3d91402018b2ce50794cb3df06e3a9494d7dda7775c45d2831f706b81d7110ca",
+  "obsidian/Live Desk.md": "63cc7836a983d8105de1d765862e26e8e212b20a5b28298791e06c2359b739e1",
+  "obsidian/desk.css": "1f425cded2865773a3c00105a5ebac14324d77ef4bb8ea0ec33261e0b634495e",
+  "options_us.py": "2dd13f3413163ff10fd2b2720abd0e4f51384a97355279a234cee6f08e5cc967",
+  "paste_token.py": "9dea6765089e74ae9015e7bc0ad35e5101da3e3fe250ef9c646d029737af4857",
+  "pricing.py": "c9116da194005e66651bc8f04c3fafb6349c9bc0fb41ad5fabdd172d1dae6ab0",
+  "requirements.txt": "65376eb528af5087299c3d54e8df9093610d99286e9466ad90538e22684f5e9a",
+  "risk.py": "524f9d231242d36622c246a34730ee4bb731448d791282863dc6f2c504c2d101",
+  "run.py": "ac51761248685cef55fcfdd2c6a5021812af7f45c1ac1b203e6461eeff8fb151",
+  "scripts/audit_fmp.py": "41c869ba202ba0b33bb38f94fb8a22efe111e0c24edd2948f2962138fc8329c1",
+  "scripts/fmp_audit_results.json": "2c9f64b6d8c0526b7929b4c82ad51c99ea89b4bd5755acb46372dd78968faa47",
+  "scripts/make_manifest.py": "7b1a26826b64917f70299aa04d684055dbb20bbd1af7a2f0f47f110447ad6e20",
+  "sec_form4.py": "b4665ad82cf2a55a312c8a963bdc33b20dc3b8b0e59c48947d3b4b92a7d3ca38",
+  "secmaster.py": "4c5d36386f2835a769cd8bc744e39e2cfaf8b09a53ec9d6dce051b0b7998c690",
+  "sectigo_intermediate.pem": "b40358316fd9e1caaaab92c382927d2c13ef51b481eec9371a82e16c86f2a687",
+  "server.py": "a67195b091422302666e034c502c51c85ee7b17abcfb793e5f70f6649e37db8a",
+  "shortint.py": "2059cdda722621881d9592708e74411f0cbaa3fee134a4b93b1bb80a7b6da98f",
+  "stream_in.py": "3f7e8f551e73fe3fc73b4a767e715c080755b3d5fbbf003e979280cdc2d6a027",
+  "updater.py": "1bb28546c48182a54a403acd711c6c2c4c16f5811deeb3fdd98bc88a0df8ac7f",
+  "web/assets/desk.css": "b4f94c9819ed48c5c1de03a648a93b12d96ab95745866f73953d89f390eef24b",
+  "web/assets/desk.js": "e0e277430f9d536f49c373b4dd9e79785c624baf402d6011517f45697b8daee4",
+  "web/book.html": "fdd9d8fb9e352a3c34459f2e503f0d22aaa9de490e5645618dc783da4de9a7f3",
+  "web/capitol.html": "0e499a540a9e89094802624a92b8d4a749ac7426241c9c8867ba63921234677c",
+  "web/chain.html": "2786ebd2a52dce8f9d0f8c86215acc97425641fa8015a0febcbd5304d3d1050c",
+  "web/commods.html": "77eee9b3470636ee0413dcf814b5c170308716965f080071c011abbc24fa0ab8",
+  "web/flow.html": "51a37f86ecab7f4ff6085327ca687beb52c137dec033c8b767f6478cc41eba93",
+  "web/funds.html": "b1c087c187ea4b411c746e3cfa5b41b092a415d0536c99132dd7d4ed106224a1",
+  "web/index.html": "3e672752eba3497660d2d4408472945d353454e523d61c373d409f501d2e9b9a",
+  "web/macro.html": "a8a5138fed5347a6a93d881f0fe976041fbe505ca5592d56d737d132bc99299e",
+  "web/risk.html": "5ad9f74f52f8f43c4a7b1ff2d151d33c1291f37d331a5307d392d70e365a1bba",
+  "web/short.html": "579b50378e7213b849b5e21e4ca373bae7da20a51487c37ea99ec6502c0b8dd4",
+  "web/ticker.html": "8fbdf27c04360b7dbecc77935b3d0cd1a22d80579d3e157786f3776b00d2fa25",
+  "web/usdesk.html": "cc4b111a6e31f891a8673efaafd1768a8ec1e91d0145bd0b00eabc1eab771556",
+  "web/watch.html": "bba19ee3fc654a48934b7f1594ba4480c26d15f363d922956abb3a1754e390eb"
+ },
+ "history": {
+  ".env.example": [
+   "2a50369a333d0c1f602faef1bde4851e0cb51447d9bd0cf11b184166b1470368",
+   "31c1d85084f4e2baefb42b55ff192fe255f8ae24fba79d33bb25ff06f17ff7e5"
+  ],
+  "Keep Desk Running.bat": [
+   "aa4ba519ee5f2565c0d2f6f31b53d869a08f6c61ca41d7ee974baec02a10f5be"
+  ],
+  "Keep Desk Running.command": [
+   "116bce9df1d76a0d00939fd42113ddec21bae26471c552f88c2fb0b339af3371"
+  ],
+  "LICENSE": [
+   "b59a114146e0ccad301604d7dd2187dc34482692688795bf5b50324eea0419de",
+   "e9e6e0bee43acfe9babc26d00915a99848b650ac28a02320d6ef2f0c33a88340"
+  ],
+  "Paste Token.bat": [
+   "a19b41ab6b4d4832fe8d1f7e85d354cc11d806a0dfc74d650e3bbd34737f33a7"
+  ],
+  "Paste Token.command": [
+   "42c85b2dc9c1e916fc89aa744290585fd3a48c1b372121f9d235a9f78444efe8"
+  ],
+  "README.md": [
+   "1af5c4709b5457dbb1c88065c9e4b3b807c2ea731e9dae6a34914da2d6232f84",
+   "3bb98ab2ba6fbf2d396f75f2ee765fd2fde9192b1f83a30e16d154c4b9483516",
+   "49409789ca406362dfcbdfa9a82c47474bafd27be8584565591d0e6d08156076",
+   "5009cb621958c7c70aa8d2ce95381e3f8e649ce843bd2ba632b434bfad907afc",
+   "59a6f9c527cc6ebe1468cfe28af01d7d04997459df0b2fe863e3bd51e9e76e47",
+   "5b2a1a0411895ca159bf11e4ac8a972444ccf63e0f9faf1e69ceb65f581523e0",
+   "5c488aa02ba1a3f953e54a78b51fc0c09eed1c50c36c9363e0a4080ceb8a0954",
+   "8a9f73781181d0e6954dc5ca516c6fd08239d14d745385eaec239e8cf3049094",
+   "a04cb76cdc6ebe5ab616a2bb74b6c309b90160f0447f9f2baf319db87ed23d5d",
+   "a32303ecc42471573573389ad07a60304b3589f2b556e0c2a1365761344718ea",
+   "af1ecaaac728cc3ccd8c01f4a3826b914b92f16e1299cd82fafedddc850258dd",
+   "b716cc809dc9b8fcacfb54260035643d4c94948df46121f0f819c71a04e3aa95",
+   "bfbcb9390299831f55cd10f6b3d0c1da0695402ba4dd41cd55e525e7705bbf3e",
+   "d82c71b25cd967cdd21663db388062d4cf31f59ec1f3aa0be9d9ff302c228efd",
+   "e002128daf99598863158c073b5d90cf2b41b7f284ed7cd7118ad4340eea79bd",
+   "f91d26085a93733b57fc48b4e04f7537e9be01e423b5bd75b5961cdb1cbf8a2f",
+   "fb00cb23e53d2e7eedc2b0278c77b1e4a1d4a4cf80362701e71701c28511509b",
+   "fb7b8a5ad24cbdddc8fb674d8ed4237c329682919bb969038766a2885cf17505"
+  ],
+  "Start Desk.bat": [
+   "2522a0a06fd06c23a9b864c28cf4b184af2f6309b59536e5ef520bb1d0272091"
+  ],
+  "Start Desk.command": [
+   "da51e007fba5835d5c82434024ba8f54578634f7280edb8a5b747f0044265435"
+  ],
+  "Stop Desk.bat": [
+   "cc994291ab4f13840c963ff2d50364e38835e0dd853b808a5a7de86984b57aea"
+  ],
+  "Stop Desk.command": [
+   "1292b0b254b48c86f5cab6143e36f6d81bb21778517382e36095c26304c39de9"
+  ],
+  "TECHNICAL.md": [
+   "746d40a736b7303ebf1a4d5b8347ded28532c768cc5c24a8caaad8d96a636146",
+   "986f6bfee5367dacc322af14afac1436a43abb69461d09e71a3d2becca8f2c6e",
+   "ac7bfb1b9318598fff774ecbd8cdbd8aa6c5ee736ed5172b6c86e217bbc61bde",
+   "b9fdd0ad64c63ca3f1375d44f28555cc457d73bc7daad52fb5515c1392786189"
+  ],
+  "VERSION": [
+   "8d84cc288a7ecb7bcac68e1102c3a7ddf1a77cdec0e6a8f927a6cd0bb7ceec93"
+  ],
+  "activist.py": [
+   "78089c14f53da696553d3c3cd74f88553496d2504b7ebc94a36e6ec4f4db1062"
+  ],
+  "alerts.json": [
+   "16774401a309b29ef151f4af240199b27b741e52e0cbfb35e2ef09ea4b1089ee"
+  ],
+  "breeze_session.py": [
+   "525c287c7cf156d22aabc75fe3ae551a5489155061780a7d2ac4929644ec5c5b",
+   "9062187bd4b808c7b224845705cf75facb01261b9e56ea0844ff09e4ccec074a"
+  ],
+  "collect.py": [
+   "9d1fed4a98124e7db66e5dd1608f6afae02f70bd3978ea2eaa5579990af3b2a6",
+   "d9529d4242c22d59dfde9828141a6836e296c6a8a44dbfbbc4afb5df97f2be94"
+  ],
+  "commods.py": [
+   "8e2ebf65ee48c31c2dcc6ab765b0e87b1d1b8eb61f4c5f31e1383bb9608686ef"
+  ],
+  "daily.py": [
+   "a1118e1a4abdb4cf886d12116ada7dc5795dc04d96e53f0016ecfa04cfc57037"
+  ],
+  "dashboard.py": [
+   "1d971a29d1a89b1fb6f6b54037f4661a4d358479ec00aec8d8b5b0210ee0d106",
+   "f12304ed0b291557aeddc3b61560964eb6331f466c18005f9974625492e89e55"
+  ],
+  "dashboard_html.py": [
+   "53824fc111a4288cae8962638e58836150f31aae968d2e241334a6a8d97d1025",
+   "89f9ba33b37f6997e00d9f26d3d6fa646e7c89e6923f7c107a4423df8992998b"
+  ],
+  "data/alerts.json": [
+   "16774401a309b29ef151f4af240199b27b741e52e0cbfb35e2ef09ea4b1089ee",
+   "f64145f61aef735aab27f604df7620bfc57ed7ac2af589e974914f227ab58d64"
+  ],
+  "data/book.json": [
+   "edf62dd5acaecc061aace17a2403374925d97ca82e978e68bc835593058a4712"
+  ],
+  "data/commodities.json": [
+   "9b8aab49e467cddd7bef211a5fae620041765abd57f3f471246d1240a1ae02a0",
+   "c0da1119bd8468673dae1ddfd5e345919dec07202251efec1f920addbd62515a"
+  ],
+  "data/exposure_example.json": [
+   "61a643c97a688f165ef56218c0297977eac81ab327c01a27b2faa86dd592cdbc",
+   "6daf6a5e528e986f5cfed8a247edf24106c7f81fa09d8aacb61b45a06ef8790a"
+  ],
+  "data/exposure_us.json": [
+   "15c377fdd3376e8ad86621f282cba82799b835527cbfb30e694d005c1139180b",
+   "722f76f0f79a9f3a75a2f6d35805b6955df61a2e99221d6f1b3943df0dbf720a",
+   "8dda192f79b546ab9b741584628eca9d6ebce093ecda2aaf5cee25e82f2343ad",
+   "a5b551007775108cb764be1cd041a5d4e661107baf38f1d083aa7a5baf98db76",
+   "b02c39f1902a7974fe859bb6b6ee25a1b4cba05f66a3999273e59b031d9f36ff",
+   "b9ca00cae4fa85f1e2d95247ff05964ce636ed95574b8650f7490e1df0141a1c",
+   "e8dfab091846178984bc7ea33c04485bd698a7985d62b4c50e25aa0525ff5b41",
+   "f5b0af25337ea11b3ddde00e0024962e3da2bfbb55977527ef7cda5b588f203e",
+   "fd81b31d04f6e849d7aa75ea97494314cbd6ffbfdffd2fa41c6a73a1cc0be29f"
+  ],
+  "data/fno_positions.json": [
+   "ac2d4ead5fc99eb4e4dc302eefbba4f741de2a146b2a5fc6a4b119292bb64b1a"
+  ],
+  "data/fno_watchlist.json": [
+   "3d24bdf3cb3845f1310a4dc7fa8a335ee316cfa9367e75f9dc94cb156997e35b"
+  ],
+  "data/funds.json": [
+   "f133cdd458e7bd840fea4c14b708a3f7aed667c8defc827ef65d7ebe76f8ce3d"
+  ],
+  "data/members.json": [
+   "8b0aa0f741acb1718017a3d05ced006227a5b8b03f8f81f164638192180c9478"
+  ],
+  "data/supply_chain.json": [
+   "6ed973738bb43e0d1a2e6f5a16b5b014717a6a457635e35dfef4f22ffbb07f9e"
+  ],
+  "data/us_book.json": [
+   "ec85e8d40a80cd4af79bab12b0cf5ac1f71043fb179890756dd96c829768d43e"
+  ],
+  "data/watch_levels.json": [
+   "c24468feef7053fdf4943661cdeb1492f391f7bd12f722b9bab6dc08f8496086"
+  ],
+  "data/watchlist.json": [
+   "c210f122e94d58b15d6722c7833616a9543f690069fc680fdd1c0c07eb246bfb"
+  ],
+  "data/watchlist_global.json": [
+   "0ae632483ff19919ac62851ab485711af2f2e891001297d2fc485f9072333d04"
+  ],
+  "data/watchlist_us.json": [
+   "80df2706440ce11df268b5823f2e9a2e0f99af321accaf97e98901a40e45293d"
+  ],
+  "desk-service.ps1": [
+   "4deba886c36bf2062b13b69079786031a940700e91c99c880e92fff3c7fe7acf"
+  ],
+  "fno.py": [
+   "60c74e4cc2533f26886339626ef091a2d9d945f35255e90fe5149a60d4bc26a7"
+  ],
+  "fno_positions.json": [
+   "ac2d4ead5fc99eb4e4dc302eefbba4f741de2a146b2a5fc6a4b119292bb64b1a"
+  ],
+  "fno_positions.py": [
+   "208b81b641cd8dc8855daa8841d79a4273fd8fdd166d7c3a7676431718aedc43",
+   "52a9e204b3673896141345b8ad555d54083c913228324b29dbce791bff8736b5",
+   "f9943da62b903013e1b710a022ee8f81f51992d950665402fc736e55975f6f7e"
+  ],
+  "fno_tape.py": [
+   "1705e50047d55f50e026402a91ce9b027fb39769cd3074e0535516b0091f47ef",
+   "2b8ca00f15b8df961e04d1e3fcbf51dfffb3dbdf28837f67838697be06e5e354"
+  ],
+  "fno_watchlist.json": [
+   "3d24bdf3cb3845f1310a4dc7fa8a335ee316cfa9367e75f9dc94cb156997e35b"
+  ],
+  "freefeed.py": [
+   "96cbe460101c8482eedf6b1a48fdb6a0ebb7d001e6174f4108026be7bc13b035"
+  ],
+  "funds.json": [
+   "f133cdd458e7bd840fea4c14b708a3f7aed667c8defc827ef65d7ebe76f8ce3d"
+  ],
+  "house_ptr.py": [
+   "0d891b390a4bcc3a06d63a9da67fc34afadf52bfd29ed4af438dd5860d25dba7"
+  ],
+  "insiders.py": [
+   "54e3750832a3ac6254e4944bc3d5bfc40ea6f8de744d17feba96a0df88fcf9e1"
+  ],
+  "local_in.py": [
+   "eaa0b69c11117a40a2a6e604edce7899643ff8f9a68dd11eb43735af2ed6242f"
+  ],
+  "members.json": [
+   "8b0aa0f741acb1718017a3d05ced006227a5b8b03f8f81f164638192180c9478"
+  ],
+  "morning.py": [
+   "51c365dca5be46738a6236baf325883300cf25e210964a40fd5a1a68cad7eb04"
+  ],
+  "nse_fund.py": [
+   "3d91402018b2ce50794cb3df06e3a9494d7dda7775c45d2831f706b81d7110ca"
+  ],
+  "obsidian/Live Desk.md": [
+   "63cc7836a983d8105de1d765862e26e8e212b20a5b28298791e06c2359b739e1",
+   "addc7234043eb721f03ab72c19db1c20803d156f3851bc61dbe43849df8d54b0"
+  ],
+  "obsidian/desk.css": [
+   "1f425cded2865773a3c00105a5ebac14324d77ef4bb8ea0ec33261e0b634495e"
+  ],
+  "options_us.py": [
+   "2dd13f3413163ff10fd2b2720abd0e4f51384a97355279a234cee6f08e5cc967"
+  ],
+  "paste_token.py": [
+   "9dea6765089e74ae9015e7bc0ad35e5101da3e3fe250ef9c646d029737af4857"
+  ],
+  "pricing.py": [
+   "c9116da194005e66651bc8f04c3fafb6349c9bc0fb41ad5fabdd172d1dae6ab0"
+  ],
+  "requirements.txt": [
+   "65376eb528af5087299c3d54e8df9093610d99286e9466ad90538e22684f5e9a"
+  ],
+  "risk.py": [
+   "524f9d231242d36622c246a34730ee4bb731448d791282863dc6f2c504c2d101"
+  ],
+  "run.py": [
+   "ac51761248685cef55fcfdd2c6a5021812af7f45c1ac1b203e6461eeff8fb151"
+  ],
+  "scripts/audit_fmp.py": [
+   "41c869ba202ba0b33bb38f94fb8a22efe111e0c24edd2948f2962138fc8329c1"
+  ],
+  "scripts/fmp_audit_results.json": [
+   "2c9f64b6d8c0526b7929b4c82ad51c99ea89b4bd5755acb46372dd78968faa47"
+  ],
+  "scripts/make_manifest.py": [
+   "7b1a26826b64917f70299aa04d684055dbb20bbd1af7a2f0f47f110447ad6e20"
+  ],
+  "sec_form4.py": [
+   "b4665ad82cf2a55a312c8a963bdc33b20dc3b8b0e59c48947d3b4b92a7d3ca38"
+  ],
+  "secmaster.py": [
+   "4c5d36386f2835a769cd8bc744e39e2cfaf8b09a53ec9d6dce051b0b7998c690"
+  ],
+  "sectigo_intermediate.pem": [
+   "b40358316fd9e1caaaab92c382927d2c13ef51b481eec9371a82e16c86f2a687"
+  ],
+  "server.py": [
+   "25ef3252abf15b279f067d7f0fbd52a4d5ac92e1b78d6ede1d8c9a9484f7d2c2",
+   "959b6b0e4ad42f465116a75df81bf48fb3da769f8e7254a812a7caa976e2482b",
+   "a67195b091422302666e034c502c51c85ee7b17abcfb793e5f70f6649e37db8a",
+   "a86a44a38bac2003b9580b06e5210b20d8aa3938ed2970162131e8b00ebca023",
+   "c72bcc8ab90bcd38f20144d0181bafceac0c0ff6038b6d298a6a89851a56dfd5",
+   "cac4fb881e8ab819afe5fb72e0d0d110689a1ad576db9738ddf8c837f31763b5",
+   "fa2e9c9028dbe29b5891d3239e9e883b17caa5ffe37ee5829defa61caf324553"
+  ],
+  "shortint.py": [
+   "2059cdda722621881d9592708e74411f0cbaa3fee134a4b93b1bb80a7b6da98f"
+  ],
+  "stream_in.py": [
+   "3f7e8f551e73fe3fc73b4a767e715c080755b3d5fbbf003e979280cdc2d6a027"
+  ],
+  "supply_chain.json": [
+   "6ed973738bb43e0d1a2e6f5a16b5b014717a6a457635e35dfef4f22ffbb07f9e"
+  ],
+  "updater.py": [
+   "1bb28546c48182a54a403acd711c6c2c4c16f5811deeb3fdd98bc88a0df8ac7f"
+  ],
+  "us_book.json": [
+   "ec85e8d40a80cd4af79bab12b0cf5ac1f71043fb179890756dd96c829768d43e"
+  ],
+  "watch_levels.json": [
+   "c24468feef7053fdf4943661cdeb1492f391f7bd12f722b9bab6dc08f8496086"
+  ],
+  "watchlist.json": [
+   "c210f122e94d58b15d6722c7833616a9543f690069fc680fdd1c0c07eb246bfb"
+  ],
+  "watchlist_global.json": [
+   "0ae632483ff19919ac62851ab485711af2f2e891001297d2fc485f9072333d04"
+  ],
+  "watchlist_us.json": [
+   "80df2706440ce11df268b5823f2e9a2e0f99af321accaf97e98901a40e45293d"
+  ],
+  "web/assets/desk.css": [
+   "8afc17c9e93a59c7e1579005dc230b6207db9064419b41f55583de31b8a2d8f1",
+   "b4f94c9819ed48c5c1de03a648a93b12d96ab95745866f73953d89f390eef24b"
+  ],
+  "web/assets/desk.js": [
+   "10cf5742035239649e4e3f7e5df816f89ad9a3edbc77546ae99473bb3d56e849",
+   "1437da8c1f2b56d30f51b720992052cab312cf19c46a68050628d1f4d592f2cf",
+   "6b8bb93948cea40bc2a5516986edaea38aa80ccdfdbc4171b3db997880e25b0b",
+   "a5633bc778f3791032f42d616f9fc46107ebc1432e798a714e8e0505bcb33ff2",
+   "d1cebffe58bc046ba89ab8539f480bc843a51434c4d02be3246ecc1f93bb5235",
+   "e0e277430f9d536f49c373b4dd9e79785c624baf402d6011517f45697b8daee4"
+  ],
+  "web/book.html": [
+   "fdd9d8fb9e352a3c34459f2e503f0d22aaa9de490e5645618dc783da4de9a7f3"
+  ],
+  "web/capitol.html": [
+   "0e499a540a9e89094802624a92b8d4a749ac7426241c9c8867ba63921234677c",
+   "3f19824a85fb6d2db9744d5239c28787860b97ce1427ffef8b742837cf4fa8bb"
+  ],
+  "web/chain.html": [
+   "2786ebd2a52dce8f9d0f8c86215acc97425641fa8015a0febcbd5304d3d1050c",
+   "294bf71f248b7e6e5b0ec5e726dc7d73118ae1fae04e9e3bee503afb9737e448",
+   "8c082561a42ecd3d1e8cc14a2c78290ba1119447e815eb56aba90fe3380f02f1"
+  ],
+  "web/commods.html": [
+   "3c268c974229dfba1a8948a1ec580e224e98f341fde281f59ba5d591adf58f48",
+   "77eee9b3470636ee0413dcf814b5c170308716965f080071c011abbc24fa0ab8"
+  ],
+  "web/flow.html": [
+   "51a37f86ecab7f4ff6085327ca687beb52c137dec033c8b767f6478cc41eba93"
+  ],
+  "web/funds.html": [
+   "b1c087c187ea4b411c746e3cfa5b41b092a415d0536c99132dd7d4ed106224a1",
+   "d696f126307cc96fa612add98d6a8288195851b70fb06b2488b405acd5bc94dc"
+  ],
+  "web/index.html": [
+   "242970dc2c9f2a5389519ea803cb78648e16deaeffc6c661e51432c591e4911e",
+   "3e672752eba3497660d2d4408472945d353454e523d61c373d409f501d2e9b9a",
+   "4af04e3f371f2051673f507d4a8431c1e6649959bfe2818bbc583484bd40b159",
+   "4f2258798da13b8a7d0dd698e134698dfc7bc69ef3b3b62e3483f19e46b142ce"
+  ],
+  "web/macro.html": [
+   "a8a5138fed5347a6a93d881f0fe976041fbe505ca5592d56d737d132bc99299e",
+   "de041a9958218c41756b86178adde0f686d2705dbd04e25b6ad3fc6f903815c8"
+  ],
+  "web/risk.html": [
+   "5ad9f74f52f8f43c4a7b1ff2d151d33c1291f37d331a5307d392d70e365a1bba",
+   "65a4b7dd422123e20b6839fbb9e17b45c4acb1fdf12ce6e6f82271e2baad8877"
+  ],
+  "web/short.html": [
+   "579b50378e7213b849b5e21e4ca373bae7da20a51487c37ea99ec6502c0b8dd4"
+  ],
+  "web/ticker.html": [
+   "8fbdf27c04360b7dbecc77935b3d0cd1a22d80579d3e157786f3776b00d2fa25"
+  ],
+  "web/usdesk.html": [
+   "c12c052fe200a11a5a03ad09d34ab2c4a11510c1eb7dfd0c78a3bf6921762600",
+   "cc4b111a6e31f891a8673efaafd1768a8ec1e91d0145bd0b00eabc1eab771556"
+  ],
+  "web/watch.html": [
+   "bba19ee3fc654a48934b7f1594ba4480c26d15f363d922956abb3a1754e390eb",
+   "d8790fd26cc8ed9956992f98d18600758554449108805a5e443c505205080cc9"
+  ]
+ }
+}
