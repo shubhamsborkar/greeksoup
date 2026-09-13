@@ -1,7 +1,7 @@
 {
  "version": "2026-09-13",
- "generated": "2026-09-13 09:39",
- "commits_scanned": 28,
+ "generated": "2026-09-13 09:50",
+ "commits_scanned": 29,
  "files": {
   ".env.example": "2a50369a333d0c1f602faef1bde4851e0cb51447d9bd0cf11b184166b1470368",
   "Keep Desk Running.bat": "aa4ba519ee5f2565c0d2f6f31b53d869a08f6c61ca41d7ee974baec02a10f5be",
@@ -39,6 +39,16 @@
   "data/watchlist_global.json": "0ae632483ff19919ac62851ab485711af2f2e891001297d2fc485f9072333d04",
   "data/watchlist_us.json": "80df2706440ce11df268b5823f2e9a2e0f99af321accaf97e98901a40e45293d",
   "desk-service.ps1": "4deba886c36bf2062b13b69079786031a940700e91c99c880e92fff3c7fe7acf",
+  "docs/.nojekyll": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "docs/CNAME": "fdf78eb60e2a60d4225eb979eac6055ee7c9ab66191256263825d70f842b8464",
+  "docs/img/capitol.png": "b05c5baf9552a5cf1cf2a37a08f904f1c889b040ce75e44c4c99226810cb7773",
+  "docs/img/commodities.png": "fc386b380e200cfadeeeb801dbe65836816cfe7e2a583878b1a46cf9f7b9a67c",
+  "docs/img/flow.png": "ea0d78466110a032e1a8a7d41f9d1ecc89183cdbd46734691cfa5f190712f960",
+  "docs/img/funds.png": "d307012757015610d9239e80236742974ded1cd0e295f16ad993580acfc87c3f",
+  "docs/img/macro.png": "9ef999cb001e362bbff64df7a7764d87f634845fe1b85b242771ffcc906a6097",
+  "docs/img/rubber-card.png": "6455507dac8bb291ce8816ab8a67e66faddd99da52705a563e61b21a9a2fd838",
+  "docs/img/short.png": "7b538cbd9bbafc04e6050de1dfbb34a4db5e76f294db34cbea5adca8af306586",
+  "docs/index.html": "5d756cad71915312e6a7b216f64ee5f678088ec8d9c58265aa1ba58355233dfb",
   "fno.py": "60c74e4cc2533f26886339626ef091a2d9d945f35255e90fe5149a60d4bc26a7",
   "fno_positions.py": "f9943da62b903013e1b710a022ee8f81f51992d950665402fc736e55975f6f7e",
   "fno_tape.py": "2b8ca00f15b8df961e04d1e3fcbf51dfffb3dbdf28837f67838697be06e5e354",
@@ -230,6 +240,36 @@
   ],
   "desk-service.ps1": [
    "4deba886c36bf2062b13b69079786031a940700e91c99c880e92fff3c7fe7acf"
+  ],
+  "docs/.nojekyll": [
+   "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  ],
+  "docs/CNAME": [
+   "fdf78eb60e2a60d4225eb979eac6055ee7c9ab66191256263825d70f842b8464"
+  ],
+  "docs/img/capitol.png": [
+   "b05c5baf9552a5cf1cf2a37a08f904f1c889b040ce75e44c4c99226810cb7773"
+  ],
+  "docs/img/commodities.png": [
+   "fc386b380e200cfadeeeb801dbe65836816cfe7e2a583878b1a46cf9f7b9a67c"
+  ],
+  "docs/img/flow.png": [
+   "ea0d78466110a032e1a8a7d41f9d1ecc89183cdbd46734691cfa5f190712f960"
+  ],
+  "docs/img/funds.png": [
+   "d307012757015610d9239e80236742974ded1cd0e295f16ad993580acfc87c3f"
+  ],
+  "docs/img/macro.png": [
+   "9ef999cb001e362bbff64df7a7764d87f634845fe1b85b242771ffcc906a6097"
+  ],
+  "docs/img/rubber-card.png": [
+   "6455507dac8bb291ce8816ab8a67e66faddd99da52705a563e61b21a9a2fd838"
+  ],
+  "docs/img/short.png": [
+   "7b538cbd9bbafc04e6050de1dfbb34a4db5e76f294db34cbea5adca8af306586"
+  ],
+  "docs/index.html": [
+   "5d756cad71915312e6a7b216f64ee5f678088ec8d9c58265aa1ba58355233dfb"
   ],
   "fno.py": [
    "60c74e4cc2533f26886339626ef091a2d9d945f35255e90fe5149a60d4bc26a7"
