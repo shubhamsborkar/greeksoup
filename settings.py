@@ -9,6 +9,7 @@ Rules kept here:
     survives every new version
 """
 
+import json
 import os
 import platform
 import subprocess
@@ -120,6 +121,119 @@ def current():
         "auto_update": (env.get("DESK_AUTO_UPDATE") or os.getenv("DESK_AUTO_UPDATE", "off")).strip().lower() == "on",
         "env_exists": os.path.exists(ENV_PATH),
     }
+
+
+# ---- the reader's investing profile ------------------------------------------
+# What the reader tells the desk about how they invest. Read by the /agent page
+# (so any AI reading the desk knows who it is working for) and by the desk's own
+# AI screens. Plain file, data/profile.json, the reader's to edit.
+DATA_DIR = os.path.join(HERE, "data")
+PROFILE_PATH = os.path.join(DATA_DIR, "profile.json")
+PROFILE_LISTS = ("styles", "drivers", "sectors")
+PROFILE_TEXT = ("risk", "horizon", "home_currency", "since", "about")
+PROFILE_CHOICES = {
+    "styles": ["Value", "Growth", "Quality", "Dividend", "Momentum", "Index", "Special situations", "Quant"],
+    "drivers": ["Valuation", "Revenue growth", "Margins", "Free cash flow", "Return on equity", "Debt",
+                "Management", "Moat", "Insider buying", "Capital allocation"],
+    "risk": ["Conservative", "Moderate", "Aggressive"],
+    "horizon": ["Weeks", "Months", "One to three years", "Three to ten years", "Longer"],
+}
+
+
+def load_profile():
+    try:
+        with open(PROFILE_PATH, encoding="utf-8") as fh:
+            d = json.load(fh)
+    except (OSError, ValueError):
+        d = {}
+    out = {k: [str(x) for x in (d.get(k) or []) if str(x).strip()][:30] for k in PROFILE_LISTS}
+    for k in PROFILE_TEXT:
+        out[k] = str(d.get(k) or "").strip()[:600]
+    return out
+
+
+def save_profile(body):
+    cur = load_profile()
+    for k in PROFILE_LISTS:
+        if k in body and isinstance(body[k], list):
+            cur[k] = [str(x).strip()[:40] for x in body[k] if str(x).strip()][:30]
+    for k in PROFILE_TEXT:
+        if k in body and isinstance(body[k], str):
+            cur[k] = body[k].strip()[:600]
+    cur["home_currency"] = cur["home_currency"].upper()[:8]
+    os.makedirs(DATA_DIR, exist_ok=True)
+    tmp = PROFILE_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump({"_comment": "How you invest, from the Settings screen. The agent page carries it.", **cur}, fh, indent=2)
+    os.replace(tmp, PROFILE_PATH)
+    return cur
+
+
+def profile_text():
+    """The profile as plain lines for the /agent page; empty string when nothing is set."""
+    p = load_profile()
+    lines = []
+    if p["styles"]:
+        lines.append("Investing style: " + ", ".join(p["styles"]))
+    if p["drivers"]:
+        lines.append("Looks at first: " + ", ".join(p["drivers"]))
+    if p["sectors"]:
+        lines.append("Sectors followed: " + ", ".join(p["sectors"]))
+    if p["risk"]:
+        lines.append("Risk appetite: " + p["risk"])
+    if p["horizon"]:
+        lines.append("Holding period: " + p["horizon"])
+    if p["home_currency"]:
+        lines.append("Home currency: " + p["home_currency"])
+    if p["since"]:
+        lines.append("Investing since: " + p["since"])
+    if p["about"]:
+        lines.append("In the reader's words: " + p["about"])
+    return "\n".join(lines)
+
+
+# ---- the reader's files: where they are, and a backup ------------------------
+def data_files():
+    """The files under data/ with a plain name and size, for the Settings screen."""
+    rows = []
+    try:
+        for name in sorted(os.listdir(DATA_DIR)):
+            path = os.path.join(DATA_DIR, name)
+            if not os.path.isfile(path) or name.startswith("."):
+                continue
+            what = ""
+            try:
+                with open(path, encoding="utf-8") as fh:
+                    head = json.load(fh)
+                what = (head.get("_comment") if isinstance(head, dict) else "") or ""
+            except (OSError, ValueError):
+                pass
+            first = what.split(". ")[0].strip()
+            rows.append({"file": name, "what": (first + ".") if first and not first.endswith(".") else first,
+                         "bytes": os.path.getsize(path)})
+    except OSError:
+        pass
+    return rows
+
+
+def backup_zip():
+    """A zip of data/ (and research/ when it exists): lists, book, profile, alerts.
+    Never the key file, never the daily tokens, never the downloaded caches."""
+    import io
+    import zipfile
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for top in ("data", "research"):
+            root = os.path.join(HERE, top)
+            if not os.path.isdir(root):
+                continue
+            for dirpath, _dirs, files in os.walk(root):
+                for f in files:
+                    if f.startswith(".") or f.endswith(".tmp"):
+                        continue
+                    full = os.path.join(dirpath, f)
+                    zf.write(full, os.path.relpath(full, HERE))
+    return buf.getvalue()
 
 
 # ---- the data key check ------------------------------------------------------

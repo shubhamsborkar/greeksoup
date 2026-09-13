@@ -39,6 +39,13 @@ td.yes{color:var(--pos)} td.no{color:var(--muted)}
 .code button{padding:4px 9px;font-size:11px}
 .kv{font-size:11.5px;color:var(--muted);line-height:1.7}
 .kv b{color:var(--ink2);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:620px}
+.chip{font-size:11.5px;padding:4px 10px;border-radius:999px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink2);cursor:pointer;user-select:none}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip.x{border-style:dashed}
+.chips input{width:120px;max-width:120px;padding:4px 9px;font-size:11.5px;border-radius:999px}
+textarea{resize:vertical;line-height:1.5}
+table.files td{font-size:11.5px} table.files td:first-child{font-family:Menlo,monospace;color:var(--ink2)} table.files td:last-child{white-space:nowrap}
 @media (max-width:640px){.row{grid-template-columns:1fr}.row .hint{grid-column:1}}
 </style>
 </head>
@@ -108,6 +115,24 @@ td.yes{color:var(--pos)} td.no{color:var(--muted)}
     </div>
   </div>
 
+  <!-- How you invest -->
+  <div class="panel">
+    <div class="panel-h"><h2>How you invest</h2><span class="st" id="p_status"></span></div>
+    <div class="body">
+      <div class="kv" style="margin-bottom:12px">Optional, and none of it leaves this computer. What you set here goes on the agent page above, so any AI that reads the desk shapes its answers to the way you invest instead of to a stranger. Click to pick; type to add your own.</div>
+      <div class="row"><label>Style</label><div class="chips" id="p_styles"></div></div>
+      <div class="row"><label>What you look at first</label><div class="chips" id="p_drivers"></div></div>
+      <div class="row"><label>Sectors you follow</label><div class="chips" id="p_sectors"></div></div>
+      <div class="row"><label>Risk appetite</label><div class="chips one" id="p_risk"></div></div>
+      <div class="row"><label>Holding period</label><div class="chips one" id="p_horizon"></div></div>
+      <div class="row"><label for="p_ccy">Home currency</label><input id="p_ccy" class="mono" style="max-width:140px" placeholder="USD" autocomplete="off"></div>
+      <div class="row"><label for="p_since">Investing since</label><input id="p_since" class="mono" style="max-width:140px" placeholder="2015" autocomplete="off"></div>
+      <div class="row"><label for="p_about">In your own words</label><textarea id="p_about" rows="3" placeholder="one or two lines on how you decide, what you avoid, what you are trying to do"></textarea></div>
+      <div class="btns"><button id="p_save">Save</button></div>
+      <div class="msg" id="p_msg"></div>
+    </div>
+  </div>
+
   <!-- Desk -->
   <div class="panel">
     <div class="panel-h"><h2>This desk</h2><span class="st" id="v_status"></span></div>
@@ -119,6 +144,27 @@ td.yes{color:var(--pos)} td.no{color:var(--muted)}
       <div class="row"><span></span><div class="hint">The SEC's filing servers ask every program for a contact address and answer faster to one that gives it. Any address you own; it is sent only to the SEC.</div></div>
       <div class="btns"><button class="ghost" id="e_save">Save the address</button></div>
       <div class="msg" id="s_msg"></div>
+    </div>
+  </div>
+
+  <!-- Your files -->
+  <div class="panel">
+    <div class="panel-h"><h2>Your files</h2><span class="st" id="f_status"></span></div>
+    <div class="body">
+      <div class="kv" style="margin-bottom:10px">Everything you have put into the desk is a plain file in the <span class="mono">data</span> folder, and the folder is yours: open it in any editor, copy it to another computer, or hand it to your agent. A new version never overwrites a file you changed. The backup below is that folder as one zip, with your keys and the downloaded market data left out.</div>
+      <div id="f_table"></div>
+      <div class="btns" style="margin-top:12px"><a class="ubtn" id="f_backup" href="/api/settings/backup" style="text-decoration:none;display:inline-block;background:var(--panel2);color:var(--ink2);border:1px solid var(--line2);border-radius:8px;padding:8px 14px;font-weight:700;font-size:12.5px">Download a backup</a><span class="kv">To restore, unzip it into the desk folder over the old files and open the desk again.</span></div>
+    </div>
+  </div>
+
+  <!-- Help -->
+  <div class="panel">
+    <div class="panel-h"><h2>If something is wrong</h2></div>
+    <div class="body kv">
+      <p style="margin-bottom:8px"><b>A screen is blank or a number looks off.</b> Reload the page once. Most screens rebuild on their own within a few minutes; the free quote feeds sometimes ask a new desk to wait, and the desk retries by itself.</p>
+      <p style="margin-bottom:8px"><b>The address does not open.</b> The desk is not running. Open the desk folder and double-click <b>Start Desk</b>; with the switch above on, it starts by itself at your next login.</p>
+      <p style="margin-bottom:8px"><b>Anything else.</b> The desk writes what it is doing to <span class="mono" id="h_log"></span>. Open the desk folder in your AI agent and say: <i>read README.md, then read the log file and tell me what is wrong with the desk</i>, and paste what you see on the screen. That is the same method that built it.</p>
+      <p><b>Reading.</b> The <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk#readme" target="_blank" rel="noopener" style="color:var(--accent)">README</a> explains every screen in plain words; the technical notes in the same folder are for the agent. Newer versions arrive through the strip at the top of every screen.</p>
     </div>
   </div>
 </main>
@@ -173,7 +219,31 @@ function render(s){
   $("s_upd_txt").textContent=s.auto_update?"A newer version is brought in the day it appears, and the strip tells you what changed.":"The desk tells you on every screen when a newer version exists; you click to bring it in.";
   $("e_mail").placeholder=s.edgar_contact||"you@example.com";
   st("v_status", s.env_exists?"":"no settings file yet; the first save creates it");
+  // profile
+  P = s.profile || {}; PC = s.profile_choices || {};
+  chips("p_styles", PC.styles||[], P.styles||[], true);
+  chips("p_drivers", PC.drivers||[], P.drivers||[], true);
+  chips("p_sectors", [], P.sectors||[], true);
+  chips("p_risk", PC.risk||[], P.risk?[P.risk]:[], false);
+  chips("p_horizon", PC.horizon||[], P.horizon?[P.horizon]:[], false);
+  $("p_ccy").value=P.home_currency||""; $("p_since").value=P.since||""; $("p_about").value=P.about||"";
+  const set=(P.styles||[]).length+(P.drivers||[]).length+(P.sectors||[]).length+(P.risk?1:0)+(P.horizon?1:0)+(P.about?1:0);
+  st("p_status", set?"on the agent page":"nothing set yet", set?"on":"");
+  // files
+  const files=s.files||[];
+  $("f_table").innerHTML = files.length ? `<table class="files">${files.map(f=>`<tr><td>${esc(f.file)}</td><td style="text-align:left;color:var(--muted)">${esc(f.what||"")}</td><td>${f.bytes<1024?f.bytes+" B":Math.round(f.bytes/1024)+" KB"}</td></tr>`).join("")}</table>` : "";
+  st("f_status", `${files.length} file${files.length===1?"":"s"} in ${esc(s.desk.folder)}/data`);
+  $("h_log").textContent=s.desk.log||"";
 }
+/* chip pickers: multi=true toggles many and takes a typed extra; multi=false is one-of */
+let P={}, PC={};
+function chips(id, options, chosen, multi){
+  const el=$(id); const all=[...options]; for(const c of chosen) if(!all.includes(c)) all.push(c);
+  el.innerHTML = all.map(o=>`<span class="chip${chosen.includes(o)?" on":""}${options.includes(o)?"":" x"}" data-v="${esc(o)}">${esc(o)}</span>`).join("") + (multi?`<input placeholder="add your own" data-for="${id}">`:"");
+  el.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ if(multi) c.classList.toggle("on"); else { el.querySelectorAll(".chip").forEach(x=>x.classList.remove("on")); c.classList.add("on"); } });
+  const inp=el.querySelector("input"); if(inp) inp.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===","){ e.preventDefault(); const v=inp.value.replace(/,/g,"").trim(); if(!v) return; const span=document.createElement("span"); span.className="chip on x"; span.dataset.v=v; span.textContent=v; span.onclick=()=>span.classList.toggle("on"); el.insertBefore(span,inp); inp.value=""; } });
+}
+function picked(id){ return [...$(id).querySelectorAll(".chip.on")].map(c=>c.dataset.v); }
 function aiHints(){
   const p=$("a_prov").value, v=S?S.ai.providers[p]:null;
   const custom = v && $("a_base").value && $("a_base").value!==v.base_url;
@@ -224,6 +294,13 @@ $("a_test").onclick=async()=>{ say("a_msg","Sending one line…"); const r=await
 
 /* agent */
 $("agent_copy").onclick=async()=>{ try{ await navigator.clipboard.writeText(S.desk.agent_url); $("agent_copy").textContent="Copied"; setTimeout(()=>$("agent_copy").textContent="Copy",1500);}catch(e){} };
+
+/* profile */
+$("p_save").onclick=async()=>{
+  const body={styles:picked("p_styles"),drivers:picked("p_drivers"),sectors:picked("p_sectors"),risk:picked("p_risk")[0]||"",horizon:picked("p_horizon")[0]||"",home_currency:$("p_ccy").value.trim().toUpperCase(),since:$("p_since").value.trim(),about:$("p_about").value.trim()};
+  const r=await post("/api/settings/profile",body);
+  if(r.ok){ say("p_msg","Saved. The agent page carries it from now.","ok"); load(); } else say("p_msg",r.error||"could not save","err");
+};
 
 /* desk */
 $("s_auto").onchange=async()=>{ const on=$("s_auto").checked; $("s_auto").disabled=true; say("s_msg", on?"Setting the desk to start with the computer…":"Switching it off…"); const r=await post("/api/settings/autostart",{on}); $("s_auto").disabled=false; if(r.ok){ say("s_msg",r.text||"Done.","ok"); if(r.status){ $("s_auto_txt").textContent=r.status.text; $("s_auto").checked=r.status.state==="on"; } } else { say("s_msg",r.error||"could not change it","err"); $("s_auto").checked=!on; } };

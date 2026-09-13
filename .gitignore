@@ -14,3 +14,6 @@ venv/
 logs/
 security_master.zip
 cache/
+
+# The reader's investing profile, written by the Settings screen
+data/profile.json

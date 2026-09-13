@@ -46,7 +46,7 @@ pip install -r requirements.txt
 cp .env.example .env      # optional: the Settings page writes this file for you
 ```
 
-Then put your names in the files under *The files you edit* (or add them in the pages once the desk is up). Keys go on `/settings` once the desk is up: the page writes `.env` (only the names it knows, one line each, comments kept), tests the data key against the feed, sends one line to the AI model, takes the broker's daily token, and registers or removes the start-at-login service. The page never returns a key, only its last four characters. A plain-text page at `/agent` tells any AI agent on the machine which address serves what.
+Then put your names in the files under *The files you edit* (or add them in the pages once the desk is up). Keys go on `/settings` once the desk is up: the page writes `.env` (only the names it knows, one line each, comments kept), tests the data key against the feed, sends one line to the AI model, takes the broker's daily token, and registers or removes the start-at-login service. The page never returns a key, only its last four characters. A plain-text page at `/agent` tells any AI agent on the machine which address serves what, and carries the reader's investing profile from `data/profile.json` (written by the same page) so an agent shapes its answers to the reader. `/api/settings/backup` streams `data/` and `research/` as one zip, never `.env`, tokens or `cache/`.
 
 Or hand all of this to your agent, as the README describes.
 

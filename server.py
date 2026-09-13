@@ -2752,7 +2752,11 @@ def settings_state():
     st["ai"]["providers"] = {k: {"label": v[0], "model": v[1], "base_url": v[2]} for k, v in desk_ai.PROVIDERS.items()}
     st["desk"] = {"port": PORT, "folder": HERE, "version": updater.local_version(),
                   "autostart": desk_settings.autostart_status(),
-                  "agent_url": f"http://localhost:{PORT}/agent"}
+                  "agent_url": f"http://localhost:{PORT}/agent",
+                  "log": os.path.join(HERE, "logs", "desk-service.log")}
+    st["profile"] = desk_settings.load_profile()
+    st["profile_choices"] = desk_settings.PROFILE_CHOICES
+    st["files"] = desk_settings.data_files()
     return st
 
 
@@ -2787,7 +2791,13 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
 
 Keys are the reader's own and stay in the file .env in {folder}. Do not read that file or
 repeat a key back. Lists the reader keeps are plain files under {folder}/data/.
-"""
+{profile}"""
+
+
+def agent_page():
+    prof = desk_settings.profile_text()
+    block = ("\nHOW THIS READER INVESTS (from their Settings screen; shape answers to it)\n" + prof + "\n") if prof else ""
+    return AGENT_PAGE.format(port=PORT, folder=HERE, profile=block)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -2830,7 +2840,17 @@ class Handler(BaseHTTPRequestHandler):
                 with open(os.path.join(HERE, "web", "settings.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/agent":
-                self._send(AGENT_PAGE.format(port=PORT, folder=HERE).encode(), "text/plain; charset=utf-8")
+                self._send(agent_page().encode(), "text/plain; charset=utf-8")
+            elif path == "/api/settings/backup":
+                body = desk_settings.backup_zip()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/zip")
+                self.send_header("Content-Disposition",
+                                 f'attachment; filename="greeksoup-desk-backup-{datetime.now().strftime("%Y-%m-%d")}.zip"')
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(body)
             elif path == "/api/settings":
                 self._send(json.dumps(settings_state()).encode(), "application/json")
             elif path == "/api/update":
@@ -3048,6 +3068,9 @@ class Handler(BaseHTTPRequestHandler):
                     pass
             rep["state"] = settings_state()
             return self._send(json.dumps(rep).encode(), "application/json")
+        if self.path == "/api/settings/profile":
+            prof = desk_settings.save_profile(body)
+            return self._send(json.dumps({"ok": True, "profile": prof}).encode(), "application/json")
         if self.path == "/api/settings/autostart":
             rep = desk_settings.set_autostart(bool(body.get("on")))
             rep["status"] = desk_settings.autostart_status()
