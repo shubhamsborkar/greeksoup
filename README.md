@@ -35,7 +35,7 @@ On Windows, press the Windows key, type `PowerShell`, press Enter, then paste th
 irm https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/install.ps1 | iex
 ```
 
-It finds Python on your computer (and installs it if it is missing), downloads the desk into a folder called GreekSoup in your home folder, installs what it needs into that folder and nothing else, sets the desk to start with your computer, starts it, and opens it in your browser. About a minute on a Mac; the Windows line was written from Microsoft's documented commands and has not been run on a Windows machine by the author, so if it complains, paste the window's text to an AI agent. Keys are optional and go in the `.env` file in that folder, one line each, with the file itself explaining where each key comes from.
+It finds Python on your computer (and installs it if it is missing), downloads the desk into a folder called GreekSoup in your home folder, installs what it needs into that folder and nothing else, sets the desk to start with your computer, starts it, and opens it in your browser. About a minute on a Mac; the Windows line was written from Microsoft's documented commands and has not been run on a Windows machine by the author, so if it complains, paste the window's text to an AI agent. Keys are optional. When you want one, open **Settings**, the last entry in the desk's sidebar, paste it there, and the desk keeps it in a file inside that folder; you never open the file yourself.
 
 ## Install it with an AI agent instead (about twenty minutes, the agent does the work)
 
@@ -66,7 +66,9 @@ The folder you downloaded contains a few files whose names are plain English, an
 - **Start Desk** starts the desk and keeps a small window open while it runs. Close that window and the desk stops. Use this if you only want the desk while you are at the screen.
 - **Keep Desk Running** is the one to double-click once, if you want the desk to be there every time you sit down. From then on the desk starts by itself when you log in to your computer, and if it ever stops, for any reason, it is back within a few seconds without you doing anything. The agent's install instruction above already does this for you; the file is there for when you want to do it yourself or on a second computer.
 - **Stop Desk** switches the always-on desk off. On a Mac, double-clicking it again switches it back on; on Windows, double-click Keep Desk Running again.
-- **Paste Token** is only for the shipped ICICI Direct adapter, explained under *Every morning*.
+- **Paste Token** is only for the shipped ICICI Direct adapter, explained under *Every morning*; the Settings screen does the same job inside the page.
+
+The Settings screen carries a switch, *Start with the computer*, that does what Keep Desk Running does, and shows whether it is on.
 
 What happens in daily life once Keep Desk Running has been used: you shut the computer down and switch it on again, the desk is back once you log in. You close the laptop lid, the desk sleeps with it and carries on when you open the lid. Something crashes, the desk restarts itself. You never start it by hand again.
 
@@ -78,7 +80,7 @@ Two honest notes. The Windows files were written from Microsoft's documented com
 
 Nothing, for most readers. The desk does not have a login of its own, and most brokers keep the connection to your account alive for months once the key is set.
 
-The one exception is the shipped ICICI Direct adapter, whose regulator requires a fresh login every trading day. On a morning you want that account live, open the desk folder, double-click **Paste Token**, log in on the page it opens, copy the number it asks for from the address bar, and paste it. Skip it and the desk keeps showing the last saved book, re-priced live, with a ribbon saying the broker session is off; every other screen is unaffected. Readers on any other broker never see this step.
+The one exception is the shipped ICICI Direct adapter, whose regulator requires a fresh login every trading day. On a morning you want that account live, open **Settings** in the desk, click *Open the broker login*, log in on the page it opens, copy the value after `apisession=` from the address bar, paste it into the token box and click *Connect*; Desk · Home is live a moment later. If you set the redirect address in your broker app to `http://localhost:8765/settings`, the token arrives on its own after the login and there is nothing to copy. The **Paste Token** file in the desk folder does the same from a window, for readers who prefer it. Skip the token and the desk keeps showing the last saved book, re-priced live, with a ribbon saying the broker session is off; every other screen is unaffected. Readers on any other broker never see this step.
 
 ## Two desks for two markets
 
@@ -103,6 +105,8 @@ So a reader in the US uses Desk · US and never opens Home. A reader in Australi
 - **Chain**: a value-chain map, receipt-graded and priced live.
 - **Commodities**: 51 commodities in seven groups, from crude and copper to rubber, coking coal, palm oil, tea and the dollar against the rupee and the yuan, each with the level, five change windows and the distance from its five-year high. Click one and it shows the industries a rise squeezes and the industries it helps, the same in any country, and under each industry the listed names you have mapped to it, priced live, with the raw-material share from their own filings. A names-under-pressure panel adds up every commodity a name sits on and ranks who is squeezed and who is helped this month. It ships with the US names; you add your own market in one file (below).
 - **Any ticker**: Cmd+K, type a symbol: chart, valuation, quality, estimates, insiders, dividends, news, and with a feed key six years of statements, ratios, segments, peers and a DCF sandbox.
+
+And **Settings**, the last entry in the sidebar: the broker keys and the daily token, the data key with a button that says what your plan answers, your own AI key from any lab or a model running on your computer, with a test, the address that lets any AI agent on your computer read the whole desk, and two switches, *Start with the computer* and *Newer versions*. Nothing on it is required; every key is yours and stays on your computer.
 
 ## What runs with no key at all
 
@@ -130,7 +134,7 @@ The desk can hold several accounts at the same broker, and a US book next to a h
 
 The desk keeps growing (the list at the bottom of this section says what was added and when), and it tells you itself. Once a day it looks at the page you downloaded it from, and when a newer version exists a strip appears at the top of every screen with the date and what changed, and one button, **Update the desk**. Click it and the desk brings the new version in, keeps your keys and every list in your `data/` folder exactly as they are, adds any new list or alert rule, keeps any file your agent changed for you (a rewritten broker adapter, say) and names it so you can ask the agent to merge the changes into it, then restarts by itself. It takes under a minute. **Not now** hides the strip until the next version.
 
-If you would rather not click at all, open the `.env` file in the desk folder and set `DESK_AUTO_UPDATE=on`. The desk then brings a new version in the day it appears and tells you what changed the next time you open it.
+If you would rather not click at all, switch on *Newer versions* on the Settings screen. The desk then brings a new version in the day it appears and tells you what changed the next time you open it.
 
 A copy from before 13 September 2026 does not have the strip yet, so bring it up to date once by hand, and from then on the desk tells you itself. Download the ZIP again from the green **Code** button, the same way as on install, so the new folder sits in your Downloads folder, then open your existing desk folder in your agent and paste:
 

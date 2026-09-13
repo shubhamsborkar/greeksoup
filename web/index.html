@@ -420,7 +420,7 @@ function render(snap){
       <h3>No broker connected right now</h3>
       <p>This screen shows a broker account: holdings, open futures, cash and margin, priced live. Three ways to get a book on the desk.</p>
       <p style="margin-top:8px"><b>Without a broker:</b> open <a href="/book" style="color:var(--accent)">Desk · Book</a> and add your holdings by hand with Yahoo symbols (AAPL, MC.PA, 0700.HK). Prices come from Yahoo's free feed, no key needed, any market.</p>
-      <p style="margin-top:8px"><b>With the broker adapter that ships in the desk</b> (ICICI Direct): put its key and secret in the <b>.env</b> file in the desk folder, then double-click <b>Paste Token</b> in that folder each morning you want the account live; that broker's regulator makes the login daily, which is why this notice also appears each morning.</p>
+      <p style="margin-top:8px"><b>With the broker adapter that ships in the desk</b> (ICICI Direct): open <a href="/settings" style="color:var(--accent)">Settings</a>, save the app key and secret, then paste the day's token there each morning you want the account live; that broker's regulator makes the login daily, which is why this notice also appears each morning.</p>
       <p style="margin-top:8px"><b>With any other broker</b> that offers an API (Interactive Brokers, Alpaca, Robinhood, Zerodha and most large brokers do): open the desk folder in your AI agent and ask it to write the adapter from your broker's documentation. Until then this screen stays dark and every other screen works.</p></div>`;
     document.getElementById("ticker").innerHTML="";
     return;
@@ -431,7 +431,7 @@ function render(snap){
       <span>broker book as of <b>${stale.broker_as_of}</b></span>
       <span>· stock marks refreshed via Yahoo (delayed${stale.yahoo_marks<stale.eq_rows?`, ${stale.eq_rows-stale.yahoo_marks} names frozen at the broker mark`:""})</span>
       <span>· futures &amp; margin frozen at broker time</span>
-      <span class="dim">· to go live: quit desk → Start Desk.command → paste tokens</span></div>`;
+      <span class="dim">· to go live: paste today's token on <a href="/settings" style="color:var(--accent)">Settings</a></span></div>`;
   const acc=snap.accounts;
   const fam={eq:0,pnl:0,mtm:0,cash:0,free:0,blocked:0,limit:0};
   for(const a of Object.values(acc)){

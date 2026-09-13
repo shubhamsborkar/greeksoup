@@ -39,6 +39,9 @@ import shortint
 import secmaster
 import stream_in
 import updater          # the daily version check and the one-click update
+import settings as desk_settings   # the Settings screen: keys, token, switches
+import ai as desk_ai               # the reader's own AI key, tested here
+import breeze_session
 from breeze_session import ACCOUNTS, get_client, get_client_if_cached
 import freefeed          # keyless Yahoo fallbacks for the US pages
 import sec_form4         # keyless Form 4 from EDGAR
@@ -2702,6 +2705,91 @@ def _cached(kind, ttl, builder):
     return _cache[kind][1] if _cache[kind][1] is not None else {}
 
 
+# ---- Settings: the broker connected from the page, not the terminal ---------
+_stream_started = {"on": False}
+
+
+def _start_stream(cli):
+    if _stream_started["on"]:
+        return
+    _stream_started["on"] = True
+
+    def _stream_sink(code, q):
+        with _watch_lock:
+            WATCH[code] = q
+    threading.Thread(target=stream_in.manager,
+                     args=(cli, load_watchlist, _stream_sink, market_open), daemon=True).start()
+
+
+def connect_broker_now(account="primary"):
+    """Build the broker session from today's cached token, at runtime. Returns
+    plain words for the page."""
+    cli = get_client_if_cached(account)
+    if cli is None:
+        return {"ok": False, "error": "The broker did not accept that token. It may be from an earlier day, or pasted with a character missing."}
+    clients[account] = cli
+    ACCOUNT_LABELS[account] = _account_label(account, cli)
+    breeze_health["dead"] = False
+    _cache["snap"] = (0.0, None)
+    _start_stream(cli)
+    return {"ok": True, "label": ACCOUNT_LABELS[account]}
+
+
+def settings_state():
+    st = desk_settings.current()
+    key = st["broker"].pop("key_raw_for_login", "")
+    login_url = ""
+    if key:
+        from urllib.parse import quote
+        login_url = "https://api.icicidirect.com/apiuser/login?api_key=" + quote(key, safe="")
+    st["broker"].update({
+        "adapter": "ICICI Direct (Breeze)",
+        "login_url": login_url,
+        "token_today": breeze_session._read_cached_token("primary") is not None,
+        "connected": bool(clients),
+        "label": ACCOUNT_LABELS.get("primary", ""),
+    })
+    st["ai"]["providers"] = {k: {"label": v[0], "model": v[1], "base_url": v[2]} for k, v in desk_ai.PROVIDERS.items()}
+    st["desk"] = {"port": PORT, "folder": HERE, "version": updater.local_version(),
+                  "autostart": desk_settings.autostart_status(),
+                  "agent_url": f"http://localhost:{PORT}/agent"}
+    return st
+
+
+AGENT_PAGE = """GreekSoup: the one-person equity research desk. This page is for an AI agent.
+
+The desk runs on this computer at http://localhost:{port}/ and answers plain JSON at the
+addresses below. Everything is read-only: nothing here places an order or changes an account.
+Every figure names its source on the screen it came from; quote the source when you use a figure.
+
+WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
+/            Desk - Home, the broker book  /api/snapshot   holdings, open futures, cash, margin
+/usdesk      Desk - US, the US book         /api/usbook     the US positions, priced
+/book        Desk - Book, kept by hand      /api/book       positions and cash by currency
+/risk        Risk                           /api/risk       concentration, sector, beta, drawdown
+/watch       Watch - Home                   /api/watch?list=in    quotes for the home watch grid
+/watch?list=us      Watch - US              /api/watch?list=us    quotes for the US watch grid
+/watch?list=global  Global                  /api/watch?list=global
+/funds       Funds (13F)                    /api/funds      the followed funds' latest 13F holdings
+/flow        Flow                           /api/flow       13D/G activist and large-holder filings
+/short       Short                          /api/short      short interest
+/capitol     Capitol                        /api/capitol    congressional trading disclosures
+/macro       Macro                          /api/macro      the macro cards;  /api/econcal  the calendar
+/commods     Commodities                    /api/commods    the commodity board and its exposure map
+/chain       Chain                          /api/chain      the value-chain maps, priced
+/t?symbol=AAPL   a ticker page              /api/ticker?symbol=AAPL   chart, quote, ratios, insiders
+                                            /api/fin?symbol=AAPL      statements, estimates, peers (needs the data key)
+                                            /api/earnings   the US earnings countdown
+                                            /api/insiders   the insider tape
+                                            /api/alerts     the alerts that fired
+                                            /api/search?q=apple&list=us   symbol search
+/settings    Settings (keys and switches)   /api/settings   which keys exist (never the keys themselves)
+
+Keys are the reader's own and stay in the file .env in {folder}. Do not read that file or
+repeat a key back. Lists the reader keeps are plain files under {folder}/data/.
+"""
+
+
 class Handler(BaseHTTPRequestHandler):
     def _send(self, body, ctype):
         self.send_response(200)
@@ -2738,6 +2826,13 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/ping":
                 return self._send(b'{"ok":true}', "application/json")
+            elif path == "/settings":
+                with open(os.path.join(HERE, "web", "settings.html"), "rb") as fh:
+                    self._send(fh.read(), "text/html; charset=utf-8")
+            elif path == "/agent":
+                self._send(AGENT_PAGE.format(port=PORT, folder=HERE).encode(), "text/plain; charset=utf-8")
+            elif path == "/api/settings":
+                self._send(json.dumps(settings_state()).encode(), "application/json")
             elif path == "/api/update":
                 force = (qs.get("check", [""])[0] or "") == "1"
                 self._send(json.dumps(updater.status(force)).encode(), "application/json")
@@ -2912,6 +3007,53 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(b'{"ok":true}', "application/json")
         return self._send(b'{"ok":false,"error":"unknown book action"}', "application/json")
 
+    def _settings_post(self, body):
+        """The Settings screen. Only a page on this computer can call these: the
+        JSON content type makes any other site's browser ask first, and the desk
+        never answers that question."""
+        if "application/json" not in (self.headers.get("Content-Type") or ""):
+            return self.send_error(400)
+        if self.path == "/api/settings/save":
+            fields = {k: v for k, v in body.items() if isinstance(v, str) and k in desk_settings.ALLOWED}
+            if "DESK_AUTO_UPDATE" in fields:
+                fields["DESK_AUTO_UPDATE"] = "on" if fields["DESK_AUTO_UPDATE"].lower() in ("on", "1", "true") else "off"
+            if "AI_PROVIDER" in fields and fields["AI_PROVIDER"] and fields["AI_PROVIDER"] not in desk_ai.PROVIDERS:
+                return self._send(b'{"ok":false,"error":"unknown provider"}', "application/json")
+            saved = desk_settings.write_env(fields)
+            if "FMP_API_KEY" in saved:
+                for k in ("earn", "capitol", "insiders", "econcal", "pulse"):
+                    _cache[k] = (0.0, None)
+            return self._send(json.dumps({"ok": True, "saved": saved, "state": settings_state()}).encode(), "application/json")
+        if self.path == "/api/settings/check_data":
+            return self._send(json.dumps(desk_settings.check_fmp()).encode(), "application/json")
+        if self.path == "/api/settings/check_ai":
+            return self._send(json.dumps(desk_ai.ping()).encode(), "application/json")
+        if self.path == "/api/settings/token":
+            token = str(body.get("token", "")).strip()
+            # a whole redirect address pasted by mistake still works
+            m = re.search(r"apisession=([^&\s]+)", token)
+            if m:
+                token = m.group(1)
+            if not token:
+                return self._send(b'{"ok":false,"error":"Paste the token first."}', "application/json")
+            key, secret = breeze_session._creds("primary")
+            if not key or not secret or key.startswith(("your_", "paste_")):
+                return self._send(b'{"ok":false,"error":"Save the broker key and secret first, then paste the token."}', "application/json")
+            breeze_session.cache_token("primary", token)
+            rep = connect_broker_now("primary")
+            if not rep.get("ok"):
+                try:
+                    os.remove(breeze_session._cache_path("primary"))
+                except OSError:
+                    pass
+            rep["state"] = settings_state()
+            return self._send(json.dumps(rep).encode(), "application/json")
+        if self.path == "/api/settings/autostart":
+            rep = desk_settings.set_autostart(bool(body.get("on")))
+            rep["status"] = desk_settings.autostart_status()
+            return self._send(json.dumps(rep).encode(), "application/json")
+        return self._send(b'{"ok":false,"error":"unknown settings action"}', "application/json")
+
     def do_POST(self):  # noqa: N802 - stdlib naming
         """Watchlist add/remove. Still zero order capability — these endpoints
         only edit which names the READ-ONLY watch grid quotes."""
@@ -2922,6 +3064,8 @@ class Handler(BaseHTTPRequestHandler):
             code = str(body.get("code", "")).strip().upper()
             if self.path.startswith("/api/book/"):
                 return self._book_post(body)
+            if self.path.startswith("/api/settings/"):
+                return self._settings_post(body)
             if self.path == "/api/update/apply":
                 # The one click. Writes program files inside this folder only,
                 # then the process restarts itself; the page reconnects.
@@ -3037,13 +3181,7 @@ def main():
     restore_quotes()
     stream_client = next(iter(clients.values()), None)
     if stream_client:
-        def _stream_sink(code, q):
-            with _watch_lock:
-                WATCH[code] = q
-        threading.Thread(
-            target=stream_in.manager,
-            args=(stream_client, load_watchlist, _stream_sink, market_open),
-            daemon=True).start()
+        _start_stream(stream_client)
     threading.Thread(target=watch_loop, daemon=True).start()
     threading.Thread(target=us_watch_loop, daemon=True).start()
     threading.Thread(target=global_watch_loop, daemon=True).start()

@@ -72,5 +72,5 @@ if (-not (Up)) { throw "The desk has not answered yet. Give it a minute, then op
 Start-Process $Url
 Write-Host "`n  Done. The desk is at $Url and it starts with your computer from now on."
 Write-Host "  Folder: $Dest"
-Write-Host "  Keys are optional: they go in the .env file in that folder, or ask your AI agent to add them."
+Write-Host "  Keys are optional: the Settings screen inside the desk takes them."
 Write-Host "  Newer versions: the desk tells you on every screen and updates with one click.`n"

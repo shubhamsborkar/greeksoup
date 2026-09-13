@@ -43,10 +43,10 @@ git clone https://github.com/shubhamsborkar/one-person-equity-research-desk.git
 cd one-person-equity-research-desk
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env      # then fill in your keys
+cp .env.example .env      # optional: the Settings page writes this file for you
 ```
 
-Then put your names in the files under *The files you edit* (or add them in the pages once the desk is up).
+Then put your names in the files under *The files you edit* (or add them in the pages once the desk is up). Keys go on `/settings` once the desk is up: the page writes `.env` (only the names it knows, one line each, comments kept), tests the data key against the feed, sends one line to the AI model, takes the broker's daily token, and registers or removes the start-at-login service. The page never returns a key, only its last four characters. A plain-text page at `/agent` tells any AI agent on the machine which address serves what.
 
 Or hand all of this to your agent, as the README describes.
 
@@ -60,7 +60,7 @@ Two ways to run it. Pick one.
 
 Nothing on the desk needs a login of its own: Desk · US, the watch grids, Funds, Flow, Short, Capitol, Macro and Risk run from the public record and the optional feed key you set once.
 
-Whether Desk · Home needs anything each day is up to your broker, not the desk. Most brokers keep an API session alive for weeks or months once the key is set. The shipped ICICI adapter is the exception: that broker's regulator requires a fresh login every trading day, so on a morning you want the Home page live you double-click `Paste Token.command` / `Paste Token.bat`, it opens the broker's login page, you paste the number after `apisession=` from the address bar, press Enter, and the desk reconnects (the token is cached for the day). Skip it and the desk keeps serving the last saved book re-priced live and shows a ribbon, and every other page is unaffected. Readers on other brokers can ignore the Paste Token files entirely.
+Whether Desk · Home needs anything each day is up to your broker, not the desk. Most brokers keep an API session alive for weeks or months once the key is set. The shipped ICICI adapter is the exception: that broker's regulator requires a fresh login every trading day, so on a morning you want the Home page live you paste the value after `apisession=` on the Settings page (or double-click `Paste Token.command` / `Paste Token.bat`, which asks in a window), and the desk reconnects without a restart (the token is cached for the day). A broker app whose redirect address is `http://localhost:8765/settings` delivers the token to the page by itself. Skip it and the desk keeps serving the last saved book re-priced live and shows a ribbon, and every other page is unaffected. Readers on other brokers can ignore the Paste Token files entirely.
 
 To have the desk inside Obsidian: switch on the **Web Viewer** core plugin, copy `obsidian/Live Desk.md` into your vault, and (optional) copy `obsidian/desk.css` into `.obsidian/snippets/` and enable it, so the note uses the full width.
 

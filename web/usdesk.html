@@ -177,8 +177,10 @@ async function pull(){
   document.getElementById("asof").textContent="positions as recorded "+d.as_of+" · prices live via FMP · click a ticker for full research";
   document.getElementById("note").innerHTML =
     `Positions come from <b>data/us_book.json</b> in the desk folder; prices are live. Edit the file
-     after any trade and this desk follows. If your US broker offers an API, have the agent
-     replace the file read with a live pull.`;
+     after any trade and this desk follows. <b>Connect a US broker:</b> if yours offers an API
+     (Interactive Brokers, Alpaca, Robinhood and most large brokers do), open the desk folder in your
+     AI agent and ask it to replace the file read with a live pull; its keys then go on
+     <a href="/settings" style="color:var(--accent)">Settings</a> like the others.`;
   const dot=document.getElementById("mktdot");
   dot.className="dot"+(d.market_open?" live":"");
   document.getElementById("mktlabel").textContent="US "+(d.market_open?"MARKET OPEN":"MARKET CLOSED");

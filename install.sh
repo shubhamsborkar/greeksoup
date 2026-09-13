@@ -123,5 +123,5 @@ elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$URL" >/dev/null 2>&1 |
 if [ -n "$NO_SERVICE" ]; then printf '\n  Done. The desk is at %s (this run only).\n' "$URL"
 else printf '\n  Done. The desk is at %s and it starts with your computer from now on.\n' "$URL"; fi
 printf '  Folder: %s\n' "$DEST"
-printf '  Keys are optional: they go in the .env file in that folder, or ask your AI agent to add them.\n'
+printf '  Keys are optional: the Settings screen inside the desk takes them.\n'
 printf '  Newer versions: the desk tells you on every screen and updates with one click.\n\n'

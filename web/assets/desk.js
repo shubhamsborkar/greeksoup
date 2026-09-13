@@ -30,6 +30,7 @@
     chain: '<circle cx="3.5" cy="12" r="1.8"/><circle cx="8" cy="4" r="1.8"/><circle cx="12.5" cy="12" r="1.8"/><path d="M4.5 10.4L7 5.8m2 0l2.5 4.6M5.3 12h5.4"/>',
     commods: '<path d="M3 5.5l5-3 5 3v5l-5 3-5-3z"/><path d="M3 5.5l5 3 5-3M8 8.5v5"/>',
     book: '<path d="M3 2.5h7.5a2 2 0 012 2v9H5a2 2 0 01-2-2z"/><path d="M3 11.5a2 2 0 012-2h7.5"/><path d="M6 5.5h4"/>',
+    settings: '<circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6l1.4 1.4M11 11l1.4 1.4M3.6 12.4L5 11M11 5l1.4-1.4"/>',
   };
   const TABS = [
     /* Labels: "Home" is your broker account (whatever market), "US" is the US public-record desk. Rename here. */
@@ -47,6 +48,7 @@
     ["/macro", "Macro", "Market", I.macro],
     ["/commods", "Commodities", "Market", I.commods],
     ["/chain", "Chain", "Market", I.chain],
+    ["/settings", "Settings", "Setup", I.settings],
   ];
   function current() {
     const p = location.pathname;

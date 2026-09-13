@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Settings — GreekSoup</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23ED5A24'/><text x='16' y='22' font-size='15' font-weight='800' font-family='Arial' fill='white' text-anchor='middle'>GS</text></svg>">
+<link rel="stylesheet" href="/assets/desk.css">
+<script src="/assets/desk.js" defer></script>
+<style>
+main{max-width:980px;margin:0 auto;padding:18px 22px}
+.sub{color:var(--muted);font-size:12px;margin-bottom:16px;line-height:1.55}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.panel-h{padding:11px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.panel-h h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2)}
+.panel-h .st{font-size:11px;color:var(--muted)}
+.panel-h .st.on{color:var(--pos)} .panel-h .st.warn{color:var(--amber)}
+.body{padding:13px 15px}
+.row{display:grid;grid-template-columns:170px 1fr;gap:10px 14px;align-items:center;margin-bottom:10px}
+.row label{font-size:12px;color:var(--ink2)}
+.row .hint{grid-column:2;font-size:11px;color:var(--muted);margin-top:-6px;line-height:1.5}
+input,select,textarea{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:inherit;width:100%;max-width:520px}
+input.mono{font-family:Menlo,monospace}
+.btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px}
+button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:12.5px}
+button.ghost{background:var(--panel2);color:var(--ink2);border:1px solid var(--line2)}
+button:disabled{opacity:.45;cursor:default}
+.msg{font-size:11.5px;color:var(--muted);line-height:1.55;margin-top:9px;min-height:1em}
+.msg.err{color:var(--neg)} .msg.ok{color:var(--pos)}
+.note{font-size:11.5px;color:var(--muted);line-height:1.6;padding:12px 15px;border-top:1px solid var(--line)}
+.note b{color:var(--ink2)}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;max-width:520px}
+td{padding:6px 8px;border-bottom:1px solid var(--line)} td:last-child{text-align:right;color:var(--ink2)}
+td.yes{color:var(--pos)} td.no{color:var(--muted)}
+.sw{display:flex;align-items:center;gap:12px}
+.sw input{width:auto;max-width:none;accent-color:var(--accent);transform:scale(1.25)}
+.sw span{font-size:12px;color:var(--ink2);line-height:1.5}
+.code{font-family:Menlo,monospace;font-size:12px;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;max-width:520px;word-break:break-all}
+.code button{padding:4px 9px;font-size:11px}
+.kv{font-size:11.5px;color:var(--muted);line-height:1.7}
+.kv b{color:var(--ink2);font-weight:600}
+@media (max-width:640px){.row{grid-template-columns:1fr}.row .hint{grid-column:1}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">RESEARCH <span>DESK</span></div>
+  <nav></nav>
+  <div class="right"><span id="asof"></span></div>
+</header>
+<main>
+  <div class="sub">Everything the desk needs from you, on one screen. Each key is optional, each one is yours, and each one stays in a file inside the desk folder on this computer; the desk writes that file for you, and a new version never touches it. Nothing on this screen places an order anywhere.</div>
+
+  <!-- Broker -->
+  <div class="panel">
+    <div class="panel-h"><h2>Broker</h2><span class="st" id="b_status"></span></div>
+    <div class="body">
+      <div class="row"><label>Adapter</label><div class="kv" id="b_adapter"></div></div>
+      <div class="row"><label for="b_key">App key</label><input class="mono" id="b_key" autocomplete="off" spellcheck="false"></div>
+      <div class="row"><label for="b_sec">App secret</label><input class="mono" id="b_sec" type="password" autocomplete="off"></div>
+      <div class="row"><span></span><div class="hint">From your broker's developer page (for the shipped adapter: api.icicidirect.com, register an app once; free for its clients). Leave a box empty to keep what is saved.</div></div>
+      <div class="btns"><button id="b_save">Save broker keys</button><button class="ghost" id="b_clear">Remove them</button></div>
+      <div class="msg" id="b_msg"></div>
+    </div>
+    <div class="body" style="border-top:1px solid var(--line)">
+      <div class="row"><label>Today's token</label><div class="kv" id="b_tok"></div></div>
+      <div class="row"><span></span><div class="hint">The shipped adapter's regulator asks for a fresh login every trading day. Click the button, log in on the page it opens, and when that page jumps to a "localhost" address, copy everything after <span class="mono">apisession=</span> and paste it here. Paste the whole address if that is easier. If the redirect address in your broker app is <span class="mono" id="b_redirect"></span>, the token arrives here by itself.</div></div>
+      <div class="row"><label for="b_token">Paste the token</label><input class="mono" id="b_token" autocomplete="off" spellcheck="false" placeholder="the value after apisession="></div>
+      <div class="btns"><button class="ghost" id="b_login">Open the broker login</button><button id="b_connect">Connect</button></div>
+      <div class="msg" id="t_msg"></div>
+    </div>
+    <div class="note"><b>Another broker?</b> Any broker with an API works (Interactive Brokers, Alpaca, Robinhood, Zerodha and most large brokers have one). Open the desk folder in your AI agent and ask it to write the adapter from your broker's documentation; the folder's technical notes describe the shape it has to return. <b>No broker?</b> <a href="/book" style="color:var(--accent)">Desk · Book</a> keeps a portfolio by hand, any market, no key.</div>
+  </div>
+
+  <!-- Data key -->
+  <div class="panel">
+    <div class="panel-h"><h2>Data key</h2><span class="st" id="d_status"></span></div>
+    <div class="body">
+      <div class="row"><label for="d_key">Financial Modeling Prep</label><input class="mono" id="d_key" type="password" autocomplete="off"></div>
+      <div class="row"><span></span><div class="hint">Optional, any plan. Without it the desk gives what the free public record offers. With it the ticker page adds six years of statements, estimates, segments, peers, dividends and news; the US watch grid its 50 and 200 day columns; Capitol its Senate rows; and the insider tape becomes market-wide. The check below says what your plan answers.</div></div>
+      <div class="btns"><button id="d_save">Save the key</button><button class="ghost" id="d_check">Check what it allows</button><button class="ghost" id="d_clear">Remove it</button></div>
+      <div class="msg" id="d_msg"></div>
+      <div id="d_table"></div>
+    </div>
+  </div>
+
+  <!-- AI -->
+  <div class="panel">
+    <div class="panel-h"><h2>Your AI</h2><span class="st" id="a_status"></span></div>
+    <div class="body">
+      <div class="row"><label for="a_prov">Provider</label><select id="a_prov"><option value="">none yet</option></select></div>
+      <div class="row"><label for="a_key">Key</label><input class="mono" id="a_key" type="password" autocomplete="off"></div>
+      <div class="row"><label for="a_model">Model</label><input class="mono" id="a_model" autocomplete="off" spellcheck="false"></div>
+      <div class="row" id="a_base_row"><label for="a_base">Endpoint address</label><input class="mono" id="a_base" autocomplete="off" spellcheck="false" placeholder="http://localhost:11434/v1"></div>
+      <div class="row"><span></span><div class="hint">Optional. A key from any lab, or a model running on this computer through Ollama or LM Studio (pick "Any compatible endpoint" and give its address; no key needed). The test sends one line to the model and shows what came back.</div></div>
+      <div class="btns"><button id="a_save">Save</button><button class="ghost" id="a_test">Test it</button><button class="ghost" id="a_clear">Remove the key</button></div>
+      <div class="msg" id="a_msg"></div>
+    </div>
+  </div>
+
+  <!-- Connect your AI app -->
+  <div class="panel">
+    <div class="panel-h"><h2>Connect your AI app</h2></div>
+    <div class="body">
+      <div class="kv" style="margin-bottom:10px">Any AI agent that can open addresses on this computer (Claude Code, Codex, Kimi Code, Grok Build, OpenClaw, Cursor and the like) reads the whole desk through one page. Give it this address and it knows what every screen is and where to read the numbers.</div>
+      <div class="code"><span id="agent_url"></span><button class="ghost" id="agent_copy">Copy</button></div>
+      <div class="kv" style="margin-top:10px">A line that works in any of them: <i>Read <span id="agent_url2"></span> and go through my desk; tell me what changed today and where the numbers came from.</i></div>
+    </div>
+  </div>
+
+  <!-- Desk -->
+  <div class="panel">
+    <div class="panel-h"><h2>This desk</h2><span class="st" id="v_status"></span></div>
+    <div class="body">
+      <div class="row"><label>Where it runs</label><div class="kv" id="v_where"></div></div>
+      <div class="row"><label>Start with the computer</label><div class="sw"><input type="checkbox" id="s_auto"><span id="s_auto_txt"></span></div></div>
+      <div class="row"><label>Newer versions</label><div class="sw"><input type="checkbox" id="s_upd"><span id="s_upd_txt"></span></div></div>
+      <div class="row"><label for="e_mail">Your e-mail for the SEC</label><input id="e_mail" autocomplete="off" spellcheck="false" placeholder="you@example.com"></div>
+      <div class="row"><span></span><div class="hint">The SEC's filing servers ask every program for a contact address and answer faster to one that gives it. Any address you own; it is sent only to the SEC.</div></div>
+      <div class="btns"><button class="ghost" id="e_save">Save the address</button></div>
+      <div class="msg" id="s_msg"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let S=null;
+async function post(url,body){ const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})}); return r.json(); }
+function say(id,text,k){ const el=$(id); el.textContent=text||""; el.className="msg "+(k||""); }
+function st(id,text,k){ const el=$(id); el.textContent=text||""; el.className="st "+(k||""); }
+
+function render(s){
+  S=s;
+  $("asof").textContent="version "+(s.desk.version||"");
+  // broker
+  $("b_adapter").innerHTML=`<b>${esc(s.broker.adapter)}</b>, the adapter that ships in the desk`;
+  $("b_key").placeholder=s.broker.key?("saved · "+s.broker.key):"not saved";
+  $("b_sec").placeholder=s.broker.secret?("saved · "+s.broker.secret):"not saved";
+  $("b_redirect").textContent=`http://localhost:${s.desk.port}/settings`;
+  const haveKeys=!!(s.broker.key&&s.broker.secret);
+  if(s.broker.connected) st("b_status",`connected · ${s.broker.label||"account"} live`,"on");
+  else if(haveKeys) st("b_status", s.broker.token_today?"keys saved · today's token saved, session not up":"keys saved · no token today","warn");
+  else st("b_status","no broker connected");
+  $("b_tok").innerHTML = s.broker.connected ? `<b>Live.</b> The account is connected for today${s.broker.label?" as "+esc(s.broker.label):""}.`
+    : s.broker.token_today ? `<b>Saved for today</b>, but the session is not up. Paste it again, or open the login for a fresh one.`
+    : haveKeys ? `<b>Not yet today.</b> Desk · Home shows the last saved book until you paste one.`
+    : `Save the broker keys first.`;
+  $("b_login").disabled=!s.broker.login_url; $("b_connect").disabled=!haveKeys;
+  // data
+  $("d_key").placeholder=s.data.key?("saved · "+s.data.key):"not saved";
+  st("d_status", s.data.key?"key saved":"no key, the free record only", s.data.key?"on":"");
+  $("d_check").disabled=!s.data.key;
+  // ai
+  const sel=$("a_prov"); const keep=sel.value;
+  sel.innerHTML='<option value="">none yet</option>'+Object.entries(s.ai.providers).map(([k,v])=>`<option value="${k}">${esc(v.label)}</option>`).join("");
+  sel.value=keep||s.ai.provider||"";
+  $("a_key").placeholder=s.ai.key?("saved · "+s.ai.key):"not saved";
+  $("a_model").value=s.ai.model||""; $("a_base").value=s.ai.base_url||"";
+  aiHints();
+  st("a_status", s.ai.provider?(s.ai.providers[s.ai.provider]?.label||s.ai.provider)+(s.ai.key?" · key saved":""):"none yet", s.ai.provider&&(s.ai.key||s.ai.provider==="compatible")?"on":"");
+  $("a_test").disabled=!s.ai.provider;
+  // agent
+  $("agent_url").textContent=s.desk.agent_url; $("agent_url2").textContent=s.desk.agent_url;
+  // desk
+  $("v_where").innerHTML=`<b>http://localhost:${s.desk.port}</b> from the folder <span class="mono">${esc(s.desk.folder)}</span>`;
+  const a=s.desk.autostart||{};
+  $("s_auto").checked=a.state==="on"; $("s_auto").disabled=a.state==="other"||a.state==="unknown";
+  $("s_auto_txt").textContent=a.text||"";
+  $("s_upd").checked=!!s.auto_update;
+  $("s_upd_txt").textContent=s.auto_update?"A newer version is brought in the day it appears, and the strip tells you what changed.":"The desk tells you on every screen when a newer version exists; you click to bring it in.";
+  $("e_mail").placeholder=s.edgar_contact||"you@example.com";
+  st("v_status", s.env_exists?"":"no settings file yet; the first save creates it");
+}
+function aiHints(){
+  const p=$("a_prov").value, v=S?S.ai.providers[p]:null;
+  const custom = v && $("a_base").value && $("a_base").value!==v.base_url;
+  $("a_base_row").style.display = (p==="compatible"||custom) ? "" : "none";
+  $("a_model").placeholder = v&&v.model ? ("default · "+v.model) : (p==="compatible"?"the model's name at that endpoint":"");
+  $("a_key").placeholder = p==="compatible" ? (S&&S.ai.key?"saved · "+S.ai.key:"optional for a local model") : (S&&S.ai.key?"saved · "+S.ai.key:"not saved");
+}
+async function load(){ const r=await fetch("/api/settings"); render(await r.json()); }
+
+/* broker */
+$("b_save").onclick=async()=>{
+  const f={}; if($("b_key").value.trim()) f.BREEZE_API_KEY=$("b_key").value.trim(); if($("b_sec").value.trim()) f.BREEZE_API_SECRET=$("b_sec").value.trim();
+  if(!Object.keys(f).length) return say("b_msg","Type the key or the secret first.","err");
+  const r=await post("/api/settings/save",f);
+  if(r.ok){ $("b_key").value="";$("b_sec").value=""; say("b_msg","Saved. Now paste today's token below to bring the account up.","ok"); render(r.state);} else say("b_msg",r.error||"could not save","err");
+};
+$("b_clear").onclick=async()=>{ if(!confirm("Remove the broker key and secret from this desk?")) return; const r=await post("/api/settings/save",{BREEZE_API_KEY:"",BREEZE_API_SECRET:""}); if(r.ok){say("b_msg","Removed. The account goes dark at the next start.","ok"); render(r.state);} };
+$("b_login").onclick=()=>{ if(S&&S.broker.login_url) window.open(S.broker.login_url,"_blank"); };
+async function connectToken(tok){
+  say("t_msg","Asking the broker…");
+  const r=await post("/api/settings/token",{token:tok});
+  if(r.ok){ say("t_msg",`Connected${r.label?" as "+r.label:""}. Desk · Home is live for today.`,"ok"); $("b_token").value=""; render(r.state);} else { say("t_msg",r.error||"could not connect","err"); if(r.state) render(r.state); }
+}
+$("b_connect").onclick=()=>{ const t=$("b_token").value.trim(); if(!t) return say("t_msg","Paste the token first.","err"); connectToken(t); };
+$("b_token").addEventListener("keydown",e=>{ if(e.key==="Enter") $("b_connect").click(); });
+
+/* data key */
+$("d_save").onclick=async()=>{ const v=$("d_key").value.trim(); if(!v) return say("d_msg","Paste the key first.","err"); const r=await post("/api/settings/save",{FMP_API_KEY:v}); if(r.ok){ $("d_key").value=""; say("d_msg","Saved. The screens that use it pick it up on their next refresh; click Check to see what the plan answers.","ok"); $("d_table").innerHTML=""; render(r.state);} else say("d_msg",r.error||"could not save","err"); };
+$("d_clear").onclick=async()=>{ if(!confirm("Remove the data key from this desk?")) return; const r=await post("/api/settings/save",{FMP_API_KEY:""}); if(r.ok){ say("d_msg","Removed. The desk runs on the free record from the next refresh.","ok"); $("d_table").innerHTML=""; render(r.state);} };
+$("d_check").onclick=async()=>{
+  say("d_msg","Asking the feed eight questions…"); $("d_table").innerHTML="";
+  const r=await post("/api/settings/check_data",{});
+  if(r.rows) $("d_table").innerHTML="<table>"+r.rows.map(x=>`<tr><td>${esc(x.what)}</td><td class="${x.answer==="yes"?"yes":"no"}">${esc(x.answer)}</td></tr>`).join("")+"</table>";
+  say("d_msg", r.ok? r.summary : (r.error||"the check did not run"), r.ok?"ok":"err");
+};
+
+/* ai */
+$("a_prov").onchange=()=>{ const v=S.ai.providers[$("a_prov").value]; if(v){ $("a_model").value = ($("a_prov").value===S.ai.provider&&S.ai.model)?S.ai.model:""; $("a_base").value = ($("a_prov").value===S.ai.provider&&S.ai.base_url)?S.ai.base_url:""; } aiHints(); };
+$("a_save").onclick=async()=>{
+  const p=$("a_prov").value; const f={AI_PROVIDER:p, AI_MODEL:$("a_model").value.trim(), AI_BASE_URL:$("a_base").value.trim()};
+  if($("a_key").value.trim()) f.AI_API_KEY=$("a_key").value.trim();
+  if(!p) return say("a_msg","Pick a provider first.","err");
+  const r=await post("/api/settings/save",f);
+  if(r.ok){ $("a_key").value=""; say("a_msg","Saved. Click Test to send one line to the model.","ok"); render(r.state);} else say("a_msg",r.error||"could not save","err");
+};
+$("a_clear").onclick=async()=>{ if(!confirm("Remove the AI key from this desk?")) return; const r=await post("/api/settings/save",{AI_API_KEY:""}); if(r.ok){ say("a_msg","Removed.","ok"); render(r.state);} };
+$("a_test").onclick=async()=>{ say("a_msg","Sending one line…"); const r=await post("/api/settings/check_ai",{}); say("a_msg", r.ok?`The model answered: "${r.reply}". The key works.`:(r.error||"no answer"), r.ok?"ok":"err"); };
+
+/* agent */
+$("agent_copy").onclick=async()=>{ try{ await navigator.clipboard.writeText(S.desk.agent_url); $("agent_copy").textContent="Copied"; setTimeout(()=>$("agent_copy").textContent="Copy",1500);}catch(e){} };
+
+/* desk */
+$("s_auto").onchange=async()=>{ const on=$("s_auto").checked; $("s_auto").disabled=true; say("s_msg", on?"Setting the desk to start with the computer…":"Switching it off…"); const r=await post("/api/settings/autostart",{on}); $("s_auto").disabled=false; if(r.ok){ say("s_msg",r.text||"Done.","ok"); if(r.status){ $("s_auto_txt").textContent=r.status.text; $("s_auto").checked=r.status.state==="on"; } } else { say("s_msg",r.error||"could not change it","err"); $("s_auto").checked=!on; } };
+$("s_upd").onchange=async()=>{ const r=await post("/api/settings/save",{DESK_AUTO_UPDATE:$("s_upd").checked?"on":"off"}); if(r.ok){ render(r.state); say("s_msg","Saved.","ok"); } };
+$("e_save").onclick=async()=>{ const v=$("e_mail").value.trim(); if(!v) return say("s_msg","Type the address first.","err"); const r=await post("/api/settings/save",{EDGAR_CONTACT:v}); if(r.ok){ $("e_mail").value=""; say("s_msg","Saved.","ok"); render(r.state);} };
+
+/* a broker login that redirects here carries the token in the address */
+(async()=>{
+  await load();
+  const q=new URLSearchParams(location.search); const tok=q.get("apisession");
+  if(tok){ history.replaceState(null,"",location.pathname); $("b_token").value=tok; connectToken(tok); document.querySelector("#b_token").scrollIntoView({block:"center"}); }
+})();
+</script>
+</body>
+</html>

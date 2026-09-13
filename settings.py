@@ -1,0 +1,329 @@
+"""The Settings screen's back end: the desk writes the reader's key file (.env)
+so nobody opens it by hand, checks a data key against the feed, and switches
+"start with the computer" on or off.
+
+Rules kept here:
+  - only the keys in ALLOWED are ever written; anything else in the body is dropped
+  - a key is never sent back to the page in full, only its last four characters
+  - the update never touches .env (see updater.NEVER_TOUCH), so what is saved here
+    survives every new version
+"""
+
+import os
+import platform
+import subprocess
+import sys
+
+import requests
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ENV_PATH = os.path.join(HERE, ".env")
+EXAMPLE_PATH = os.path.join(HERE, ".env.example")
+
+# name -> (secret?, one-line meaning for the /agent page)
+ALLOWED = {
+    "BREEZE_API_KEY": (True, "broker app key (shipped adapter)"),
+    "BREEZE_API_SECRET": (True, "broker app secret (shipped adapter)"),
+    "FMP_API_KEY": (True, "data key, optional"),
+    "AI_PROVIDER": (False, "anthropic, openai, google or compatible"),
+    "AI_API_KEY": (True, "AI key, optional"),
+    "AI_MODEL": (False, "model name at that provider"),
+    "AI_BASE_URL": (False, "address of a compatible endpoint (local models too)"),
+    "EDGAR_CONTACT": (False, "the e-mail the SEC asks for on every request"),
+    "DESK_AUTO_UPDATE": (False, "on: bring a newer version in without the click"),
+}
+
+
+# ---- the key file ------------------------------------------------------------
+def read_env():
+    """The values saved in .env (not the process environment): what the page shows."""
+    out = {}
+    if not os.path.exists(ENV_PATH):
+        return out
+    try:
+        with open(ENV_PATH, encoding="utf-8") as fh:
+            for line in fh:
+                s = line.strip()
+                if not s or s.startswith("#") or "=" not in s:
+                    continue
+                k, v = s.split("=", 1)
+                out[k.strip()] = v.strip().strip('"').strip("'")
+    except OSError:
+        pass
+    return out
+
+
+def write_env(updates):
+    """Set or add KEY=value lines, keeping every comment and every other line.
+    Creates .env from .env.example on a copy that never had one. Then reloads
+    the process environment so the change applies without a restart."""
+    updates = {k: str(v).strip() for k, v in updates.items() if k in ALLOWED}
+    if not updates:
+        return []
+    lines = []
+    src = ENV_PATH if os.path.exists(ENV_PATH) else (EXAMPLE_PATH if os.path.exists(EXAMPLE_PATH) else None)
+    if src:
+        with open(src, encoding="utf-8") as fh:
+            lines = fh.read().splitlines()
+    done = set()
+    for i, line in enumerate(lines):
+        s = line.strip()
+        if not s or s.startswith("#") or "=" not in s:
+            continue
+        k = s.split("=", 1)[0].strip()
+        if k in updates and k not in done:
+            lines[i] = f"{k}={updates[k]}"
+            done.add(k)
+    for k, v in updates.items():
+        if k not in done:
+            lines.append(f"{k}={v}")
+    tmp = ENV_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(lines).rstrip("\n") + "\n")
+    os.replace(tmp, ENV_PATH)
+    # only the changed names touch the running process; nothing else in the
+    # environment (the port the service set, say) is re-read
+    for k, v in updates.items():
+        if v:
+            os.environ[k] = v
+        else:
+            os.environ.pop(k, None)
+    return sorted(updates)
+
+
+def _real(v):
+    """A saved value that is not one of the example file's placeholders."""
+    v = (v or "").strip()
+    if not v or v.startswith(("your_", "paste_")) or v == "your-email@example.com":
+        return ""
+    return v
+
+
+def masked(v):
+    v = _real(v)
+    if not v:
+        return ""
+    return "ends in " + v[-4:] if len(v) > 6 else "saved"
+
+
+def current():
+    """What the page shows: which keys exist, never the keys themselves."""
+    env = read_env()
+    g = lambda k: _real(env.get(k) or os.getenv(k, ""))  # noqa: E731
+    return {
+        "broker": {"key": masked(g("BREEZE_API_KEY")), "secret": masked(g("BREEZE_API_SECRET")),
+                   "key_raw_for_login": g("BREEZE_API_KEY")},
+        "data": {"key": masked(g("FMP_API_KEY"))},
+        "ai": {"provider": g("AI_PROVIDER") or "", "key": masked(g("AI_API_KEY")),
+               "model": g("AI_MODEL"), "base_url": g("AI_BASE_URL")},
+        "edgar_contact": g("EDGAR_CONTACT"),
+        "auto_update": (env.get("DESK_AUTO_UPDATE") or os.getenv("DESK_AUTO_UPDATE", "off")).strip().lower() == "on",
+        "env_exists": os.path.exists(ENV_PATH),
+    }
+
+
+# ---- the data key check ------------------------------------------------------
+# What the desk asks the feed for, in the reader's words, and one request that
+# shows whether the key's plan answers it.
+FMP_PROBES = [
+    ("Company profile and quotes", "profile", {"symbol": "AAPL"}),
+    ("Financial statements", "income-statement", {"symbol": "AAPL", "limit": 1}),
+    ("Analyst estimates", "analyst-estimates", {"symbol": "AAPL", "period": "annual", "limit": 1}),
+    ("Revenue by segment", "revenue-product-segmentation", {"symbol": "AAPL"}),
+    ("Peers, dividends and news", "stock-peers", {"symbol": "AAPL"}),
+    ("Market-wide insider scan", "insider-trading/latest", {"limit": 1}),
+    ("Senate trading disclosures", "senate-latest", {"limit": 1}),
+    ("Price history for the 50 and 200 day columns", "historical-price-eod/light", {"symbol": "AAPL"}),
+]
+
+
+def check_fmp(key=None):
+    key = (key or os.getenv("FMP_API_KEY", "")).strip()
+    if not key:
+        return {"ok": False, "error": "No data key saved yet."}
+    rows, valid = [], None
+    for label, path, params in FMP_PROBES:
+        params = dict(params, apikey=key)
+        try:
+            r = requests.get(f"https://financialmodelingprep.com/stable/{path}", params=params, timeout=12)
+            code = r.status_code
+        except Exception:  # noqa: BLE001
+            rows.append({"what": label, "answer": "did not answer (network)"})
+            continue
+        if code == 200:
+            body = None
+            try:
+                body = r.json()
+            except ValueError:
+                pass
+            has = bool(body) and not (isinstance(body, dict) and body.get("Error Message"))
+            rows.append({"what": label, "answer": "yes" if has else "answered, but empty"})
+            valid = True if valid is None else valid
+        elif code == 401:
+            rows.append({"what": label, "answer": "key rejected"})
+            valid = False
+        elif code in (402, 403):
+            rows.append({"what": label, "answer": "not in this key's plan"})
+            valid = True if valid is None else valid
+        elif code == 429:
+            rows.append({"what": label, "answer": "rate limited, try again in a minute"})
+        else:
+            rows.append({"what": label, "answer": f"no answer ({code})"})
+    if valid is False:
+        return {"ok": False, "error": "The feed rejected this key. Check it on your account page at financialmodelingprep.com.", "rows": rows}
+    yes = sum(1 for r in rows if r["answer"] == "yes")
+    return {"ok": True, "rows": rows,
+            "summary": f"The key works. {yes} of {len(rows)} things the desk asks for come back on this plan."}
+
+
+# ---- start with the computer -------------------------------------------------
+MAC_LABEL = "com.research-desk"
+LINUX_UNIT = "greeksoup-desk.service"
+WIN_TASK = "Research Desk"
+
+
+def _run(cmd, **kw):
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=20, **kw)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _mac_plist():
+    return os.path.join(os.path.expanduser("~"), "Library", "LaunchAgents", MAC_LABEL + ".plist")
+
+
+def _linux_unit():
+    return os.path.join(os.path.expanduser("~"), ".config", "systemd", "user", LINUX_UNIT)
+
+
+def _owned(text):
+    """True when a service definition points at THIS folder. Two copies of the
+    desk on one computer share the service name; the switch on one copy must
+    never touch the other's."""
+    return HERE in (text or "")
+
+
+def _read(path):
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return fh.read()
+    except OSError:
+        return ""
+
+
+_ON = "On. The desk starts when you log in and comes back by itself if it stops."
+_OFF = "Off. The desk runs only while its window is open."
+_LATER = "Off from your next login. The desk keeps running until then."
+_OTHER = "Another copy of the desk on this computer owns the login service, so the switch here stays out of the way."
+
+
+def autostart_status():
+    """{'state': 'on'|'off'|'other'|'unknown', 'text': plain words}"""
+    sysname = platform.system()
+    if sysname == "Darwin":
+        uid = os.getuid()
+        loaded = _run(["launchctl", "print", f"gui/{uid}/{MAC_LABEL}"])
+        loaded_text = (loaded.stdout if loaded and loaded.returncode == 0 else "")
+        plist = _read(_mac_plist())
+        if plist and not _owned(plist):
+            return {"state": "other", "text": _OTHER}
+        if loaded_text and not _owned(loaded_text):
+            return {"state": "other", "text": _OTHER}
+        if loaded_text and plist:
+            return {"state": "on", "text": _ON}
+        if loaded_text and not plist:
+            return {"state": "off", "text": _LATER}
+        if os.getppid() == 1:
+            return {"state": "other", "text": "The desk is kept running by a service set up outside this screen, so the switch here stays out of the way."}
+        return {"state": "off", "text": _OFF}
+    if sysname == "Linux":
+        unit = _read(_linux_unit())
+        if unit and not _owned(unit):
+            return {"state": "other", "text": _OTHER}
+        r = _run(["systemctl", "--user", "is-enabled", LINUX_UNIT])
+        if r and r.returncode == 0:
+            return {"state": "on", "text": _ON}
+        return {"state": "off", "text": _OFF}
+    if sysname == "Windows":
+        r = _run(["schtasks", "/Query", "/TN", WIN_TASK, "/XML"])
+        if r and r.returncode == 0:
+            return {"state": "on", "text": _ON} if _owned(r.stdout) else {"state": "other", "text": _OTHER}
+        return {"state": "off", "text": _OFF}
+    return {"state": "unknown", "text": "Not available on this system."}
+
+
+def set_autostart(on):
+    """Register or remove the login service the same way the Keep Desk Running
+    files do. Switching off never stops the desk that is running now."""
+    sysname = platform.system()
+    py = sys.executable
+    if autostart_status()["state"] == "other":
+        return {"ok": False, "error": _OTHER}
+    if sysname == "Darwin":
+        plist = _mac_plist()
+        uid = os.getuid()
+        if on:
+            os.makedirs(os.path.dirname(plist), exist_ok=True)
+            os.makedirs(os.path.join(HERE, "logs"), exist_ok=True)
+            log = os.path.join(HERE, "logs", "desk-service.log")
+            with open(plist, "w", encoding="utf-8") as fh:
+                fh.write(f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>{MAC_LABEL}</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>{py}</string>
+    <string>server.py</string>
+  </array>
+  <key>WorkingDirectory</key><string>{HERE}</string>
+  <key>EnvironmentVariables</key>
+  <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string></dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>10</integer>
+  <key>StandardOutPath</key><string>{log}</string>
+  <key>StandardErrorPath</key><string>{log}</string>
+</dict>
+</plist>
+""")
+            loaded = _run(["launchctl", "print", f"gui/{uid}/{MAC_LABEL}"])
+            if not (loaded and loaded.returncode == 0):
+                r = _run(["launchctl", "bootstrap", f"gui/{uid}", plist])
+                if r is None or r.returncode != 0:
+                    return {"ok": False, "error": (r.stderr if r else "launchctl did not answer").strip() or "could not register the service"}
+            return {"ok": True, "text": "On from now. If a Start Desk window is open, close it; the service takes over within ten seconds."}
+        try:
+            if os.path.exists(plist):
+                os.remove(plist)
+        except OSError as exc:
+            return {"ok": False, "error": str(exc)}
+        return {"ok": True, "text": "Off from your next login. The desk keeps running until then."}
+    if sysname == "Linux":
+        unit = _linux_unit()
+        unit_dir = os.path.dirname(unit)
+        if on:
+            os.makedirs(unit_dir, exist_ok=True)
+            with open(unit, "w", encoding="utf-8") as fh:
+                fh.write(f"[Unit]\nDescription=GreekSoup desk\n[Service]\nExecStart={py} server.py\n"
+                         f"WorkingDirectory={HERE}\nRestart=always\nRestartSec=5\n[Install]\nWantedBy=default.target\n")
+            _run(["systemctl", "--user", "daemon-reload"])
+            r = _run(["systemctl", "--user", "enable", LINUX_UNIT])
+            if r is None or r.returncode != 0:
+                return {"ok": False, "error": (r.stderr if r else "systemctl did not answer").strip()}
+            return {"ok": True, "text": "On from your next login. The desk you are using now keeps running."}
+        r = _run(["systemctl", "--user", "disable", LINUX_UNIT])
+        return {"ok": True, "text": "Off from your next login. The desk keeps running until then."}
+    if sysname == "Windows":
+        if on:
+            script = os.path.join(HERE, "desk-service.ps1")
+            r = _run(["schtasks", "/Create", "/F", "/SC", "ONLOGON", "/TN", WIN_TASK, "/RL", "LIMITED", "/TR",
+                      f'powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "{script}"'])
+            if r is None or r.returncode != 0:
+                return {"ok": False, "error": (r.stderr or r.stdout if r else "schtasks did not answer").strip()}
+            return {"ok": True, "text": "On from your next login. The desk you are using now keeps running."}
+        _run(["schtasks", "/Delete", "/TN", WIN_TASK, "/F"])
+        return {"ok": True, "text": "Off from your next login. The desk keeps running until then."}
+    return {"ok": False, "error": "Not available on this system."}
