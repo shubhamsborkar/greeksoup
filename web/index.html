@@ -418,12 +418,10 @@ function render(snap){
     app.className="";
     app.innerHTML=`<div class="tokenbar">
       <h3>No broker connected right now</h3>
-      <p>Two ways to see a book here. <b>Without a broker:</b> open <a href="/book" style="color:var(--accent)">Desk · Book</a> and add your holdings by hand with Yahoo symbols (AAPL, RELIANCE.NS, MC.PA); prices come from Yahoo's free feed, no key needed. <b>With the shipped ICICI adapter:</b> double-click <b>Paste Token</b> in the desk folder and paste today's session token; the token lapses at midnight, which is why this notice also appears each morning. Desk · US, Desk · Book, Global, Macro, Commodities and Funds run without any token.</p></div>
-    <section class="panel" style="margin-top:14px">
-      <div class="panel-h"><h2>Upcoming results · Home</h2>
-        <span class="sub" id="einsub">board meetings with a Financial Results purpose (NSE) — runs without tokens</span></div>
-      <div class="erail" id="einrail">${einHtml||'<span class="dim" style="font-size:12px">Loading NSE calendar… first load takes ~15s.</span>'}</div>
-    </section>`;
+      <p>This screen shows a broker account: holdings, open futures, cash and margin, priced live. Three ways to get a book on the desk.</p>
+      <p style="margin-top:8px"><b>Without a broker:</b> open <a href="/book" style="color:var(--accent)">Desk · Book</a> and add your holdings by hand with Yahoo symbols (AAPL, MC.PA, 0700.HK). Prices come from Yahoo's free feed, no key needed, any market.</p>
+      <p style="margin-top:8px"><b>With the broker adapter that ships in the desk</b> (ICICI Direct): put its key and secret in the <b>.env</b> file in the desk folder, then double-click <b>Paste Token</b> in that folder each morning you want the account live; that broker's regulator makes the login daily, which is why this notice also appears each morning.</p>
+      <p style="margin-top:8px"><b>With any other broker</b> that offers an API (Interactive Brokers, Alpaca, Robinhood, Zerodha and most large brokers do): open the desk folder in your AI agent and ask it to write the adapter from your broker's documentation. Until then this screen stays dark and every other screen works.</p></div>`;
     document.getElementById("ticker").innerHTML="";
     return;
   }
@@ -431,7 +429,7 @@ function render(snap){
   const ribbon = !stale ? "" :
     `<div class="staleribbon"><span class="sr-k">Session expired</span>
       <span>broker book as of <b>${stale.broker_as_of}</b></span>
-      <span>· stock marks refreshed via Yahoo (delayed${stale.yahoo_marks<stale.eq_rows?`, ${stale.eq_rows-stale.yahoo_marks} BSE names frozen`:""})</span>
+      <span>· stock marks refreshed via Yahoo (delayed${stale.yahoo_marks<stale.eq_rows?`, ${stale.eq_rows-stale.yahoo_marks} names frozen at the broker mark`:""})</span>
       <span>· futures &amp; margin frozen at broker time</span>
       <span class="dim">· to go live: quit desk → Start Desk.command → paste tokens</span></div>`;
   const acc=snap.accounts;
@@ -474,8 +472,8 @@ function render(snap){
     </div>
     <section class="panel" style="margin-top:14px">
       <div class="panel-h"><h2>Upcoming results · Home</h2>
-        <span class="sub" id="einsub">board meetings with a Financial Results purpose (NSE)</span></div>
-      <div class="erail" id="einrail">${einHtml||'<span class="dim" style="font-size:12px">Loading NSE calendar… first load takes ~15s.</span>'}</div>
+        <span class="sub" id="einsub">board meetings with a results purpose, from the exchange's public calendar</span></div>
+      <div class="erail" id="einrail">${einHtml||'<span class="dim" style="font-size:12px">Loading the exchange calendar… first load takes ~15s.</span>'}</div>
     </section>`;
   buildTicker(acc);
   applyFlashes(app);
@@ -515,10 +513,10 @@ async function pullEarningsIn(){
         <div class="when">${when} · ${e.symbol}</div>
         <div class="pur">${e.purpose||""}</div></div>`;
     }
-    einHtml = html || '<span class="dim" style="font-size:12px">No results dates announced yet for the book. NSE announces most a week or two out.</span>';
+    einHtml = html || '<span class="dim" style="font-size:12px">No results dates announced yet for the book. Most exchanges publish them a week or two out.</span>';
     const el=document.getElementById("einrail"); if(el) el.innerHTML=einHtml;
     const sub=document.getElementById("einsub");
-    if(sub && d.skipped_bse) sub.textContent=`board meetings with a Financial Results purpose (NSE) · ${d.skipped_bse} BSE-only names have no feed`;
+    if(sub && d.skipped_bse) sub.textContent=`board meetings with a results purpose, from the exchange's public calendar · ${d.skipped_bse} names have no calendar feed`;
   }catch(e){}
 }
 document.getElementById("refresh").onclick=()=>{pull();pullTape();};
