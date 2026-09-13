@@ -120,6 +120,32 @@ html[data-rail="min"] #siderail .rfoot button{justify-content:center;padding:7px
 .staleribbon .sr-k{color:var(--amber);font-size:10px;font-weight:800;
   letter-spacing:.08em;text-transform:uppercase}
 
+/* update banner: one strip above the page header, on every page */
+#updatebar{display:none;border-bottom:1px solid var(--line2);
+  background:color-mix(in srgb,var(--accent) 9%,var(--panel));font-size:12.5px;
+  color:var(--ink2);line-height:1.55}
+#updatebar.done{background:color-mix(in srgb,var(--pos) 9%,var(--panel))}
+#updatebar.fail{background:color-mix(in srgb,var(--neg) 9%,var(--panel))}
+#updatebar.busy{background:color-mix(in srgb,var(--amber) 10%,var(--panel))}
+#updatebar .uin{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:9px 22px}
+#updatebar .utag{flex:0 0 auto;font-size:9.5px;font-weight:800;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);
+  border-radius:6px;padding:2px 7px}
+#updatebar.done .utag{color:var(--pos);border-color:color-mix(in srgb,var(--pos) 45%,transparent)}
+#updatebar.fail .utag{color:var(--neg);border-color:color-mix(in srgb,var(--neg) 45%,transparent)}
+#updatebar.busy .utag{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,transparent)}
+#updatebar .utxt{flex:1 1 320px;min-width:0}
+#updatebar .utxt b{color:var(--ink)}
+#updatebar .umore{color:var(--muted);text-decoration:underline dotted;cursor:help}
+#updatebar .ubtn{flex:0 0 auto;background:var(--accent);color:#fff;border:1px solid var(--accent);
+  border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;
+  letter-spacing:.02em}
+#updatebar .ubtn:hover{filter:brightness(1.08)}
+#updatebar .ubtn.ghost{background:none;color:var(--ink2);border-color:var(--line2)}
+#updatebar .ubtn.ghost:hover{color:var(--ink);border-color:var(--ink2)}
+#updatebar .ukept{padding:0 22px 10px;font-size:12px;color:var(--ink2)}
+#updatebar .ukept b{color:var(--amber);font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+
 /* ---------------- command palette (Cmd/Ctrl-K) ---------------- */
 #cmdk{position:fixed;inset:0;z-index:80;display:none;
   background:rgba(3,4,7,.55);backdrop-filter:blur(3px)}

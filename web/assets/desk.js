@@ -286,7 +286,113 @@
     setInterval(pull, 60000);
   }
 
-  function boot() { buildRail(); initAlertBar(); }
+  /* ---- update banner ------------------------------------------------------
+     The desk looks at GitHub once a day (server side). When a newer version
+     exists, this strip appears at the top of every page with the date and what
+     changed, and one button. After an update the same strip says what was
+     brought in and which files were kept because they were changed here. */
+  function longDate(v) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v || "");
+    if (!m) return v || "";
+    return new Date(+m[1], +m[2] - 1, +m[3], 12).toLocaleDateString("en-GB",
+      { day: "numeric", month: "long", year: "numeric" });
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, c =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  }
+  function updateBar() {
+    let el = document.getElementById("updatebar");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "updatebar";
+      document.body.prepend(el);
+    }
+    return el;
+  }
+  function keptHtml(kept) {
+    if (!kept || !kept.length) return "";
+    return `<div class="ukept">Kept as yours, because they were changed on this computer: ` +
+      `<b>${kept.map(esc).join(", ")}</b>. Ask your agent to merge the new version's changes into them.</div>`;
+  }
+  function renderUpdate(st) {
+    const el = updateBar();
+    const c = st.check || {};
+    const res = st.last_result;
+    const dismissedAvail = store.getItem("desk_update_dismissed");
+    const dismissedDone = store.getItem("desk_update_seen");
+    if (res && res.ok && res.to && dismissedDone !== res.to) {
+      el.className = "done";
+      el.innerHTML = `<div class="uin"><span class="utag">Updated</span>` +
+        `<span class="utxt">The desk was brought up to the <b>${esc(longDate(res.to))}</b> version` +
+        (res.added_data && res.added_data.length ? `, with ${res.added_data.length} new data file${res.added_data.length > 1 ? "s" : ""}` : "") +
+        (res.added_rules ? ` and ${res.added_rules} new alert rule${res.added_rules > 1 ? "s" : ""}` : "") +
+        `.${res.pip && res.pip.indexOf("failed") === 0 ? " One dependency did not install; give your agent the file logs/desk-service.log." : ""}</span>` +
+        `<button class="ubtn ghost" id="uok">OK</button></div>${keptHtml(res.kept)}`;
+      el.style.display = "block";
+      document.getElementById("uok").onclick = () => { store.setItem("desk_update_seen", res.to); el.style.display = "none"; };
+      return;
+    }
+    if (c.available && c.remote && dismissedAvail !== c.remote) {
+      el.className = "avail";
+      const what = (c.notes || []).map(n => esc(n.notes)).filter(Boolean);
+      el.innerHTML = `<div class="uin"><span class="utag">Newer version</span>` +
+        `<span class="utxt">A newer version of the desk is available, <b>${esc(longDate(c.remote))}</b>` +
+        (what.length ? `: ${what[0]}` : "") + `.` +
+        (what.length > 1 ? ` <span class="umore" title="${what.slice(1).join(" · ")}">and ${what.length - 1} earlier release${what.length > 2 ? "s" : ""}</span>` : "") +
+        ` Your keys, your lists and any file your agent changed stay as they are.</span>` +
+        `<button class="ubtn" id="ugo">Update the desk</button>` +
+        `<button class="ubtn ghost" id="unot">Not now</button></div>`;
+      el.style.display = "block";
+      document.getElementById("unot").onclick = () => { store.setItem("desk_update_dismissed", c.remote); el.style.display = "none"; };
+      document.getElementById("ugo").onclick = runUpdate;
+      return;
+    }
+    el.style.display = "none";
+  }
+  async function runUpdate() {
+    const el = updateBar();
+    el.className = "busy";
+    el.innerHTML = `<div class="uin"><span class="utag">Updating</span>` +
+      `<span class="utxt">Bringing the newer version in. The desk restarts by itself when it is done, and this page reconnects on its own.</span></div>`;
+    try {
+      const r = await fetch("/api/update/apply", { method: "POST",
+        headers: { "Content-Type": "application/json" }, body: "{}" });
+      const rep = await r.json();
+      if (!rep.ok) {
+        el.className = "fail";
+        el.innerHTML = `<div class="uin"><span class="utag">Not updated</span>` +
+          `<span class="utxt">The update did not go through: ${esc(rep.error || "unknown reason")}. ` +
+          `Nothing was changed. The other way is in the README under "Getting a newer version".</span>` +
+          `<button class="ubtn ghost" id="uclose">Close</button></div>`;
+        document.getElementById("uclose").onclick = () => { el.style.display = "none"; };
+        return;
+      }
+      store.removeItem("desk_update_seen");
+      el.className = "done";
+      el.innerHTML = `<div class="uin"><span class="utag">Updated</span>` +
+        `<span class="utxt">Brought up to the <b>${esc(longDate(rep.to))}</b> version in ${esc(rep.seconds)} seconds. ` +
+        `Restarting now; if this page has not come back within a minute, double-click <b>Start Desk</b> in the desk folder.</span></div>` +
+        keptHtml(rep.kept);
+    } catch (e) {
+      /* the restart can cut the reply short; the heartbeat below reloads the page */
+      el.innerHTML = `<div class="uin"><span class="utag">Updated</span>` +
+        `<span class="utxt">The desk is restarting. This page reconnects on its own; if it has not come back within a minute, double-click <b>Start Desk</b> in the desk folder.</span></div>`;
+    }
+  }
+  function initUpdateBar() {
+    async function pull() {
+      try {
+        const r = await fetch("/api/update", { cache: "no-store" });
+        if (!r.ok) return;
+        renderUpdate(await r.json());
+      } catch (e) { /* offline: no banner */ }
+    }
+    pull();
+    setInterval(pull, 30 * 60 * 1000);
+  }
+
+  function boot() { buildRail(); initAlertBar(); initUpdateBar(); }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot);
   } else {

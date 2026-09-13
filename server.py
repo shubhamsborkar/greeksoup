@@ -22,6 +22,11 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
 import requests
+from dotenv import load_dotenv
+
+# .env is read once here, so DESK_PORT and DESK_AUTO_UPDATE in it take effect
+# for the desk itself, not only for the broker adapter.
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 import activist
 import commods
@@ -33,6 +38,7 @@ import risk
 import shortint
 import secmaster
 import stream_in
+import updater          # the daily version check and the one-click update
 from breeze_session import ACCOUNTS, get_client, get_client_if_cached
 import freefeed          # keyless Yahoo fallbacks for the US pages
 import sec_form4         # keyless Form 4 from EDGAR
@@ -2732,6 +2738,9 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/ping":
                 return self._send(b'{"ok":true}', "application/json")
+            elif path == "/api/update":
+                force = (qs.get("check", [""])[0] or "") == "1"
+                self._send(json.dumps(updater.status(force)).encode(), "application/json")
             elif path == "/api/usbook":
                 self._send(json.dumps(build_usbook()).encode(), "application/json")
             elif path == "/macro":
@@ -2913,6 +2922,14 @@ class Handler(BaseHTTPRequestHandler):
             code = str(body.get("code", "")).strip().upper()
             if self.path.startswith("/api/book/"):
                 return self._book_post(body)
+            if self.path == "/api/update/apply":
+                # The one click. Writes program files inside this folder only,
+                # then the process restarts itself; the page reconnects.
+                rep = updater.apply()
+                if rep.get("ok"):
+                    rep["restarting"] = True
+                    updater.restart_soon(1.5)
+                return self._send(json.dumps(rep).encode(), "application/json")
             if self.path == "/api/watch/add":
                 if not code:
                     return self._send(b'{"ok":false,"error":"empty code"}', "application/json")
@@ -3031,6 +3048,7 @@ def main():
     threading.Thread(target=global_watch_loop, daemon=True).start()
     threading.Thread(target=alerts_loop, daemon=True).start()
     threading.Thread(target=quote_saver_loop, daemon=True).start()
+    threading.Thread(target=updater.loop, daemon=True).start()
 
     REFRESH = (("earn", EARN_TTL, build_earnings),
                ("macro", MACRO_TTL, build_macro),
