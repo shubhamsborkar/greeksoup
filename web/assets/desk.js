@@ -315,7 +315,9 @@
     return `<div class="ukept">Kept as yours, because they were changed on this computer: ` +
       `<b>${kept.map(esc).join(", ")}</b>. Ask your agent to merge the new version's changes into them.</div>`;
   }
+  let lastBoot = null;
   function renderUpdate(st) {
+    if (st.started) lastBoot = st.started;
     const el = updateBar();
     const c = st.check || {};
     const res = st.last_result;
@@ -371,14 +373,39 @@
       store.removeItem("desk_update_seen");
       el.className = "done";
       el.innerHTML = `<div class="uin"><span class="utag">Updated</span>` +
-        `<span class="utxt">Brought up to the <b>${esc(longDate(rep.to))}</b> version in ${esc(rep.seconds)} seconds. ` +
-        `Restarting now; if this page has not come back within a minute, double-click <b>Start Desk</b> in the desk folder.</span></div>` +
-        keptHtml(rep.kept);
+        `<span class="utxt">Updated to version <b>${esc(rep.to)}</b> (${esc(longDate(rep.to))}) in ${esc(rep.seconds)} seconds. ` +
+        `The desk is restarting and this page reloads by itself in a moment.</span></div>` + keptHtml(rep.kept);
+      waitForRestart(el, rep.folder);
     } catch (e) {
-      /* the restart can cut the reply short; the heartbeat below reloads the page */
+      /* the restart can cut the reply short; wait for the new start the same way */
       el.innerHTML = `<div class="uin"><span class="utag">Updated</span>` +
-        `<span class="utxt">The desk is restarting. This page reconnects on its own; if it has not come back within a minute, double-click <b>Start Desk</b> in the desk folder.</span></div>`;
+        `<span class="utxt">The desk is restarting and this page reloads by itself in a moment.</span></div>`;
+      waitForRestart(el, null);
     }
+  }
+  /* After an update the process replaces itself in under a second, faster than the
+     heartbeat below can notice, so watch the boot stamp instead and reload on change. */
+  function waitForRestart(el, folder) {
+    const t0 = Date.now();
+    const tick = () => {
+      fetch("/api/update", { cache: "no-store" }).then(r => r.json()).then(st => {
+        if (st.started && lastBoot && st.started !== lastBoot) { location.reload(); return; }
+        if (st.started && !lastBoot) { location.reload(); return; }
+        if (Date.now() - t0 > 90000) { showRestartHelp(el, folder); return; }
+        setTimeout(tick, 2000);
+      }).catch(() => {
+        if (Date.now() - t0 > 90000) { showRestartHelp(el, folder); return; }
+        setTimeout(tick, 2000);
+      });
+    };
+    setTimeout(tick, 1500);
+  }
+  function showRestartHelp(el, folder) {
+    const where = folder ? `open the folder <b>${esc(folder)}</b>` : "open the desk's folder";
+    el.className = "fail";
+    el.innerHTML = `<div class="uin"><span class="utag">Not back yet</span>` +
+      `<span class="utxt">The desk has not answered since the update. To start it by hand, ${where} and double-click <b>Start Desk</b>; ` +
+      `if that does not bring it back, give the file logs/desk-service.log in that folder to your AI agent.</span></div>`;
   }
   function initUpdateBar() {
     async function pull() {

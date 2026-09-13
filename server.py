@@ -2926,6 +2926,7 @@ class Handler(BaseHTTPRequestHandler):
                 # The one click. Writes program files inside this folder only,
                 # then the process restarts itself; the page reconnects.
                 rep = updater.apply()
+                rep["folder"] = HERE
                 if rep.get("ok"):
                     rep["restarting"] = True
                     updater.restart_soon(1.5)

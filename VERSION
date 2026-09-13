@@ -1,3 +1,4 @@
+2026-09-13.4  After an update the page reloads itself once the desk is back, and only names the folder to open if the desk has not come back in ninety seconds
 2026-09-13.3  Desk · Home now says how to connect a broker (by hand on Desk · Book, the shipped adapter, or any broker through your agent) and speaks of the exchange rather than one country's exchange
 2026-09-13.2  One-line install for Mac, Linux and Windows (finds or installs Python, downloads the desk, sets it to start with your computer, opens it); the install paths rewritten for a reader with no AI agent
 2026-09-13.1  The desk is now called GreekSoup: the one-person equity research desk, in the sidebar, the page titles and the README; nothing else changed
