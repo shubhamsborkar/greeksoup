@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>GreekSoup · the open-source one-person equity research desk</title>
-<meta name="description" content="GreekSoup is an open-source equity research desk that runs on your own computer: fourteen screens with your positions, the filings, 13F and insider trades, the options tape, short interest, macro and a commodity board. Your keys stay with you. An AI coding agent installs it.">
+<meta name="description" content="GreekSoup is an open-source equity research desk that runs on your own computer: fourteen screens with your positions, the filings, 13F and insider trades, the options tape, short interest, macro and a commodity board. Your keys stay with you. One line installs it.">
 <meta property="og:title" content="GreekSoup · the open-source one-person equity research desk">
-<meta property="og:description" content="Open source, runs on your machine, your keys stay with you. Fourteen research screens, installed by your AI coding agent in about twenty minutes.">
+<meta property="og:description" content="Open source, runs on your machine, your keys stay with you. Fourteen research screens, installed with one line in about a minute.">
 <meta property="og:image" content="https://greeksoup.ai/img/commodities.png">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23ED5A24'/><text x='16' y='22' font-size='15' font-weight='800' font-family='Arial' fill='white' text-anchor='middle'>GS</text></svg>">
@@ -84,13 +84,13 @@ section p.sub{color:var(--ink2);font-size:18px;max-width:780px;margin-bottom:34p
 .pane{display:none}.pane.on{display:block}
 .steps{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
 @media(max-width:900px){.steps{grid-template-columns:1fr}}
-.step{background:#fffdf8;border:1px solid var(--line);border-radius:12px;padding:20px 20px 22px}
+.step{min-width:0;background:#fffdf8;border:1px solid var(--line);border-radius:12px;padding:20px 20px 22px}
 .step .n{font-family:var(--sans);font-size:12px;font-weight:800;letter-spacing:.14em;color:var(--accent);margin-bottom:8px}
 .step h3{font-size:18px;margin-bottom:8px}
 .step p{font-size:15.5px;color:var(--ink2)}
 .step .btn{margin-top:12px;font-size:14px;padding:10px 14px}
 .code{position:relative;background:var(--dark);color:var(--darkink);border-radius:12px;padding:18px 20px;font-family:var(--mono);font-size:13.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;margin-top:14px;border:1px solid var(--darkline)}
-.code.cmd{white-space:pre;overflow-x:auto;word-break:normal}
+.code.cmd{white-space:pre;overflow-x:auto;word-break:normal;max-width:100%}
 .code .copy{position:absolute;top:10px;right:10px;font-family:var(--sans);font-size:11.5px;font-weight:700;background:var(--dark2);color:var(--darkink2);border:1px solid var(--darkline);border-radius:7px;padding:5px 9px;cursor:pointer}
 .code .copy:hover{color:#fff;border-color:var(--darkink2)}
 .note{font-size:15.5px;color:var(--ink2);margin-top:16px;max-width:820px}
@@ -154,7 +154,7 @@ footer .disc{max-width:900px;font-size:13.5px;color:var(--muted)}
 <header class="hero" id="top"><div class="wrap">
   <div class="eyebrow">GreekSoup · open source</div>
   <h1>GreekSoup: the one-person equity research desk that runs on <span>your own computer</span>.</h1>
-  <p class="lead">Open source, runs on your machine, your keys stay with you. Fourteen screens: your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a commodity board that names the industries each move squeezes or helps, and a page for any ticker, priced live. An AI coding agent installs it and changes it when you ask, and you do not write a line of it. It is the same desk we use every day, published without our positions.</p>
+  <p class="lead">Open source, runs on your machine, your keys stay with you. Fourteen screens: your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a commodity board that names the industries each move squeezes or helps, and a page for any ticker, priced live. One pasted line installs it in about a minute, an AI coding agent changes it when you ask, and you do not write a line of it. It is the same desk we use every day, published without our positions.</p>
   <div class="cta">
     <a class="btn primary" href="https://github.com/shubhamsborkar/one-person-equity-research-desk/archive/refs/heads/main.zip">Download the desk</a>
     <a class="btn ghost" href="#start">How to install it</a>
@@ -180,14 +180,25 @@ footer .disc{max-width:900px;font-size:13.5px;color:var(--muted)}
 
 <section id="start"><div class="wrap">
   <h2>Get it running</h2>
-  <p class="sub">There are three ways in, and most readers take the first one: download the folder, open it in an AI coding agent, paste one instruction, and the agent does the rest in about twenty minutes.</p>
+  <p class="sub">There are three ways in, and most readers take the first one: paste one line, and about a minute later the desk is open in your browser and set to start with your computer.</p>
   <div class="tabs" role="tablist">
-    <button class="tab on" data-pane="agent" role="tab">With an agent<span class="pill">most readers</span></button>
-    <button class="tab" data-pane="cli" role="tab">One line in a terminal</button>
+    <button class="tab on" data-pane="cli" role="tab">One line<span class="pill">most readers</span></button>
+    <button class="tab" data-pane="agent" role="tab">With an AI agent</button>
     <button class="tab" data-pane="hack" role="tab">Hackable</button>
   </div>
 
-  <div class="pane on" id="pane-agent">
+  <div class="pane on" id="pane-cli">
+    <div class="steps">
+      <div class="step"><div class="n">MAC</div><h3>Open Terminal, paste, Enter</h3><p>Press Command and Space together, type <b>Terminal</b>, press Enter. A plain window opens. Paste the line below into it and press Enter.</p>
+        <div class="code cmd" id="oneliner">curl -fsSL https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/install.sh | bash<button class="copy" data-copy="oneliner">Copy</button></div></div>
+      <div class="step"><div class="n">WINDOWS</div><h3>Open PowerShell, paste, Enter</h3><p>Press the Windows key, type <b>PowerShell</b>, press Enter. Paste the line below and press Enter.</p>
+        <div class="code cmd" id="onelinerwin">irm https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/install.ps1 | iex<button class="copy" data-copy="onelinerwin">Copy</button></div></div>
+      <div class="step"><div class="n">THEN</div><h3>It opens by itself</h3><p>The line finds Python on your computer, installs it if it is missing, downloads the desk into a folder called GreekSoup in your home folder, installs what it needs into that folder and nothing else, sets the desk to start with your computer, starts it, and opens it at <span class="mono">http://localhost:8765</span>. Linux works with the Mac line.</p></div>
+    </div>
+    <p class="note">Keys are optional. They go in the <span class="mono">.env</span> file in that folder, one line each, and the file itself says where each key comes from. The Windows line was written from Microsoft's documented commands and has not been run on a Windows machine by us yet; if it complains, paste the window's text to an AI agent. Desktop apps that install with a double-click are a later release.</p>
+  </div>
+
+  <div class="pane" id="pane-agent">
     <div class="steps">
       <div class="step"><div class="n">STEP 1</div><h3>Get the folder</h3><p>Download the ZIP, double-click it, and drag the folder that appears into Documents. That folder is the desk.</p><a class="btn primary" href="https://github.com/shubhamsborkar/one-person-equity-research-desk/archive/refs/heads/main.zip">Download the ZIP</a></div>
       <div class="step"><div class="n">STEP 2</div><h3>Open it in your agent</h3><p>Claude Code, Codex, Kimi Code or Grok Build, whichever you use. The Claude desktop app has a Code section that asks which folder to work in; choose the desk folder. If you have none yet, search "how do I install Claude Code" and follow the two or three steps.</p></div>
@@ -195,12 +206,6 @@ footer .disc{max-width:900px;font-size:13.5px;color:var(--muted)}
     </div>
     <div class="code" id="paste">Read README.md in this folder and set the desk up for me on this computer. Install what it needs, copy .env.example to .env, and ask me for each key one at a time, telling me where to get it. My broker is &lt;your broker&gt;. If it is not the shipped one, read its API documentation and rewrite the broker adapter the way TECHNICAL.md describes. If I say I have no broker to connect yet, leave the broker keys empty and skip the adapter. Then start the desk, set it to start by itself whenever I log in using the Keep Desk Running file for my operating system (TECHNICAL.md explains it), and tell me the address to open.<button class="copy" data-copy="paste">Copy</button></div>
     <p class="note">The desk opens at <span class="mono">http://localhost:8765</span>, which is your own computer talking to itself; nobody else on the internet can open it. If anything goes wrong at any step, give your agent the README and describe the problem in your own words. That is the same method that built the desk.</p>
-  </div>
-
-  <div class="pane" id="pane-cli">
-    <p class="note" style="margin-top:0">Mac or Linux, with Python 3 already on the machine. This fetches the code from GitHub, installs what it needs into its own folder and starts the desk; the terminal window stays open while it runs.</p>
-    <div class="code cmd" id="oneliner">curl -L https://codeload.github.com/shubhamsborkar/one-person-equity-research-desk/zip/refs/heads/main -o desk.zip &amp;&amp; unzip -q desk.zip &amp;&amp; cd one-person-equity-research-desk-main &amp;&amp; python3 -m venv .venv &amp;&amp; .venv/bin/pip install -q -r requirements.txt &amp;&amp; cp .env.example .env &amp;&amp; .venv/bin/python server.py<button class="copy" data-copy="oneliner">Copy</button></div>
-    <p class="note">Then open <span class="mono">http://localhost:8765</span>. Add your keys to the <span class="mono">.env</span> file whenever you want them, and double-click <b>Keep Desk Running</b> in the folder once if you want the desk there every time you sit down. On Windows the README's install section has the same steps, and your agent does them for you.</p>
   </div>
 
   <div class="pane" id="pane-hack">

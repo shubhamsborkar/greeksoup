@@ -1,8 +1,8 @@
 # GreekSoup: the one-person equity research desk
 
-GreekSoup is a research desk that runs on your own computer: fourteen screens with your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a commodity board that names the industries each move squeezes or helps, and a page for any ticker, priced live. It reads your broker, the public record (SEC EDGAR, CBOE, FINRA, FRED) and one optional data feed, and it opens as a tab inside Obsidian or in any browser.
+GreekSoup is a research desk that runs on your own computer: fourteen screens with your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a commodity board that names the industries each move squeezes or helps, and a page for any ticker, priced live. It reads the public record (SEC EDGAR, CBOE, FINRA, FRED, Yahoo), your broker if you connect one, and one optional data feed, and it opens in any browser at an address on your own computer.
 
-You do not write any of it. An AI coding agent (Claude Code, Codex, Kimi Code or Grok Build) installs it, connects it to your broker and changes it when you ask. This is the whole desk from the newsletter edition [How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity), without the author's positions. The screenshots there show the author's own copy.
+You do not write any of it. One line pasted into a terminal installs it (below), and an AI coding agent (Claude Code, Codex, Kimi Code or Grok Build) can install it for you instead and changes it later when you ask. It is open source under the MIT licence, your keys stay in a file on your computer, and it updates itself. The edition that walks through every screen and the build is [How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity); the screenshots there show the author's own copy, and this repository is that desk without the author's positions.
 
 ## How it works, in plain words
 
@@ -16,12 +16,30 @@ Three things are involved, and it helps to know which is which.
 
 ## What you need
 
-- A computer you leave on while you work. Mac or Windows.
-- One AI coding agent installed: Claude Code, Codex, Kimi Code or Grok Build. If you have none, search "how do I install Claude Code" and follow the two or three steps. You need it for the install and for changes, not for daily use.
+- A computer you leave on while you work. Mac, Windows or Linux.
+- Optional: an AI coding agent (Claude Code, Codex, Kimi Code or Grok Build). It can do the install for you, and it is how you change the desk later by describing what you want. If you have none, search "how do I install Claude Code" and follow the two or three steps, or skip it and use the one-line install.
 - Optional: an account with a broker that lets a program read it, which brokers call an API (Interactive Brokers, Alpaca, Robinhood, Zerodha, ICICI and most large brokers do). Without one, you keep your holdings by hand on Desk · Book with Yahoo symbols, and the US desk and every intelligence screen still work.
 - Optional: a Financial Modeling Prep key for the parsed financial statements on the ticker page.
 
-## Install it (about twenty minutes, the agent does the work)
+## Install it: one line (about a minute)
+
+On a Mac, press Command and Space together, type `Terminal`, press Enter; a plain window opens. Paste this line into it and press Enter:
+
+```
+curl -fsSL https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/install.sh | bash
+```
+
+On Windows, press the Windows key, type `PowerShell`, press Enter, then paste this line and press Enter:
+
+```
+irm https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/install.ps1 | iex
+```
+
+It finds Python on your computer (and installs it if it is missing), downloads the desk into a folder called GreekSoup in your home folder, installs what it needs into that folder and nothing else, sets the desk to start with your computer, starts it, and opens it in your browser. About a minute on a Mac; the Windows line was written from Microsoft's documented commands and has not been run on a Windows machine by the author, so if it complains, paste the window's text to an AI agent. Keys are optional and go in the `.env` file in that folder, one line each, with the file itself explaining where each key comes from.
+
+## Install it with an AI agent instead (about twenty minutes, the agent does the work)
+
+Use this path if you already have an agent, or if you want it to connect your broker and fill in your keys for you.
 
 1. **Get the folder.** Click the green **Code** button at the top of this page and choose **Download ZIP**. The file lands in your Downloads folder. Double-click it and a folder with the same name appears next to it; drag that folder into Documents. That folder is the desk, and everything below happens inside it.
 
@@ -61,10 +79,6 @@ Two honest notes. The Windows files were written from Microsoft's documented com
 Nothing, for most readers. The desk does not have a login of its own, and most brokers keep the connection to your account alive for months once the key is set.
 
 The one exception is the shipped ICICI Direct adapter, whose regulator requires a fresh login every trading day. On a morning you want that account live, open the desk folder, double-click **Paste Token**, log in on the page it opens, copy the number it asks for from the address bar, and paste it. Skip it and the desk keeps showing the last saved book, re-priced live, with a ribbon saying the broker session is off; every other screen is unaffected. Readers on any other broker never see this step.
-
-## Inside Obsidian
-
-Tell the agent: *put the desk inside my Obsidian vault*. If you would rather do it yourself: in Obsidian, Settings, Core plugins, switch on **Web Viewer**; copy the note `obsidian/Live Desk.md` from the desk folder into your vault; open that note and the desk appears in it as a tab next to your notes. The optional `obsidian/desk.css` file, dropped into your vault's `.obsidian/snippets/` folder and enabled under Appearance, lets the note use the full width.
 
 ## Two desks for two markets
 
@@ -132,6 +146,10 @@ What was added, newest first:
 - **2026-09-12**: the US names on the Commodities screen now carry their filed figures, 58 of 59, each with the document it came from; the one left blank says why. Three tickers corrected (Barrick is B, Solaris Energy Infrastructure is SEI, US Steel removed since it no longer trades).
 - **2026-09-09**: the **Commodities** screen (51 commodities, the industries each one squeezes and helps, the names you map to them from their filings, a names-under-pressure panel, two new alert rules) and **Desk · Book**, the hand-kept portfolio for readers with no broker and no feed.
 - **2026-09-03**: first public version, twelve screens.
+
+## If you also use Obsidian
+
+Optional, and nothing above depends on it. If you keep notes in Obsidian, the desk can appear as a tab inside it: in Obsidian, Settings, Core plugins, switch on **Web Viewer**; copy the note `obsidian/Live Desk.md` from the desk folder into your vault; open that note. The optional `obsidian/desk.css` file, dropped into your vault's `.obsidian/snippets/` folder and enabled under Appearance, lets the note use the full width. Or tell your agent: *put the desk inside my Obsidian vault*.
 
 ## For the technical reader
 
