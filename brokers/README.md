@@ -29,12 +29,29 @@ label(client)            -> "A/C ··1234"     last four characters of the accou
 equity(client)           -> [row, ...]
 funds(client)            -> {"cash": float, "currency": "USD", "buying_power": float or None}
 
-optional
-futures(client)          -> open futures and options (see collect.py for the shape)
-quote(client, code, exch)-> a quote for the home watch grid (else the desk uses Yahoo)
+optional, shown when the file has them (the desk falls back to Yahoo through ysym otherwise)
 login_url(cfg)           -> daily login: where the reader logs in
 exchange_token(cfg, tok) -> daily login: turn what the redirect carried into today's token
+futures(client)          -> open futures and options: [{"underlying", "contract", "expiry",
+                            "side", "qty", "avg", "ltp", "notional", "mtm", "mtm_pct"}]
+quote(client, code, exch)-> a live quote for the home watch grid and the home ticker page,
+                            with bid/offer and their sizes when the broker gives a book
+history(client, code, exch, years) -> daily candles newest first [{"date","price","o","h","l","v"}]
+intraday(client, code, exch)       -> {"1D": [...], "5D": [...]} minute candles, same shape
+futures_quote(client, code, expiry)-> bid, ask and open interest on one futures contract
+sparks(client, futures)  -> {underlying: [closes]} three days of intraday closes per open future
+tape(client)             -> [{"code","expiry","spot","pcr","flow_pcr","support","resistance",
+                            "exp_move_pct","skew"}] the index options tape on Desk · Home
+stream(client, load_names, sink, is_open) -> start live ticks for Watch · Home; sink(code, quote)
+stream_healthy()         -> True while ticks arrive
+resolve(code)            -> {"symbol", "exch", "name", "ysym", "meta"} for a broker code whose
+                            exchange symbol differs from it (a symbol master)
+search(q)                -> [{"code","name","exch"}] search-as-you-type over that master
+extra_accounts(client, live_names) -> {name: block} other accounts at the same broker
+commodities_local(client, cards)   -> attach local price lines to the Commodities cards
 ```
+
+The market side (session hours, the index Risk measures against, the currency, the results calendar, the filings) is not the broker's job: `META["region"]` names a file in `markets/`, and that file supplies it for every broker in that market.
 
 A row:
 

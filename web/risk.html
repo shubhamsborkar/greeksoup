@@ -177,7 +177,7 @@ function levChip(l){
 }
 function bookCard(b){
   const cur=b.currency;
-  const idx=b.bench==="^NSEI"?"NIFTY":"S&P 500";
+  const idx=b.bench_label||"the index";
   const dayNorm=b.vol!=null?(b.vol/15.87):null;               // ann vol -> typical daily move
   const varShare=b.corr!=null?Math.round(b.corr*b.corr*100):null;
   const volCls=b.vol==null?"":b.vol>=50?"hot":b.vol>=30?"warm":"";
@@ -234,7 +234,7 @@ function posTable(b){
     <th class="num">Tracks index<span class="u">−1…1</span></th></tr></thead><tbody>`;
   for(const p of b.positions){
     const w=p.weight;
-    h+=`<tr><td><a href="/t?symbol=${p.code}${cur==="₹"?"&region=in":""}"><b>${p.code}</b></a>${(p.kinds||[]).map(k=>`<span class="kind ${k}">${k}</span>`).join("")}
+    h+=`<tr><td><a href="/t?symbol=${encodeURIComponent(p.code)}${b.region&&b.region!=="us"?"&region=home":""}"><b>${p.code}</b></a>${(p.kinds||[]).map(k=>`<span class="kind ${k}">${k}</span>`).join("")}
       <div class="co">${p.name||""}${p.low_sample?` · only ${p.n} trading days of history`:""}</div></td>
       <td class="num mono">${p.exposure<0?"−":""}${fmt(cur,p.exposure)}</td>
       <td class="num"><span class="wtcell"><span class="wtbar"><i style="width:${Math.min(100,Math.abs(w||0)/maxW*100).toFixed(0)}%"></i></span>

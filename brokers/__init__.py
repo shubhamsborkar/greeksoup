@@ -7,17 +7,19 @@ Every adapter module has:
   META                      id, label, where (plain words), fields (what the
                             reader pastes), daily_login (True when the broker's
                             regulator wants a fresh login every trading day),
-                            region ("in" or "us": which ticker page a holding
-                            opens on), docs (the broker's own page)
+                            region (the market file in markets/ that supplies
+                            the session, the index and the currency), docs
   connect(cfg, token=None)  -> a client object, or raises BrokerError(plain words)
   label(client)             -> "A/C ··1234" (last four of the account, never a name)
   equity(client)            -> [row, ...]   see ROW below
   funds(client)             -> {"cash": float, "currency": "USD", "buying_power": float or None}
-optional:
-  futures(client)           -> [ ... ]      open futures and options, the shipped India shape
-  quote(client, code, exch) -> a quote dict for the home watch grid
-  login_url(cfg)            -> where the reader logs in (daily-login brokers)
-  exchange_token(cfg, tok)  -> the access token to cache for today (daily-login brokers)
+optional (README.md lists each one's shape; the desk shows what a file has):
+  login_url, exchange_token           daily-login brokers
+  futures, quote, history, intraday,  what the broker's feed serves beyond holdings
+  futures_quote, sparks, tape, stream, stream_healthy
+  resolve, search                     a symbol master, when broker codes differ from
+                                      exchange symbols
+  extra_accounts, commodities_local   several accounts; local commodity reads
 
 ROW (one holding):
   code       the broker's own symbol         name    company name if the broker gives it
@@ -48,7 +50,7 @@ OTHERS = [
     ("Charles Schwab", "Has an API for individuals. The login has to be repeated every seven days, so your agent writes this one from Schwab's documentation and keeps the weekly login."),
     ("Fidelity, Vanguard", "No API for individuals. Export the holdings to a file and paste them into Desk · Book; most exports paste straight in."),
     ("Robinhood", "No API for stocks. Export the holdings into Desk · Book, or have your agent connect Robinhood's own agent server."),
-    ("Upstox, Angel One, Groww", "Each has an API with a daily login, the same pattern as the two Indian brokers shipped here. Your agent writes it from their documentation."),
+    ("Upstox, Angel One, Groww", "Each has an API with a daily login, the same pattern as the two Indian brokers shipped here, and the same market file serves all of them. Your agent writes it from their documentation."),
     ("Any other broker", "If it publishes an API, your agent writes the file from its documentation; the shape it has to return is in brokers/README.md. If it does not, Desk · Book takes an export."),
 ]
 
@@ -74,14 +76,14 @@ def all_meta():
 
 def active_id():
     """The broker the reader chose. A copy set up before the picker existed has
-    the shipped India keys and no BROKER line; that still counts."""
+    one broker's keys and no BROKER line; the first configured file counts."""
     bid = (os.getenv("BROKER", "") or "").strip().lower()
     if bid in REGISTRY:
         return bid
     if bid in ("", "none"):
-        key = (os.getenv("BREEZE_API_KEY", "") or "").strip()
-        if key and not key.startswith(("your_", "paste_")):
-            return "icici_breeze"
+        for cand in REGISTRY:
+            if configured(cand):
+                return cand
     return ""
 
 
@@ -106,7 +108,6 @@ def configured(broker_id):
 
 # ---- today's token for daily-login brokers -----------------------------------
 # One file, session_token_primary.txt, a date line then the token; gitignored.
-# The shipped India adapter used this file before the broker layer existed.
 TOKEN_PATH = os.path.join(ROOT, "session_token_primary.txt")
 
 

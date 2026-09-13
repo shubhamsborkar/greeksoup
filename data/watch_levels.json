@@ -1,3 +1,3 @@
 {
-  "_comment": "Optional. Key = ICICI stock_code as it appears in your holdings. Value = a price level you are watching. The dashboard shows distance from it. Leave empty if you do not want to track levels yet."
+  "_comment": "Optional. Key = a code as it appears in your holdings on Desk \u00b7 Home. Value = a price level you are watching. The daily report shows the distance from it. Leave empty if you do not want to track levels yet."
 }

@@ -1,14 +1,12 @@
-"""Live research-desk dashboard server. READ-ONLY — there is no order code path.
+"""The desk's server. READ-ONLY: there is no order code path.
 
     python server.py
     open http://localhost:8765
 
-Serves web/index.html and two JSON endpoints the page polls:
-  /api/snapshot  positions + funds + limits for both accounts (cached ~30s)
-  /api/tape      options-tape read for the F&O watchlist (cached ~10min)
-
-Breeze clients are created once at startup (terminal token prompt per account,
-same daily flow as everything else) and reused.
+Serves the pages under web/ and the JSON they poll (the list is on /agent).
+The broker the reader chose on Settings is read through one file in brokers/;
+the market that broker trades in is served by one file in markets/. Nothing
+in this file assumes a particular broker, market or data provider.
 """
 
 import json
@@ -31,58 +29,60 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 import activist
 import commods
 import insiders
-import local_in
-import nse_fund
 import options_us
 import risk
 import shortint
-import secmaster
-import stream_in
 import updater          # the daily version check and the one-click update
 import settings as desk_settings   # the Settings screen: keys, token, switches
 import ai as desk_ai               # the reader's own AI key, tested here
-import breeze_session
 import brokers                     # the broker layer: one file per broker, read-only
-from breeze_session import ACCOUNTS, get_client, get_client_if_cached
+import markets                     # the market layer: one file per home market
+import fred                        # FRED, keyless
 import freefeed          # keyless Yahoo fallbacks for the US pages
 import sec_form4         # keyless Form 4 from EDGAR
 import house_ptr         # keyless House trading disclosures
-from collect import (_equity, _funds, _futures, load_last_snapshot_block,
-                     refresh_marks)
-from fno import analyze, find_chain
-from pricing import _pull_candles
 
 PORT = int(os.getenv("DESK_PORT", "8765"))
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(HERE, "data")   # the files you edit: watchlists, book, funds, alerts
 
-SNAP_TTL = 30      # seconds between fresh Breeze pulls for positions/funds
+SNAP_TTL = 30      # seconds between fresh broker pulls for positions/funds
 TAPE_TTL = 600     # option chains are heavy; refresh every 10 min
-
-# Home-desk extras, edit to your market. SPARK_NAMES: two names whose 5-min
-# cash candles draw the sparklines on the ticker strip. TAPE_NAMES: the index
-# option chains for the options tape (the shipped adapter reads NSE/NFO codes).
-SPARK_NAMES = [("RELIND", "NSE"), ("INFTEC", "NSE")]
-TAPE_NAMES = [("NIFTY", "NFO"), ("CNXBAN", "NFO")]
 
 clients = {}
 ACCOUNT_LABELS = {}   # account key -> "A/C ··1234" (last four digits, never a name)
 # The broker the reader chose on Settings: its id and its module. clients["primary"]
-# is that broker's client object. The shipped India adapter also serves live
-# ticks, futures, margin and the options tape; _breeze() returns its client only
-# when it is the active one, so the India-only reads stay quiet for everyone else.
+# is that broker's client object. Anything beyond holdings and cash (live ticks,
+# futures, margin, chains, candles, a symbol master) is an optional hook on the
+# broker file; _hook() finds it or returns None, and the desk shows what exists.
 ADAPTER = {"id": "", "mod": None}
 
 
-def _breeze():
-    if ADAPTER["id"] == "icici_breeze":
-        return next(iter(clients.values()), None)
-    return None
-# Tokens die at midnight (SEBI). When every Breeze pull comes back empty the UI
-# shows a "paste tokens" banner instead of misleading zeros.
-breeze_health = {"dead": not clients}
+def _client():
+    return next(iter(clients.values()), None)
+
+
+def _hook(name, live=True):
+    """The active broker file's optional function `name`, if it has one. Most
+    hooks need a connected client; the symbol master (resolve, search) does
+    not, so those pass live=False and work with the session down."""
+    mod = ADAPTER["mod"]
+    if mod is None or (live and not clients):
+        return None
+    return getattr(mod, name, None)
+
+
+def _market():
+    """The home market file: the broker's market, else HOME_MARKET in .env."""
+    mod = ADAPTER["mod"]
+    return markets.active(mod.META.get("region") if mod else None)
+
+
+# A daily-login broker's session ends at midnight. When every pull comes back
+# empty the pages show a "log in again" notice instead of misleading zeros.
+broker_health = {"dead": not clients}
 _cache = {"snap": (0.0, None), "tape": (0.0, None),
-          "earn": (0.0, None), "earn_in": (0.0, None), "macro": (0.0, None),
+          "earn": (0.0, None), "results_home": (0.0, None), "macro": (0.0, None),
           "funds": (0.0, None), "capitol": (0.0, None), "econcal": (0.0, None),
           "burry": (0.0, None), "pulse": (0.0, None), "insiders": (0.0, None),
           "risk": (0.0, None), "act13d": (0.0, None), "flow": (0.0, None),
@@ -92,17 +92,6 @@ _locks = {k: threading.Lock() for k in _cache}
 EARN_TTL, MACRO_TTL, FUNDS_TTL, CAPITOL_TTL = 12 * 3600, 6 * 3600, 24 * 3600, 6 * 3600
 COMMODS_TTL = 10 * 60   # Yahoo tail + TE sentence refresh; histories cache 12h inside
 
-
-def _account_label(name, breeze):
-    """Display label from the last four digits of the account number."""
-    try:
-        f = breeze.get_funds().get("Success") or {}
-        acct = str(f.get("bank_account") or "")
-        if len(acct) >= 4:
-            return f"A/C ··{acct[-4:]}"
-    except Exception:  # noqa: BLE001
-        pass
-    return name
 
 # ---- watchlist ---------------------------------------------------------------
 WATCHLIST_PATH = os.path.join(DATA_DIR, "watchlist.json")
@@ -136,33 +125,52 @@ def save_watchlist(names):
         json.dump({"_comment": "Edit in the Watchlist page.", "names": names}, fh, indent=2)
 
 
-def fetch_watch_quote(breeze, code, exch):
-    """One cash quote, normalized for the watch grid. None if nothing came back."""
-    try:
-        r = breeze.get_quotes(stock_code=code, exchange_code=exch, product_type="cash")
-    except Exception:  # noqa: BLE001
+def _is_broker_name(entry):
+    """A home watch name quoted through the broker (older lists say "breeze")."""
+    return entry.get("source", "broker") in ("broker", "breeze")
+
+
+def _resolve(code, exch=None):
+    """What the desk knows about a home code: the exchange symbol, the exchange,
+    a name and Yahoo's symbol. Through the broker's symbol master when it has
+    one, else the code is the exchange symbol and the market file spells Yahoo's."""
+    hook = _hook("resolve", live=False)
+    if hook:
+        try:
+            r = hook(code)
+        except Exception:  # noqa: BLE001
+            r = None
+        if r:
+            return r
+    m = _market()
+    exch = exch or (m.META["exchanges"][0] if m else "")
+    ysym = m.ysym(code, exch) if m else code
+    return {"symbol": code, "exch": exch, "name": "", "ysym": ysym, "meta": {}}
+
+
+def _home_quote(code, exch=None, tries=1):
+    """One quote for a home name: the broker's own when its file serves quotes
+    (with the order book), else Yahoo through the resolved symbol."""
+    hook = _hook("quote")
+    cli = _client()
+    if hook and cli and not broker_health["dead"]:
+        m = _market()
+        exchanges = [exch] if exch else []
+        exchanges += [e for e in (m.META["exchanges"] if m else []) if e not in exchanges]
+        for attempt in range(max(1, tries)):
+            for ex in exchanges or [None]:
+                q = hook(cli, code, ex) if ex else hook(cli, code)
+                if q:
+                    return q
+            if attempt + 1 < tries:
+                time.sleep(0.8)
         return None
-    rows = (r.get("Success") if isinstance(r, dict) else None) or []
-    if not rows:
-        return None
-    q = rows[0]
-    ltp = _num(_first(q, ["ltp", "last_traded_price"]))
-    prev = _num(_first(q, ["previous_close", "prev_close"]))
-    if ltp is None or ltp <= 0:
-        return None
-    # Compute day % ourselves: Breeze's ltp_percent_change loses the sign.
-    day = (ltp - prev) / prev * 100 if prev else _num(_first(q, ["ltp_percent_change"]))
-    return {
-        "code": code, "exch": exch, "ltp": ltp, "prev": prev, "day_pct": day,
-        "bid": _num(_first(q, ["best_bid_price"])),
-        "bid_qty": _num(_first(q, ["best_bid_quantity"])),
-        "offer": _num(_first(q, ["best_offer_price"])),
-        "offer_qty": _num(_first(q, ["best_offer_quantity"])),
-        "open": _num(_first(q, ["open"])), "high": _num(_first(q, ["high"])),
-        "low": _num(_first(q, ["low"])),
-        "ttq": _num(_first(q, ["total_quantity_traded", "volume"])),
-        "ts": datetime.now().strftime("%H:%M:%S"),
-    }
+    r = _resolve(code, exch)
+    q = fetch_yahoo_quote(r["ysym"]) if r.get("ysym") else None
+    if q:
+        q["code"] = code
+        q["exch"] = q.get("exch") or r.get("exch") or ""
+    return q
 
 
 # ---- US watchlist (FMP) ------------------------------------------------------
@@ -343,21 +351,37 @@ def search_symbols(q, region):
                                 "exch": f"{r.get('quoteType') or ''} · {r.get('exchange') or ''}"})
         except Exception:  # noqa: BLE001
             pass
-    else:                               # india: the ICICI security master
-        db = secmaster.load()
-        matches = []
-        for code, meta in db.items():
-            co = (meta.get("company") or "").upper()
-            nse = (meta.get("nse_symbol") or "").upper()
-            if code.startswith(q) or nse.startswith(q):
-                matches.append((0, code, meta))
-            elif q in co:
-                matches.append((1, code, meta))
-        matches.sort(key=lambda m: (m[0], m[1]))
-        for _, code, meta in matches[:8]:
-            nse = meta.get("nse_symbol")
-            out.append({"code": code, "name": (meta.get("company") or "").title(),
-                        "exch": (meta.get("exch") or "") + (f" · NSE:{nse}" if nse else "")})
+    else:                               # home: the broker's master, else Yahoo in the home market
+        hook = _hook("search", live=False)
+        if hook:
+            try:
+                return hook(q)
+            except Exception:  # noqa: BLE001
+                pass
+        m = _market()
+        try:
+            resp = requests.get(
+                "https://query1.finance.yahoo.com/v1/finance/search",
+                params={"q": q, "quotesCount": 20, "newsCount": 0},
+                headers={"User-Agent": "Mozilla/5.0"}, timeout=10).json()
+        except Exception:  # noqa: BLE001
+            resp = {}
+        wanted = set()
+        if m:
+            wanted = {m.ysym("X", e)[1:] for e in m.META["exchanges"]}   # the suffixes (".NS")
+            wanted.discard("")
+        for r in resp.get("quotes", []):
+            sym = r.get("symbol") or ""
+            if not sym or (r.get("quoteType") or "EQUITY") != "EQUITY":
+                continue
+            suffix = sym[sym.rfind("."):] if "." in sym else ""
+            if wanted and suffix not in wanted:
+                continue
+            code = sym if not wanted else sym[: sym.rfind(".")]
+            out.append({"code": code, "name": r.get("shortname") or r.get("longname") or "",
+                        "exch": r.get("exchange") or "", "ysym": sym})
+            if len(out) >= 8:
+                break
     return out
 
 
@@ -384,12 +408,52 @@ HIST_CACHE_DIR = os.path.join(HERE, "cache")
 os.makedirs(HIST_CACHE_DIR, exist_ok=True)
 
 
-def _daily_history_in(breeze, code, exch, years=8):
-    """Chunked Breeze daily OHLCV candles (the API caps ~1000 rows per call),
-    disk-cached per day — history changes once a session, so only the first
-    click of the day pays the multi-call cost (his 'too slow' feedback).
-    When the session is dead (weekend, lapsed token) the stale cache is served
-    rather than an empty chart: Friday's history beats a blank screen."""
+def _yahoo_candles(ysym, rng, interval):
+    """Candles for any Yahoo symbol, ascending, the chart's row shape. Goes
+    through freefeed first; when that is resting after a rate limit, one plain
+    call of its own, so a home ticker page is not blank for five minutes
+    because a US page tripped the limit."""
+    _, rows = freefeed.chart(ysym, rng, interval)
+    if rows:
+        return rows
+    try:
+        r = requests.get(f"https://query2.finance.yahoo.com/v8/finance/chart/{ysym}",
+                         params={"range": rng, "interval": interval},
+                         headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
+        res = (r.json().get("chart", {}).get("result") or [None])[0]
+    except Exception:  # noqa: BLE001
+        return []
+    if not res:
+        return []
+    ts = res.get("timestamp") or []
+    q = ((res.get("indicators") or {}).get("quote") or [{}])[0]
+    off = (res.get("meta") or {}).get("gmtoffset") or 0
+    daily = interval.endswith(("d", "wk", "mo"))
+    out = []
+    for i, t in enumerate(ts):
+        c = _num((q.get("close") or [None] * len(ts))[i])
+        if c is None:
+            continue
+        d = datetime.fromtimestamp(t + off, tz=timezone.utc)
+        out.append({"date": d.strftime("%Y-%m-%d" if daily else "%Y-%m-%d %H:%M"), "price": c,
+                    "o": _num((q.get("open") or [None] * len(ts))[i]),
+                    "h": _num((q.get("high") or [None] * len(ts))[i]),
+                    "l": _num((q.get("low") or [None] * len(ts))[i]),
+                    "v": _num((q.get("volume") or [None] * len(ts))[i])})
+    return out
+
+
+CURRENCY_SYMBOLS = {"USD": "$", "INR": "₹", "GBP": "£", "GBp": "p", "EUR": "€", "JPY": "¥",
+                    "CNY": "¥", "HKD": "HK$", "AUD": "A$", "CAD": "C$", "SGD": "S$", "CHF": "Fr",
+                    "AED": "AED ", "SAR": "SAR ", "BRL": "R$", "KRW": "₩", "SEK": "kr", "NOK": "kr"}
+
+
+def _daily_history_home(code, exch, years=8):
+    """Daily candles for a home name, newest first, disk-cached per day: history
+    changes once a session, so only the first click of the day pays. Through the
+    broker's history hook when its file has one, else Yahoo through the resolved
+    symbol. When neither answers (weekend, lapsed login) the stale cache is
+    served rather than an empty chart."""
     today = datetime.now().strftime("%Y-%m-%d")
     cpath = os.path.join(HIST_CACHE_DIR, f"hist_{code}.json")
     stale = None
@@ -402,34 +466,18 @@ def _daily_history_in(breeze, code, exch, years=8):
             stale = c["data"]
     except (OSError, ValueError):
         pass
-    if breeze is None:
-        return stale or []
-
-    out, now = [], datetime.now()
-    start_year = now.year - years
-    for y0 in range(start_year, now.year + 1, 3):
-        frm = f"{y0}-01-01T09:00:00.000Z"
-        to = min(datetime(y0 + 3, 1, 1), now).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    data = []
+    hook = _hook("history")
+    if hook and not broker_health["dead"]:
         try:
-            r = breeze.get_historical_data_v2(
-                interval="1day", from_date=frm, to_date=to,
-                stock_code=code, exchange_code=exch, product_type="cash")
-            rows = r.get("Success") or []
+            data = hook(_client(), code, exch, years)
         except Exception:  # noqa: BLE001
-            rows = []
-        for c in rows:
-            p = _num(c.get("close"))
-            if p:
-                out.append({"date": str(c.get("datetime"))[:10], "price": p,
-                            "o": _num(c.get("open")), "h": _num(c.get("high")),
-                            "l": _num(c.get("low")), "v": _num(c.get("volume"))})
-        time.sleep(0.15)
-    seen, dedup = set(), []
-    for row in out:
-        if row["date"] not in seen:
-            seen.add(row["date"])
-            dedup.append(row)
-    data = sorted(dedup, key=lambda r: r["date"], reverse=True)
+            data = []
+    if not data:
+        r = _resolve(code, exch)
+        if r.get("ysym"):
+            rows = _yahoo_candles(r["ysym"], "10y", "1d")
+            data = sorted(rows, key=lambda x: x["date"], reverse=True)
     if data:
         try:
             with open(cpath, "w") as fh:
@@ -440,92 +488,49 @@ def _daily_history_in(breeze, code, exch, years=8):
     return stale or []
 
 
-def _intraday_in(breeze, code, exch):
-    """Intraday series — the Breeze edge no US feed matches on Starter.
-    1D = 1-minute candles of the latest session; 5D = 5-minute over five."""
-    now = datetime.now()
-    out = {}
-    for key, interval, back in (("1D", "1minute", 6), ("5D", "5minute", 12)):
+def _intraday_home(code, exch):
+    """{"1D", "5D"} minute candles: the broker's when its file serves them,
+    else Yahoo's 5-minute bars through the resolved symbol."""
+    hook = _hook("intraday")
+    if hook and not broker_health["dead"]:
         try:
-            r = breeze.get_historical_data_v2(
-                interval=interval,
-                from_date=(now - timedelta(days=back)).strftime("%Y-%m-%dT09:00:00.000Z"),
-                to_date=now.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
-                stock_code=code, exchange_code=exch, product_type="cash")
-            rows = r.get("Success") or []
+            return hook(_client(), code, exch)
         except Exception:  # noqa: BLE001
-            rows = []
-        pts = [{"date": str(c.get("datetime"))[:16], "price": _num(c.get("close")),
-                "o": _num(c.get("open")), "h": _num(c.get("high")),
-                "l": _num(c.get("low")), "v": _num(c.get("volume"))}
-               for c in rows if _num(c.get("close"))]
-        dates = sorted({p["date"][:10] for p in pts})
-        keep = dates[-1:] if key == "1D" else dates[-5:]
-        out[key] = [p for p in pts if p["date"][:10] in keep]
-        time.sleep(0.2)
-    return out
+            pass
+    r = _resolve(code, exch)
+    if not r.get("ysym"):
+        return {}
+    rows = _yahoo_candles(r["ysym"], "5d", "5m")
+    pts = [{"date": x["date"][:16], "price": x["price"], "o": x.get("o"), "h": x.get("h"),
+            "l": x.get("l"), "v": x.get("v")} for x in rows]
+    days = sorted({p["date"][:10] for p in pts})
+    return {"1D": [p for p in pts if p["date"][:10] in days[-1:]],
+            "5D": [p for p in pts if p["date"][:10] in days[-5:]]}
 
 
-def _futures_quote_in(breeze, code, expiry_human):
-    """Bid/ask/OI on the actual futures contract (click the contract,
-    see its book). Breeze wants an ISO expiry; the position carries 27-Oct-2026."""
-    try:
-        iso = datetime.strptime(expiry_human, "%d-%b-%Y").strftime("%Y-%m-%dT06:00:00.000Z")
-    except (ValueError, TypeError):
-        return None
-    for exp in (iso, expiry_human):
-        try:
-            r = breeze.get_quotes(stock_code=code, exchange_code="NFO",
-                                  product_type="futures", expiry_date=exp,
-                                  right="others", strike_price="0")
-            rows = (r.get("Success") if isinstance(r, dict) else None) or []
-        except Exception:  # noqa: BLE001
-            rows = []
-        if rows:
-            q = rows[0]
-            return {
-                "expiry": expiry_human,
-                "ltp": _num(q.get("ltp")),
-                "bid": _num(q.get("best_bid_price")), "bid_qty": _num(q.get("best_bid_quantity")),
-                "offer": _num(q.get("best_offer_price")), "offer_qty": _num(q.get("best_offer_quantity")),
-                "oi": _num(q.get("open_interest")),
-                "ttq": _num(q.get("total_quantity_traded")),
-                "prev": _num(q.get("previous_close")),
-            }
-        time.sleep(0.3)
-    return None
-
-
-def build_ticker_in(code):
-    """India research view: Breeze quote + chunked candles + intraday + security
-    master meta + account positions (labelled by account number) + futures book.
-    Fundamentals/news need a non-FMP source (Starter is US-only) — sections the
-    page simply hides."""
-    breeze = _breeze()
-    meta = secmaster.lookup(code) or {}
-    exch = meta.get("exch") or "NSE"
-    q = None
-    for attempt in range(3):          # Breeze drops the odd response; retry
-        q = fetch_watch_quote(breeze, code, exch)
-        if q:
-            break
-        if exch == "NSE":
-            q = fetch_watch_quote(breeze, code, "BSE")
-            if q:
-                exch = "BSE"
-                break
-        time.sleep(0.8)
+def build_ticker_home(code):
+    """The research view for a home-market name: quote, candles, intraday, the
+    name and exchange, the reader's positions in it (labelled by account
+    number), the futures book where the broker serves one, and the labels the
+    market file gives the filings block."""
+    r = _resolve(code)
+    exch = r.get("exch") or ""
+    q = _home_quote(code, exch or None, tries=3)
     if not q:
-        return {"symbol": code, "region": "in", "error": f"no Breeze quote for {code} right now — try again"}
+        return {"symbol": code, "region": "home",
+                "error": f"no quote for {code} right now; check the code, or try again in a minute"}
+    exch = q.get("exch") or exch
+    m = _market()
+    mod = ADAPTER["mod"]
 
     held, fut_expiries = {}, []
-    for account, cli in (clients.items() if breeze else []):
+    for account, cli in (clients.items() if (mod and not broker_health["dead"]) else []):
         label = ACCOUNT_LABELS.get(account, account)
         try:
-            for e in _equity(cli):
+            for e in mod.equity(cli):
                 if e["code"] == code:
                     held[label] = e
-            for f in _futures(cli):
+            for f in (mod.futures(cli) if hasattr(mod, "futures") else []):
                 if (f.get("underlying") or "") == code:
                     held[f"{label} · futures"] = f
                     if f.get("expiry") and f["expiry"] not in fut_expiries:
@@ -534,16 +539,28 @@ def build_ticker_in(code):
             pass
 
     futures_quotes = []
-    for exp in fut_expiries:
-        fq = _futures_quote_in(breeze, code, exp)
+    fq_hook = _hook("futures_quote")
+    for exp in (fut_expiries if fq_hook else []):
+        fq = fq_hook(_client(), code, exp)
         if fq:
             futures_quotes.append(fq)
 
+    meta = dict(r.get("meta") or {})
+    meta.setdefault("company", r.get("name") or q.get("name") or "")
+    meta.setdefault("exch", exch)
+    cur_code = q.get("currency") or ""
     return {
-        "symbol": code, "region": "in",
+        "symbol": code, "region": "home",
+        "exchange_symbol": r.get("symbol") if r.get("symbol") != code else "",
+        "ysym": r.get("ysym", ""),
+        "currency_symbol": (m.META["symbol"] if m else CURRENCY_SYMBOLS.get(cur_code, cur_code + " " if cur_code else "")),
+        "filings": (m.META.get("filings") if m else "") or "",
+        "units": (m.META.get("units") if m else "") or "",
+        "market": (m.META["label"] if m else ""),
+        "has_book": q.get("bid") is not None,
         "meta": meta, "quote": q,
-        "history": _daily_history_in(breeze, code, exch),
-        "intraday": _intraday_in(breeze, code, exch),
+        "history": _daily_history_home(code, exch),
+        "intraday": _intraday_home(code, exch),
         "futures_quotes": futures_quotes,
         "held_in": held,
         "ts": datetime.now().strftime("%H:%M:%S"),
@@ -643,13 +660,15 @@ _infund_lock = threading.Lock()
 
 
 def cached_infund(code):
-    """India fundamentals for the ticker page: NSE integrated-filing results +
-    shareholding + Reg 30 stream. Per-symbol, disk-backed, 12h; never caches
-    an unreachable-NSE failure."""
-    meta = secmaster.lookup(code) or {}
-    sym = meta.get("nse_symbol")
+    """The filings block of the home ticker page (results, shareholding,
+    announcements) from the market file. Per-symbol, disk-backed, 12h; never
+    caches a failure to reach the exchange."""
+    m = _market()
+    if not m or not hasattr(m, "fundamentals"):
+        return {"error": "no filings feed for this market yet"}
+    sym = _resolve(code).get("symbol")
     if not sym:
-        return {"error": "no NSE listing mapped for this code (BSE-only names have no filing feed here)"}
+        return {"error": "no exchange listing mapped for this code, so no filings feed here"}
     now = time.time()
     with _infund_lock:
         hit = _infund_cache.get(code)
@@ -666,9 +685,9 @@ def cached_infund(code):
                 return c["data"]
         except (OSError, ValueError, KeyError):
             pass
-    data = nse_fund.build(sym)
+    data = m.fundamentals(sym)
     if data is None:
-        return {"error": "NSE not reachable right now — reload to retry"}
+        return {"error": "the exchange is not answering right now; reload to retry"}
     with _infund_lock:
         _infund_cache[code] = (now, data)
     try:
@@ -685,7 +704,7 @@ def cached_ticker(symbol, region="us"):
     hit = _ticker_cache.get(key)
     if hit and now - hit[0] < TICKER_TTL:
         return hit[1]
-    data = build_ticker_in(symbol) if region == "in" else build_ticker(symbol)
+    data = build_ticker(symbol) if region == "us" else build_ticker_home(symbol)
     if not data.get("error"):        # never cache a failure; retry next click
         _ticker_cache[key] = (now, data)
     return data
@@ -931,56 +950,60 @@ def us_watch_loop():
         time.sleep(nap)
 
 
+def _stream_healthy():
+    hook = _hook("stream_healthy")
+    try:
+        return bool(hook and hook())
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def watch_loop():
-    """Cycle the watchlist forever, one quote at a time, latest kept in WATCH.
-    Gentle pacing keeps us well inside Breeze's rate limit; slower off-hours."""
+    """Cycle the home watchlist forever, one quote at a time, latest kept in
+    WATCH. Through the broker's quote hook when its file has one (gently, inside
+    the broker's rate limit; slower off-hours), else Yahoo through each name's
+    resolved symbol, so a reader on any broker, or none, has a home grid."""
     first_cycle = True
     while True:
-        breeze = _breeze()
-        if breeze is None:
-            # No broker that serves quotes: the home grid prices through Yahoo,
-            # so a reader on any broker (or none) still has a home watchlist.
-            names = load_watchlist()
+        names = load_watchlist()
+        quote_hook = _hook("quote")
+        if quote_hook is None:
             for entry in names:
-                if entry.get("source") == "breeze" and ADAPTER["id"] == "icici_breeze":
-                    continue
-                q = fetch_yahoo_quote(entry["code"])
+                q = _home_quote(entry["code"], entry.get("exch") or None)
                 if q:
                     with _watch_lock:
                         WATCH[entry["code"]] = q
                 time.sleep(0.5)
+            first_cycle = False
             time.sleep(60)
             continue
-        names = load_watchlist()
         any_ok = False
         for entry in names:
-            if entry.get("source", "breeze") != "breeze":
-                continue  # fmp names arrive in Phase B
-            q = fetch_watch_quote(breeze, entry["code"], entry.get("exch", "NSE"))
+            if not _is_broker_name(entry):
+                continue
+            q = _home_quote(entry["code"], entry.get("exch") or None)
             if q:
                 any_ok = True
                 with _watch_lock:
                     WATCH[entry["code"]] = q
-            # While the websocket is delivering, this loop is only the fallback
-            # + dead-session probe — no need to hammer the REST quote API.
-            if stream_in.healthy():
+            # while live ticks are arriving this loop is only the fallback and
+            # the dead-session probe, so it need not hammer the quote endpoint
+            if _stream_healthy():
                 time.sleep(5.0)
             else:
-                time.sleep(0.7 if (market_open() or first_cycle) else 3.0)
+                time.sleep(0.7 if (home_market_open() or first_cycle) else 3.0)
         if names:                      # a full silent pass = the session is dead
-            breeze_health["dead"] = not any_ok
-        # BSE micro-caps often return no usable cash quote (ltp 0 / empty body).
-        # For held names the holdings feed carries the broker's own mark — use it
-        # rather than leaving a dead row on the grid.
+            broker_health["dead"] = not any_ok
+        # Thinly traded names often return no usable quote. For held names the
+        # holdings feed carries the broker's own mark; use it rather than
+        # leaving a dead row on the grid.
         with _watch_lock:
-            missing = [e for e in names
-                       if e.get("source", "breeze") == "breeze"
-                       and e["code"] not in WATCH]
-        if missing and not breeze_health["dead"]:
+            missing = [e for e in names if _is_broker_name(e) and e["code"] not in WATCH]
+        if missing and not broker_health["dead"]:
             marks = {}
             for cl in clients.values():
                 try:
-                    for row in _equity(cl):
+                    for row in ADAPTER["mod"].equity(cl):
                         if row.get("ltp"):
                             marks[row["code"]] = row
                 except Exception:  # noqa: BLE001
@@ -990,7 +1013,7 @@ def watch_loop():
                 if row:
                     with _watch_lock:
                         WATCH[e["code"]] = {
-                            "code": e["code"], "exch": e.get("exch", "NSE"),
+                            "code": e["code"], "exch": e.get("exch", ""),
                             "ltp": row["ltp"], "prev": None,
                             "day_pct": row.get("day_pct"),
                             "bid": None, "bid_qty": None,
@@ -1002,21 +1025,25 @@ def watch_loop():
         time.sleep(2)
 
 
-def market_open(now=None):
-    now = now or datetime.now()
-    if now.weekday() >= 5:
+def home_market_open():
+    """The home market's regular session, from its market file; False when no
+    home market is set."""
+    m = _market()
+    try:
+        return bool(m and m.is_open())
+    except Exception:  # noqa: BLE001
         return False
-    hm = now.hour * 60 + now.minute
-    return (9 * 60 + 15) <= hm <= (15 * 60 + 30)
 
 
-def _home_market_open():
-    """Market hours for the connected broker's market: US hours for a US
-    broker, the shipped home-market hours otherwise."""
-    mod = ADAPTER["mod"]
-    if mod and mod.META.get("region") == "us":
-        return us_market_open()
-    return market_open()
+def _market_info():
+    """What the pages need to know about the home market, in one block."""
+    m = _market()
+    if not m:
+        return {"id": "", "label": "", "exchanges": [], "session_label": "",
+                "symbol": "", "locale": "", "currency": ""}
+    return {k: m.META.get(k, "") for k in
+            ("id", "label", "exchanges", "session_label", "symbol", "locale", "currency",
+             "benchmark_label")}
 
 
 def _fill_marks(rows):
@@ -1051,9 +1078,9 @@ def build_snapshot():
     accounts = {}
     alive = False
     live_client = None
-    for name, breeze in clients.items():
+    for name, cli in clients.items():
         try:
-            equity, futures, funds = _reads(breeze)
+            equity, futures, funds = _reads(cli)
         except brokers.BrokerError as exc:
             print(f"  broker: {exc}")
             equity, futures, funds = [], [], {}
@@ -1062,7 +1089,7 @@ def build_snapshot():
             equity, futures, funds = [], [], {}
         if equity or futures or funds.get("cash") is not None:
             alive = True
-            live_client = live_client or breeze
+            live_client = live_client or cli
         eq_value = sum(e["value"] for e in equity if e["value"] is not None)
         eq_pnl = sum(e["pnl"] for e in equity if e["pnl"] is not None)
         fno_mtm = sum(f["mtm"] for f in futures if f["mtm"] is not None)
@@ -1071,7 +1098,7 @@ def build_snapshot():
         accounts[name] = {
             "label": ACCOUNT_LABELS.get(name, name),
             "broker": (ADAPTER["mod"].META["label"] if ADAPTER["mod"] else ""),
-            "region": (ADAPTER["mod"].META.get("region", "in") if ADAPTER["mod"] else "in"),
+            "region": (ADAPTER["mod"].META.get("region", "") if ADAPTER["mod"] else ""),
             "currency": funds.get("currency") or (equity[0].get("currency") if equity else "") or "",
             "equity": equity,
             "futures": futures,
@@ -1089,24 +1116,18 @@ def build_snapshot():
             "broker_at": time.time(),
         }
 
-    # Accounts with NO live session today (token not pasted): serve the last
-    # saved broker book (qty / avg / funds / margin frozen at broker time) with
-    # every MARKET mark re-priced through the live session — quotes are market
-    # data, so one daily token prices every account's names. Funds and margin
-    # stay frozen because those really are account-scoped at the broker.
-    if alive and _breeze():
-        for name in ACCOUNTS:
-            if name in accounts and (accounts[name].get("equity")
-                                     or accounts[name].get("futures")
-                                     or (accounts[name].get("funds") or {}).get("cash") is not None):
-                continue  # live this pass
-            block, as_of = load_last_snapshot_block(name)
-            if not block:
-                continue
-            try:
-                refresh_marks(block, live_client)
-            except Exception:  # noqa: BLE001
-                pass
+    # A broker file that supports several accounts hands back the others with
+    # no session today: the last saved book, marks re-priced through the live
+    # session, funds and margin as the broker last reported them.
+    extra_hook = _hook("extra_accounts")
+    if alive and extra_hook:
+        live_names = [n for n, a in accounts.items()
+                      if a.get("equity") or a.get("futures") or (a.get("funds") or {}).get("cash") is not None]
+        try:
+            extras = extra_hook(live_client, live_names) or {}
+        except Exception:  # noqa: BLE001
+            extras = {}
+        for name, block in extras.items():
             funds = block.get("funds") or {}
             equity = block.get("equity", [])
             futures = block.get("futures", [])
@@ -1123,23 +1144,23 @@ def build_snapshot():
                 "util_pct": (blocked / limit_total * 100) if limit_total else None,
             }
             block["label"] = ACCOUNT_LABELS.get(name) or block.get("label") or name
-            block["stale_funds"] = True
-            block["broker_as_of"] = as_of
             accounts[name] = block
 
-    # Sparkline series off the first client (any client works for market data).
+    # Sparklines under the open futures, where the broker serves intraday candles.
     sparks = {}
-    spark_client = _breeze()
-    if spark_client:
-        for code, exch in SPARK_NAMES:
-            candles = _pull_candles(spark_client, code, exch, days=3)
-            closes = [c.get("close") for c in candles if c.get("close") is not None]
-            sparks[code] = closes[-120:]
+    spark_hook = _hook("sparks")
+    if alive and spark_hook:
+        try:
+            all_fut = [f for a in accounts.values() for f in a.get("futures", [])]
+            sparks = spark_hook(live_client, all_fut) or {}
+        except Exception:  # noqa: BLE001
+            sparks = {}
 
-    breeze_health["dead"] = not alive
+    broker_health["dead"] = not alive
     data = {
         "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "market_open": _home_market_open(),
+        "market_open": home_market_open(),
+        "market": _market_info(),
         "session_dead": not alive,
         "accounts": accounts,
         "sparks": sparks,
@@ -1151,9 +1172,9 @@ def build_snapshot():
         except OSError:
             pass
         return data
-    # Session dead (lapsed token / weekend): never a blank desk. Serve the last
-    # good broker book with equity marks refreshed from Yahoo's delayed NSE
-    # quotes; futures marks and every margin number stay frozen at broker time.
+    # Session over (lapsed login, weekend): never a blank desk. Serve the last
+    # good broker book with equity marks refreshed from Yahoo's delayed quotes;
+    # futures marks and every margin number stay as the broker last reported.
     return _stale_snapshot() or data
 
 
@@ -1161,14 +1182,12 @@ LAST_SNAP_PATH = os.path.join(HIST_CACHE_DIR, "last_snapshot.json")
 _ystale = {}          # yahoo symbol -> (fetched_ts, quote)
 
 
-def _yahoo_in_quote(code):
-    """Delayed Yahoo quote for an ICICI code via its NSE symbol; 10-min cached.
-    BSE-only names have no Yahoo mapping here — they stay on the frozen mark."""
-    meta = secmaster.lookup(code) or {}
-    sym = meta.get("nse_symbol")
-    if not sym:
+def _yahoo_home_quote(code):
+    """Delayed Yahoo quote for a home code through its resolved symbol; 10-min
+    cached. A code Yahoo cannot be found for stays on the frozen mark."""
+    ysym = _resolve(code).get("ysym")
+    if not ysym:
         return None
-    ysym = f"{sym}.NS"
     hit = _ystale.get(ysym)
     if hit and time.time() - hit[0] < 600:
         return hit[1]
@@ -1199,7 +1218,7 @@ def _stale_snapshot():
 
     def _mark(code):
         ys = ysyms.get(code)
-        return fetch_yahoo_quote(ys) if ys else _yahoo_in_quote(code)
+        return fetch_yahoo_quote(ys) if ys else _yahoo_home_quote(code)
     with ThreadPoolExecutor(max_workers=6) as ex:
         quotes = dict(zip(codes, ex.map(_mark, codes)))
     fresh = 0
@@ -1221,7 +1240,8 @@ def _stale_snapshot():
         t["equity_value"] = sum(e["value"] for e in eq if e.get("value") is not None)
         t["equity_pnl"] = sum(e["pnl"] for e in eq if e.get("pnl") is not None)
     data["session_dead"] = True
-    data["market_open"] = market_open()
+    data["market_open"] = home_market_open()
+    data["market"] = _market_info()
     data["ts"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     data["stale"] = {"broker_as_of": broker_as_of,
                      "yahoo_marks": fresh, "eq_rows": len(codes)}
@@ -1229,34 +1249,22 @@ def _stale_snapshot():
 
 
 def build_tape():
-    breeze = _breeze()
-    if breeze is None:
+    """The index options tape on Desk · Home, where the broker's file serves
+    option chains; an empty list otherwise and the page says so."""
+    hook = _hook("tape")
+    if hook is None or broker_health["dead"]:
         return {"ts": datetime.now().strftime("%H:%M:%S"), "names": []}
-    out = []
-    for code, exch in TAPE_NAMES:
-        calls, puts, expiry = find_chain(breeze, code, exch)
-        if not calls:
-            out.append({"code": code, "error": "no chain"})
-            continue
-        m = analyze(calls, puts)
-        out.append({
-            "code": code,
-            "expiry": expiry,
-            "spot": m["spot"],
-            "pcr": m["pcr_oi"],
-            "flow_pcr": m["flow_pcr"],
-            "support": m["support"][0] if m["support"] else None,
-            "resistance": m["resistance"][0] if m["resistance"] else None,
-            "exp_move_pct": m["exp_move_pct"],
-            "skew": m["skew"],
-        })
-    return {"ts": datetime.now().strftime("%H:%M:%S"), "names": out}
+    try:
+        names = hook(_client()) or []
+    except Exception:  # noqa: BLE001
+        names = []
+    return {"ts": datetime.now().strftime("%H:%M:%S"), "names": names}
 
 
 # ---- earnings calendar (US, FMP bulk) ---------------------------------------
 def build_earnings():
-    """Upcoming earnings for every US name we track (book + watchlist), from
-    one bulk FMP calendar call. India has no comparable feed yet - said so in UI."""
+    """Upcoming earnings for every US name we track (book + watchlist), one
+    feed call per name. The home market's results come from its market file."""
     ours = set()
     try:
         with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
@@ -1294,77 +1302,40 @@ def build_earnings():
     return {"rows": out, "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
 
 
-# ---- India results calendar (NSE event-calendar; needs a cookie warmup) ------
-NSE_UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-          "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0 Safari/537.36",
-          "Accept": "application/json"}
-_nse = {"session": None, "warmed": 0.0}
-
-
-def _nse_get(path):
-    """NSE blocks bare API hits; a homepage visit first sets the cookies it
-    checks. Session reused ~10 min, rebuilt on any failure."""
-    now = time.time()
-    s = _nse["session"]
-    if s is None or now - _nse["warmed"] > 600:
-        s = requests.Session()
-        s.headers.update(NSE_UA)
-        try:
-            s.get("https://www.nseindia.com", timeout=15)
-        except Exception:  # noqa: BLE001
-            return None
-        _nse.update(session=s, warmed=now)
+# ---- the home market's results calendar (from its market file) ---------------
+def build_results_home():
+    """Upcoming results dates for the home watchlist, from the market file's
+    public calendar; cached half a day. A name the calendar cannot be found for
+    is counted, not hidden. Markets without a calendar say so."""
+    m = _market()
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M")
+    if not m or not hasattr(m, "results_calendar"):
+        return {"available": False, "rows": [], "skipped": 0, "ts": ts,
+                "market": (m.META["label"] if m else "")}
+    entries = load_watchlist()
+    by_symbol = {}
+    for e in entries:
+        r = _resolve(e["code"], e.get("exch") or None)
+        if r.get("symbol"):
+            by_symbol.setdefault(r["symbol"], (e["code"], r.get("name") or ""))
     try:
-        r = s.get(f"https://www.nseindia.com/api/{path}", timeout=15)
-        if r.status_code != 200:
-            _nse["session"] = None
-            return None
-        return r.json()
+        cal = m.results_calendar(list(by_symbol)) or {}
     except Exception:  # noqa: BLE001
-        _nse["session"] = None
-        return None
-
-
-def build_earnings_in():
-    """Upcoming board meetings with a Financial Results purpose for every India
-    watchlist name that has an NSE listing. Per-symbol calls, politely paced;
-    cached half a day. BSE-only names have no feed here — counted, not hidden."""
-    today = datetime.now().date()
-    rows, skipped = [], 0
-    for entry in load_watchlist():
-        code = entry["code"]
-        meta = secmaster.lookup(code) or {}
-        sym = meta.get("nse_symbol")
-        if not sym:
-            skipped += 1
-            continue
-        events = _nse_get(f"event-calendar?index=equities&symbol={sym}") or []
-        best = None
-        for e in events:
-            if "result" not in (e.get("purpose") or "").lower():
-                continue
-            try:
-                d = datetime.strptime(e.get("date") or "", "%d-%b-%Y").date()
-            except ValueError:
-                continue
-            if d >= today and (best is None or d < best[0]):
-                best = (d, e)
-        if best:
-            d, e = best
-            rows.append({"code": code, "symbol": sym,
-                         "company": (meta.get("company") or e.get("company") or "").title(),
-                         "date": d.strftime("%Y-%m-%d"),
-                         "purpose": e.get("purpose")})
-        time.sleep(0.4)
-    rows.sort(key=lambda r: r["date"])
-    return {"rows": rows, "skipped_bse": skipped,
-            "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
+        cal = {}
+    rows = []
+    for r in cal.get("rows", []):
+        code, name = by_symbol.get(r.get("symbol"), (r.get("symbol"), ""))
+        rows.append({**r, "code": code, "company": r.get("company") or name})
+    return {"available": True, "rows": rows,
+            "skipped": (cal.get("skipped") or 0) + (len(entries) - len(by_symbol)),
+            "market": m.META["label"], "ts": ts}
 
 
 # ---- macro (FRED, keyless CSV) ----------------------------------------------
 MACRO_SERIES = [
     # (fred id, label, unit, group) — unit "%yoy" = YoY % computed from levels,
-    # "k" = thousands. Groups drive the page sections.
+    # "k" = thousands. Groups drive the page sections. The home market's own
+    # rows come from its market file.
     ("DGS2", "2Y Treasury", "%", "Rates"),
     ("DGS10", "10Y Treasury", "%", "Rates"),
     ("DGS30", "30Y Treasury", "%", "Rates"),
@@ -1387,46 +1358,22 @@ MACRO_SERIES = [
     ("DTWEXBGS", "Dollar index", "", "Commodities & dollar"),
     ("SP500", "S&P 500", "", "Equities"),
     ("NASDAQCOM", "Nasdaq Composite", "", "Equities"),
-    # India on FRED is thin: the 10Y (monthly, ~2-month lag) is the one series
-    # still current. RBI repo + India CPI need an RBI/MOSPI source — pending.
-    ("INDIRLTLT01STM", "India 10Y yield", "%", "India"),
 ]
-
-
-def _fred_csv(series):
-    """FRED's CDN stalls python-requests' TLS fingerprint but serves curl fine —
-    so shell out to curl for this one host."""
-    import subprocess
-    try:
-        r = subprocess.run(
-            ["curl", "-s", "-m", "25",
-             f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}"],
-            capture_output=True, text=True, timeout=30)
-        lines = r.stdout.strip().splitlines()[1:]
-        out = []
-        for ln in lines:
-            d, _, v = ln.partition(",")
-            v = v.strip()
-            if v and v != ".":
-                try:
-                    out.append((d, float(v)))
-                except ValueError:
-                    pass
-        return out
-    except Exception:  # noqa: BLE001
-        return []
 
 
 # ---- economic calendar (FMP; the Trading-Economics-style dated prints) -------
 def build_econcal():
-    """Upcoming macro prints, next ~10 days, US + India, High/Medium impact
-    (Low-impact noise like rig counts stays out). Dates from FMP are UTC."""
+    """Upcoming macro prints, next ~10 days, the US and the home market,
+    High/Medium impact (Low-impact noise like rig counts stays out). Dates from
+    the feed are UTC."""
     frm = datetime.now().strftime("%Y-%m-%d")
     to = (datetime.now() + timedelta(days=10)).strftime("%Y-%m-%d")
     rows = fmp_get("economic-calendar", **{"from": frm, "to": to}) or []
+    m = _market()
+    countries = {"US", (m.META.get("econ_country") if m else "") or "US"}
     keep = []
     for r in rows:
-        if r.get("country") not in ("US", "IN"):
+        if r.get("country") not in countries:
             continue
         if (r.get("impact") or "") not in ("High", "Medium"):
             continue
@@ -1438,113 +1385,22 @@ def build_econcal():
     return {"rows": keep[:80], "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
 
 
-# ---- RBI repo rate (scraped; it moves only a few times a year) ---------------
-REPO_PATH = os.path.join(HIST_CACHE_DIR, "india_repo.json")
-
-
-def _india_repo():
-    """Repo rate WITH its change history, scraped from BankBazaar's history
-    table (Effective Date / Repo Rate / %Change rows); current-rate fallback is
-    Trading Economics' stable sentence. Last good data persists on disk, so a
-    failed scrape degrades to stale-but-dated, never to nothing."""
-    import re
-    import subprocess
-    try:
-        with open(REPO_PATH) as fh:
-            prev = json.load(fh)
-    except (OSError, ValueError):
-        prev = None
-    if prev and time.time() - prev.get("at", 0) < 24 * 3600:
-        return prev
-
-    hist = []
-    try:
-        r = subprocess.run(
-            ["curl", "-s", "-m", "25", "-A", _YUA["User-Agent"],
-             "https://www.bankbazaar.com/home-loan/repo-rate.html"],
-            capture_output=True, text=True, timeout=30)
-        cells = [re.sub(r"<[^>]+>", "", c).strip()
-                 for c in re.findall(r"<td[^>]*>(.*?)</td>", r.stdout, re.S)]
-        for i, c in enumerate(cells):
-            m = re.match(r"^(\d{1,2}\s+\w+\s+\d{4})$", c)
-            if m and i + 1 < len(cells):
-                rate = re.match(r"^([0-9]+(?:\.[0-9]+)?)\s*%$", cells[i + 1])
-                if rate:
-                    try:
-                        d = datetime.strptime(m.group(1), "%d %B %Y")
-                        hist.append((d.strftime("%Y-%m-%d"), float(rate.group(1))))
-                    except ValueError:
-                        pass
-    except Exception:  # noqa: BLE001
-        pass
-    hist = sorted(set(hist))
-    if hist:
-        data = {"rate": hist[-1][1], "date": hist[-1][0], "at": time.time(),
-                "history": hist}
-        with open(REPO_PATH, "w") as fh:
-            json.dump(data, fh)
-        return data
-
-    # fallback: current value only, from TE's sentence
-    try:
-        r = subprocess.run(
-            ["curl", "-s", "-m", "25", "-A", _YUA["User-Agent"],
-             "https://tradingeconomics.com/india/interest-rate"],
-            capture_output=True, text=True, timeout=30)
-        m = re.search(r"benchmark interest rate in india was last recorded at\s*"
-                      r"([0-9]+(?:\.[0-9]+)?)\s*percent", r.stdout, re.I)
-        if m:
-            data = {"rate": float(m.group(1)), "at": time.time(),
-                    "date": datetime.now().strftime("%Y-%m-%d"),
-                    "history": (prev or {}).get("history", [])}
-            with open(REPO_PATH, "w") as fh:
-                json.dump(data, fh)
-            return data
-    except Exception:  # noqa: BLE001
-        pass
-    return prev
-
-
-_MONTH_NUM = {m: i + 1 for i, m in enumerate(
-    ["January", "February", "March", "April", "May", "June", "July",
-     "August", "September", "October", "November", "December"])}
-
-
-def _india_cpi():
-    """All-India headline CPI YoY from MOSPI's public API (keyless). The API
-    still serves the 2012-base series, which ended December 2025 when India
-    rebased to 2024 — the new series is not in this API yet, so the card is
-    history-complete but its latest print is Dec 2025 (date shown on card)."""
-    # MOSPI needs legacy TLS renegotiation, which python's OpenSSL refuses —
-    # curl handles it fine (same workaround as FRED's CDN).
-    import subprocess
-    series = []
-    for year in range(2014, 2026):
-        url = ("https://api.mospi.gov.in/api/cpi/getCPIIndex?base_year=2012"
-               f"&series=Current&year={year}&sector_code=3&group_code=0"
-               "&state_code=99&limit=20")
-        try:
-            r = subprocess.run(["curl", "-s", "-m", "25", "-A", "Mozilla/5.0", url],
-                               capture_output=True, text=True, timeout=30)
-            rows = json.loads(r.stdout).get("data", [])
-        except Exception:  # noqa: BLE001
-            rows = []
-        for row in rows:
-            infl = _num(row.get("inflation"))
-            mn = _MONTH_NUM.get(row.get("month"))
-            if infl is not None and mn:
-                series.append((f"{year}-{mn:02d}-01", infl))
-        time.sleep(0.3)
-    return sorted(set(series))
-
-
 def build_macro():
+    """The FRED cards every reader gets, plus the home market's own rows and
+    cards from its market file (India: the 10-year, the repo rate, CPI)."""
     cards = []
+    m = _market()
+    extra = []
+    if m and hasattr(m, "macro_series"):
+        try:
+            extra = list(m.macro_series())
+        except Exception:  # noqa: BLE001
+            extra = []
+    jobs = [(sid, lambda s=sid: fred.csv(s)) for sid, *_ in MACRO_SERIES]
+    jobs += [(row[0], row[4]) for row in extra]
     with ThreadPoolExecutor(max_workers=6) as ex:
-        fetched = dict(zip((s[0] for s in MACRO_SERIES),
-                           ex.map(_fred_csv, (s[0] for s in MACRO_SERIES))))
-    all_series = list(MACRO_SERIES) + [("INCPI_MOSPI", "India CPI YoY", "%", "India")]
-    fetched["INCPI_MOSPI"] = _india_cpi()
+        fetched = dict(zip((sid for sid, _ in jobs), ex.map(lambda j: j[1](), jobs)))
+    all_series = list(MACRO_SERIES) + [tuple(row[:4]) for row in extra]
     for sid, label, unit, group in all_series:
         data = fetched.get(sid) or []
         if not data:
@@ -1577,15 +1433,11 @@ def build_macro():
                       "value": latest, "date": latest_d,
                       "delta": (latest - prev) if prev is not None else None,
                       "spark": spark, "full": full})
-    repo = _india_repo()
-    if repo:
-        hist = repo.get("history") or []
-        delta = (hist[-1][1] - hist[-2][1]) if len(hist) >= 2 else None
-        cards.append({"id": "REPO_RBI", "label": "RBI repo rate", "unit": "%",
-                      "group": "India", "value": repo["rate"],
-                      "date": repo.get("date", ""), "delta": delta,
-                      "spark": [v for _, v in hist][-40:],
-                      "full": [[d, v] for d, v in hist]})
+    if m and hasattr(m, "macro_cards"):
+        try:
+            cards.extend(m.macro_cards() or [])
+        except Exception:  # noqa: BLE001
+            pass
     return {"cards": cards, "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
 
 
@@ -1822,7 +1674,7 @@ def restore_quotes():
         if time.time() - c.get("at", 0) > 3 * 86400:
             return
         with _watch_lock:
-            WATCH.update(c.get("in", {}))
+            WATCH.update(c.get("home") or c.get("in") or {})
             WATCH_US.update(c.get("us", {}))
             WATCH_GLOBAL.update(c.get("global", {}))
         print(f"  quotes restored: {len(WATCH)} IN / {len(WATCH_US)} US / "
@@ -1836,7 +1688,7 @@ def quote_saver_loop():
         time.sleep(60)
         try:
             with _watch_lock:
-                blob = {"at": time.time(), "in": dict(WATCH),
+                blob = {"at": time.time(), "home": dict(WATCH),
                         "us": dict(WATCH_US), "global": dict(WATCH_GLOBAL)}
             with open(QUOTES_SNAPSHOT, "w") as fh:
                 json.dump(blob, fh)
@@ -2047,9 +1899,9 @@ def _eval_alerts():
 
             elif rtype == "price_level":
                 sym = (rule.get("symbol") or "").upper()
-                region = rule.get("region", "in")
+                region = rule.get("region", "home")
                 with _watch_lock:
-                    q = (WATCH if region == "in" else WATCH_US if region == "us" else WATCH_GLOBAL).get(sym)
+                    q = (WATCH_US if region == "us" else WATCH_GLOBAL if region == "global" else WATCH).get(sym)
                 ltp = q and q.get("ltp")
                 if ltp is None:
                     continue
@@ -2074,16 +1926,15 @@ CHAIN_TTL = 180
 
 
 def build_chain():
-    """data/supply_chain.json (one or more chains) + a live quote per name — Breeze
-    for India chains, FMP/watch cache for US ones. Research content lives in
-    the JSON; this only prices it."""
+    """data/supply_chain.json (one or more chains) + a live quote per name: the
+    US feed or watch cache for US chains, the home quote path (broker or Yahoo)
+    for home ones. Research content lives in the JSON; this only prices it."""
     with open(os.path.join(DATA_DIR, "supply_chain.json")) as fh:
         blob = json.load(fh)
     chains = blob.get("chains", [])
-    breeze = _breeze()
     quoted = {}
     for chain in chains:
-        region = chain.get("region", "in")
+        region = chain.get("region", "home")
         for layer in chain.get("layers", []):
             for nm in layer.get("names", []):
                 code = nm.get("code")
@@ -2099,25 +1950,24 @@ def build_chain():
                 else:
                     with _watch_lock:
                         q = WATCH.get(code)
-                    if not q and breeze and not breeze_health["dead"]:
-                        q = fetch_watch_quote(breeze, code, "NSE") or fetch_watch_quote(breeze, code, "BSE")
+                    if not q:
+                        q = _home_quote(code, nm.get("exch") or None)
                     quoted[key] = q
                 if q:
                     nm["ltp"], nm["day_pct"] = q.get("ltp"), q.get("day_pct")
     data = {"chains": chains, "ts": datetime.now().strftime("%H:%M"),
-            "session_dead": breeze_health["dead"]}
+            "session_dead": broker_health["dead"]}
     return data
 
 
-# ---- commodities (board + the priced names layer + India local reads) --------
+# ---- commodities (board + the priced names layer + the broker's local reads) --
 def build_commods():
-    """commods.build() is broker-free (it ships in the replica); this wrapper
-    prices the exposure names and adds the local reads a market plugin
-    provides (shipped: local_in.py for ICICI Direct, MCX front-month futures and the
-    Rubber Board's sheet; both only when that broker is connected)."""
+    """commods.build() needs no broker; this wrapper prices the exposure names
+    (US names through the US feed, home names through the home quote path) and
+    lets the broker's file attach local price lines where it has them."""
     d = commods.build()
-    breeze = _breeze()
-    live = bool(breeze) and not breeze_health["dead"]
+    m = _market()
+    home_sym = m.META["symbol"] if m else ""
     seen = {}
     for c in d["cards"]:
         for nm in c.get("names", []):
@@ -2132,44 +1982,25 @@ def build_commods():
                 else:
                     with _watch_lock:
                         q = WATCH.get(nm["code"])
-                    if not q and live:
-                        q = (fetch_watch_quote(breeze, nm["code"], "NSE")
-                             or fetch_watch_quote(breeze, nm["code"], "BSE"))
-                    if not q and not live:
-                        q = fetch_yahoo_quote(nm["code"])   # no broker: the code is a Yahoo symbol
+                    if not q:
+                        q = _home_quote(nm["code"], nm.get("exch") or None)
+                    if not q and "." in nm["code"]:
+                        q = fetch_yahoo_quote(nm["code"])   # a Yahoo symbol in the file
                 seen[key] = q
             q = seen[key]
             if q:
                 nm["ltp"], nm["day_pct"] = q.get("ltp"), q.get("day_pct")
-                nm["ccy"] = "$" if nm["region"] == "us" else "₹"
-    # local reads belong to the market the broker is on; with no broker
-    # connected the board stays global (a reader elsewhere never sees them)
-    rb, mcx = None, {}
-    if live:
+                nm["ccy"] = "$" if nm["region"] == "us" else (home_sym or q.get("currency") or "")
+    # local reads belong to the broker's own market; with none connected the
+    # board stays global, so a reader elsewhere never sees them
+    local_hook = _hook("commodities_local")
+    live_local = False
+    if local_hook and not broker_health["dead"]:
         try:
-            rb = local_in.rubber_board()
+            live_local = bool(local_hook(_client(), d["cards"]))
         except Exception:  # noqa: BLE001
-            rb = None
-        try:
-            mcx = local_in.mcx_quotes(breeze)
-        except Exception:  # noqa: BLE001
-            mcx = {}
-    for c in d["cards"]:
-        loc = []
-        short = local_in.MCX_MAP.get(c["id"])
-        if short and short in mcx:
-            m = mcx[short]
-            loc.append({"kind": "MCX", "label": f"MCX {m['name']} {m['expiry']}",
-                        "level": m["level"], "unit": m["unit"], "day_pct": m["day_pct"],
-                        "oi": m["oi"], "ts": m["ts"], "hist": m["hist"]})
-        if c["id"] == "rubber" and rb and rb.get("grades", {}).get("RSS4"):
-            g = rb["grades"]["RSS4"]
-            loc.append({"kind": "Rubber Board", "label": f"Kottayam RSS4 · Rubber Board {rb.get('date', '')}",
-                        "level": g["inr_per_kg"], "unit": "₹/kg", "usc_per_kg": g["usc_per_kg"],
-                        "stale": rb.get("stale", False), "ts": rb.get("date")})
-        if loc:
-            c["local"] = loc
-    d["mcx_live"] = bool(mcx)
+            live_local = False
+    d["local_live"] = live_local
     # the pressure ranking is rebuilt here so its rows carry the live prices
     d["pressure"] = commods.pressure(d["cards"], commods.cross_link(d["cards"]))
     return d
@@ -2341,15 +2172,15 @@ def _fetch_sector_us(sym):
     return (row or {}).get("sector") or None
 
 
-def _fetch_sector_in(nse_symbol):
-    """Yahoo assetProfile for an NSE name, FMP profile on the .NS symbol as
-    the fallback. Either can be empty for small BSE-ish names."""
-    if not nse_symbol:
+def _fetch_sector_yahoo(ysym):
+    """Yahoo's profile for a Yahoo symbol, the feed's profile on the same
+    symbol as the fallback. Either can be empty for small names."""
+    if not ysym:
         return None
     if _yahoo["session"] or _yahoo_auth():
         try:
             r = _yahoo["session"].get(
-                f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{nse_symbol}.NS",
+                f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ysym}",
                 params={"modules": "assetProfile", "crumb": _yahoo["crumb"]}, timeout=15)
             res = (r.json().get("quoteSummary", {}).get("result") or [None])[0] or {}
             sec = (res.get("assetProfile") or {}).get("sector")
@@ -2357,7 +2188,7 @@ def _fetch_sector_in(nse_symbol):
                 return sec
         except Exception:  # noqa: BLE001
             pass
-    return _fetch_sector_us(f"{nse_symbol}.NS")
+    return _fetch_sector_us(ysym)
 
 
 def sector_of(key, fetch):
@@ -2393,12 +2224,19 @@ RISK_TTL = 1800
 
 
 def build_risk():
-    """Risk analytics across the three books: both India accounts (Breeze,
-    equity + futures notional, margin cushion) and the US book (vault-synced,
-    FMP histories). Benchmarks ^NSEI / ^GSPC keyless from Yahoo. India daily
-    histories reuse the same per-day disk cache the ticker pages fill."""
+    """Risk analytics across the books: the broker account(s) on Desk · Home
+    (equity plus futures at notional, the margin cushion where the broker
+    reports one) against the home market's index, and the US book against the
+    S&P 500. Benchmarks keyless from Yahoo; home daily histories reuse the
+    per-day disk cache the ticker pages fill."""
+    m = _market()
+    home_bench = m.META["benchmark"] if m else "^GSPC"
+    home_label = m.META["benchmark_label"] if m else "S&P 500"
+    home_cur = m.META["symbol"] if m else "$"
+    home_exch = m.META["exchanges"][0] if m else ""
+    home_region = m.META["id"] if m else "home"
     benches = {}
-    for sym in ("^NSEI", "^GSPC"):
+    for sym in {home_bench, "^GSPC"}:
         h = risk.yahoo_history(sym)
         if h:
             benches[sym] = h
@@ -2432,8 +2270,9 @@ def build_risk():
         for e in equity:
             if not e.get("value") or not e.get("code"):
                 continue
-            p = pos.setdefault(e["code"], {"code": e["code"], "exposure": 0.0,
-                                           "kinds": [], "exch": e.get("exch") or "NSE"})
+            p = pos.setdefault(e["code"], {"code": e["code"], "exposure": 0.0, "kinds": [],
+                                           "exch": e.get("exch") or home_exch,
+                                           "name": e.get("name") or "", "ysym": e.get("ysym") or ""})
             p["exposure"] += e["value"]
             if "EQ" not in p["kinds"]:
                 p["kinds"].append("EQ")
@@ -2442,30 +2281,35 @@ def build_risk():
             if not code or not f.get("notional"):
                 continue
             sign = 1 if (f.get("side") or "Buy").lower() == "buy" else -1
-            meta = secmaster.lookup(code) or {}
+            r = _resolve(code)
             p = pos.setdefault(code, {"code": code, "exposure": 0.0, "kinds": [],
-                                      "exch": meta.get("exch") or "NSE"})
+                                      "exch": r.get("exch") or home_exch,
+                                      "name": r.get("name") or "", "ysym": r.get("ysym") or ""})
             p["exposure"] += sign * f["notional"]
             if "FUT" not in p["kinds"]:
                 p["kinds"].append("FUT")
         positions = []
         for p in pos.values():
-            hist = _daily_history_in(cli, p["code"], p["exch"])   # newest-first
-            meta = secmaster.lookup(p["code"]) or {}
-            nse_sym = meta.get("nse_symbol")
-            positions.append({**p, "name": (meta.get("company") or "").title(),
-                              "sector": sector_of("IN:" + p["code"],
-                                                  lambda s=nse_sym: _fetch_sector_in(s)),
-                              "series": [(r["date"], r["price"]) for r in reversed(hist)]})
+            hist = _daily_history_home(p["code"], p["exch"])   # newest-first
+            r = _resolve(p["code"], p["exch"])
+            ysym = p.get("ysym") or r.get("ysym") or ""
+            positions.append({"code": p["code"], "exposure": p["exposure"], "kinds": p["kinds"],
+                              "exch": p["exch"], "name": p.get("name") or r.get("name") or "",
+                              "sector": sector_of(f"{home_region.upper()}:{p['code']}",
+                                                  lambda s=ysym: _fetch_sector_yahoo(s)),
+                              "series": [(row["date"], row["price"]) for row in reversed(hist)]})
         eq_value = sum(e["value"] for e in equity if e["value"] is not None)
         cash = funds.get("cash") or 0
         limit_total = funds.get("fno_limit_total")
         blocked = funds.get("fno_blocked") or 0
+        cur_code = funds.get("currency") or (equity[0].get("currency") if equity else "")
         books.append({
-            "key": account, "label": label, "currency": "₹", "bench": "^NSEI",
+            "key": account, "label": label,
+            "currency": home_cur if (not cur_code or (m and cur_code == m.META["currency"])) else cur_code + " ",
+            "bench": home_bench, "bench_label": home_label, "region": home_region,
             "nav": eq_value + cash, "cash": cash, "positions": positions,
-            "margin": {**funds,
-                       "util_pct": (blocked / limit_total * 100) if limit_total else None},
+            "margin": ({**funds, "util_pct": (blocked / limit_total * 100) if limit_total else None}
+                       if limit_total else None),
         })
     try:
         with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
@@ -2493,7 +2337,7 @@ def build_risk():
         cash = usb.get("cash_usd") or 0
         if positions:
             books.append({"key": "us_book", "label": "Desk · US", "currency": "$",
-                          "bench": "^GSPC",
+                          "bench": "^GSPC", "bench_label": "S&P 500", "region": "us",
                           "nav": cash + sum(p["exposure"] for p in positions),
                           "cash": cash, "positions": positions, "margin": None,
                           "note": f"positions as of {usb.get('as_of')} (from data/us_book.json); "
@@ -2501,7 +2345,7 @@ def build_risk():
     except OSError:
         pass
     data = risk.build(books, benches)
-    data["session_dead"] = breeze_health["dead"]
+    data["session_dead"] = broker_health["dead"]
     data["stale"] = ({"broker_as_of": datetime.fromtimestamp(prev["at"]).strftime("%a %d %b, %H:%M")}
                      if (stale_used and prev) else None)
     return data
@@ -2780,19 +2624,19 @@ def _cached(kind, ttl, builder):
 
 
 # ---- Settings: the broker connected from the page, not the terminal ---------
-_stream_started = {"on": False}
-
-
 def _start_stream(cli):
-    if _stream_started["on"]:
+    """Live ticks for Watch · Home, where the broker's file serves them."""
+    mod = ADAPTER["mod"]
+    if mod is None or not hasattr(mod, "stream"):
         return
-    _stream_started["on"] = True
 
     def _stream_sink(code, q):
         with _watch_lock:
             WATCH[code] = q
-    threading.Thread(target=stream_in.manager,
-                     args=(cli, load_watchlist, _stream_sink, market_open), daemon=True).start()
+    try:
+        mod.stream(cli, load_watchlist, _stream_sink, home_market_open)
+    except Exception as exc:  # noqa: BLE001
+        print(f"  live ticks not started: {exc}")
 
 
 def connect_broker_now(account="primary"):
@@ -2802,8 +2646,9 @@ def connect_broker_now(account="primary"):
     ADAPTER["id"], ADAPTER["mod"] = bid, (brokers.load(bid) if bid else None)
     if not bid:
         clients.clear()
-        breeze_health["dead"] = True
-        _cache["snap"] = (0.0, None)
+        broker_health["dead"] = True
+        for k in ("snap", "risk", "tape", "results_home", "macro", "econcal", "commods", "chain"):
+            _cache[k] = (0.0, None)
         return {"ok": False, "error": "No broker chosen."}
     mod = ADAPTER["mod"]
     if not brokers.configured(bid):
@@ -2826,11 +2671,10 @@ def connect_broker_now(account="primary"):
         ACCOUNT_LABELS[account] = mod.label(cli)
     except Exception:  # noqa: BLE001
         ACCOUNT_LABELS[account] = "account"
-    breeze_health["dead"] = False
-    _cache["snap"] = (0.0, None)
-    _cache["risk"] = (0.0, None)
-    if bid == "icici_breeze":
-        _start_stream(cli)
+    broker_health["dead"] = False
+    for k in ("snap", "risk", "tape", "results_home", "macro", "econcal", "commods", "chain"):
+        _cache[k] = (0.0, None)
+    _start_stream(cli)
     try:
         n = len(mod.equity(cli))
     except Exception:  # noqa: BLE001
@@ -2856,7 +2700,7 @@ def broker_state():
             fields.append({**f, "saved": ("on" if v.lower() in ("on", "1", "true", "yes") else "off") if f.get("switch") else _masked(v)})
         st.update({"label": m["label"], "where": m["where"], "daily_login": m["daily_login"], "how": m["how"],
                    "docs": m["docs"], "fields": fields, "token_hint": m.get("token_hint", ""),
-                   "token_param": m.get("token_param", ""), "region": m.get("region", "in")})
+                   "token_param": m.get("token_param", ""), "region": m.get("region", "")})
         if m["daily_login"]:
             st["token_today"] = brokers.read_token() is not None
             st["login_url"] = mod.login_url(cfg) if (st["configured"] and hasattr(mod, "login_url")) else ""
@@ -2868,6 +2712,8 @@ def settings_state():
     st["broker"] = broker_state()
     st["brokers"] = [{k: v for k, v in m.items() if k != "fields"} | {"fields": m["fields"]} for m in brokers.all_meta()]
     st["others"] = [{"name": n, "path": p} for n, p in brokers.OTHERS]
+    st["market"] = _market_info()
+    st["markets"] = [{"id": mm["id"], "label": mm["label"]} for mm in markets.all_meta()]
     st["ai"]["providers"] = desk_ai.PROVIDERS
     st["ai"]["formats"] = desk_ai.FORMATS
     st["desk"] = {"port": PORT, "folder": HERE, "version": updater.local_version(),
@@ -2891,9 +2737,10 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
 /usdesk      Desk - US, the US book         /api/usbook     the US positions, priced
 /book        Desk - Book, kept by hand      /api/book       positions and cash by currency
 /risk        Risk                           /api/risk       concentration, sector, beta, drawdown
-/watch       Watch - Home                   /api/watch?list=in    quotes for the home watch grid
+/watch       Watch - Home                   /api/watch?list=home  quotes for the home watch grid
 /watch?list=us      Watch - US              /api/watch?list=us    quotes for the US watch grid
 /watch?list=global  Global                  /api/watch?list=global
+                                            /api/results_home     upcoming results in the home market
 /funds       Funds (13F)                    /api/funds      the followed funds' latest 13F holdings
 /flow        Flow                           /api/flow       13D/G activist and large-holder filings
 /short       Short                          /api/short      short interest
@@ -2902,6 +2749,7 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
 /commods     Commodities                    /api/commods    the commodity board and its exposure map
 /chain       Chain                          /api/chain      the value-chain maps, priced
 /t?symbol=AAPL   a ticker page              /api/ticker?symbol=AAPL   chart, quote, ratios, insiders
+/t?symbol=X&region=home  a home-market name /api/ticker?symbol=X&region=home  (broker code or exchange symbol)
                                             /api/fin?symbol=AAPL      statements, estimates, peers (needs the data key)
                                             /api/earnings   the US earnings countdown
                                             /api/insiders   the insider tape
@@ -2932,7 +2780,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             path = urlparse(self.path).path
             qs = parse_qs(urlparse(self.path).query)
-            region = (qs.get("list", ["in"])[0] or "in").lower()
+            region = (qs.get("list", ["home"])[0] or "home").lower()
             if path in ("/", "/index.html"):
                 with open(os.path.join(HERE, "web", "index.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
@@ -3042,8 +2890,8 @@ class Handler(BaseHTTPRequestHandler):
                            "application/json")
             elif path == "/api/earnings":
                 self._send(json.dumps(_cached("earn", EARN_TTL, build_earnings)).encode(), "application/json")
-            elif path == "/api/earnings_in":
-                self._send(json.dumps(_cached("earn_in", EARN_TTL, build_earnings_in)).encode(), "application/json")
+            elif path in ("/api/results_home", "/api/earnings_in"):
+                self._send(json.dumps(_cached("results_home", EARN_TTL, build_results_home)).encode(), "application/json")
             elif path == "/api/macro":
                 self._send(json.dumps(_cached("macro", MACRO_TTL, build_macro)).encode(), "application/json")
             elif path == "/api/econcal":
@@ -3076,11 +2924,13 @@ class Handler(BaseHTTPRequestHandler):
                                 "names": load_watchlist_global(),
                                 "market_open": True}
                     else:
-                        data = {"region": "in", "quotes": WATCH,
+                        data = {"region": "home", "quotes": WATCH,
                                 "names": load_watchlist(),
-                                "market_open": _home_market_open(),
-                                "stream": stream_in.healthy(),
-                                "session_dead": breeze_health["dead"]}
+                                "market_open": home_market_open(),
+                                "market": _market_info(),
+                                "has_book": _hook("quote") is not None,
+                                "stream": _stream_healthy(),
+                                "session_dead": broker_health["dead"] and _hook("quote") is not None}
                 self._send(json.dumps(data).encode(), "application/json")
             elif path == "/api/snapshot":
                 data = _cached("snap", SNAP_TTL, build_snapshot)
@@ -3163,9 +3013,17 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(b'{"ok":false,"error":"unknown request shape"}', "application/json")
             if "DATA_PROVIDER" in fields:
                 fields["DATA_PROVIDER"] = re.sub(r"[^a-z0-9_]", "", fields["DATA_PROVIDER"].lower())[:32]
+            if "HOME_MARKET" in fields:
+                hm = re.sub(r"[^a-z0-9_]", "", fields["HOME_MARKET"].lower())[:16]
+                if hm and hm not in markets.REGISTRY:
+                    return self._send(b'{"ok":false,"error":"unknown market"}', "application/json")
+                fields["HOME_MARKET"] = hm
             saved = desk_settings.write_env(fields)
             if "FMP_API_KEY" in saved:
                 for k in ("earn", "capitol", "insiders", "econcal", "pulse"):
+                    _cache[k] = (0.0, None)
+            if "HOME_MARKET" in saved:
+                for k in ("snap", "risk", "results_home", "macro", "econcal", "commods", "chain"):
                     _cache[k] = (0.0, None)
             return self._send(json.dumps({"ok": True, "saved": saved, "state": settings_state()}).encode(), "application/json")
         if self.path == "/api/settings/check_data":
@@ -3238,7 +3096,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             length = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(length) or b"{}")
-            region = str(body.get("list", "in")).lower()
+            region = str(body.get("list", "home")).lower()
             code = str(body.get("code", "")).strip().upper()
             if self.path.startswith("/api/book/"):
                 return self._book_post(body)
@@ -3285,30 +3143,23 @@ class Handler(BaseHTTPRequestHandler):
                         WATCH_GLOBAL[code] = q
                     return self._send(b'{"ok":true}', "application/json")
                 names = load_watchlist()
-                exch = str(body.get("exch", "NSE")).strip().upper()
+                m = _market()
+                exch = str(body.get("exch", "")).strip().upper() or (m.META["exchanges"][0] if m else "")
                 if any(n["code"] == code for n in names):
                     return self._send(b'{"ok":false,"error":"already on the list"}', "application/json")
-                breeze = _breeze()
-                if breeze is None:
-                    # no quote-serving broker: the home grid takes Yahoo symbols
+                via_broker = _hook("quote") is not None
+                q = _home_quote(code, exch or None)
+                if not q and not via_broker and "." not in code and m is None:
                     q = fetch_yahoo_quote(code)
-                    if not q:
-                        return self._send(
-                            json.dumps({"ok": False, "error": f"no Yahoo quote for {code}; use Yahoo's symbol (AAPL, RELIANCE.NS, MC.PA)"}).encode(),
-                            "application/json")
-                    names.append({"code": code, "exch": "", "source": "yahoo"})
-                    save_watchlist(names)
-                    with _watch_lock:
-                        WATCH[code] = q
-                    return self._send(b'{"ok":true}', "application/json")
-                q = fetch_watch_quote(breeze, code, exch)
-                if not q and exch == "NSE":       # try the other exchange
-                    exch, q = "BSE", fetch_watch_quote(breeze, code, "BSE")
                 if not q:
+                    where = (" on " + " or ".join(m.META["exchanges"])) if m else ""
+                    hint = ("check the code your broker uses" if via_broker
+                            else "use the exchange symbol, or Yahoo's symbol when no home market is set (AAPL, RELIANCE.NS, MC.PA)")
                     return self._send(
-                        json.dumps({"ok": False, "error": f"no quote for {code} on NSE or BSE — check the ICICI code"}).encode(),
+                        json.dumps({"ok": False, "error": f"no quote for {code}{where}; {hint}"}).encode(),
                         "application/json")
-                names.append({"code": code, "exch": exch, "source": "breeze"})
+                names.append({"code": code, "exch": q.get("exch") or exch,
+                              "source": "broker" if via_broker else "yahoo"})
                 save_watchlist(names)
                 with _watch_lock:
                     WATCH[code] = q
@@ -3344,10 +3195,12 @@ def main():
             print(f"  connected: {rep.get('label')}, {rep.get('positions')} holdings")
         else:
             print(f"  not connected: {rep.get('error')}")
-    breeze_health["dead"] = not clients
+    broker_health["dead"] = not clients
     if not clients:
         print("  NOTE: no broker session. Desk · Home shows the last saved book (or nothing "
               "on a fresh install) until a broker is connected on Settings; everything else runs.")
+    hm = _market()
+    print(f"  home market: {hm.META['label'] if hm else 'none set (follows the broker, or HOME_MARKET in .env)'}")
     # Dead tokens must not cost the account-number labels 
     # or re-fire yesterday's alert chips — both restore from disk.
     prev_snap = load_last_snapshot()
@@ -3357,9 +3210,6 @@ def main():
                 ACCOUNT_LABELS[account] = a["label"]
     _restore_alerts()
     restore_quotes()
-    stream_client = _breeze()
-    if stream_client:
-        _start_stream(stream_client)
     threading.Thread(target=watch_loop, daemon=True).start()
     threading.Thread(target=us_watch_loop, daemon=True).start()
     threading.Thread(target=global_watch_loop, daemon=True).start()
@@ -3371,7 +3221,7 @@ def main():
                ("macro", MACRO_TTL, build_macro),
                ("capitol", CAPITOL_TTL, build_capitol),
                ("funds", FUNDS_TTL, build_funds),
-               ("earn_in", EARN_TTL, build_earnings_in),
+               ("results_home", EARN_TTL, build_results_home),
                ("insiders", INSIDERS_TTL, build_insiders),
                ("risk", RISK_TTL, build_risk),
                ("act13d", ACT_TTL, build_activist),

@@ -90,7 +90,7 @@ def manager(breeze, load_names, sink, market_open):
                     print("  stream: websocket up")
                 want = {e["code"]: e.get("exch", "NSE")
                         for e in load_names()
-                        if e.get("source", "breeze") == "breeze"}
+                        if e.get("source", "broker") in ("broker", "breeze")}
                 with _lock:
                     have = dict(state["subs"])
                 for code in [c for c in want if c not in have]:

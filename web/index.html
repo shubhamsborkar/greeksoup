@@ -174,7 +174,7 @@ footer b{color:var(--ink2)}
 </main>
 
 <footer>
-  <p><b>Marks:</b> the broker's own live marks, the prices it computes margin and square-off against.</p>
+  <p><b>Marks:</b> the broker's own live marks where it hands them out, the prices it values the account at; a broker that gives none is marked from Yahoo's free feed.</p>
   <p><b>Margin:</b> where the broker reports a trading limit, the margin-used bar shows what is blocked against it;
   brokers report this differently, so cross-check the exact figures on your broker's own page.</p>
   <p><b>Orders:</b> this copy reads the account and places no orders. Order routing against your broker's API is your own build.</p>
@@ -190,18 +190,19 @@ let sortState = {};  // tableId -> {key, dir}
 let lastSnap = null;
 
 /* ---------- formatting ---------- */
+let CCY = "";      // the connected account's currency, set on every snapshot
+let LOCALE = "";   // how the home market groups digits, from the market file
 function inr(x, dp=0){
-  /* plain number, grouped the way the account's currency groups (lakhs for rupees) */
+  /* plain number, grouped the way the home market groups its digits */
   if(x==null || isNaN(x)) return "—";
-  const loc = (!CCY || CCY==="INR") ? "en-IN" : "en-US";
+  const loc = LOCALE || undefined;
   return new Intl.NumberFormat(loc,{maximumFractionDigits:dp,minimumFractionDigits:dp}).format(x).replace("-","−");
 }
-let CCY = "";   // the connected account's currency, set on every snapshot
 function money(x,dp=0,ccy){
   if(x==null||isNaN(x)) return "—";
   const c = ccy||CCY;
   if(!c) return inr(x,dp);
-  try{ return new Intl.NumberFormat(c==="INR"?"en-IN":"en-US",{style:"currency",currency:c,maximumFractionDigits:dp,minimumFractionDigits:dp}).format(x).replace("-","−"); }
+  try{ return new Intl.NumberFormat(LOCALE||undefined,{style:"currency",currency:c,maximumFractionDigits:dp,minimumFractionDigits:dp}).format(x).replace("-","−"); }
   catch(e){ return c+" "+inr(x,dp); }
 }
 const rupee = money;   // older call sites
@@ -263,10 +264,11 @@ function bindSort(root){
   });
 }
 
+function regionOf(a){ return (a && a.region==="us") ? "us" : "home"; }
 function futuresTable(accounts, sparks){
   const rows=[];
   for(const [acct,a] of Object.entries(accounts))
-    for(const f of a.futures) rows.push({...f, acct, acctLabel:a.label||acct});
+    for(const f of a.futures) rows.push({...f, acct, acctLabel:a.label||acct, reg:regionOf(a)});
   if(!rows.length) return '<div class="panel-b dim">No open futures or options positions.</div>';
   const st = sortState["fut"]||{key:"mtm",dir:1}; sortState["fut"]=st;
   const sorted = sortRows(rows,"fut","mtm");
@@ -279,7 +281,7 @@ function futuresTable(accounts, sparks){
   for(const f of sorted){
     const dte = f.expiry ? Math.max(0,Math.round((new Date(f.expiry)-new Date())/864e5)) : null;
     f.dte=dte;
-    html+=`<tr><td class="name"><a href="/t?symbol=${f.underlying}&region=in" style="color:inherit;text-decoration:none">${f.contract||f.underlying}</a></td>
+    html+=`<tr><td class="name"><a href="/t?symbol=${encodeURIComponent(f.underlying)}&region=${f.reg}" style="color:inherit;text-decoration:none">${f.contract||f.underlying}</a></td>
       <td class="dim mono" style="text-align:left;font-size:11px">${f.acctLabel}</td>
       <td class="mono dim">${f.expiry||"—"}</td>
       <td class="mono ${dte!=null&&dte<=7?"neg":"dim"}">${dte??"—"}d</td>
@@ -305,10 +307,10 @@ function equityTable(acct, eq){
     ${th(id,"code","Name",st)}${th(id,"qty","Qty",st)}${th(id,"avg","Avg",st)}
     ${th(id,"ltp","Mark",st)}${th(id,"value","Value",st)}${th(id,"pnl","P&L",st)}
     ${th(id,"pnl_pct","P&L %",st)}${th(id,"day_pct","Day %",st)}<th>Wt</th></tr></thead><tbody>`;
-  const reg = (lastSnap && lastSnap.accounts && lastSnap.accounts[acct] && lastSnap.accounts[acct].region) || "in";
+  const reg = regionOf(lastSnap && lastSnap.accounts && lastSnap.accounts[acct]);
   for(const e of sorted){
     const wt = total?(e.value/total*100):null;
-    const sym = reg==="in" ? e.code : (e.ysym||e.code);
+    const sym = reg==="us" ? (e.ysym||e.code) : e.code;
     html+=`<tr><td class="name"><a href="/t?symbol=${encodeURIComponent(sym)}&region=${reg}" style="color:inherit;text-decoration:none" title="${e.name||""}">${e.code}</a></td>
       ${cell("q"+acct+e.code, inr(e.qty))}
       ${cell("a"+acct+e.code, inr(e.avg,2))}
@@ -333,7 +335,7 @@ function tile(label,val,klass,sub,extra){
     <div class="v mono ${klass||""}" data-k="t_${label}">${val}</div>
     <div class="s">${sub||""}</div>${extra||""}</div>`;
 }
-function allocBar(eq){
+function allocBar(eq, reg){
   const total=eq.reduce((s,e)=>s+(e.value||0),0);
   if(!total) return "";
   const sorted=[...eq].sort((a,b)=>(b.value||0)-(a.value||0));
@@ -344,7 +346,8 @@ function allocBar(eq){
     const alpha = d==null?0:Math.min(88,28+Math.abs(d)*16);
     const col = d==null ? "var(--line2)"
       : `color-mix(in srgb,var(--${d>=0?"pos":"neg"}) ${alpha.toFixed(0)}%,var(--panel2))`;
-    seg+=`<a class="as" href="/t?symbol=${e.code}&region=in" style="width:${wt.toFixed(2)}%;background:${col}"
+    const sym = reg==="us" ? (e.ysym||e.code) : e.code;
+    seg+=`<a class="as" href="/t?symbol=${encodeURIComponent(sym)}&region=${reg||"home"}" style="width:${wt.toFixed(2)}%;background:${col}"
       title="${e.code} · ${wt.toFixed(1)}% of book · day ${d==null?"—":(d>=0?"+":"−")+Math.abs(d).toFixed(2)+"%"}">${wt>=8?`<span>${e.code}</span>`:""}</a>`;
   }
   return `<div class="alloc">${seg}</div>
@@ -371,7 +374,7 @@ function accountPanel(name,a){
     </div>
     ${hasLimit?`<div style="padding:10px 15px 4px">${utilBar(t.util_pct)}
       <div class="s dim" style="font-size:10px;margin-top:5px">blocked ${money(t.blocked,0,ccy)} of ${money(t.limit_total,0,ccy)} trading limit</div></div>`:""}
-    ${allocBar(a.equity)}
+    ${allocBar(a.equity, regionOf(a))}
     ${equityTable(name,a.equity)}
   </section>`;
 }
@@ -442,6 +445,7 @@ function render(snap){
       <span class="dim">· to go live: log in again on <a href="/settings" style="color:var(--accent)">Settings</a></span></div>`;
   const acc=snap.accounts;
   CCY = (Object.values(acc)[0]||{}).currency || "";
+  LOCALE = (snap.market && snap.market.locale) || "";
   const anyLimit = Object.values(acc).some(a=>a.totals.limit_total!=null);
   const anyFno = Object.values(acc).some(a=>(a.futures&&a.futures.length)||a.totals.fno_mtm);
   const fam={eq:0,pnl:0,mtm:0,cash:0,free:0,blocked:0,limit:0};
@@ -481,11 +485,11 @@ function render(snap){
     <div class="grid accounts">
       ${Object.entries(acc).map(([n,a])=>accountPanel(n,a)).join("")}
     </div>
-    <section class="panel" style="margin-top:14px">
+    ${resultsAvail===false?"":`<section class="panel" style="margin-top:14px">
       <div class="panel-h"><h2>Upcoming results · Home</h2>
-        <span class="sub" id="einsub">board meetings with a results purpose, from the exchange's public calendar</span></div>
+        <span class="sub" id="einsub">results dates for the home watchlist, from the exchange's public calendar</span></div>
       <div class="erail" id="einrail">${einHtml||'<span class="dim" style="font-size:12px">Loading the exchange calendar… first load takes ~15s.</span>'}</div>
-    </section>`;
+    </section>`}`;
   buildTicker(acc);
   applyFlashes(app);
   bindSort(app);
@@ -506,39 +510,39 @@ async function pullTape(){
     const el=document.getElementById("tape"); if(el) el.innerHTML=tapePanel(tapeData);
   }catch(e){}
 }
-let einHtml=null;
+let einHtml=null, resultsAvail=null;
 async function pullEarningsIn(){
   try{
-    const reg = lastSnap && lastSnap.accounts && (Object.values(lastSnap.accounts)[0]||{}).region;
-    if(reg && reg!=="in"){
-      einHtml='<span class="dim" style="font-size:12px">This calendar reads the home exchange\'s filings. The earnings countdown for US names is on Desk · US.</span>';
-      const el0=document.getElementById("einrail"); if(el0) el0.innerHTML=einHtml;
+    const r=await fetch("/api/results_home"); if(!r.ok) return;
+    const d=await r.json();
+    if(d.available===false){
+      // this market's file has no public results calendar; the section stays out
+      if(resultsAvail!==false){ resultsAvail=false; if(lastSnap) render(lastSnap); }
       return;
     }
-    const r=await fetch("/api/earnings_in"); if(!r.ok) return;
-    const d=await r.json();
+    resultsAvail=true;
     const today=new Date();
     let html="";
     for(const e of d.rows){
       const dd=Math.max(0,Math.round((new Date(e.date)-today)/864e5));
       const k=dd<=3?"soon":(dd<=10?"near":"far");
       const dt=new Date(e.date+"T12:00:00");
-      const when=dt.toLocaleDateString("en-IN",{weekday:"short",month:"short",day:"numeric"});
+      const when=dt.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
       html+=`<div class="ecard">
         <span class="dd mono ${k}">${dd===0?"today":dd+"d"}</span>
-        <div class="tick"><a href="/t?symbol=${e.code}&region=in">${e.code}</a></div>
-        <div class="when">${when} · ${e.symbol}</div>
+        <div class="tick"><a href="/t?symbol=${encodeURIComponent(e.code)}&region=home">${e.code}</a></div>
+        <div class="when">${when}${e.symbol&&e.symbol!==e.code?" · "+e.symbol:""}</div>
         <div class="pur">${e.purpose||""}</div></div>`;
     }
-    einHtml = html || '<span class="dim" style="font-size:12px">No results dates announced yet for the book. Most exchanges publish them a week or two out.</span>';
+    einHtml = html || '<span class="dim" style="font-size:12px">No results dates announced yet for the watchlist. Most exchanges publish them a week or two out.</span>';
     const el=document.getElementById("einrail"); if(el) el.innerHTML=einHtml;
     const sub=document.getElementById("einsub");
-    if(sub && d.skipped_bse) sub.textContent=`board meetings with a results purpose, from the exchange's public calendar · ${d.skipped_bse} names have no calendar feed`;
+    if(sub && d.skipped) sub.textContent=`results dates for the home watchlist, from the exchange's public calendar · ${d.skipped} names have no calendar feed`;
   }catch(e){}
 }
 document.getElementById("refresh").onclick=()=>{pull();pullTape();};
 setInterval(()=>{
-  document.getElementById("clock").textContent=new Date().toLocaleTimeString("en-IN",{hour12:false});
+  document.getElementById("clock").textContent=new Date().toLocaleTimeString(undefined,{hour12:false});
 },1000);
 setInterval(pull,POLL_MS);
 setInterval(pullTape,600000);

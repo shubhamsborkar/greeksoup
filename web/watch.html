@@ -92,10 +92,10 @@ footer{max-width:1500px;margin:14px auto 40px;padding:0 22px;color:var(--muted);
     <input id="filter" placeholder="Filter list…">
     <span style="width:14px"></span>
     <span class="addwrap">
-      <input id="addcode" placeholder="add a name (your broker's code, or a Yahoo symbol with no broker)" autocomplete="off">
+      <input id="addcode" placeholder="add a name (your broker's code, or the exchange symbol)" autocomplete="off">
       <div id="sugg"></div>
     </span>
-    <select id="addexch"><option>NSE</option><option>BSE</option></select>
+    <select id="addexch" style="display:none"></select>
     <button id="addbtn">+ Add to watch</button>
     <span id="msg"></span>
     <span class="count" id="count"></span>
@@ -115,16 +115,13 @@ that appears on hover. Read-only — this page cannot place orders.</footer>
 <script>
 "use strict";
 const _l = new URLSearchParams(location.search).get("list");
-const REGION = _l==="us" ? "us" : (_l==="global" ? "global" : "in");
+const REGION = _l==="us" ? "us" : (_l==="global" ? "global" : "home");
 let prev={}, sortKey="code", sortDir=1, data=null;
 
-// region-aware number formatting: Indian lakh grouping vs US thousands
+// digits grouped the way the home market groups them (from its market file)
 function inr(x,dp=2){ if(x==null||isNaN(x))return "—";
-  const neg=x<0; x=Math.abs(x); let [i,f]=x.toFixed(dp).split(".");
-  if(REGION==="us"||REGION==="global"){ i=i.replace(/\B(?=(\d{3})+(?!\d))/g,","); }
-  else if(i.length>3){let h=i.slice(0,-3),t=i.slice(-3),p=[];
-    while(h.length>2){p.unshift(h.slice(-2));h=h.slice(0,-2);}p.unshift(h);i=p.join(",")+","+t;}
-  return (neg?"−":"")+i+(f?"."+f:"");}
+  const loc = (REGION==="home" && data && data.market && data.market.locale) || "en-US";
+  return x.toLocaleString(loc,{minimumFractionDigits:dp,maximumFractionDigits:dp}).replace("-","−");}
 function pct(x){ return x==null?"—":(x>=0?"+":"−")+Math.abs(x).toFixed(2)+"%"; }
 function cls(x){ return x==null?"dim":(x>=0?"pos":"neg"); }
 function mcapFmt(x){ if(x==null)return "—";
@@ -132,29 +129,37 @@ function mcapFmt(x){ if(x==null)return "—";
   if(x>=1e9)return "$"+(x/1e9).toFixed(1)+"B";
   return "$"+(x/1e6).toFixed(0)+"M"; }
 
-const COLS = REGION==="us" ? [
- ["code","Ticker"],["arrow",""],["ltp","Price"],["day_pct","Day %"],["chg","Chg"],
- ["ttq","Volume"],["open","Open"],["high","High"],["low","Low"],["prev","Prev"],
- ["ylow","52W L"],["yhigh","52W H"],["vs50","vs 50D"],["vs200","vs 200D"],
- ["mcap","Mkt Cap"],["rm",""]
-] : REGION==="global" ? [
- ["code","Symbol"],["arrow",""],["ltp","Price"],["day_pct","Day %"],
- ["prev","Prev"],["high","High"],["low","Low"],["ttq","Volume"],
- ["ylow","52W L"],["yhigh","52W H"],["rm",""]
-] : [
- ["code","Ticker"],["arrow",""],["bid_qty","Bid Qty"],["bid","Bid"],
- ["offer","Offer"],["offer_qty","Off Qty"],["ltp","LTP"],["day_pct","Day %"],
- ["ttq","Volume"],["open","Open"],["high","High"],["low","Low"],["prev","Prev"],["rm",""]];
+function cols(){
+  if(REGION==="us") return [
+   ["code","Ticker"],["arrow",""],["ltp","Price"],["day_pct","Day %"],["chg","Chg"],
+   ["ttq","Volume"],["open","Open"],["high","High"],["low","Low"],["prev","Prev"],
+   ["ylow","52W L"],["yhigh","52W H"],["vs50","vs 50D"],["vs200","vs 200D"],
+   ["mcap","Mkt Cap"],["rm",""]];
+  if(REGION==="global") return [
+   ["code","Symbol"],["arrow",""],["ltp","Price"],["day_pct","Day %"],
+   ["prev","Prev"],["high","High"],["low","Low"],["ttq","Volume"],
+   ["ylow","52W L"],["yhigh","52W H"],["rm",""]];
+  // home: the order book columns appear only when the broker serves a book
+  const book = data && data.has_book ? [["bid_qty","Bid Qty"],["bid","Bid"],["offer","Offer"],["offer_qty","Off Qty"]] : [];
+  return [["code","Ticker"],["arrow",""],...book,["ltp","LTP"],["day_pct","Day %"],
+   ["ttq","Volume"],["open","Open"],["high","High"],["low","Low"],["prev","Prev"],["rm",""]];
+}
+let COLS = cols();
 
 document.title = (REGION==="us"?"Watch US":REGION==="global"?"Watch Global":"Watch Home")+" — GreekSoup";
 if(REGION==="us"){
   document.getElementById("addcode").placeholder="US ticker e.g. AAPL";
-  document.getElementById("addexch").style.display="none";
 }
 if(REGION==="global"){
   document.getElementById("addcode").placeholder="Yahoo symbol e.g. TALABAT.AE";
   document.getElementById("addcode").style.width="200px";
-  document.getElementById("addexch").style.display="none";
+}
+let exchFilled=false;
+function fillExchanges(){
+  if(exchFilled || REGION!=="home" || !data || !data.market) return;
+  const sel=document.getElementById("addexch"), ex=data.market.exchanges||[];
+  if(ex.length>1){ sel.innerHTML=ex.map(e=>`<option>${e}</option>`).join(""); sel.style.display=""; }
+  exchFilled=true;
 }
 
 // Global list is a mixed bag by nature — split it into asset-class sections
@@ -171,6 +176,7 @@ const G_ORDER=["INDICES","STOCKS","FX","COMMODITIES","CRYPTO"];
 
 function render(){
   if(!data) return;
+  COLS = cols(); fillExchanges();
   const f=(document.getElementById("filter").value||"").toUpperCase();
   let rows=data.names
     .map(n=>({...n, ...(data.quotes[n.code]||{})}))
@@ -199,8 +205,8 @@ function render(){
     const atLow  = r.ltp!=null && r.low!=null && r.ltp<=r.low && !atHigh;
     const codeHtml = REGION==="us"
       ? `<a href="/t?symbol=${r.code}" style="color:inherit;text-decoration:none">${r.code}</a>`
-      : REGION==="in"
-      ? `<a href="/t?symbol=${r.code}&region=in" style="color:inherit;text-decoration:none">${r.code}</a>`
+      : REGION==="home"
+      ? `<a href="/t?symbol=${encodeURIComponent(r.code)}&region=home" style="color:inherit;text-decoration:none">${r.code}</a>`
       : r.code;
     const exLabel = REGION==="global"
       ? (gGroup(r.code)==="STOCKS" ? (r.currency||r.exch||"") : (r.name||r.currency||""))
@@ -237,10 +243,10 @@ function render(){
         <td><button class="rm" data-c="${r.code}" title="Remove">×</button></td></tr>`;
     }else{
       html+=`<tr>${sym}
-        <td class="mono dim" data-k="bq${r.code}">${r.bid_qty!=null?inr(r.bid_qty,0):"—"}</td>
+        ${data.has_book?`<td class="mono dim" data-k="bq${r.code}">${r.bid_qty!=null?inr(r.bid_qty,0):"—"}</td>
         <td class="mono" data-k="b${r.code}">${inr(r.bid)}</td>
         <td class="mono" data-k="o${r.code}">${inr(r.offer)}</td>
-        <td class="mono dim" data-k="oq${r.code}">${r.offer_qty!=null?inr(r.offer_qty,0):"—"}</td>
+        <td class="mono dim" data-k="oq${r.code}">${r.offer_qty!=null?inr(r.offer_qty,0):"—"}</td>`:""}
         <td class="mono" style="font-weight:700" data-k="l${r.code}">${inr(r.ltp)}</td>
         <td class="mono ${cls(r.day_pct)}" data-k="d${r.code}">${pct(r.day_pct)}</td>
         <td class="mono dim" data-k="v${r.code}">${r.ttq!=null?inr(r.ttq,0):"—"}</td>
@@ -272,12 +278,15 @@ function render(){
 
   const dot=document.getElementById("mktdot");
   dot.className="dot"+(data.market_open?" live":"");
+  const mk = (REGION==="home" && data.market) ? data.market : null;
   document.getElementById("mktlabel").textContent=
     REGION==="global" ? "MIXED SESSIONS"
-    : (REGION==="us"?"US ":"NSE ")+(data.market_open?"MARKET OPEN":"MARKET CLOSED")
-      +((REGION==="in"&&data.stream)?" · LIVE TICKS":"");
+    : REGION==="us" ? "US "+(data.market_open?"MARKET OPEN":"MARKET CLOSED")
+    : !(mk&&mk.label) ? "NO HOME MARKET SET · YAHOO SYMBOLS"
+    : (mk.session_label?mk.session_label+" ":"")+(data.market_open?"MARKET OPEN":"MARKET CLOSED")
+      +(data.stream?" · LIVE TICKS":"");
   document.getElementById("tokenbar").style.display=
-    (REGION==="in" && data.session_dead) ? "block" : "none";
+    (REGION==="home" && data.session_dead) ? "block" : "none";
 }
 
 async function pull(){
@@ -285,7 +294,7 @@ async function pull(){
 }
 document.getElementById("addbtn").onclick=async()=>{
   const code=document.getElementById("addcode").value.trim().toUpperCase();
-  const exch=document.getElementById("addexch").value;
+  const exch=document.getElementById("addexch").value||"";
   const msg=document.getElementById("msg");
   if(!code){msg.textContent="type a code first";return;}
   msg.className="";msg.textContent="checking "+code+"…";
@@ -338,8 +347,8 @@ addEl.addEventListener("keydown",e=>{
   if(e.key==="Enter"){hideSugg(); document.getElementById("addbtn").click();}
 });
 document.getElementById("filter").addEventListener("input",render);
-setInterval(()=>{document.getElementById("clock").textContent=new Date().toLocaleTimeString("en-IN",{hour12:false});},1000);
-setInterval(pull, REGION==="us"?2000:(REGION==="in"?1500:5000));
+setInterval(()=>{document.getElementById("clock").textContent=new Date().toLocaleTimeString(undefined,{hour12:false});},1000);
+setInterval(pull, REGION==="us"?2000:(REGION==="home"?1500:5000));
 pull();
 </script>
 </body>

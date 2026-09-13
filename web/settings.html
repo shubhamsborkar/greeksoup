@@ -69,6 +69,11 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
       <div class="btns" id="b_btns"><button id="b_save">Save and connect</button><button class="ghost" id="b_test">Check the connection</button><button class="ghost" id="b_clear">Remove the keys</button></div>
       <div class="msg" id="b_msg"></div>
     </div>
+    <div class="body" style="border-top:1px solid var(--line)">
+      <div class="row"><label for="m_pick">Home market</label><select id="m_pick"></select></div>
+      <div class="row"><span></span><div class="hint" id="m_how">The home screens take the shape of the market your broker trades in: its session hours, its index on Risk, its currency, its exchanges, and where the public record has them, the results calendar, the filings and the market's own macro cards. With no broker connected, pick one here.</div></div>
+      <div class="msg" id="m_msg"></div>
+    </div>
     <div class="body" id="b_tokenblock" style="border-top:1px solid var(--line);display:none">
       <div class="row"><label>Today's login</label><div class="kv" id="b_tok"></div></div>
       <div class="row"><span></span><div class="hint" id="b_tokhint"></div></div>
@@ -223,7 +228,26 @@ function renderBroker(s){
   else if(b.id && b.configured) st("b_status", b.daily_login ? (b.token_today?"keys saved · today's login saved, session not up":"keys saved · no login today") : "keys saved · not connected","warn");
   else if(b.id) st("b_status", b.label+" chosen · keys not saved","warn");
   else st("b_status","no broker connected");
+  renderMarket(s);
 }
+function renderMarket(s){
+  const pick=$("m_pick"); const b=s.broker; const mk=s.market||{};
+  const brokerRegion = b.id ? (b.region||"") : "";
+  const brokerLabel = brokerRegion ? ((s.markets||[]).find(m=>m.id===brokerRegion)||{}).label : "";
+  pick.innerHTML = (brokerRegion
+    ? `<option value="">Follows the broker: ${esc(brokerLabel||brokerRegion)}</option>`
+    : `<option value="">None: the home screens stay global</option>`)
+    + (s.markets||[]).map(m=>`<option value="${m.id}">${esc(m.label)}</option>`).join("");
+  pick.value = brokerRegion ? "" : (s.home_market||"");
+  pick.disabled = !!brokerRegion;
+  if(brokerRegion && s.home_market && s.home_market!==brokerRegion) say("m_msg",`The broker sets the market while it is connected; your own choice (${esc(s.home_market)}) applies when no broker is chosen.`);
+}
+$("m_pick").onchange=async()=>{
+  const v=$("m_pick").value; say("m_msg","Saving…");
+  const r=await post("/api/settings/save",{HOME_MARKET:v});
+  if(r.state) render(r.state);
+  say("m_msg", r.ok ? (v?"Saved. The home screens take this market's shape on their next refresh.":"Saved. No home market; Watch · Home takes Yahoo symbols.") : (r.error||"could not save"), r.ok?"ok":"err");
+};
 function onPick(silent){
   const id=$("b_pick").value; const m=metaOf(id); const b=S.broker;
   brokerFields(id);

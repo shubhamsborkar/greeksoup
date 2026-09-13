@@ -24,6 +24,7 @@ EXAMPLE_PATH = os.path.join(HERE, ".env.example")
 # name -> (secret?, one-line meaning). Every broker file adds its own fields.
 ALLOWED = {
     "BROKER": (False, "which broker file Desk · Home reads through"),
+    "HOME_MARKET": (False, "the home market file, when no broker sets it"),
     "DATA_PROVIDER": (False, "fmp, or the name of a provider module the reader's agent wrote"),
     "FMP_API_KEY": (True, "Financial Modeling Prep key, optional"),
     "DATA_API_KEY": (True, "another data provider's key, optional"),
@@ -129,6 +130,7 @@ def current():
         "ai": {"provider": g("AI_PROVIDER") or "", "format": g("AI_FORMAT") or "", "key": masked(g("AI_API_KEY")),
                "model": g("AI_MODEL"), "base_url": g("AI_BASE_URL")},
         "edgar_contact": g("EDGAR_CONTACT"),
+        "home_market": (g("HOME_MARKET") or "").lower(),
         "auto_update": (env.get("DESK_AUTO_UPDATE") or os.getenv("DESK_AUTO_UPDATE", "off")).strip().lower() == "on",
         "env_exists": os.path.exists(ENV_PATH),
     }

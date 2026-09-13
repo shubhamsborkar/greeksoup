@@ -12,10 +12,11 @@ Day to day you do not need the coding agent to run the desk; it starts with your
 
 The desk has two account pages, and they are built differently on purpose. If you invest in the US, Desk · US is your desk and it needs no broker at all; Desk · Home is the page that connects to a broker account in whatever market you trade, and it can stay dark.
 
-- **Desk · Home** is your broker account in whatever market you trade: holdings, open futures, funds, margin used as a bar, an options tape on the index, a ticker strip, a results calendar and the alert strip. It talks to the broker through one file in `brokers/`, chosen on Settings (`BROKER` in `.env`). Six ship: Alpaca, ICICI Direct (Breeze), Interactive Brokers (Flex Web Service), Tradier, Trading 212 and Zerodha (Kite Connect), all read-only. The ICICI Direct file is the full one (live ticks, futures and options, margin, the index options tape, through `collect.py`, `stream_in.py` and `fno*.py`); the others return holdings and cash, and `server.py` marks any line without a price from Yahoo through the row's `ysym`. Currency and market hours come from the broker file's `META`. With no broker chosen the desk boots with everything else live.
+- **Desk · Home** is your broker account in whatever market you trade: holdings, open futures, funds, margin used as a bar, an options tape on the index, a ticker strip, a results calendar and the alert strip. It talks to the broker through one file in `brokers/`, chosen on Settings (`BROKER` in `.env`). Six ship: Alpaca, ICICI Direct (Breeze), Interactive Brokers (Flex Web Service), Tradier, Trading 212 and Zerodha (Kite Connect), all read-only. Every file returns holdings and cash; `server.py` marks any line without a price from Yahoo through the row's `ysym`. Everything beyond that is an optional function on the file (`brokers/README.md` lists them: `quote`, `history`, `intraday`, `futures`, `futures_quote`, `sparks`, `tape`, `stream`, `resolve`, `search`, `extra_accounts`, `commodities_local`), and the desk shows what exists: a broker whose file serves ticks and chains gets the live grid and the options tape, a broker that serves only holdings gets a smaller Home screen. With no broker chosen the desk boots with everything else live.
+- **The market layer** (`markets/`, one file per home market) supplies what the market's public record offers, keyed by the broker file's `META["region"]`: session hours, the benchmark index and its label, currency and locale, the exchanges, the Yahoo suffix for an exchange symbol, and optionally the results calendar, the filings block for the home ticker page and the market's own macro cards. India (`in.py`: NSE hours, NIFTY 50, the NSE results calendar and integrated filings through `nse_fund.py`, the 10-year, repo rate and CPI cards) and the United States (`us.py`) ship. With no broker, `HOME_MARKET=in` or `us` in `.env` picks one; otherwise the home screens stay global and Watch · Home takes Yahoo symbols. The contract is `markets/README.md`.
 - **Desk · US** is the US market read from the public record and one optional feed: a book of US positions priced live, the earnings countdown, the insider tape from Form 4 filings (with cluster buys), and a market pulse. It needs no broker at all, so it works from anywhere, and the US intelligence tabs (Funds, Flow, Short, Capitol) sit on the same free sources.
 
-So a reader in the US runs Desk · Home on Alpaca, Interactive Brokers or Tradier and Desk · US beside it; a reader in Australia has the agent write `brokers/<name>.py` for an ASX broker (the contract is `brokers/README.md`); a reader in India picks ICICI Direct or Zerodha. The labels are two strings at the top of `web/assets/desk.js`; rename them to your markets.
+So a reader in the US runs Desk · Home on Alpaca, Interactive Brokers or Tradier and Desk · US beside it; a reader in Australia has the agent write `brokers/<name>.py` for an ASX broker and `markets/au.py` for the ASX (both contracts are one README each); a reader in India picks either Indian broker and the India market file serves both. The labels are two strings at the top of `web/assets/desk.js`; rename them to your markets.
 
 ## What runs without any key
 
@@ -30,8 +31,8 @@ The desk is built to fetch whatever it can from the free record before it asks f
 | Flow | CBOE's free delayed chains | Nothing |
 | Short | FINRA's free files | Nothing |
 | Capitol | House disclosures read from the Clerk's public PDFs (the Senate site blocks scripts) | Both chambers, cleaner rows |
-| Macro | FRED, free | Nothing |
-| Risk | Yahoo price histories | Nothing |
+| Macro | FRED, free, plus the home market file's own cards | Nothing |
+| Risk | Yahoo price histories, against the home market's index and the S&P 500 | Nothing |
 | Chain | Your own map, priced from Yahoo | Nothing |
 
 Two honest notes on the free paths. Yahoo's endpoints are unofficial and rate-limit bursts, so a fresh install can show "retry in a few minutes" on its first page loads; the desk backs off and retries. The first Capitol build downloads up to 150 recent House reports and reads them, which takes a minute or two once, then a few seconds a day.
@@ -60,7 +61,7 @@ Two ways to run it. Pick one.
 
 Nothing on the desk needs a login of its own: Desk · US, the watch grids, Funds, Flow, Short, Capitol, Macro and Risk run from the public record and the optional feed key you set once.
 
-Whether Desk · Home needs anything each day is up to your broker, not the desk. Most brokers keep an API session alive for weeks or months once the key is set. A broker file with `daily_login` set (ICICI Direct and Zerodha as shipped) is the exception: that regulator requires a fresh login every trading day, so on a morning you want the Home page live you paste what the login redirect hands back on the Settings page (the file's `token_param` names it; `exchange_token` turns it into the day's token, cached in `session_token_primary.txt`), and the desk reconnects without a restart. A broker app whose redirect address is `http://localhost:8765/settings` delivers it to the page by itself. `Paste Token.command` / `.bat` still does the ICICI Direct login from a window. Skip it and the desk keeps serving the last saved book re-priced live and shows a ribbon, and every other page is unaffected. Readers on other brokers can ignore the Paste Token files entirely.
+Whether Desk · Home needs anything each day is up to your broker, not the desk. Most brokers keep an API session alive for weeks or months once the key is set. A broker file with `daily_login` set (the two Indian files as shipped) is the exception: that regulator requires a fresh login every trading day, so on a morning you want the Home page live you paste what the login redirect hands back on the Settings page (the file's `token_param` names it; `exchange_token` turns it into the day's token, cached in `session_token_primary.txt`), and the desk reconnects without a restart. A broker app whose redirect address is `http://localhost:8765/settings` delivers it to the page by itself. Skip the login and the desk keeps serving the last saved book re-priced live and shows a ribbon, and every other page is unaffected.
 
 To have the desk inside Obsidian: switch on the **Web Viewer** core plugin, copy `obsidian/Live Desk.md` into your vault, and (optional) copy `obsidian/desk.css` into `.obsidian/snippets/` and enable it, so the note uses the full width.
 
@@ -74,8 +75,8 @@ All of them sit in the `data/` folder, plain JSON you can open in any text edito
 |---|---|
 | `data/us_book.json` | Your US positions and cash. The desk prices them. |
 | `data/book.json` | The hand-kept book for anyone with no broker: Yahoo symbols from any market, shares, average cost, cash per currency. The Desk · Book page edits it (add, remove, paste-import). |
-| `data/watchlist.json`, `data/watchlist_us.json`, `data/watchlist_global.json` | The three watch grids (also editable in the page). Home codes are your broker's stock codes. |
-| `data/fno_watchlist.json` | Names for the home options tape (indices and large caps). |
+| `data/watchlist.json`, `data/watchlist_us.json`, `data/watchlist_global.json` | The three watch grids (also editable in the page). Home codes are your broker's stock codes when the broker serves quotes, else exchange symbols in the home market, else Yahoo symbols. |
+| `data/fno_watchlist.json` | Names for the home options tape (indices and large caps), read by a broker file whose `tape` function serves chains. |
 | `data/funds.json` | The 13F filers you follow (name + CIK). |
 | `data/members.json` | Congress members tracked by name. |
 | `data/supply_chain.json` | Your value-chain maps (an example ships). |
@@ -100,34 +101,27 @@ Two files at the root of the repository drive it. `VERSION` lists releases one p
 
 ## More than one account
 
-The ICICI Direct file supports several accounts at that broker: add a line to `ACCOUNTS` in `breeze_session.py` and the matching key pair in `.env`. Only the first account's session is required; the others fall back to their last saved book, re-priced live. The other broker files read one account each (Tradier takes an account number when the profile has several). Desk · Home reads one broker at a time; a US book sits in `data/us_book.json` beside it.
+A broker file that supports several accounts at the same broker hands the others back through its optional `extra_accounts` function (one shipped file does, with its account list in `breeze_session.py` and a key pair per account in `.env`); only the first account's session is required, and the others fall back to their last saved book, re-priced live. The other shipped files read one account each (Tradier takes an account number when the profile has several). Desk · Home reads one broker at a time; a US book sits in `data/us_book.json` beside it.
 
-## Adapting to your broker
+## Adapting to your broker and your market
 
-Everything that is specific to the shipped broker and its market sits in a short list of files, and everything else works from the shapes those return:
+Two short files, each with a README that is its contract.
 
-| File | What it does | What yours has to return |
-|---|---|---|
-| `breeze_session.py` | Login and the session for the ICICI Direct file (daily there, longer-lived on most brokers) | A client object the reads below can call |
-| `collect.py` | The four reads: holdings, open positions, funds, margin; plus a live quote | Lists of positions with code, quantity, average price and last price; funds and margin as numbers |
-| `stream_in.py` | Live ticks for Watch · Home during market hours | Optional; without it the grid polls quotes |
-| `secmaster.py` | The broker's symbol master (short code to name, exchange, 52-week range) | A lookup from your broker's codes to names |
-| `fno.py`, `fno_positions.py`, `fno_tape.py` | Open futures and the index options tape | Optional; skip if your market has no index options you watch |
-| `nse_fund.py` and the results calendar in `server.py` | Home-market fundamentals and upcoming results from the exchange's public filings | Optional; the ticker page for home names shows quotes without it |
-| The two India rows in `MACRO_SERIES` (`server.py`) | Home-market macro cards | Swap for your market's FRED series |
+- **The broker file**, `brokers/<name>.py`: `META`, `connect`, `label`, `equity` and `funds`, written to `brokers/README.md`, and one line in `REGISTRY`. Open this folder in your coding agent, give it the broker's API documentation and that README, and Desk · Home, Risk and the home watch grid light up. Everything else the README lists (`quote`, `history`, `intraday`, `futures`, `futures_quote`, `sparks`, `tape`, `stream`, `resolve`, `search`, `extra_accounts`, `commodities_local`) is optional and appears on the screens when the file has it; a broker whose codes differ from exchange symbols wants `resolve` and `search`, a broker that serves a book wants `quote`, and so on. Charles Schwab (weekly login), Upstox, Angel One and Groww (daily login) follow the same pattern; Fidelity, Vanguard and Robinhood publish no stock API for individuals, so their holdings go into Desk · Book from an export.
+- **The market file**, `markets/<region>.py`: `META` (hours, index, currency, exchanges, Yahoo suffix), `is_open`, `ysym`, and optionally `results_calendar`, `fundamentals`, `macro_series` and `macro_cards`, written to `markets/README.md`, one line in its `REGISTRY`, and the broker file's `META["region"]` set to the same code. The shipped India file is the full example (the exchange's results calendar and filings, three macro cards from public statistics); the shipped US file is the minimal one.
 
-The table above is the shape of the full ICICI Direct path. For any other broker the job is smaller: one file in `brokers/` with `META`, `connect`, `label`, `equity` and `funds`, written to `brokers/README.md`, and one line in `REGISTRY`. Open this folder in your coding agent, give it the broker's API documentation and that README, and Desk · Home, Risk and the home watch grid light up; the futures, margin and options-tape reads are optional extras a file can add later. Charles Schwab (weekly login), Upstox, Angel One and Groww (daily login) follow the same pattern; Fidelity, Vanguard and Robinhood publish no stock API for individuals, so their holdings go into Desk · Book from an export.
+The shipped India broker file reaches its broker through `breeze_session.py`, `collect.py`, `stream_in.py`, `pricing.py`, `fno.py`, `secmaster.py` and `local_in.py`; those files belong to that broker and nothing else in the desk imports them.
 
 ## Data sources
 
-- Broker API: your account, through one of the six shipped broker files or one your agent writes; live ticks during market hours on the ICICI Direct file.
+- Broker API: your account, through one of the six shipped broker files or one your agent writes; live ticks during market hours where the file serves them.
 - SEC EDGAR, keyless: Form 4 insider filings on your names (`sec_form4.py`), plus the 13F and 13D/G feeds.
-- Commodities (`commods.py`), all keyless: Yahoo's chart feed for exchange-traded contracts (gold, copper, crude, wheat, cotton ...), FRED's monthly IMF series for the long history of benchmarks with no contract, and one sentence per page from Trading Economics for those benchmarks' current level and day, month and year change (rubber, zinc, urea, coking coal, freight). The scraped sentence is date-stamped and the last good value persists, so a changed page degrades to stale, never to blank. `local_in.py` is the shipped local-read plugin for the ICICI adapter: MCX front-month futures through the broker's history endpoint and the Rubber Board of India's daily sheet; it runs only when that broker is connected, and it is the pattern for a `local_<market>.py` of your own (two functions: a second price line on a card, a tile in the card's detail).
+- Commodities (`commods.py`), all keyless: Yahoo's chart feed for exchange-traded contracts (gold, copper, crude, wheat, cotton ...), FRED's monthly IMF series for the long history of benchmarks with no contract, and one sentence per page from Trading Economics for those benchmarks' current level and day, month and year change (rubber, zinc, urea, coking coal, freight). The scraped sentence is date-stamped and the last good value persists, so a changed page degrades to stale, never to blank. A broker file's optional `commodities_local` attaches local price lines to the cards (the shipped India file adds MCX front-month futures through the broker's history endpoint and the Rubber Board of India's daily sheet); they appear only while that broker is connected, so a reader elsewhere never sees them.
 - House Clerk, keyless: periodic transaction reports as PDFs, parsed with pypdf (`house_ptr.py`).
 - Yahoo Finance, keyless: quotes, candles, and the ticker page basics when there is no feed (`freefeed.py`).
 - Financial Modeling Prep (optional): US quotes, statements, estimates, peers, insider filings, Congress trades. The desk was built on the Starter plan; `scripts/audit_fmp.py` probes which endpoints your plan allows.
 - SEC EDGAR: 13F and 13D/G filings, read directly. Set `EDGAR_CONTACT` in `.env`; the SEC asks for it.
-- CBOE delayed option chains, FINRA short files, FRED, the home exchange's public filings and results calendar, Yahoo Finance quotes and history: all free, no key.
+- CBOE delayed option chains, FINRA short files, FRED, the home market file's public sources (the exchange's filings and results calendar, statistics offices), Yahoo Finance quotes and history: all free, no key.
 
 Yahoo's free quotes are near live for US listings and 15 to 20 minutes delayed for most other exchanges. Yahoo's quote endpoints are unofficial and can change; the code degrades to the feed or to the last saved quotes when they do.
 

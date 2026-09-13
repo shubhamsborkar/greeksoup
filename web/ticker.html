@@ -131,12 +131,13 @@ tbody tr:last-child td{border-bottom:none}
 const P = new URLSearchParams(location.search);
 const SYM = (P.get("symbol")||"AAPL").toUpperCase();
 const REG = (P.get("region")||"us").toLowerCase();
+const HOME = REG!=="us";     // a home-market name: the broker's code or the exchange symbol
 document.getElementById("go").addEventListener("keydown",e=>{
   if(e.key==="Enter"&&e.target.value.trim())
-    location.href="/t?symbol="+e.target.value.trim().toUpperCase()+(REG==="in"?"&region=in":"");});
+    location.href="/t?symbol="+encodeURIComponent(e.target.value.trim().toUpperCase())+(HOME?"&region=home":"");});
 
 const F=(x,dp=2)=>x==null||isNaN(x)?"—":Number(x).toFixed(dp).replace(/\B(?=(\d{3})+(?!\d))/g,",");
-const CUR = REG==="in" ? "₹" : "$";
+let CUR = "$";               // the home market's currency symbol arrives with the page data
 const money=(x,dp=2)=>x==null||isNaN(x)?"—":(x<0?"−"+CUR:CUR)+F(Math.abs(x),dp);
 const usd=money;
 const pct=(x,dp=2)=>x==null||isNaN(x)?"—":(x>=0?"+":"−")+Math.abs(x).toFixed(dp)+"%";
@@ -150,7 +151,7 @@ const ago=iso=>{if(!iso)return "";const s=(Date.now()-new Date(iso.replace(" ","
 
 /* ============ CHART v3: native-pixel, fullscreen, intraday, premium ============ */
 let HIST=[];               // oldest -> newest {date, price, o,h,l,v}
-let INTRA={};              // {"1D":[...], "5D":[...]} (India only)
+let INTRA={};              // {"1D":[...], "5D":[...]} where the source serves minute candles
 let mode="candles", range="1Y", isFS=false;
 const DAYRANGES={"1M":22,"3M":66,"6M":132,"1Y":252,"3Y":756,"5Y":1260,"MAX":1e9};
 
@@ -435,13 +436,14 @@ async function load(){
   document.title=SYM+" — GreekSoup";
   HIST=[...(d.history||[])].reverse();
   INTRA=d.intraday||{};
-  if(REG==="in") renderIN(d,app); else renderUS(d,app);
+  if(HOME) renderHome(d,app); else renderUS(d,app);
   bindChart();
 }
 
-function renderIN(d,app){
+function renderHome(d,app){
   const q=d.quote, m=d.meta||{};
   const px=q.ltp;
+  if(d.currency_symbol) CUR=d.currency_symbol;
   // position cards — labelled by account number; futures detected by shape
   let posCards="";
   for(const [k,h] of Object.entries(d.held_in||{})){
@@ -481,16 +483,20 @@ function renderIN(d,app){
       </div></section>`;
   }
   posCards += futBook;
+  const hasBook = d.has_book || q.bid!=null;
+  const filings = d.filings||"";
+  const w52l = m.w52l ?? q.ylow, w52h = m.w52h ?? q.yhigh;
+  const hasRange = (w52l!=null && w52h!=null) || (m.ltl!=null && m.lth!=null);
   app.innerHTML=`
   <div class="hero">
-    <span class="sym">${SYM}</span><span class="co">${m.company||""}</span>
+    <span class="sym">${SYM}</span><span class="co">${m.company||q.name||""}</span>
     <span class="badge">${q.exch||m.exch||""}</span>
-    ${m.nse_symbol?`<span class="badge">NSE: ${m.nse_symbol}</span>`:""}
+    ${d.exchange_symbol?`<span class="badge">${d.exchange_symbol}</span>`:""}
     <span style="flex:1"></span>
     <span class="px mono">${money(px)}</span>
     <span class="chg mono ${cls(q.day_pct)}">${pct(q.day_pct)}</span>
   </div>
-  <div class="sub">${m.isin?"ISIN "+m.isin+" · ":""}bid ${money(q.bid)} × ${F(q.bid_qty,0)} · offer ${money(q.offer)} × ${F(q.offer_qty,0)} · vol ${F(q.ttq,0)} · as of ${d.ts}</div>
+  <div class="sub">${m.isin?"ISIN "+m.isin+" · ":""}${hasBook?`bid ${money(q.bid)} × ${F(q.bid_qty,0)} · offer ${money(q.offer)} × ${F(q.offer_qty,0)} · `:""}vol ${F(q.ttq,0)} · as of ${d.ts}${hasBook?"":" · Yahoo's free feed, delayed on most exchanges"}</div>
   <div class="grid">
     <div>
       ${chartPanel()}
@@ -502,33 +508,33 @@ function renderIN(d,app){
           ${st("Day move",pct(q.day_pct),cls(q.day_pct))}
         </div>
       </section>
-      <section class="panel"><div class="panel-h"><h2>Quarterly results</h2><span class="s">NSE integrated filings · ₹ Cr</span></div>
+      ${filings?`<section class="panel"><div class="panel-h"><h2>Quarterly results</h2><span class="s">${filings}${d.units?" · "+d.units:""}</span></div>
         <div class="panel-b" id="if-q"><div class="desc">Loading filings…</div></div>
       </section>
-      <section class="panel"><div class="panel-h"><h2>Corporate filings</h2><span class="s">Reg 30, last 90 days</span></div>
+      <section class="panel"><div class="panel-h"><h2>Corporate filings</h2><span class="s">last 90 days</span></div>
         <div class="panel-b" id="if-ann"><div class="desc">Loading…</div></div>
-      </section>
+      </section>`:""}
     </div>
     <div>
       ${posCards}
-      <section class="panel">
-        <div class="panel-h"><h2>Where it trades</h2><span class="s">security master</span></div>
+      ${hasRange?`<section class="panel">
+        <div class="panel-h"><h2>Where it trades</h2><span class="s">range</span></div>
         <div class="panel-b">
-          ${rangeBar("52-WEEK RANGE",m.w52l??q.low,m.w52h??q.high,px)}
-          ${rangeBar("LIFETIME RANGE",m.ltl,m.lth,px,m.low_date?.slice(0,10),m.high_date?.slice(0,10))}
+          ${rangeBar("52-WEEK RANGE",w52l,w52h,px)}
+          ${(m.ltl!=null&&m.lth!=null)?rangeBar("LIFETIME RANGE",m.ltl,m.lth,px,m.low_date?.slice(0,10),m.high_date?.slice(0,10)):""}
         </div>
-      </section>
-      <section class="panel"><div class="panel-h"><h2>Shareholding</h2><span class="s">NSE</span></div>
+      </section>`:""}
+      ${filings?`<section class="panel"><div class="panel-h"><h2>Shareholding</h2><span class="s">${d.market||""}</span></div>
         <div class="panel-b" id="if-sh"><div class="desc">Loading…</div></div>
-      </section>
+      </section>`:""}
     </div>
   </div>`;
-  loadInfund();
+  if(filings) loadInfund(filings);
 }
 
-async function loadInfund(){
+async function loadInfund(filings){
   let d;
-  try{ const r=await fetch("/api/infund?symbol="+SYM); d=await r.json(); }
+  try{ const r=await fetch("/api/infund?symbol="+encodeURIComponent(SYM)); d=await r.json(); }
   catch(e){ d={error:"fetch failed"}; }
   const qEl=document.getElementById("if-q"), aEl=document.getElementById("if-ann"), sEl=document.getElementById("if-sh");
   if(!qEl) return;
@@ -553,8 +559,8 @@ async function loadInfund(){
           <td class="mono ${cls(x.pbt)}">${x.pbt==null?"—":F(x.pbt,0)}</td>
           <td class="mono ${cls(x.pat)}">${x.pat==null?"—":F(x.pat,0)}</td>
           <td class="mono ${cls(x.eps)}">${x.eps==null?"—":x.eps}</td></tr>`;}).join("")+
-      `</tbody></table><div class="desc" style="margin-top:6px">${flavor}, as filed with NSE (revenue % is YoY same quarter, when in range). Rounding read from each filing.</div>`;
-  }else qEl.innerHTML=`<div class="desc">No integrated filings found (feed covers results filed after Dec 2024).</div>`;
+      `</tbody></table><div class="desc" style="margin-top:6px">${flavor}, as filed (${filings}; revenue % is YoY same quarter, when in range). Rounding read from each filing.</div>`;
+  }else qEl.innerHTML=`<div class="desc">No filings found for this name in the exchange's feed.</div>`;
   const sh=d.shareholding||[];
   sEl.innerHTML = sh.length
     ? `<table class="mini"><thead><tr><th>As of</th><th>Promoter</th><th>Public</th></tr></thead><tbody>`+

@@ -179,7 +179,7 @@
     try {
       const [ru, ri] = await Promise.all([
         fetch("/api/search?q=" + encodeURIComponent(q) + "&list=us").then(r => r.json()),
-        fetch("/api/search?q=" + encodeURIComponent(q) + "&list=in").then(r => r.json()),
+        fetch("/api/search?q=" + encodeURIComponent(q) + "&list=home").then(r => r.json()),
       ]);
       us = (ru.results || []).slice(0, 5);
       ind = (ri.results || []).slice(0, 5);
@@ -207,7 +207,7 @@
       nm: t.code, sub: t.name, ex: t.exch, href: "/t?symbol=" + encodeURIComponent(t.code) })));
     section("Tickers · Home", d.in.map(t => ({
       nm: t.code, sub: t.name, ex: t.exch,
-      href: "/t?symbol=" + encodeURIComponent(t.code) + "&region=in" })));
+      href: "/t?symbol=" + encodeURIComponent(t.code) + "&region=home" })));
     r.innerHTML = html || '<div class="ckempty">Nothing matches.</div>';
     r.querySelectorAll(".cki").forEach(n => {
       n.onclick = () => go(ckItems[+n.dataset.i]);
