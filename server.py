@@ -1839,7 +1839,7 @@ def _fire(key, level, text):
         })
         ALERTS["active"] = ALERTS["active"][:40]
     _save_alerts()
-    _notify_mac("Research Desk", text)
+    _notify_mac("GreekSoup desk", text)
 
 
 def _eval_alerts():

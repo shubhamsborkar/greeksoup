@@ -1,4 +1,4 @@
-/* Research Desk — shared chrome. The ONE nav list (now a sidebar rail: adding a
+/* GreekSoup desk — shared chrome. The ONE nav list (now a sidebar rail: adding a
    tab here adds it on every page), the theme switcher, the Cmd-K command
    palette and the bottom alert bar. Active tab is derived from the URL,
    including the ?list= regions of /watch. */
@@ -71,8 +71,8 @@
     const el = document.createElement("aside");
     el.id = "siderail";
     el.innerHTML =
-      '<a class="rbrand" href="/"><span class="rlogo">RD</span>' +
-      '<span class="rname">RESEARCH <b>DESK</b></span></a>' +
+      '<a class="rbrand" href="/"><span class="rlogo">GS</span>' +
+      '<span class="rname">GREEK<b>SOUP</b><small>equity research desk</small></span></a>' +
       '<div class="rgroups">' +
       groups.map(g =>
         `<div class="rgt">${g.name}</div>` +
