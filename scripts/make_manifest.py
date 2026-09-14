@@ -24,6 +24,9 @@ sys.path.insert(0, ROOT)
 from updater import bytes_hash, parse_version_text  # noqa: E402
 
 SKIP = {"MANIFEST.json", ".gitignore"}
+# The website (the landing page's docs and their source) is served by GitHub
+# Pages, not by the desk, so a reader's copy never needs it in an update.
+SKIP_DIRS = ("site/", "docs/docs/")
 
 
 def git(*args):
@@ -33,7 +36,8 @@ def git(*args):
 def main():
     version = (parse_version_text(open(os.path.join(ROOT, "VERSION"), encoding="utf-8").read())
                or [{"version": ""}])[0]["version"]
-    tracked = [p for p in git("ls-files").splitlines() if p and p not in SKIP]
+    tracked = [p for p in git("ls-files").splitlines()
+               if p and p not in SKIP and not p.startswith(SKIP_DIRS)]
     files = {}
     for rel in tracked:
         with open(os.path.join(ROOT, rel), "rb") as fh:

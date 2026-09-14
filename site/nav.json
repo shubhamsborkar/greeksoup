@@ -1,0 +1,12 @@
+{
+  "sections": [
+    {"title": "Get started", "dir": "get-started",
+     "pages": ["index", "first-ten-minutes", "the-screens", "no-key-needed"]},
+    {"title": "Install", "dir": "install",
+     "pages": ["index", "mac", "windows", "linux", "with-an-agent", "from-source", "keep-it-running", "updates", "back-up", "uninstall", "the-page-is-blank"]},
+    {"title": "Brokers", "dir": "brokers",
+     "pages": ["index", "alpaca", "icici-direct", "interactive-brokers", "tradier", "trading-212", "zerodha", "another-broker"]},
+    {"title": "Markets", "dir": "markets",
+     "pages": ["index", "india", "united-states", "your-own-market"]}
+  ]
+}

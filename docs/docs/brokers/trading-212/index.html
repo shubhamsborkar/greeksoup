@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trading 212 · GreekSoup docs</title>
+<meta name="description" content="Connect a Trading 212 Invest or ISA account to GreekSoup with a key generated in the app.">
+<meta property="og:title" content="Trading 212 · GreekSoup docs">
+<meta property="og:description" content="Connect a Trading 212 Invest or ISA account to GreekSoup with a key generated in the app.">
+<meta property="og:type" content="article">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23ED5A24'/><text x='16' y='22' font-size='15' font-weight='800' font-family='Arial' fill='white' text-anchor='middle'>GS</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/docs.css">
+<script>try{var t=localStorage.getItem("gs_docs_theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;else if(matchMedia("(prefers-color-scheme: dark)").matches)document.documentElement.dataset.theme="dark";}catch(e){}</script>
+</head>
+<body data-rel="../../">
+<a class="skip" href="#content">Skip to content</a>
+<header class="top">
+  <button class="menu" id="menu" aria-label="Open the contents"><span></span><span></span><span></span></button>
+  <a class="brand" href="../../../"><span class="logo">GS</span>Greek<b>Soup</b></a>
+  <a class="docs-tag" href="../../">Docs</a>
+  <button class="search" id="search-open" aria-label="Search the docs"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4.6"/><path d="M10.5 10.5L14 14"/></svg><span>Search</span><kbd>⌘K</kbd></button>
+  <nav class="links">
+    <a href="../../../#quickstart">Install</a>
+    <a href="../../../#releases">Releases</a>
+    <button class="theme" id="theme" aria-label="Switch between light and dark"><svg class="sun" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg><svg class="moon" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13.5 10.2A6 6 0 015.8 2.5a6 6 0 107.7 7.7z"/></svg></button>
+    <a class="gh" href="https://github.com/shubhamsborkar/one-person-equity-research-desk"><svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+  </nav>
+</header>
+<div class="frame">
+  <aside class="side" id="side">
+    <div class="side-in"><div class="sec"><div class="sec-t">Get started</div><ul><li><a href="../../get-started/">Overview</a></li><li><a href="../../get-started/first-ten-minutes/">The first ten minutes</a></li><li><a href="../../get-started/the-screens/">The screens</a></li><li><a href="../../get-started/no-key-needed/">No key needed</a></li></ul></div><div class="sec"><div class="sec-t">Install</div><ul><li><a href="../../install/">Overview</a></li><li><a href="../../install/mac/">Mac</a></li><li><a href="../../install/windows/">Windows</a></li><li><a href="../../install/linux/">Linux</a></li><li><a href="../../install/with-an-agent/">With an AI agent</a></li><li><a href="../../install/from-source/">From source</a></li><li><a href="../../install/keep-it-running/">Keep it running</a></li><li><a href="../../install/updates/">Updates</a></li><li><a href="../../install/back-up/">Back up</a></li><li><a href="../../install/uninstall/">Uninstall</a></li><li><a href="../../install/the-page-is-blank/">The page is blank</a></li></ul></div><div class="sec"><div class="sec-t">Brokers</div><ul><li><a href="../../brokers/">Overview</a></li><li><a href="../../brokers/alpaca/">Alpaca</a></li><li><a href="../../brokers/icici-direct/">ICICI Direct</a></li><li><a href="../../brokers/interactive-brokers/">Interactive Brokers</a></li><li><a href="../../brokers/tradier/">Tradier</a></li><li class="on"><a href="../../brokers/trading-212/">Trading 212</a></li><li><a href="../../brokers/zerodha/">Zerodha</a></li><li><a href="../../brokers/another-broker/">Another broker</a></li></ul></div><div class="sec"><div class="sec-t">Markets</div><ul><li><a href="../../markets/">Overview</a></li><li><a href="../../markets/india/">India</a></li><li><a href="../../markets/united-states/">United States</a></li><li><a href="../../markets/your-own-market/">Your own market</a></li></ul></div></div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+  <main class="content" id="content">
+    <div class="crumb">Brokers</div>
+    <article class="prose">
+      <h1>Trading 212</h1>
+      <p class="lead">United Kingdom and Europe. A key and a secret generated in the app. Invest and ISA accounts; the practice account has its own pair.</p>
+      <div class="fact" markdown="0">
+<b>Market</b><span>Follows the US shape; each line carries its own Yahoo symbol, London listings included</span>
+<b>You paste</b><span>API key, API secret; the Practice switch on for the practice account</span>
+<b>Daily login</b><span>None</span>
+<b>The desk shows</b><span>Holdings and cash; every line priced live by the desk</span>
+</div>
+
+<h2 id="where-the-keys-come-from">Where the keys come from</h2>
+<p>In the Trading 212 app: menu, <strong>Settings</strong>, <strong>API</strong>, <strong>Generate API key</strong>. Give it the account-data and portfolio permissions, and nothing more; the desk only reads. You get a key and a secret. Invest and ISA accounts only, which is what Trading 212's read allows.</p>
+<p>The practice (demo) account has its own pair, so switch <strong>Practice account</strong> on for that one.</p>
+<h2 id="on-settings">On Settings</h2>
+<p>Pick <strong>Trading 212 · United Kingdom, Europe</strong>, paste the key and the secret, set Practice if it applies, and click <strong>Save and connect</strong>. A wrong pair comes back as "Trading 212 did not accept the key and secret". If Trading 212 asks the desk to slow down, it says so and retries on the next refresh.</p>
+<h2 id="what-desk-home-shows">What Desk · Home shows</h2>
+<p>Every position with quantity and average cost, cash from the account's cash read, and every line marked live from Yahoo through the share's own symbol (a London listing opens as its <code>.L</code> symbol). Trading 212's read is marked beta by Trading 212 and its position shape has changed once already; the desk reads both shapes.</p>
+<h2 id="what-it-does-not-show">What it does not show</h2>
+<p>No futures, no margin bar, no options tape through this read.</p>
+    </article>
+    <nav class="pn">
+      <a class="prev" href="../../brokers/tradier/"><small>Previous</small><b>Tradier</b></a>
+      <a class="next" href="../../brokers/zerodha/"><small>Next</small><b>Zerodha</b></a>
+    </nav>
+    <footer class="foot">
+      <span>GreekSoup: the one-person equity research desk. For analysts who refuse to settle.</span>
+      <span class="mono">version 2026-09-13.8 · built 2026-09-14 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/brokers/trading-212.md">edit this page</a></span>
+    </footer>
+  </main>
+  <aside class="rail">
+    <div class="rail-t">On this page</div><ul><li><a href="#where-the-keys-come-from">Where the keys come from</a></li><li><a href="#on-settings">On Settings</a></li><li><a href="#what-desk-home-shows">What Desk · Home shows</a></li><li><a href="#what-it-does-not-show">What it does not show</a></li></ul>
+  </aside>
+</div>
+<div class="modal" id="modal" hidden>
+  <div class="box" role="dialog" aria-label="Search the docs">
+    <input id="q" placeholder="Search the docs…" autocomplete="off" spellcheck="false">
+    <div class="hits" id="hits"></div>
+    <div class="hint">↑↓ to move · Enter to open · Esc to close</div>
+  </div>
+</div>
+<script src="../../assets/docs.js"></script>
+</body>
+</html>
