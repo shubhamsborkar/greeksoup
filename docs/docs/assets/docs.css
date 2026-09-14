@@ -2,28 +2,29 @@
    ivory paper by day, graphite by night, one orange, a serif for reading,
    a grotesk for structure, a mono for anything the reader copies. */
 :root{
-  --paper:#f7f2e9; --paper2:#efe8d9; --panel:#fffdf8; --line:#ddd2bd; --line2:#c9bca1;
-  --ink:#221c14; --ink2:#65594a; --muted:#8f8371; --accent:#ED5A24; --accent-ink:#b8421a;
+  --paper:#F4F2EB; --paper2:#EDEAE1; --panel:#FFFDF8; --line:rgba(23,19,14,.12); --line2:rgba(23,19,14,.22);
+  --ink:#17130E; --ink2:#4C463C; --muted:#7A7468; --accent:#ED5A24; --accent-ink:#c2461a;
   --pos:#178a58; --amber:#a3720e; --neg:#c93a4c; --cyan:#0f7ea6;
-  --code-bg:#12161d; --code-ink:#e8edf3; --code-line:#232a35;
-  --shadow:0 1px 2px rgba(34,28,20,.06),0 8px 28px rgba(34,28,20,.07);
-  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
-  --sans:"Archivo",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --code-bg:#0B0E13; --code-ink:#E8EDF3; --code-line:#232A35;
+  --shadow:0 1px 2px rgba(23,19,14,.06),0 8px 28px rgba(23,19,14,.07);
+  --serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --ital:"Source Serif 4",Georgia,serif;
+  --sans:"Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
   --mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
-  --top:58px; --side:268px; --rail:224px; --measure:760px;
+  --top:64px; --side:268px; --rail:224px; --measure:760px;
   color-scheme:light;
 }
 :root[data-theme="dark"]{
-  --paper:#0a0d12; --paper2:#12161d; --panel:#161b24; --line:#232a35; --line2:#2c3542;
-  --ink:#e8edf3; --ink2:#98a3b1; --muted:#5d6774; --accent:#ED5A24; --accent-ink:#ff8a5b;
+  --paper:#0F1114; --paper2:#15181D; --panel:#15181D; --line:rgba(236,235,230,.12); --line2:rgba(236,235,230,.2);
+  --ink:#ECEBE6; --ink2:#B9B6AE; --muted:#8C8A82; --accent:#ED5A24; --accent-ink:#ff8a5b;
   --pos:#3ecf8e; --amber:#e8a13c; --neg:#f16472; --cyan:#5bb8d4;
-  --code-bg:#0d1117; --code-ink:#e8edf3; --code-line:#1f2732;
+  --code-bg:#0B0E13; --code-ink:#E8EDF3; --code-line:#232A35;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 html{scroll-padding-top:calc(var(--top) + 18px)}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
 a{color:var(--accent-ink);text-decoration:none}
 a:hover{text-decoration:underline;text-underline-offset:3px}
 .skip{position:absolute;left:-999px;top:8px;background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;z-index:99}
@@ -33,7 +34,7 @@ kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line2);border-
 /* ---- top bar ---------------------------------------------------------- */
 .top{position:sticky;top:0;z-index:30;height:var(--top);display:flex;align-items:center;gap:14px;padding:0 22px;
   background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-family:var(--sans);font-weight:800;letter-spacing:.02em;font-size:17px;white-space:nowrap}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-family:var(--sans);font-weight:700;letter-spacing:-.01em;font-size:20px;white-space:nowrap}
 .brand:hover{text-decoration:none}
 .brand .logo{width:28px;height:28px;border-radius:7px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;box-shadow:0 2px 10px rgba(237,90,36,.35)}
 .brand b{color:var(--accent)}
@@ -64,7 +65,7 @@ kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line2);border-
 .side li.on a{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent-ink);font-weight:700;box-shadow:inset 3px 0 0 var(--accent)}
 .scrim{display:none}
 .content{min-width:0;padding:34px 56px 80px}
-.crumb{font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.crumb{font-family:var(--ital);font-style:italic;font-size:15px;font-weight:400;letter-spacing:0;text-transform:lowercase;color:var(--muted);margin-bottom:10px}
 .prose{max-width:var(--measure)}
 .rail{position:sticky;top:var(--top);height:calc(100vh - var(--top));overflow-y:auto;padding:34px 22px 40px 6px;font-family:var(--sans)}
 .rail-t{font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
@@ -75,9 +76,9 @@ kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line2);border-
 .rail li.here a{color:var(--accent-ink);border-left-color:var(--accent)}
 
 /* ---- prose ------------------------------------------------------------ */
-.prose h1{font-family:var(--sans);font-size:clamp(30px,3.6vw,42px);line-height:1.08;letter-spacing:-.02em;font-weight:800;margin:0 0 14px}
-.prose .lead{font-size:20px;line-height:1.5;color:var(--ink2);margin:0 0 30px}
-.prose h2{font-family:var(--sans);font-size:23px;letter-spacing:-.012em;font-weight:700;margin:44px 0 12px;padding-top:18px;border-top:1px solid var(--line)}
+.prose h1{font-family:var(--serif);font-size:clamp(34px,4vw,48px);line-height:1.04;letter-spacing:-.02em;font-weight:400;margin:0 0 14px}
+.prose .lead{font-size:18px;line-height:1.55;color:var(--ink2);margin:0 0 30px}
+.prose h2{font-family:var(--serif);font-size:28px;letter-spacing:-.012em;font-weight:400;margin:44px 0 12px;padding-top:18px;border-top:1px solid var(--line)}
 .prose h3{font-family:var(--sans);font-size:17.5px;font-weight:700;margin:28px 0 8px}
 .prose h4{font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin:22px 0 6px}
 .prose p{margin:0 0 16px}

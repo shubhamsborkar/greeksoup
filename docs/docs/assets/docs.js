@@ -12,7 +12,7 @@
   if (themeBtn) themeBtn.onclick = () => {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
-    try { store.setItem("gs_docs_theme", next); } catch (e) { /* ignore */ }
+    try { store.setItem("gs-theme", next); } catch (e) { /* ignore */ }
   };
 
   /* contents drawer */
