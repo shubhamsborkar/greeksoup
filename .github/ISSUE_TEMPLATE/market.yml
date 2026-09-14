@@ -1,0 +1,28 @@
+name: A market you want
+description: Ask for a market file, or tell us you wrote one.
+labels: ["market"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Market
+      placeholder: e.g. United Kingdom (LSE)
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: The public record there
+      description: Where that market publishes filings, results dates and its own macro numbers, if you know. Links help.
+  - type: dropdown
+    id: state
+    attributes:
+      label: Where this stands
+      options:
+        - I want it
+        - My agent wrote it and it works on my desk; I can send it in
+        - I started it and it fails (say where below)
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else

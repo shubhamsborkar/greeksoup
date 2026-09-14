@@ -1,0 +1,47 @@
+name: Something is wrong
+description: A screen, a number, the install or the update is not doing what the docs say.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. Two things make this fast: what you saw, and what the desk's own check says. Nothing in that check is private (no keys, no positions).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Which screen, what you expected, what you saw instead.
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: What the check says
+      description: In the desk folder run `python doctor.py` (Mac and Linux) or `python doctor.py` in PowerShell (Windows) and paste everything it prints.
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Desk version
+      description: The first line of the VERSION file, or the version shown at the bottom of Settings.
+  - type: dropdown
+    id: os
+    attributes:
+      label: Computer
+      options:
+        - Mac
+        - Windows
+        - Linux
+  - type: dropdown
+    id: broker
+    attributes:
+      label: Broker connected
+      options:
+        - None
+        - Alpaca
+        - ICICI Direct
+        - Interactive Brokers
+        - Tradier
+        - Trading 212
+        - Zerodha
+        - Another (say which)

@@ -1,0 +1,28 @@
+name: A broker you want
+description: Ask for a broker adapter, or tell us you wrote one.
+labels: ["broker"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Broker and country
+      placeholder: e.g. Fidelity, United States
+    validations:
+      required: true
+  - type: input
+    id: api
+    attributes:
+      label: Where the broker documents its read access
+      description: A link to the broker's API page, if it has one. Brokers without a documented way for a program to read your account cannot be connected.
+  - type: dropdown
+    id: state
+    attributes:
+      label: Where this stands
+      options:
+        - I want it
+        - My agent wrote it and it works on my desk; I can send it in
+        - I started it and it fails (say where below)
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else

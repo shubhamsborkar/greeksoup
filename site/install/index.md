@@ -19,17 +19,23 @@ lead: One line is enough on any of the three systems. The other two paths are th
 
 1. Finds Python on your computer, and installs it if it is missing (from python.org on a Mac, with winget on Windows; on Linux it tells you the package to install).
 2. Downloads the desk into a folder called `GreekSoup` in your home folder.
-3. Installs what the desk needs into that folder and nothing else on your computer.
+3. Installs what the desk needs into that folder. The only thing it puts outside the folder is the small start-at-login entry in step 5.
 4. Copies the settings file into place, empty. Keys come later, on the Settings screen.
 5. Sets the desk to start with your computer and to come back by itself if it stops.
 6. Starts it and opens it in your browser at `http://localhost:8765`.
 
 Run the same line again later and it only starts the desk; new versions arrive through [the strip inside the desk](/docs/install/updates/).
 
+## What it needs
+
+A Mac, a Windows PC or a Linux computer that you leave on while you work, Python 3.10 or newer (found or installed for you), and a browser. The desk itself takes under 100 MB; the caches it builds take a few hundred more over time.
+
 ## After the install
 
 - [Keep it running](/docs/install/keep-it-running/): what the always-on service is and the two files that switch it.
-- [Updates](/docs/install/updates/): the strip, the one click, and what it keeps.
+- [Updates](/docs/install/updates/): the strip, the one click, what it keeps, and how to go back.
 - [Back up](/docs/install/back-up/): one zip of everything that is yours.
-- [Uninstall](/docs/install/uninstall/): two steps, nothing left behind.
+- [Uninstall](/docs/install/uninstall/): one double-click, nothing left behind.
+- [What it talks to](/docs/install/what-it-talks-to/): every outbound request, and what it never sends.
+- [If something is wrong](/docs/install/if-something-is-wrong/): symptom first, and the one check that hands the rest to your agent.
 - [The page is blank](/docs/install/the-page-is-blank/): the four things to try, in order.

@@ -243,6 +243,64 @@ def _untouchable(rel):
     return top in NEVER_TOUCH or rel.startswith("session_token") or top.startswith(".env")
 
 
+PREVIOUS = os.path.join(HERE, "cache", "previous")
+
+
+def _keep_old(dst, rel, snap):
+    """Before a file is replaced, its current copy goes into cache/previous/<version>/,
+    so the reader can go back if the newer version misbehaves."""
+    if not os.path.isfile(dst):
+        return
+    keep = os.path.join(snap, *rel.split("/"))
+    os.makedirs(os.path.dirname(keep), exist_ok=True)
+    shutil.copy2(dst, keep)
+
+
+def previous_versions():
+    """The versions a rollback can go back to, newest first."""
+    try:
+        names = [n for n in os.listdir(PREVIOUS) if os.path.isdir(os.path.join(PREVIOUS, n))]
+    except OSError:
+        return []
+    names.sort(key=lambda n: os.path.getmtime(os.path.join(PREVIOUS, n)), reverse=True)
+    return names
+
+
+def rollback(version=None):
+    """Put back the files the last update replaced (or the update to `version`).
+    Touches only the files that were kept, never .env, data or cache."""
+    names = previous_versions()
+    if not names:
+        return {"ok": False, "error": "no previous version is kept on this computer"}
+    version = version or names[0]
+    snap = os.path.join(PREVIOUS, version)
+    if not os.path.isdir(snap):
+        return {"ok": False, "error": f"no kept copy of {version}"}
+    rep = {"ok": False, "to": version, "restored": 0, "error": None, "at": time.time()}
+    try:
+        for dp, _, files in os.walk(snap):
+            for f in files:
+                src = os.path.join(dp, f)
+                rel = os.path.relpath(src, snap)
+                if _untouchable(rel.replace(os.sep, "/")):
+                    continue
+                _copy_file(src, os.path.join(HERE, rel))
+                rep["restored"] += 1
+        shutil.rmtree(snap, ignore_errors=True)
+        rep["ok"] = True
+        try:
+            os.remove(CHECK_PATH)
+        except OSError:
+            pass
+    except Exception as exc:  # noqa: BLE001
+        rep["error"] = str(exc)[:300]
+    try:
+        _write_json(RESULT_PATH, rep)
+    except OSError:
+        pass
+    return rep
+
+
 def apply():
     """Bring the newer version in. Returns a plain report; the caller restarts."""
     with _lock:
@@ -263,6 +321,11 @@ def apply():
             open(os.path.join(root, "VERSION"), encoding="utf-8").read()) or [{}])[0].get("version")
         history = manifest.get("history", {})
         req_before = file_hash(os.path.join(HERE, "requirements.txt"))
+        snap = os.path.join(PREVIOUS, rep["from"] or "unknown")
+        shutil.rmtree(snap, ignore_errors=True)
+        # keep at most three previous versions
+        for old in previous_versions()[2:]:
+            shutil.rmtree(os.path.join(PREVIOUS, old), ignore_errors=True)
         deferred = []   # VERSION and MANIFEST.json go last, so a failure mid-way leaves the old version stamped
         for rel, new_hash in sorted(manifest["files"].items()):
             if _untouchable(rel):
@@ -284,6 +347,7 @@ def apply():
                     rep["added_data"].append(rel)
                 elif name in SHIPPED_DATA and local_hash != new_hash and \
                         local_hash in history.get(rel, []):
+                    _keep_old(dst, rel, snap)
                     _copy_file(src, dst)
                     rep["refreshed_data"].append(rel)
                 continue
@@ -293,12 +357,14 @@ def apply():
             if local_hash is not None and local_hash not in history.get(rel, []):
                 rep["kept"].append(rel)      # changed on this computer: theirs to merge
                 continue
+            _keep_old(dst, rel, snap)
             _copy_file(src, dst)
             rep["copied"] += 1
         # the manifest never lists itself; VERSION and MANIFEST.json land last
         deferred.append((os.path.join(root, "MANIFEST.json"), os.path.join(HERE, "MANIFEST.json")))
         for src, dst in deferred:
             if os.path.isfile(src):
+                _keep_old(dst, os.path.relpath(dst, HERE).replace(os.sep, "/"), snap)
                 _copy_file(src, dst)
         req_after = file_hash(os.path.join(HERE, "requirements.txt"))
         if req_before != req_after:
@@ -364,3 +430,19 @@ def loop(on_update=None):
         except Exception:  # noqa: BLE001
             pass
         time.sleep(3600)
+
+
+if __name__ == "__main__":
+    # python updater.py check | apply | rollback [version] | previous
+    import json as _json
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "check"
+    if cmd == "check":
+        print(_json.dumps(check(force=True), indent=2))
+    elif cmd == "apply":
+        print(_json.dumps(apply(), indent=2))
+    elif cmd == "rollback":
+        print(_json.dumps(rollback(sys.argv[2] if len(sys.argv) > 2 else None), indent=2))
+    elif cmd == "previous":
+        print("\n".join(previous_versions()) or "none kept")
+    else:
+        print(__doc__)

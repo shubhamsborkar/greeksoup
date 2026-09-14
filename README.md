@@ -137,6 +137,10 @@ The desk keeps growing (the list at the bottom of this section says what was add
 
 If you would rather not click at all, switch on *Newer versions* on the Settings screen. The desk then brings a new version in the day it appears and tells you what changed the next time you open it.
 
+If a new version misbehaves, the desk kept the files it replaced, for the last three versions. Tell your agent "go back to the previous version of the desk", or in the desk folder type `python updater.py rollback`, then start the desk. Your keys, your lists and your caches are not part of that; only the desk's own files move.
+
+Two more things in the folder, for the day you need them. **The check**: `python doctor.py` prints your Python version, whether the desk is answering, which keys are set by name and never by value, the last error lines from the log and which sources it can reach, so you can hand the printout to your agent or paste it into a bug report; nothing in it is private. **Uninstall Desk** (`.command` on a Mac, `.bat` on Windows, or `curl -fsSL https://greeksoup.ai/uninstall.sh | bash` on Mac and Linux) stops the desk, removes the start-at-login entry, saves your lists to the Desktop and asks before deleting the folder.
+
 A copy from before 13 September 2026 does not have the strip yet, so bring it up to date once by hand, and from then on the desk tells you itself. Download the ZIP again from the green **Code** button, the same way as on install, so the new folder sits in your Downloads folder, then open your existing desk folder in your agent and paste:
 
 ```
@@ -147,6 +151,7 @@ That paste also works on any copy, at any time, if you would rather not use the 
 
 What was added, newest first:
 
+- **2026-09-14**: what a finished desk carries around itself. A check you run in the folder, an uninstall that saves your lists first and asks before deleting, an updater that keeps the last three versions and can go back, a security page, a contributing guide, issue templates, a check that runs on every change holding every broker and market file to its contract, and docs for your AI, data providers, data sources, what the desk talks to and what to do when something is wrong.
 - **2026-09-13, later**: nothing in the desk assumes one broker or one country any more. A broker file is read for what it has (holdings and cash always; ticks, futures, margin, chains and a symbol master when the broker serves them), and the market the broker trades in supplies the session, the index, the currency, the results calendar, the filings and its own macro cards from a file in the markets folder (India and the United States ship). The daily-login helper files are gone; Settings does that job.
 - **2026-09-13**: the desk looks for a newer version once a day and, when there is one, says so on every screen and brings it in with one click, keeping your keys, your lists and any file your agent changed.
 - **2026-09-12**: the US names on the Commodities screen now carry their filed figures, 58 of 59, each with the document it came from; the one left blank says why. Three tickers corrected (Barrick is B, Solaris Energy Infrastructure is SEI, US Steel removed since it no longer trades).
@@ -159,7 +164,7 @@ Optional, and nothing above depends on it. If you keep notes in Obsidian, the de
 
 ## For the technical reader
 
-Setup by hand, the file map, how to adapt the broker adapter, the data sources in detail, and how the always-on service works on Mac, Windows and Linux: [TECHNICAL.md](TECHNICAL.md).
+Setup by hand, the file map, how to adapt the broker adapter, the data sources in detail, and how the always-on service works on Mac, Windows and Linux: [TECHNICAL.md](TECHNICAL.md). What the desk talks to, where keys live and how to report a problem: [SECURITY.md](SECURITY.md). Adding a broker, a market or a data provider to its written contract, and the checks that run on every change: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Built with an agent
 

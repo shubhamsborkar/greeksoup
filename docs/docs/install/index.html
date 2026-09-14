@@ -31,7 +31,7 @@
 </header>
 <div class="frame">
   <aside class="side" id="side">
-    <div class="side-in"><div class="sec"><div class="sec-t">Get started</div><ul><li><a href="../get-started/">Overview</a></li><li><a href="../get-started/first-ten-minutes/">The first ten minutes</a></li><li><a href="../get-started/the-screens/">The screens</a></li><li><a href="../get-started/no-key-needed/">No key needed</a></li></ul></div><div class="sec"><div class="sec-t">Install</div><ul><li class="on"><a href="../install/">Overview</a></li><li><a href="../install/mac/">Mac</a></li><li><a href="../install/windows/">Windows</a></li><li><a href="../install/linux/">Linux</a></li><li><a href="../install/with-an-agent/">With an AI agent</a></li><li><a href="../install/from-source/">From source</a></li><li><a href="../install/keep-it-running/">Keep it running</a></li><li><a href="../install/updates/">Updates</a></li><li><a href="../install/back-up/">Back up</a></li><li><a href="../install/uninstall/">Uninstall</a></li><li><a href="../install/the-page-is-blank/">The page is blank</a></li></ul></div><div class="sec"><div class="sec-t">Brokers</div><ul><li><a href="../brokers/">Overview</a></li><li><a href="../brokers/alpaca/">Alpaca</a></li><li><a href="../brokers/icici-direct/">ICICI Direct</a></li><li><a href="../brokers/interactive-brokers/">Interactive Brokers</a></li><li><a href="../brokers/tradier/">Tradier</a></li><li><a href="../brokers/trading-212/">Trading 212</a></li><li><a href="../brokers/zerodha/">Zerodha</a></li><li><a href="../brokers/another-broker/">Another broker</a></li></ul></div><div class="sec"><div class="sec-t">Markets</div><ul><li><a href="../markets/">Overview</a></li><li><a href="../markets/india/">India</a></li><li><a href="../markets/united-states/">United States</a></li><li><a href="../markets/your-own-market/">Your own market</a></li></ul></div></div>
+    <div class="side-in"><div class="sec"><div class="sec-t">Get started</div><ul><li><a href="../get-started/">Overview</a></li><li><a href="../get-started/first-ten-minutes/">The first ten minutes</a></li><li><a href="../get-started/the-screens/">The screens</a></li><li><a href="../get-started/no-key-needed/">No key needed</a></li><li><a href="../get-started/faq/">FAQ</a></li></ul></div><div class="sec"><div class="sec-t">Install</div><ul><li class="on"><a href="../install/">Overview</a></li><li><a href="../install/mac/">Mac</a></li><li><a href="../install/windows/">Windows</a></li><li><a href="../install/linux/">Linux</a></li><li><a href="../install/with-an-agent/">With an AI agent</a></li><li><a href="../install/from-source/">From source</a></li><li><a href="../install/keep-it-running/">Keep it running</a></li><li><a href="../install/updates/">Updates</a></li><li><a href="../install/back-up/">Back up</a></li><li><a href="../install/uninstall/">Uninstall</a></li><li><a href="../install/what-it-talks-to/">What it talks to</a></li><li><a href="../install/if-something-is-wrong/">If something is wrong</a></li><li><a href="../install/the-page-is-blank/">The page is blank</a></li></ul></div><div class="sec"><div class="sec-t">Setup</div><ul><li><a href="../setup/">Overview</a></li><li><a href="../setup/your-ai/">Your AI</a></li><li><a href="../setup/data-providers/">Data providers</a></li><li><a href="../setup/data-sources/">Data sources</a></li></ul></div><div class="sec"><div class="sec-t">Brokers</div><ul><li><a href="../brokers/">Overview</a></li><li><a href="../brokers/alpaca/">Alpaca</a></li><li><a href="../brokers/icici-direct/">ICICI Direct</a></li><li><a href="../brokers/interactive-brokers/">Interactive Brokers</a></li><li><a href="../brokers/tradier/">Tradier</a></li><li><a href="../brokers/trading-212/">Trading 212</a></li><li><a href="../brokers/zerodha/">Zerodha</a></li><li><a href="../brokers/another-broker/">Another broker</a></li></ul></div><div class="sec"><div class="sec-t">Markets</div><ul><li><a href="../markets/">Overview</a></li><li><a href="../markets/india/">India</a></li><li><a href="../markets/united-states/">United States</a></li><li><a href="../markets/your-own-market/">Your own market</a></li></ul></div><div class="sec"><div class="sec-t">Project</div><ul><li><a href="../project/">Overview</a></li><li><a href="../project/releases/">Releases</a></li><li><a href="../project/contributing/">Contributing</a></li><li><a href="../project/security/">Security</a></li></ul></div></div>
   </aside>
   <div class="scrim" id="scrim"></div>
   <main class="content" id="content">
@@ -52,32 +52,36 @@
 <ol>
 <li>Finds Python on your computer, and installs it if it is missing (from python.org on a Mac, with winget on Windows; on Linux it tells you the package to install).</li>
 <li>Downloads the desk into a folder called <code>GreekSoup</code> in your home folder.</li>
-<li>Installs what the desk needs into that folder and nothing else on your computer.</li>
+<li>Installs what the desk needs into that folder. The only thing it puts outside the folder is the small start-at-login entry in step 5.</li>
 <li>Copies the settings file into place, empty. Keys come later, on the Settings screen.</li>
 <li>Sets the desk to start with your computer and to come back by itself if it stops.</li>
 <li>Starts it and opens it in your browser at <code>http://localhost:8765</code>.</li>
 </ol>
 <p>Run the same line again later and it only starts the desk; new versions arrive through <a href="../install/updates/">the strip inside the desk</a>.</p>
+<h2 id="what-it-needs">What it needs</h2>
+<p>A Mac, a Windows PC or a Linux computer that you leave on while you work, Python 3.10 or newer (found or installed for you), and a browser. The desk itself takes under 100 MB; the caches it builds take a few hundred more over time.</p>
 <h2 id="after-the-install">After the install</h2>
 <ul>
 <li><a href="../install/keep-it-running/">Keep it running</a>: what the always-on service is and the two files that switch it.</li>
-<li><a href="../install/updates/">Updates</a>: the strip, the one click, and what it keeps.</li>
+<li><a href="../install/updates/">Updates</a>: the strip, the one click, what it keeps, and how to go back.</li>
 <li><a href="../install/back-up/">Back up</a>: one zip of everything that is yours.</li>
-<li><a href="../install/uninstall/">Uninstall</a>: two steps, nothing left behind.</li>
+<li><a href="../install/uninstall/">Uninstall</a>: one double-click, nothing left behind.</li>
+<li><a href="../install/what-it-talks-to/">What it talks to</a>: every outbound request, and what it never sends.</li>
+<li><a href="../install/if-something-is-wrong/">If something is wrong</a>: symptom first, and the one check that hands the rest to your agent.</li>
 <li><a href="../install/the-page-is-blank/">The page is blank</a>: the four things to try, in order.</li>
 </ul>
     </article>
     <nav class="pn">
-      <a class="prev" href="../get-started/no-key-needed/"><small>Previous</small><b>What runs with no key at all</b></a>
+      <a class="prev" href="../get-started/faq/"><small>Previous</small><b>Questions readers ask</b></a>
       <a class="next" href="../install/mac/"><small>Next</small><b>Install on a Mac</b></a>
     </nav>
     <footer class="foot">
       <span>GreekSoup: the one-person equity research desk. For analysts who refuse to settle.</span>
-      <span class="mono">version 2026-09-13.8 · built 2026-09-14 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/install/index.md">edit this page</a></span>
+      <span class="mono">version 2026-09-14 · built 2026-09-14 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/install/index.md">edit this page</a></span>
     </footer>
   </main>
   <aside class="rail">
-    <div class="rail-t">On this page</div><ul><li><a href="#pick-your-path">Pick your path</a></li><li><a href="#what-the-one-line-install-does-in-order">What the one-line install does, in order</a></li><li><a href="#after-the-install">After the install</a></li></ul>
+    <div class="rail-t">On this page</div><ul><li><a href="#pick-your-path">Pick your path</a></li><li><a href="#what-the-one-line-install-does-in-order">What the one-line install does, in order</a></li><li><a href="#what-it-needs">What it needs</a></li><li><a href="#after-the-install">After the install</a></li></ul>
   </aside>
 </div>
 <div class="modal" id="modal" hidden>

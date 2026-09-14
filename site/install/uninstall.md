@@ -1,21 +1,29 @@
 ---
 title: Uninstall
-description: Remove GreekSoup from your computer completely, in two steps.
-lead: Two steps, and nothing is left behind. The desk installed nothing outside its own folder except the small start-at-login entry.
+description: Remove GreekSoup from your computer completely: one file to double-click, or one line, and nothing is left behind.
+lead: One double-click, and nothing is left behind. The desk installed nothing outside its own folder except the small start-at-login entry, and the uninstall removes both.
 ---
 
-## Step one: switch the always-on service off
+## On a Mac or Linux
 
-Double-click **Stop Desk** in the desk folder. That removes the start-at-login entry and stops the desk. On the Settings screen, switching *Start with the computer* off does the same.
+Double-click **Uninstall Desk.command** in the desk folder, or paste this in a terminal:
 
-By hand, if you prefer: on a Mac delete `~/Library/LaunchAgents/com.research-desk.plist`; on Windows delete the task "Research Desk" in Task Scheduler; on Linux `systemctl --user disable --now greeksoup-desk.service` and delete the unit file from `~/.config/systemd/user/`.
+```
+curl -fsSL https://greeksoup.ai/uninstall.sh | bash
+```
 
-## Step two: delete the folder
+## On Windows
 
-Back up first if you want your lists ([Back up](/docs/install/back-up/)). Then delete the `GreekSoup` folder (or wherever you put it). Everything the desk had, its program, its environment, your settings file, your data, its caches and its logs, was inside that folder.
+Double-click **Uninstall Desk.bat** in the desk folder.
 
-If the install put Python on your computer because it was missing, Python stays; it is a normal python.org or winget install and is removed the normal way if you want it gone.
+## What it does, in order
 
-## What the desk never touched
+1. Stops the desk and removes the start-at-login entry.
+2. Saves a copy of your lists and data to your Desktop, as `GreekSoup-backup-<date>.zip`. Your keys are not in it.
+3. Asks whether to delete the folder too. Say yes and the desk is gone; say no and the folder stays for you to delete whenever you like.
 
-Nothing outside its folder and the one service entry: no other program, no system setting, no browser setting, no account anywhere. It never had an account of its own to close.
+Python stays on your computer. It was installed for you if you did not have it, and it is yours.
+
+## By hand, if you prefer
+
+Switch the always-on service off with **Stop Desk**, then delete the `GreekSoup` folder in your home folder. On a Mac the start-at-login entry is `~/Library/LaunchAgents/com.research-desk.plist`; on Linux it is `~/.config/systemd/user/greeksoup-desk.service`; on Windows it is the scheduled task named "Research Desk". Stop Desk removes it on all three.

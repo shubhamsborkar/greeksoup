@@ -1,19 +1,28 @@
 {
- "version": "2026-09-13.8",
- "generated": "2026-09-14 07:25",
- "commits_scanned": 39,
+ "version": "2026-09-14",
+ "generated": "2026-09-14 22:33",
+ "commits_scanned": 45,
  "files": {
   ".env.example": "e265472952dbe4c0c5180b8aa7d6127e9f5b90a33bceef6e72e4196abe71af2a",
+  ".github/ISSUE_TEMPLATE/broker.yml": "7a078be513076d3e7262364df80aac5adef7c815889efeb33c84ade7c4f2a409",
+  ".github/ISSUE_TEMPLATE/bug.yml": "3fc21a197fce151488197decb47fa91d4f8f025a4d5cffaf039e321bfce08030",
+  ".github/ISSUE_TEMPLATE/config.yml": "dc1ddc017ba745fffaf4c707cc9b8920b49bf5c09ae1901c2b65a38c9174c514",
+  ".github/ISSUE_TEMPLATE/market.yml": "6a3e143b610b024621731f73ed0fca3299343a8969fdb8a3a57f864f5d65fd74",
+  ".github/PULL_REQUEST_TEMPLATE.md": "889d2c2e5713da740d7ce0ebfa4c92a03315a93d1ef01cd7dbf8e5f79087f250",
+  "CONTRIBUTING.md": "54334720cb8d8395643cc62973361c8f9068367adc33c671bba9e7779af6dc7a",
   "Keep Desk Running.bat": "aa4ba519ee5f2565c0d2f6f31b53d869a08f6c61ca41d7ee974baec02a10f5be",
   "Keep Desk Running.command": "116bce9df1d76a0d00939fd42113ddec21bae26471c552f88c2fb0b339af3371",
   "LICENSE": "b59a114146e0ccad301604d7dd2187dc34482692688795bf5b50324eea0419de",
-  "README.md": "f5a5ced044644b92c86619475ff9ae2ffb173f7c10cdd6f4eb7db6d1b438c5f3",
+  "README.md": "c16f082f26feaa2ac042d61abea194a6a030ce7bac7bd2f861c852fff0981c27",
+  "SECURITY.md": "81b4e53f46ca0c813bd4669c1b9cbf3c244ca767667833bd3e0768670c67fea2",
   "Start Desk.bat": "2522a0a06fd06c23a9b864c28cf4b184af2f6309b59536e5ef520bb1d0272091",
   "Start Desk.command": "da51e007fba5835d5c82434024ba8f54578634f7280edb8a5b747f0044265435",
   "Stop Desk.bat": "cc994291ab4f13840c963ff2d50364e38835e0dd853b808a5a7de86984b57aea",
   "Stop Desk.command": "1292b0b254b48c86f5cab6143e36f6d81bb21778517382e36095c26304c39de9",
   "TECHNICAL.md": "a56d2e80dfb264e8793ad3f43b8dba06b53940c34dd0162ed29b1270576e0b05",
-  "VERSION": "5528746d4a4fa085c97a7ea45b851dd4747f766b89cc060afd90dc14a2aed5e8",
+  "Uninstall Desk.bat": "697179c8eb048a9ff630c5665df9bd7304236e1b56bacfa737b2dee7e72ca5b9",
+  "Uninstall Desk.command": "0fe82587340a9add4ceca9b5ff0fe49d6f20d008a6b7d0bb559c8afb34c74188",
+  "VERSION": "0635621e818613348825ef5573c17b78fba46a7d1c2868a2b7f78377314d918b",
   "activist.py": "78089c14f53da696553d3c3cd74f88553496d2504b7ebc94a36e6ec4f4db1062",
   "ai.py": "ef9d147c696baec7e3f8a0cf8a61abe89d8658b9fefb0b3f046cb8d0453dd2b8",
   "breeze_session.py": "9062187bd4b808c7b224845705cf75facb01261b9e56ea0844ff09e4ccec074a",
@@ -49,16 +58,28 @@
   "desk-service.ps1": "4deba886c36bf2062b13b69079786031a940700e91c99c880e92fff3c7fe7acf",
   "docs/.nojekyll": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "docs/CNAME": "fdf78eb60e2a60d4225eb979eac6055ee7c9ab66191256263825d70f842b8464",
-  "docs/img/capitol.png": "b05c5baf9552a5cf1cf2a37a08f904f1c889b040ce75e44c4c99226810cb7773",
-  "docs/img/commodities.png": "fc386b380e200cfadeeeb801dbe65836816cfe7e2a583878b1a46cf9f7b9a67c",
-  "docs/img/flow.png": "ea0d78466110a032e1a8a7d41f9d1ecc89183cdbd46734691cfa5f190712f960",
-  "docs/img/funds.png": "d307012757015610d9239e80236742974ded1cd0e295f16ad993580acfc87c3f",
-  "docs/img/macro.png": "9ef999cb001e362bbff64df7a7764d87f634845fe1b85b242771ffcc906a6097",
-  "docs/img/rubber-card.png": "6455507dac8bb291ce8816ab8a67e66faddd99da52705a563e61b21a9a2fd838",
-  "docs/img/short.png": "7b538cbd9bbafc04e6050de1dfbb34a4db5e76f294db34cbea5adca8af306586",
-  "docs/index.html": "b1c01919066f963f50ecf6007f63f86814bbb1b949c923aeb25ed48307f6e2d5",
+  "docs/assets/site.css": "086c8333d3715644160df8ca8e761f386fac925bce391ecfe3b506a9aef2b996",
+  "docs/assets/site.js": "2b1e5a966c64d91464e0cf71138351722666c9f61298e301ade991ac2235181a",
+  "docs/img/full-book.webp": "a6332932aa5632625b5bacd60a8d45c348b174885593600c4e9ec08ffecc5ee5",
+  "docs/img/full-capitol.webp": "8dbc6644cfdafac4ef86d604738b4282776ec5dfea44e36dab74171e8fb5c86a",
+  "docs/img/full-chain.webp": "01c01f680cb87755ca76f25c907cd8fb841b5b80a26e2a96fb4f784fc9cc95b7",
+  "docs/img/full-commods.webp": "e2f3240dacb2820ed8878fa86fce6df0ba88b0bdbcd091e780918d44f6ae8263",
+  "docs/img/full-flow.webp": "fa7cf0fe6a048a3f21f4f579221a97e1b46c3cfd148053ca57d62d5aaca34ab4",
+  "docs/img/full-funds.webp": "e6388faaee2d0e81f43777d514fb25811f233c6c31df5aea634eb8962e7c0c03",
+  "docs/img/full-global.webp": "48eca04a31f110018b8a2726f39b68cd19c0249b4241f503aa8f9b4f22c0618f",
+  "docs/img/full-macro.webp": "9942f9ba7db7d97c40b2057c8e286582c1e197fe59e9171e9039feb8fca5c04e",
+  "docs/img/full-risk.webp": "8617208977c4cb768cdce34f66f3791f589d572f7a573434d51fd53f689f870d",
+  "docs/img/full-settings.webp": "5d013011348901349600115d30c11d559497f8b8546c3ea4909005c2bca82efd",
+  "docs/img/full-short.webp": "d7de900e29e8c36607e2e8c5789d26921f8bc8d9171326e9ebb17f42394c26d5",
+  "docs/img/full-usdesk.webp": "bf351faff1d86873a98caf79a2946f60626da934703a2c83d94e67b43a9e48aa",
+  "docs/img/full-watchus.webp": "b372fb7eeb149967c82b764ab9f23387276360ec40664adacc3de801f6050954",
+  "docs/img/og.jpg": "dc1f0f8b889483bccf4a4177e10963cfc381a6f03d060ff7ba3ba462c3884bb4",
+  "docs/img/strip-funds.webp": "5f604dd45a0e068c7209fb2c4c6c17b2e2f963d733c5ba79786cd5c2881401d3",
+  "docs/index.html": "1f1ab8e05f85c2223b9e51fcd3f18e4c211fcd89ee6b7e6d09c6ec99f1577449",
   "docs/install.ps1": "4cebcbbfda3a2127d10fbea9e30a2029a440bede5a7edcbdefc0c8a622c29a07",
   "docs/install.sh": "4af578376f8bb46b117dc9681ead7ff5f5d346c99cd42f75ca2d18e8c06bfb28",
+  "docs/uninstall.sh": "6d69540d3a86a89e9734ddbc5af9da84a89f00ffef526d2c4a67b109da4003ca",
+  "doctor.py": "ab8c0345a98122bfa603b75327f13681624be088309c8512f8287ee5db846ad9",
   "fno.py": "60c74e4cc2533f26886339626ef091a2d9d945f35255e90fe5149a60d4bc26a7",
   "fno_positions.py": "f9943da62b903013e1b710a022ee8f81f51992d950665402fc736e55975f6f7e",
   "fno_tape.py": "2b8ca00f15b8df961e04d1e3fcbf51dfffb3dbdf28837f67838697be06e5e354",
@@ -83,9 +104,10 @@
   "risk.py": "524f9d231242d36622c246a34730ee4bb731448d791282863dc6f2c504c2d101",
   "run.py": "ac51761248685cef55fcfdd2c6a5021812af7f45c1ac1b203e6461eeff8fb151",
   "scripts/audit_fmp.py": "41c869ba202ba0b33bb38f94fb8a22efe111e0c24edd2948f2962138fc8329c1",
-  "scripts/build_docs.py": "858879b366855cfa09e93421da2ff545a008b30de9fa660bbe553648e7cedeeb",
+  "scripts/build_docs.py": "b16ff8b6c62647d7bfe70d221de4a4f17bf1dc84baf2c6090b28f9ca6f771081",
   "scripts/fmp_audit_results.json": "2c9f64b6d8c0526b7929b4c82ad51c99ea89b4bd5755acb46372dd78968faa47",
   "scripts/make_manifest.py": "82b45180d1903de265297bf8541d36d61632f4a1a41e07eaef0f51617f419025",
+  "scripts/make_releases.py": "6411f28880e70ac84a21382e0d41f2645fdf891ad842c90399debb420cc6300a",
   "sec_form4.py": "b4665ad82cf2a55a312c8a963bdc33b20dc3b8b0e59c48947d3b4b92a7d3ca38",
   "secmaster.py": "4c5d36386f2835a769cd8bc744e39e2cfaf8b09a53ec9d6dce051b0b7998c690",
   "sectigo_intermediate.pem": "b40358316fd9e1caaaab92c382927d2c13ef51b481eec9371a82e16c86f2a687",
@@ -93,7 +115,9 @@
   "settings.py": "2c5d1be622139ba8448d3bae6bbb99bbdb0a18eb97f616b5d65c447fe5cd9972",
   "shortint.py": "2059cdda722621881d9592708e74411f0cbaa3fee134a4b93b1bb80a7b6da98f",
   "stream_in.py": "8d69a1fd4acb7ee3e051b05bca68b87a76b9a0f5a07adcf14bd5ffe56902226a",
-  "updater.py": "1bb28546c48182a54a403acd711c6c2c4c16f5811deeb3fdd98bc88a0df8ac7f",
+  "tests/test_contracts.py": "cb0715e937523ec1ba25559f66bfcf9a60a9b1d59e7666ab9607806653cf7d4d",
+  "uninstall.sh": "6d69540d3a86a89e9734ddbc5af9da84a89f00ffef526d2c4a67b109da4003ca",
+  "updater.py": "1dc9c83fd4f250d763c139ff43d31c0675072ebd894717c195fc066ab5df3727",
   "web/assets/desk.css": "9cb62afd5ac58ddb4ac1380107d4b791511c812d681756f71258d4215aefd4b3",
   "web/assets/desk.js": "efa75d8c55749ea4d06152657d7a50d8a695e86cec5e4cc69e407dfd6f5c6c10",
   "web/book.html": "8c195f3d7280d17208776bccfb9af4173e503c8ab2d76bc6167eecb79fc308c1",
@@ -118,6 +142,27 @@
    "43330bedb87300deca19061687c34bc8c4991d071a2ee6697840e8eaae44d9b3",
    "678434619b0ed550eb6b6368d99204654daa226b64dbff7d355513e08c6e7aa0",
    "e265472952dbe4c0c5180b8aa7d6127e9f5b90a33bceef6e72e4196abe71af2a"
+  ],
+  ".github/ISSUE_TEMPLATE/broker.yml": [
+   "7a078be513076d3e7262364df80aac5adef7c815889efeb33c84ade7c4f2a409"
+  ],
+  ".github/ISSUE_TEMPLATE/bug.yml": [
+   "3fc21a197fce151488197decb47fa91d4f8f025a4d5cffaf039e321bfce08030"
+  ],
+  ".github/ISSUE_TEMPLATE/config.yml": [
+   "dc1ddc017ba745fffaf4c707cc9b8920b49bf5c09ae1901c2b65a38c9174c514"
+  ],
+  ".github/ISSUE_TEMPLATE/market.yml": [
+   "6a3e143b610b024621731f73ed0fca3299343a8969fdb8a3a57f864f5d65fd74"
+  ],
+  ".github/PULL_REQUEST_TEMPLATE.md": [
+   "889d2c2e5713da740d7ce0ebfa4c92a03315a93d1ef01cd7dbf8e5f79087f250"
+  ],
+  ".github/workflows/check.yml": [
+   "55a0b1a8027565253d7345e62e2219250e072b185eecbf8f911b69bf51945390"
+  ],
+  "CONTRIBUTING.md": [
+   "54334720cb8d8395643cc62973361c8f9068367adc33c671bba9e7779af6dc7a"
   ],
   "Keep Desk Running.bat": [
    "aa4ba519ee5f2565c0d2f6f31b53d869a08f6c61ca41d7ee974baec02a10f5be"
@@ -154,12 +199,16 @@
    "af1ecaaac728cc3ccd8c01f4a3826b914b92f16e1299cd82fafedddc850258dd",
    "b716cc809dc9b8fcacfb54260035643d4c94948df46121f0f819c71a04e3aa95",
    "bfbcb9390299831f55cd10f6b3d0c1da0695402ba4dd41cd55e525e7705bbf3e",
+   "c16f082f26feaa2ac042d61abea194a6a030ce7bac7bd2f861c852fff0981c27",
    "d82c71b25cd967cdd21663db388062d4cf31f59ec1f3aa0be9d9ff302c228efd",
    "e002128daf99598863158c073b5d90cf2b41b7f284ed7cd7118ad4340eea79bd",
    "f5a5ced044644b92c86619475ff9ae2ffb173f7c10cdd6f4eb7db6d1b438c5f3",
    "f91d26085a93733b57fc48b4e04f7537e9be01e423b5bd75b5961cdb1cbf8a2f",
    "fb00cb23e53d2e7eedc2b0278c77b1e4a1d4a4cf80362701e71701c28511509b",
    "fb7b8a5ad24cbdddc8fb674d8ed4237c329682919bb969038766a2885cf17505"
+  ],
+  "SECURITY.md": [
+   "81b4e53f46ca0c813bd4669c1b9cbf3c244ca767667833bd3e0768670c67fea2"
   ],
   "Start Desk.bat": [
    "2522a0a06fd06c23a9b864c28cf4b184af2f6309b59536e5ef520bb1d0272091"
@@ -183,7 +232,14 @@
    "ac7bfb1b9318598fff774ecbd8cdbd8aa6c5ee736ed5172b6c86e217bbc61bde",
    "b9fdd0ad64c63ca3f1375d44f28555cc457d73bc7daad52fb5515c1392786189"
   ],
+  "Uninstall Desk.bat": [
+   "697179c8eb048a9ff630c5665df9bd7304236e1b56bacfa737b2dee7e72ca5b9"
+  ],
+  "Uninstall Desk.command": [
+   "0fe82587340a9add4ceca9b5ff0fe49d6f20d008a6b7d0bb559c8afb34c74188"
+  ],
   "VERSION": [
+   "0635621e818613348825ef5573c17b78fba46a7d1c2868a2b7f78377314d918b",
    "47c43840df50e95be40480ebb245a48dd15bfe0ddaa6c531b0eed658b7f7530e",
    "5528746d4a4fa085c97a7ea45b851dd4747f766b89cc060afd90dc14a2aed5e8",
    "742cbc4fc83dbf9b84f97af3287bd0fdac141a86aa622026c7e4a560865b1ab0",
@@ -324,6 +380,202 @@
   "docs/CNAME": [
    "fdf78eb60e2a60d4225eb979eac6055ee7c9ab66191256263825d70f842b8464"
   ],
+  "docs/assets/site.css": [
+   "086c8333d3715644160df8ca8e761f386fac925bce391ecfe3b506a9aef2b996",
+   "0a90ec7370fcb94c3512827ccc8866529d47e22d7eb1e1a0e8f33c0828bad4a5",
+   "78c9215cdba83c9c57c78488521ceb5241901f084a9cf81ae6dd151d769a19cd",
+   "8e12d7bd3741fe28a93c7ddb24d5e4b90beab1ef29426a58f3aa99b6ab630e9f"
+  ],
+  "docs/assets/site.js": [
+   "04949b458fc182d28dfae192105e13eb3da6f366beaf1ef81750b6924c33fae4",
+   "2b1e5a966c64d91464e0cf71138351722666c9f61298e301ade991ac2235181a",
+   "40593800df71652146fe327b3fe8928333b26f8ca0e6de2de9ef5f5f88719268"
+  ],
+  "docs/docs/assets/docs.css": [
+   "3715c81b3de6b783f6157f6cfd74ab6f97f00a46b058c6b82248ca2cbf19a533",
+   "555064b161c185eb079a314142ef5a1982408818eef0c60a32abda8d1d2e55d8"
+  ],
+  "docs/docs/assets/docs.js": [
+   "9c4a13d277cd486d8b66a8c30041e5d89f7f078ca178e745517c21952af7653b",
+   "f3fc81872c9b57cd986dce36af3a46f50683611c1a6a7c86ebb45eee08d4b679"
+  ],
+  "docs/docs/brokers/alpaca/index.html": [
+   "73ef0e663812fc61b65b6b18a96fb4a04324f51fda2d0bc914b747dfdde99db3",
+   "85d0223c9ad8168032b64344bdd0f00c247da9a68abbe3bded322ae4001d36b2",
+   "8bdd597d3bd44b6f5758f78f0bf9463fd5e441e1c7ee499a1fbde6612037d030"
+  ],
+  "docs/docs/brokers/another-broker/index.html": [
+   "3d5d21c9372741ba0f3b19ae4c29bd3bcbc9fa3fba45ed47da52f2048ece8892",
+   "9d6a0d288a48ecb02dcc44decacabbd53fe46f7cd2882e9fee47390ae35228e4",
+   "e80fd8f7b8975c80e685e14a4bec3970c6b03792a0090515ed41da56008a954e"
+  ],
+  "docs/docs/brokers/icici-direct/index.html": [
+   "005af73a9caafdd2a17a2f4bdcd66c97798837968bfcef05b9744dd7edd0a012",
+   "94389250dca7ac81ff65e6dde2ed42dc9d472455570d105da8870d654817695f",
+   "e23b69662603784c5868d4b906e32b547f720791f9912b9dbe2cfef187325963"
+  ],
+  "docs/docs/brokers/index.html": [
+   "4fd7973d184b4b6050fa9aae4ee23dcbde2a4ea67f6e534756c4c3e7b2c5d828",
+   "794758d1677406a28db2380b49478539cefd17fb57e3b161f5b096ed3c1f5b25",
+   "c7fae4952da69e9ac3b6ededaea0c8fab64a5389dcd6b42183b5e9faf8c4bac9"
+  ],
+  "docs/docs/brokers/interactive-brokers/index.html": [
+   "3f14360b18311986ec71a9f833375de26a0bb2401bfa9bf6baace20e88fa56fa",
+   "5fa33f6dbc50867f34a0aaa6ff22283bc5f3497b575c5bb9c4e10b62a7958b6c",
+   "8532b7ca5c78c7fd16d737e61373cb076b353f7c3a0551bc189bd247642a933c"
+  ],
+  "docs/docs/brokers/tradier/index.html": [
+   "5da8ff48f0932e09470d0c44d79c80dd02d34b865eb1be46470405eb604e27ed",
+   "dbed1bc3bd8b82d551b4194ec6f2ae468cc19e40f09c3329b5b6e8b0b35251e6",
+   "e492afcdb65c321e9cb1e7eef07a7c80f37858497b1fee9d5384d0f25b88bb1b"
+  ],
+  "docs/docs/brokers/trading-212/index.html": [
+   "22d05cae40bade5ed917e940c8c12086893e0e27724829fc6f95934a281c70dc",
+   "39a90487a9224ef14bc114b5f36bdff97f684872b98041c44d379320545706f9",
+   "5d5500034d64d70c5282bb31f2a92d59fe25b7b2573810f7f73c3af045f2aaaf"
+  ],
+  "docs/docs/brokers/zerodha/index.html": [
+   "67904320f486570b2bde991c2ce0af5b7bb7342f59c044809c5e841a657c4a8d",
+   "7019a29a5b8fc0fff2c4d49fab4a3899286a90afe8b6d16e2a1f4e3d8179d6dc",
+   "a92221baf95390ea873d46333e739de88bf95ce5202456b62dc6ec709acb3fdf"
+  ],
+  "docs/docs/get-started/faq/index.html": [
+   "ff79f2459802b26dfd7c3a3e228b35d9d23bd7c91b34467f275387fd9d6ce7fe"
+  ],
+  "docs/docs/get-started/first-ten-minutes/index.html": [
+   "0734ec70a09bfe7c476f5f9f93cf76ed8701efcc750c4ddeeeab0f1947635883",
+   "cb2b314837130150bb77b2a03fce1dbf4ff79bf06df0590f7c5c6d6e707f3ec9",
+   "e64aaa5b7b276f91e4e4f285ce2e03f0ef35eac7eb62d33810d2e01d905d773c"
+  ],
+  "docs/docs/get-started/index.html": [
+   "515beb439219ffdc0f48906c9c312a1e25e7b80ae6e837e64a31c6adb45588b2",
+   "5e6dd6550bcff87fb0ce3a581b3be6270036e06fd27ed3ff6e8eadd2c8d5a8d7",
+   "f2d02e49512f4ae125f344014b334a2941c65e3cb832bf5471762b9dd299040e"
+  ],
+  "docs/docs/get-started/no-key-needed/index.html": [
+   "42606d19f87c2264f2efa421cb4fb2f2982f26d784c3ea62bc3f9d6082756740",
+   "6c8cf6bc803f0dbc7711ea66e4df3724f0f25037c747b8bd620ee2c8d5b625d1",
+   "7e6d8d279810250ed2368f95df80d734f552cb53ecdbaa21c33ed17066cba464"
+  ],
+  "docs/docs/get-started/the-screens/index.html": [
+   "745ce61e216e4d968f22cc309dee9c6d8e4d551702b7e1e23abb9d47ee490713",
+   "f804412b48b0f59172d34b2f701b8c8f4e5061ee37d2a4a29c38a2e8c5dd2424",
+   "fbe13621b88ce35b2093342ea330677a92c1c105885a99b0ec7e16031d887eef"
+  ],
+  "docs/docs/index.html": [
+   "289642592d5f5f5b20813bce549308bf5139ab23ab1305b9b4c423505cced4bd",
+   "345b8aec0bc5c5f0e425f767246b207f41e83895a205907b5c73cadee86658e0",
+   "529c768a2ad3d6f4b7003ecc596b0efcceeb23292d9521f6fd62f522d7a7fc30"
+  ],
+  "docs/docs/install/back-up/index.html": [
+   "1a07813745fe43317016490749c71fda3b3fe36e4b9b35c218771ad35208e539",
+   "979596ea941fa693edf91a9e72e8b00c74b6ea665b2e832b590ef2c95ad80744",
+   "aa3290260c200cf12f566935e56d25a0e7d84531f0965bfcd1fdd36a2af6848d"
+  ],
+  "docs/docs/install/from-source/index.html": [
+   "024107cac232acce191041a5c346a619ba11fe5274f2f675f57c5525bb231056",
+   "041d913166e7d614d7d4e40852cae4a342bd2630c9532dab4bde46839fd89dd4",
+   "d54ba1816bcaa26804cab69c92e298930cb282e48e633d8f65287c1e4f072594"
+  ],
+  "docs/docs/install/if-something-is-wrong/index.html": [
+   "5332f1970eaf550ba1965924ddff9758fed4c784f08e6962a8a048059053fd13"
+  ],
+  "docs/docs/install/index.html": [
+   "404a0220ddde7c646767c3342bd487832ebf5d917e5875bbc571c278b871af3e",
+   "482e564dde94e3f8cc64156a7f3e4f82ea837efcb220160fee5f98578df3d3c6",
+   "5798b721ed89e154e1438536b584a2f736065597255277bc840d4b55ba2cedcc"
+  ],
+  "docs/docs/install/keep-it-running/index.html": [
+   "0785bf8c75ba5464e358920a705b4955b9371b7b8f8018adf9bd8eecc7cff30a",
+   "1588520833d93978b41486ec6528a3bf9156dc600d6388780514199c4811bef2",
+   "645cae3fffb5734ec8ae7b74dfc240baa68a5603bfd940459a16bc599a9d7a88"
+  ],
+  "docs/docs/install/linux/index.html": [
+   "4c4f9cbc366793892419b1e03be9fdb99f52ecc6e085c5de252c99df1b454e44",
+   "a07dd9f7ee6afeaabaa16cfbb9e2d9813c9f6da407b5b09a8480bd048133dde1",
+   "be1e5d37f3539130df7ca98ae95fffad44dcdd76446f59678870251b5240872a"
+  ],
+  "docs/docs/install/mac/index.html": [
+   "5f7eb393862456bafd489680c3f9da3563dbb6d571993503f16c17f7e4a1397a",
+   "679e5defceaf126f8cf7f31ae8b991612230d584e524451f06179b326485f8f8",
+   "87cd5d3de971d1ec4c7ea72d2df1629f3360205098df3b16fe9afc7664a7fe00"
+  ],
+  "docs/docs/install/the-page-is-blank/index.html": [
+   "1c20dedc483ebee257e4725ec1e1296d5881334ddb2a93859b54591553883abc",
+   "38ea972d0cb0a0ad19c06fddcaf8ecb6a477a6e6772adf856dc8e8a166dcdb22",
+   "60692f3a508a15d6e9382777f18869289f84046d01780c21cccc8e2d39035a0e"
+  ],
+  "docs/docs/install/uninstall/index.html": [
+   "5ad4f20e17cd761e73858d633beaccf0f13f75a2957e7573262411560d406867",
+   "a1705a3a7f91b57f13084cd3487602cbbfa9727b048abf587cc1201c6ed4585f",
+   "ea0c0aab52d6c0717cb28148306bf1b892723bd989e285470573f8430c4698c2"
+  ],
+  "docs/docs/install/updates/index.html": [
+   "0811adde4d7444fab474b6ef7d2c3865ea28c388ec6e0515ee7c2ede36e8f5a2",
+   "23249ccecc48e7681fab7a17e90e173509252ee1201600f641716341bebf84ff",
+   "6014515059e00c7c29f16580fd726826c345fcf139a5a9553281d3cac099124c"
+  ],
+  "docs/docs/install/what-it-talks-to/index.html": [
+   "b77d51f8ed99d6e067fbc482c82e48c46507e2ba3c89978dc78532a0ec086117"
+  ],
+  "docs/docs/install/windows/index.html": [
+   "2e2dadb952bac4c106c8309711cedde56cb77e20640d8a4755a9f29d62578faf",
+   "9b27d4fd0cf047b9272c7c3cf8f60d5ddd29f96d8ceb57823e0ac94862469962",
+   "b516603ac29ce00c5ecde0f1903ef7cfd8e4f1049989da64c3b3b80428eecbd5"
+  ],
+  "docs/docs/install/with-an-agent/index.html": [
+   "1028b82d9fd2ff6625d0307aaaa50418b8c0788b35433d02f7946cc2118c75de",
+   "8ad7f420fef9403d919f138c536a0c8135728182b42279753f7e85d38cd338de",
+   "c6e9b0d4dbb80d5f6dcfc0462dc223a0f0fada21d7e91faf00cfcb33e12c2a9e"
+  ],
+  "docs/docs/markets/index.html": [
+   "68f0a68d61e5daf90a0a8399002e4e170b1c4fc6fa5af7a43b024d3e6a3abcff",
+   "74bc431ed159cb74882c86c9a8a0c5cde96908e725ca5d6859a1ddcf1f710d07",
+   "cb8dc7b8523f2a420de242bc88d5101174f1a6220c3517cde6e539a68da2ee01"
+  ],
+  "docs/docs/markets/india/index.html": [
+   "579ad172a6294f6f905fadb3b291c9ef591755e7d16fe7a96dc8283fbe4de265",
+   "d4a190c811229d0ebbbf892b68405c8fc40bfcf1c7e143d0f560da118e5d0a07",
+   "df6a80449123006aaa220450357e60e9c8f50c54f5dd86b3789e85869abedf8d"
+  ],
+  "docs/docs/markets/united-states/index.html": [
+   "08f06750157c624a9589edd27d05529091e7c2a8b2f0b98a59b2df2404d4096f",
+   "1dd53d5e849674425ba7ba5c92c007102530a47c3a0b867a0610253f53b90e74",
+   "3a1f1637ee810ecc848156e92567339fe5d8b1939d519e9bc121713ac8782971"
+  ],
+  "docs/docs/markets/your-own-market/index.html": [
+   "1f598d4bf9bbc6cf5587ffcd6b0805ce3dc84fbe331e16136aad805934752e0d",
+   "3292145c9e3c4c26e4ba4bcc6760545fa810e5fa1ecc73137c37557abe331070",
+   "38132061e7a4c593e5f13273568b123c363639c8c4048ef74a3c8cc53bc23df9"
+  ],
+  "docs/docs/project/contributing/index.html": [
+   "17ca42d0669fd162acd96b0dd1e718f8c7f6dc87630058eb86478435aae73480"
+  ],
+  "docs/docs/project/index.html": [
+   "0c83b798c4e2013cdf35fb6d4e886f340001f410fca1a8f12796cf8c3d7e4967"
+  ],
+  "docs/docs/project/releases/index.html": [
+   "0c50054e7b0375842f003523af4b74dc0aacdd6f5e2366b5c680163f0af2ae1d"
+  ],
+  "docs/docs/project/security/index.html": [
+   "77a5ae1c6da2adf8ffdafad6e9a04718eb27b8eb85a615c998c10fc120043585"
+  ],
+  "docs/docs/search.json": [
+   "b95da13b8ab60a48249a79b4620c37f2ce3dc97677d0b2b736f4793892dea001",
+   "d6cf23ec45ba159eed1cb5914baee50854171fe09b3abca98e4a73549c9d20f1"
+  ],
+  "docs/docs/setup/data-providers/index.html": [
+   "e2528021074c48b482886fee9c72aaf066de89bdb77f465b900f456658b9fcb9"
+  ],
+  "docs/docs/setup/data-sources/index.html": [
+   "36e30c46bdb3a5a75ba303a1c2dfe776434bc4797d5cb7f33d82a7f41f431e8d"
+  ],
+  "docs/docs/setup/index.html": [
+   "42718fab941f9f95f27e237f71c742c6c5558575cb8530aedd8f21b5bf3d10a1"
+  ],
+  "docs/docs/setup/your-ai/index.html": [
+   "d2674323f134d1b089a58e761127e86cd2f09d2a46ad27da165be16e5657fa3d"
+  ],
   "docs/img/capitol.png": [
    "b05c5baf9552a5cf1cf2a37a08f904f1c889b040ce75e44c4c99226810cb7773"
   ],
@@ -333,21 +585,112 @@
   "docs/img/flow.png": [
    "ea0d78466110a032e1a8a7d41f9d1ecc89183cdbd46734691cfa5f190712f960"
   ],
+  "docs/img/full-book.webp": [
+   "a6332932aa5632625b5bacd60a8d45c348b174885593600c4e9ec08ffecc5ee5"
+  ],
+  "docs/img/full-capitol.webp": [
+   "8dbc6644cfdafac4ef86d604738b4282776ec5dfea44e36dab74171e8fb5c86a"
+  ],
+  "docs/img/full-chain.webp": [
+   "01c01f680cb87755ca76f25c907cd8fb841b5b80a26e2a96fb4f784fc9cc95b7"
+  ],
+  "docs/img/full-commods.webp": [
+   "e2f3240dacb2820ed8878fa86fce6df0ba88b0bdbcd091e780918d44f6ae8263"
+  ],
+  "docs/img/full-flow.webp": [
+   "fa7cf0fe6a048a3f21f4f579221a97e1b46c3cfd148053ca57d62d5aaca34ab4"
+  ],
+  "docs/img/full-funds.webp": [
+   "e6388faaee2d0e81f43777d514fb25811f233c6c31df5aea634eb8962e7c0c03"
+  ],
+  "docs/img/full-global.webp": [
+   "48eca04a31f110018b8a2726f39b68cd19c0249b4241f503aa8f9b4f22c0618f"
+  ],
+  "docs/img/full-macro.webp": [
+   "9942f9ba7db7d97c40b2057c8e286582c1e197fe59e9171e9039feb8fca5c04e"
+  ],
+  "docs/img/full-risk.webp": [
+   "8617208977c4cb768cdce34f66f3791f589d572f7a573434d51fd53f689f870d"
+  ],
+  "docs/img/full-settings.webp": [
+   "5d013011348901349600115d30c11d559497f8b8546c3ea4909005c2bca82efd"
+  ],
+  "docs/img/full-short.webp": [
+   "d7de900e29e8c36607e2e8c5789d26921f8bc8d9171326e9ebb17f42394c26d5"
+  ],
+  "docs/img/full-usdesk.webp": [
+   "bf351faff1d86873a98caf79a2946f60626da934703a2c83d94e67b43a9e48aa"
+  ],
+  "docs/img/full-watchus.webp": [
+   "b372fb7eeb149967c82b764ab9f23387276360ec40664adacc3de801f6050954"
+  ],
   "docs/img/funds.png": [
    "d307012757015610d9239e80236742974ded1cd0e295f16ad993580acfc87c3f"
+  ],
+  "docs/img/hero-commodities.webp": [
+   "fdfe3a2973f770b6bc53c6a43c3ddfca2c181588735ddc388760f0b147e37c50"
   ],
   "docs/img/macro.png": [
    "9ef999cb001e362bbff64df7a7764d87f634845fe1b85b242771ffcc906a6097"
   ],
+  "docs/img/og.jpg": [
+   "dc1f0f8b889483bccf4a4177e10963cfc381a6f03d060ff7ba3ba462c3884bb4"
+  ],
   "docs/img/rubber-card.png": [
    "6455507dac8bb291ce8816ab8a67e66faddd99da52705a563e61b21a9a2fd838"
+  ],
+  "docs/img/screen-book.webp": [
+   "31c281b2dbc44381dd61a8e71764b16577e8992a0b3865f5a9267c294e866aba"
+  ],
+  "docs/img/screen-capitol.webp": [
+   "d2be70396404d901c4ac8dafb59d8edf728701c8b83ebd01290eec592b1c8763"
+  ],
+  "docs/img/screen-chain.webp": [
+   "189fac4b2674c04102e1e97a3d303dd5fe7ff9e58edfda1d91846bd8f81560d9"
+  ],
+  "docs/img/screen-commods.webp": [
+   "a1521e1a9d0ec8952598d26e204635b983a8a27b1e43ba717e3d746000d782df"
+  ],
+  "docs/img/screen-flow.webp": [
+   "97b56820e38ca332e9fdd5853d470af91833763a32d8eb1a559dbf2d01a2a549"
+  ],
+  "docs/img/screen-funds.webp": [
+   "ccd4e662e7f93f7cedce7522abf1b5789a6140f0bd2716c97f4df869939559a5"
+  ],
+  "docs/img/screen-global.webp": [
+   "8f2bad9fba507a515d3d1850cc3c57f51327dc6f37c0ad4cdab29bf5311b0b35"
+  ],
+  "docs/img/screen-macro.webp": [
+   "a28cb8c6c79829dff9e8ac6b059cce6f3a6975d452b1af345a3c1c61c132a5a9"
+  ],
+  "docs/img/screen-risk.webp": [
+   "9053c119bf75a1a7ffa48ffd085baca26ac9658d317342f8645647609a53f35f"
+  ],
+  "docs/img/screen-settings.webp": [
+   "ce7f96d2e1178607f2761c2eba2773874573ddbadc802511cdcbbaadec9678e2"
+  ],
+  "docs/img/screen-short.webp": [
+   "686c92fd710bf91b776113e3effffa7b2e3a7ec1f8bd047e5e2eaa3db7992bfb"
+  ],
+  "docs/img/screen-usdesk.webp": [
+   "5e4b4f876e19848efd6702cd145e50d82b053724a1a84caa8f3a3d55c0fff3f9"
+  ],
+  "docs/img/screen-watchus.webp": [
+   "c94961a8589cd43b3bf7348e1decaf2fb5a46268ab921eccc34e9e57f60047db"
   ],
   "docs/img/short.png": [
    "7b538cbd9bbafc04e6050de1dfbb34a4db5e76f294db34cbea5adca8af306586"
   ],
+  "docs/img/strip-funds.webp": [
+   "5f604dd45a0e068c7209fb2c4c6c17b2e2f963d733c5ba79786cd5c2881401d3"
+  ],
   "docs/index.html": [
+   "1f1ab8e05f85c2223b9e51fcd3f18e4c211fcd89ee6b7e6d09c6ec99f1577449",
+   "22db8479f16f0cff90fd9838f51c1a5d4312cc8b24b275df7b26da47df57dfda",
    "2745e343f7ee9a9ad1b9b68f798efc01b4ab28c7c5003bab738aff64b0a1dedf",
    "5d756cad71915312e6a7b216f64ee5f678088ec8d9c58265aa1ba58355233dfb",
+   "60ce6ea9e5e5711c7953471f9ac4c791ebbeb81c4270d4c05ae618d7256ce8d7",
+   "a079ba6d1978e5bf562b2d05e56320a8d447bd222bb4198d7763f2b1d5aae3db",
    "b1c01919066f963f50ecf6007f63f86814bbb1b949c923aeb25ed48307f6e2d5",
    "bb5d268c470c293d79fe86800156170a93b9b3bc8338fc7bf63b3ea161731020",
    "d0ada52168d55e4cc67d217ffb078953529e1b76ef9ed3a05ffd47ec6c1f009f",
@@ -360,6 +703,12 @@
   "docs/install.sh": [
    "4af578376f8bb46b117dc9681ead7ff5f5d346c99cd42f75ca2d18e8c06bfb28",
    "9cc3a921814b55e07536154992f84346e81466b9cdc61114e05da5b0da079be3"
+  ],
+  "docs/uninstall.sh": [
+   "6d69540d3a86a89e9734ddbc5af9da84a89f00ffef526d2c4a67b109da4003ca"
+  ],
+  "doctor.py": [
+   "ab8c0345a98122bfa603b75327f13681624be088309c8512f8287ee5db846ad9"
   ],
   "fno.py": [
    "60c74e4cc2533f26886339626ef091a2d9d945f35255e90fe5149a60d4bc26a7"
@@ -455,7 +804,8 @@
    "41c869ba202ba0b33bb38f94fb8a22efe111e0c24edd2948f2962138fc8329c1"
   ],
   "scripts/build_docs.py": [
-   "858879b366855cfa09e93421da2ff545a008b30de9fa660bbe553648e7cedeeb"
+   "858879b366855cfa09e93421da2ff545a008b30de9fa660bbe553648e7cedeeb",
+   "b16ff8b6c62647d7bfe70d221de4a4f17bf1dc84baf2c6090b28f9ca6f771081"
   ],
   "scripts/fmp_audit_results.json": [
    "2c9f64b6d8c0526b7929b4c82ad51c99ea89b4bd5755acb46372dd78968faa47"
@@ -463,6 +813,9 @@
   "scripts/make_manifest.py": [
    "7b1a26826b64917f70299aa04d684055dbb20bbd1af7a2f0f47f110447ad6e20",
    "82b45180d1903de265297bf8541d36d61632f4a1a41e07eaef0f51617f419025"
+  ],
+  "scripts/make_releases.py": [
+   "6411f28880e70ac84a21382e0d41f2645fdf891ad842c90399debb420cc6300a"
   ],
   "sec_form4.py": [
    "b4665ad82cf2a55a312c8a963bdc33b20dc3b8b0e59c48947d3b4b92a7d3ca38"
@@ -497,6 +850,138 @@
   "shortint.py": [
    "2059cdda722621881d9592708e74411f0cbaa3fee134a4b93b1bb80a7b6da98f"
   ],
+  "site/assets/docs.css": [
+   "3715c81b3de6b783f6157f6cfd74ab6f97f00a46b058c6b82248ca2cbf19a533",
+   "555064b161c185eb079a314142ef5a1982408818eef0c60a32abda8d1d2e55d8"
+  ],
+  "site/assets/docs.js": [
+   "9c4a13d277cd486d8b66a8c30041e5d89f7f078ca178e745517c21952af7653b",
+   "f3fc81872c9b57cd986dce36af3a46f50683611c1a6a7c86ebb45eee08d4b679"
+  ],
+  "site/brokers/alpaca.md": [
+   "21292027a80791c4ec7bbd7502aa50a105c157db2a453edd422c1c2ffbb05461"
+  ],
+  "site/brokers/another-broker.md": [
+   "124593484ddef133721f3dbd210656fc880d48d16955bac7a3ff9ed6a12d0605"
+  ],
+  "site/brokers/icici-direct.md": [
+   "5e3b9d8439da75c46f226fc23fa87452cf7fe5c233eb20c472d726bda956d4fb"
+  ],
+  "site/brokers/index.md": [
+   "b97aae381de72fdcce83c598480f48e67364bdcfb392e5fdc86d3595d2e5b900"
+  ],
+  "site/brokers/interactive-brokers.md": [
+   "83da4fd42931b6b0feb4e04870c4d1b5d76baf6c9ded8169084acd65f69fd8e7"
+  ],
+  "site/brokers/tradier.md": [
+   "3681064ba60bfedc26cb045297b42546c9e28527daca88eee50e17f3fe92fcf6"
+  ],
+  "site/brokers/trading-212.md": [
+   "d28bc920607d62dd99e092822ae696b19afd27b95545f07c3baad408789690ed"
+  ],
+  "site/brokers/zerodha.md": [
+   "9dc711926d20af5268824e4d7a84282152aba34e0df0b2326ade82e74cbd76bb"
+  ],
+  "site/get-started/faq.md": [
+   "a561169bb125320912957de1e5b9e881ba3c456d97997adf8f73f7d2c9fce314"
+  ],
+  "site/get-started/first-ten-minutes.md": [
+   "d2eb851f9e26ecd8c596c68d427494a2c2fefa7df5792c25c49031656c5739b0"
+  ],
+  "site/get-started/index.md": [
+   "0686e5d3a30a44f52abe348ccfe2060a6498ba93ff5bd2ec9cb7ac88f7d57f4e"
+  ],
+  "site/get-started/no-key-needed.md": [
+   "56ed3954f95660046f76d9b20a29434340c1c23ae20c330e0b02629a2f516bc7"
+  ],
+  "site/get-started/the-screens.md": [
+   "0d43fe609b3d93a0b046918f1098943a0d050db32d47fb352c17a84249f65db8"
+  ],
+  "site/index.md": [
+   "2851a11629b05a5c5b43d591de02628d9ca09d8ea4efa1d99d3e33f1c22af0b9"
+  ],
+  "site/install/back-up.md": [
+   "be67f82af51bfcebc1cd66e007099e0473ad1a152955ac40ebdecfba8ad33834"
+  ],
+  "site/install/from-source.md": [
+   "8ad66d90ff999e4487a75e57d824ebee73aa0eb6a336808169fa5c6b4037277d"
+  ],
+  "site/install/if-something-is-wrong.md": [
+   "b636d8309d081f12eac5edd441277260ec62ab3f01b8a79e1db23b9e7934d63d"
+  ],
+  "site/install/index.md": [
+   "0cd263048d4267ce89e44d2c67d29c06a14dd8c3b31f98dacde59dce111c7e7c",
+   "6336a050dd51c6a1f5fda4c13a4d5329410daaad4bfb2a62f08f23a7b93b5d8c"
+  ],
+  "site/install/keep-it-running.md": [
+   "2a8da458ce131960e7120f4e5b65be40ed661bdefa62d76b20d55ea33a1eff52"
+  ],
+  "site/install/linux.md": [
+   "fefbd06d3c19e522b2701728c22c7a0780d6b6e5b7617755b57bb1327a72a03f"
+  ],
+  "site/install/mac.md": [
+   "61f582b7e653c1cd6083986d688f788af159d7da1401dee084213d8ba064004c"
+  ],
+  "site/install/the-page-is-blank.md": [
+   "906134ad3ae773b5e214c040555b4f7a73e2c092a5167b99c7b40095ddee076b"
+  ],
+  "site/install/uninstall.md": [
+   "4dc297677fc155158b2ee091ef345818550de68a15fa2927d9ceb9ee2e2d66a1",
+   "997c134eb1ce24945daa769b9502cc5ecd9e0ecc9629715eb4dcc92482ade1b9"
+  ],
+  "site/install/updates.md": [
+   "45888f65967ae883f7ce3c9c94b90d5651135444458d10cd26ecec07b70e9d23",
+   "8da6af436f86835ac4b8c931df3dbc5da6e4bbf2243ee0555c42b55c49488153"
+  ],
+  "site/install/what-it-talks-to.md": [
+   "923517fe3d848da168778dfa9ce69450c6dda226de28bda06a248f05759d0d16"
+  ],
+  "site/install/windows.md": [
+   "b734aa9b51e6d90823b0acee1055181c6a30b040b7d56b4fdf6d1a328e94f4a7"
+  ],
+  "site/install/with-an-agent.md": [
+   "8f71a0f3072080dcf28682683418ab3a88142aabf1892037b01cd6b0afaabfb7"
+  ],
+  "site/markets/index.md": [
+   "0ab422bfe0873b6e1b53953d0a2f641bb7029f36b021cbba846c0d923092be1d"
+  ],
+  "site/markets/india.md": [
+   "d1aad0af8f117ec215288ca592a79ddd0c6c9032e9bc0cb44d60e3d9165757c4"
+  ],
+  "site/markets/united-states.md": [
+   "5517ebf8a8e52507c09e5dc6f938475442584176b538bad0a2dd3b978190c866"
+  ],
+  "site/markets/your-own-market.md": [
+   "6b2d6657da3afc3b9fd695003d81ffe589ec8cbd079ee7452bc49ff679393526"
+  ],
+  "site/nav.json": [
+   "0f1f43c2feb11c4327b05890a45f3d9b7d79ad0bb4a75753d5c998b9f705d858",
+   "ad0eedde6ba74c9dca22400f051da8600bba4188031fe02070a3632e484fd8be"
+  ],
+  "site/project/contributing.md": [
+   "e7eedab7b51701144f3825312d255fb4e383ed583bc8d4aaf1d37223686d682d"
+  ],
+  "site/project/index.md": [
+   "e1611a7386f2399ddf087571073258583cd9fb8e9ca176eeae5d048f0782f43b"
+  ],
+  "site/project/releases.md": [
+   "772bfa817c154ffa81624fb14653d12b361a7efa5168037e76a6c28717eee74f"
+  ],
+  "site/project/security.md": [
+   "fd01c8744bcc51134a25453ddd4b400b9a533ace4cee7ef5477f3ec8fd3aa92d"
+  ],
+  "site/setup/data-providers.md": [
+   "82623a428ae27af6066f4b5b482c0be935da649dcf56bf7c83a5f161d7157ea7"
+  ],
+  "site/setup/data-sources.md": [
+   "ae386b40cd6083af3333f121b740bf5915121c90d5d1e5b5afaae14f13cb2bb0"
+  ],
+  "site/setup/index.md": [
+   "65e7f8d0a35281d2160d584e2ca9dc26b1f84b0fd196729b4e2096344a6cafcb"
+  ],
+  "site/setup/your-ai.md": [
+   "be5ac25296a81a05c78cfcfdb4024fcf68bd80199ec617f093c0e23c359fb18e"
+  ],
   "stream_in.py": [
    "3f7e8f551e73fe3fc73b4a767e715c080755b3d5fbbf003e979280cdc2d6a027",
    "8d69a1fd4acb7ee3e051b05bca68b87a76b9a0f5a07adcf14bd5ffe56902226a"
@@ -504,8 +989,15 @@
   "supply_chain.json": [
    "6ed973738bb43e0d1a2e6f5a16b5b014717a6a457635e35dfef4f22ffbb07f9e"
   ],
+  "tests/test_contracts.py": [
+   "cb0715e937523ec1ba25559f66bfcf9a60a9b1d59e7666ab9607806653cf7d4d"
+  ],
+  "uninstall.sh": [
+   "6d69540d3a86a89e9734ddbc5af9da84a89f00ffef526d2c4a67b109da4003ca"
+  ],
   "updater.py": [
-   "1bb28546c48182a54a403acd711c6c2c4c16f5811deeb3fdd98bc88a0df8ac7f"
+   "1bb28546c48182a54a403acd711c6c2c4c16f5811deeb3fdd98bc88a0df8ac7f",
+   "1dc9c83fd4f250d763c139ff43d31c0675072ebd894717c195fc066ab5df3727"
   ],
   "us_book.json": [
    "ec85e8d40a80cd4af79bab12b0cf5ac1f71043fb179890756dd96c829768d43e"

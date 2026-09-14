@@ -35,3 +35,13 @@ That paste also works on any copy, at any time, if you would rather not use the 
 ## What was added, newest first
 
 The list lives in the `VERSION` file at the top of the repository, one line per release, and the [landing page](/#releases) reads it live.
+
+## Going back
+
+The desk keeps the files each update replaced, for the last three versions, inside its own folder. If a new version misbehaves, tell your agent "go back to the previous version of the desk", or in the desk folder type:
+
+```
+python updater.py rollback
+```
+
+Then start the desk. Your settings file, your lists and your caches are not part of a rollback; only the desk's own files move.

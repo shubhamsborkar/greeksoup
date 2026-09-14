@@ -1,0 +1,58 @@
+---
+title: Releases
+nav: Releases
+description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
+lead: Newest first. The current version is 2026-09-14. Your desk reads this same list once a day and offers the update with one click.
+---
+
+## 2026-09-14
+
+*14 September 2026.* What a finished desk carries around the desk itself: a check you run in the folder (python doctor.py) that prints what your agent needs and nothing private; an uninstall that stops the desk, removes the start-at-login entry, saves your lists to the Desktop and asks before deleting the folder (Uninstall Desk on Mac and Windows, or one line); the updater keeps the files each update replaces for the last three versions and one line puts them back (python updater.py rollback); a written security page (what the desk talks to, where keys live, how to report), a contributing guide, issue templates for a bug, a broker and a market, a pull request template, and a check that runs on every push holding every broker and market file to its contract; docs gain Setup (your AI, data providers, data sources), FAQ, What it talks to, If something is wrong, and Project (releases, contributing, security); the landing page gains a works-with grid and a what-it-talks-to section
+
+## 2026-09-13.8
+
+*13 September 2026, release 8.* Nothing in the desk assumes one broker or one country any more: a broker file is read for what it has (holdings and cash always; ticks, futures, margin, chains and a symbol master when the broker serves them), and the market the broker trades in supplies the session, the index, the currency, the results calendar, the filings and its own macro cards from a file in the new markets folder (India and the United States ship, any other is one short file to a written contract); Settings gains a home-market choice for readers with no broker; the daily-login helper files are gone, Settings does that job
+
+## 2026-09-13.7
+
+*13 September 2026, release 7.* Your broker, your data provider, your AI, all picked from a list with nothing assumed: six brokers connect as the desk comes (Alpaca, ICICI Direct, Interactive Brokers, Tradier, Trading 212, Zerodha), read-only, with the currency and market hours following the broker; any other broker or data provider is one file your agent writes to a written contract; the AI settings carry the request shape the endpoint speaks (OpenAI chat or Anthropic messages) with presets for fourteen providers and local models
+
+## 2026-09-13.6
+
+*13 September 2026, release 6.* Settings grows three sections: how you invest (style, what you look at first, sectors, risk, holding period, your own words), carried on the agent page so any AI reading the desk answers you and not a stranger; your files, with a one-click backup of the data folder; and what to do when something is wrong
+
+## 2026-09-13.5
+
+*13 September 2026, release 5.* A Settings screen inside the desk: the broker keys and the daily token, the data key with a check of what your plan answers, your own AI key with a test, the address that lets any AI agent on your computer read the desk, and switches for starting with the computer and for automatic updates; no file to edit any more
+
+## 2026-09-13.4
+
+*13 September 2026, release 4.* After an update the page reloads itself once the desk is back, and only names the folder to open if the desk has not come back in ninety seconds
+
+## 2026-09-13.3
+
+*13 September 2026, release 3.* Desk · Home now says how to connect a broker (by hand on Desk · Book, the shipped adapter, or any broker through your agent) and speaks of the exchange rather than one country's exchange
+
+## 2026-09-13.2
+
+*13 September 2026, release 2.* One-line install for Mac, Linux and Windows (finds or installs Python, downloads the desk, sets it to start with your computer, opens it); the install paths rewritten for a reader with no AI agent
+
+## 2026-09-13.1
+
+*13 September 2026, release 1.* The desk is now called GreekSoup: the one-person equity research desk, in the sidebar, the page titles and the README; nothing else changed
+
+## 2026-09-13
+
+*13 September 2026.* The desk now looks at GitHub once a day and, when a newer version exists, says so on every screen and brings it in with one click
+
+## 2026-09-12
+
+*12 September 2026.* The US names on the Commodities screen carry their filed figures, 58 of 59, each with the document it came from; three tickers corrected (Barrick is B, Solaris Energy Infrastructure is SEI, US Steel removed)
+
+## 2026-09-09
+
+*9 September 2026.* The Commodities screen (51 commodities, the industries each one squeezes and helps, the names mapped to them from their filings, two new alert rules) and Desk · Book, the hand-kept portfolio for readers with no broker and no feed
+
+## 2026-09-03
+
+*3 September 2026.* First public version, twelve screens
