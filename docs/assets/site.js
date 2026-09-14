@@ -81,6 +81,7 @@
   var card = d.getElementById("rubber");
   if (card && !reduced) card.classList.add("draw");
   var targets = d.querySelectorAll(".feat, .fig, .way, .stats > div, .card.ledger, .split > div, .releases, .acc, .colophon .wrap > *, .fig1-wrap");
+  var tilts = d.querySelectorAll(".tilt");
   if ("IntersectionObserver" in window && !reduced) {
     targets.forEach(function (el) { el.classList.add("rv"); });
     var io = new IntersectionObserver(function (entries) {
@@ -93,8 +94,14 @@
       });
     }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
     targets.forEach(function (el) { io.observe(el); });
+    /* the frames settle flat as they come into view */
+    var io2 = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add("in"); io2.unobserve(en.target); } });
+    }, { rootMargin: "0px 0px -12% 0px", threshold: 0.1 });
+    tilts.forEach(function (el) { io2.observe(el); });
   } else {
     targets.forEach(function (el) { el.classList.add("in"); });
+    tilts.forEach(function (el) { el.classList.add("in"); });
   }
 
   /* releases: read from VERSION on GitHub, the file the desk itself reads */
