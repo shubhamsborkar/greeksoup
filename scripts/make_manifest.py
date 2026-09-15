@@ -56,6 +56,23 @@ def unstaged_ship_files():
 def main():
     version = (parse_version_text(open(os.path.join(ROOT, "VERSION"), encoding="utf-8").read())
                or [{"version": ""}])[0]["version"]
+    # what this release touches that a reader may hold edited data in: the owners of
+    # reader-owned files and the shipped starters; the author reads this before it ships
+    try:
+        sys.path.insert(0, ROOT)
+        import migrate as desk_migrate
+        staged = set(git("diff", "--cached", "--name-only", "HEAD").splitlines())
+        touched = sorted(staged & (set(desk_migrate.owners()) | set(desk_migrate.STARTERS)))
+        bad = desk_migrate.check_registry()
+        if bad:
+            print("MANIFEST.json NOT written. A reader-owned file's format rose with no migration:\n  " + "\n  ".join(bad))
+            sys.exit(2)
+        if touched:
+            print("This release touches files readers hold edited copies of, or the code that writes them:\n  " +
+                  "\n  ".join(touched) + "\n  If a file's shape changed: FORMAT up, a migration registered, a test. "
+                  "If a starter changed: readers who edited theirs keep theirs.")
+    except ImportError:
+        pass
     loose = unstaged_ship_files()
     if loose and "--anyway" not in sys.argv:
         print("MANIFEST.json NOT written. These files would ship but are not staged, so the manifest "

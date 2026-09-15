@@ -432,6 +432,15 @@
       `<b>${kept.map(esc).join(", ")}</b>. Ask your agent to merge the new version's changes into them.</div>`;
   }
   let lastBoot = null;
+  function migratedHtml(mg) {
+    /* a release changed the shape of a file the reader owns: say which, and where the copy from before is */
+    if (!mg) return "";
+    const rows = [];
+    for (const m of mg.migrated || []) rows.push(`<b>${esc(m.label)}</b> (${esc(m.path.split("/").slice(-2).join("/"))}) was brought up to this version's shape; the copy from before is at <span class="mono">${esc(m.kept.replace(/^.*cache\//, "cache/"))}</span>`);
+    for (const n of mg.newer || []) rows.push(`<b>${esc(n.label)}</b> (${esc(n.path.split("/").slice(-2).join("/"))}) was written by a newer desk and is left as it is; update this desk to read it fully`);
+    for (const e of mg.errors || []) rows.push(`could not bring one file up: ${esc(e)}`);
+    return rows.length ? `<div class="ukept">${rows.join("<br>")}</div>` : "";
+  }
   function renderUpdate(st) {
     if (st.started) lastBoot = st.started;
     const el = updateBar();
@@ -439,6 +448,15 @@
     const res = st.last_result;
     const dismissedAvail = store.getItem("desk_update_dismissed");
     const dismissedDone = store.getItem("desk_update_seen");
+    const mg = st.migrations;
+    if (mg && mg.at && store.getItem("desk_migration_seen") !== String(mg.at) && !(res && res.ok && res.to && dismissedDone !== res.to)) {
+      el.className = "done";
+      el.innerHTML = `<div class="uin"><span class="utag">Your files</span><span class="utxt">This version changed the shape of a file you own. Nothing was lost.</span>` +
+        `<button class="ubtn ghost" id="umok">OK</button></div>${migratedHtml(mg)}`;
+      el.style.display = "block";
+      document.getElementById("umok").onclick = () => { store.setItem("desk_migration_seen", String(mg.at)); el.style.display = "none"; };
+      return;
+    }
     if (res && res.ok && res.to && dismissedDone !== res.to) {
       el.className = "done";
       el.innerHTML = `<div class="uin"><span class="utag">Updated</span>` +
@@ -446,9 +464,9 @@
         (res.added_data && res.added_data.length ? `, with ${res.added_data.length} new data file${res.added_data.length > 1 ? "s" : ""}` : "") +
         (res.added_rules ? ` and ${res.added_rules} new alert rule${res.added_rules > 1 ? "s" : ""}` : "") +
         `.${res.pip && res.pip.indexOf("failed") === 0 ? " One dependency did not install; give your agent the file logs/desk-service.log." : ""}</span>` +
-        `<button class="ubtn ghost" id="uok">OK</button></div>${keptHtml(res.kept)}`;
+        `<button class="ubtn ghost" id="uok">OK</button></div>${keptHtml(res.kept)}${migratedHtml(mg)}`;
       el.style.display = "block";
-      document.getElementById("uok").onclick = () => { store.setItem("desk_update_seen", res.to); el.style.display = "none"; };
+      document.getElementById("uok").onclick = () => { store.setItem("desk_update_seen", res.to); if (mg && mg.at) store.setItem("desk_migration_seen", String(mg.at)); el.style.display = "none"; };
       return;
     }
     if (c.available && c.remote && dismissedAvail !== c.remote) {

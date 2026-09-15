@@ -755,3 +755,35 @@ def test_chains_are_the_readers_own(tmp_path):
         assert not desk_chains.draft("hi", "US", ask=lambda m, s: {"ok": True, "text": ""})["ok"]
     finally:
         desk_notes._point_at(keep)
+
+
+def test_updates_never_lose_saved_work(tmp_path):
+    """Reader-owned files carry a format; at start the desk brings an older file up after
+    keeping a copy, leaves a newer one alone and names it, and the registry itself is sound:
+    a FORMAT above 1 needs a migration for every step below it."""
+    import migrate as desk_migrate
+    assert desk_migrate.check_registry() == []
+    desk_migrate.HERE = str(tmp_path)
+    desk_migrate.PREVIOUS = str(tmp_path / "cache" / "previous")
+    desk_migrate.REPORT_PATH = str(tmp_path / "cache" / "migrations.json")
+    old = tmp_path / "data" / "thing.json"; old.parent.mkdir()
+    old.write_text(json.dumps({"rows": [{"a": 1}]}), encoding="utf-8")               # from before formats
+    cur = tmp_path / "data" / "current.json"
+    cur.write_text(json.dumps({"format": 2, "rows": []}), encoding="utf-8")
+    new = tmp_path / "data" / "newer.json"
+    new.write_text(json.dumps({"format": 5, "rows": []}), encoding="utf-8")
+    kinds = [{"kind": "thing", "label": "your things", "owner": "x.py",
+              "paths": lambda: [str(old), str(cur), str(new)], "format": lambda: 2,
+              "migrations": lambda: {1: lambda d: {**d, "rows": [{"b": r["a"]} for r in d["rows"]]}}}]
+    assert desk_migrate.check_registry(kinds) == []
+    rep = desk_migrate.run("2026-09-15.24", kinds)
+    assert [m["path"] for m in rep["migrated"]] == [str(old)] and rep["migrated"][0]["from"] == 0 and rep["migrated"][0]["to"] == 2
+    d = json.loads(old.read_text(encoding="utf-8"))
+    assert d["format"] == 2 and d["rows"] == [{"b": 1}]                              # 0 -> 1 stamps, 1 -> 2 migrates
+    kept = rep["migrated"][0]["kept"]
+    assert kept.startswith(str(tmp_path / "cache" / "previous" / "migrate-2026-09-15.24")) and json.loads(open(kept, encoding="utf-8").read()) == {"rows": [{"a": 1}]}
+    assert rep["newer"][0]["path"] == str(new) and json.loads(new.read_text(encoding="utf-8"))["format"] == 5
+    assert desk_migrate.last_report()["migrated"][0]["to"] == 2                      # the banner has it
+    assert desk_migrate.run("2026-09-15.24", kinds)["migrated"] == []                # a second start touches nothing
+    broken = [{**kinds[0], "format": lambda: 3}]
+    assert desk_migrate.check_registry(broken) == ["thing: format 3 but no migration from 2 to 3"]

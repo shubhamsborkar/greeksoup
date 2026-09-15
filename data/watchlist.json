@@ -1,4 +1,5 @@
 {
   "_comment": "Watch · Home. Add names in the page (search-as-you-type confirms each one). A code is whatever your broker calls the share when the broker serves quotes, else the exchange symbol in your home market, else a Yahoo symbol.",
-  "names": []
+  "names": [],
+  "format": 1
 }

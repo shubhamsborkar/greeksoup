@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.23. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.24. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.24
+
+*15 September 2026, release 24.* An update never loses saved work: every file you own (your chains, Desk · Book, the hand-kept US book, your watchlists, your alert rules) now carries a format number; when a version changes a file's shape the desk brings the file up at the next start after keeping a copy under cache/previous, and the banner says which file and where the copy is; a file written by a newer desk (a vault synced from another computer) is left as it is and named; and the release script lists every file readers may hold edited copies of before a version ships
 
 ## 2026-09-15.23
 

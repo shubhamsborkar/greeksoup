@@ -27,6 +27,7 @@ import notes as desk_notes
 HERE = os.path.dirname(os.path.abspath(__file__))
 STARTERS_PATH = os.path.join(HERE, "data", "supply_chain.json")
 FORMAT = 1
+MIGRATIONS = {}      # {from_format: fn(dict) -> dict}, one step each; migrate.py runs them at start
 STATUSES = ("OWNED", "HOLD", "WATCH", "CHECK", "CONTEXT", "OUT")
 RECEIPTS = ("DISCLOSED", "ON RECORD", "REPORTED")
 REGIONS = ("us", "home", "global")

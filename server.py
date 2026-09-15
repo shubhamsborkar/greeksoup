@@ -45,6 +45,7 @@ import house_ptr         # keyless House trading disclosures
 import notes as desk_notes   # the research vault: notes and files in data/research, linked to names and projects
 import plugins as desk_plugins   # folders in data/research/plugins that add a screen, blocks or a door
 import chains as desk_chains     # the reader's own value chains in data/research/chains, starters beside the code
+import migrate as desk_migrate   # reader-owned files carry a format number; an update brings them up, a copy kept aside
 
 PORT = int(os.getenv("DESK_PORT", "8765"))
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -126,7 +127,7 @@ def load_watchlist():
 
 def save_watchlist(names):
     with open(WATCHLIST_PATH, "w") as fh:
-        json.dump({"_comment": "Edit in the Watchlist page.", "names": names}, fh, indent=2)
+        json.dump({"_comment": "Edit in the Watchlist page.", "format": 1, "names": names}, fh, indent=2)
 
 
 def _is_broker_name(entry):
@@ -200,7 +201,7 @@ def load_watchlist_us():
 
 def save_watchlist_us(names):
     with open(WATCHLIST_US_PATH, "w") as fh:
-        json.dump({"_comment": "Edit in the Watch US page.", "names": names}, fh, indent=2)
+        json.dump({"_comment": "Edit in the Watch US page.", "format": 1, "names": names}, fh, indent=2)
 
 
 def fetch_us_quote(symbol):
@@ -1075,7 +1076,7 @@ def load_watchlist_global():
 def save_watchlist_global(names):
     with open(WATCHLIST_GLOBAL_PATH, "w") as fh:
         json.dump({"_comment": "Edit in the Watch Global page. Yahoo symbols "
-                   "(TALABAT.AE, 0700.HK, MC.PA ...).", "names": names}, fh, indent=2)
+                   "(TALABAT.AE, 0700.HK, MC.PA ...).", "format": 1, "names": names}, fh, indent=2)
 
 
 def fetch_yahoo_quote(symbol):
@@ -2327,6 +2328,7 @@ def load_book():
 def save_book(book):
     book.setdefault("_comment", "The hand-kept book: any symbol Yahoo Finance knows. "
                     "Edit here or in the Desk · Book page. Lines with zero shares are ignored.")
+    book.setdefault("format", 1)
     with _book_lock:
         with open(BOOK_PATH, "w") as fh:
             json.dump(book, fh, indent=2)
@@ -3410,7 +3412,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(json.dumps(settings_state()).encode(), "application/json")
             elif path == "/api/update":
                 force = (qs.get("check", [""])[0] or "") == "1"
-                self._send(json.dumps(updater.status(force)).encode(), "application/json")
+                self._send(json.dumps({**updater.status(force), "migrations": desk_migrate.last_report()}).encode(), "application/json")
             elif path == "/api/usbook":
                 self._send(json.dumps(build_usbook()).encode(), "application/json")
             elif path == "/macro":
@@ -3949,6 +3951,12 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    mig = desk_migrate.run(updater.local_version())
+    for m in mig["migrated"]:
+        if not m["stamped"]:
+            print(f"  brought {m['label']} up to this version's shape ({os.path.relpath(m['path'], HERE)}); the copy from before is at {os.path.relpath(m['kept'], HERE)}")
+    for n in mig["newer"]:
+        print(f"  NOTE: {os.path.relpath(n['path'], HERE)} was written by a newer desk; update this one to read it fully")
     bid = brokers.active_id()
     if bid:
         print(f"Connecting the broker chosen on Settings ({brokers.load(bid).META['label']})...")
