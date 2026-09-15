@@ -25,4 +25,4 @@ Fork the repository, make the change, run the checks (`python -m pytest tests -q
 
 ## Asking for one
 
-If you want a broker or a market and would rather not write it, [open an issue](https://github.com/shubhamsborkar/one-person-equity-research-desk/issues/new/choose); there is a template for each.
+If you want a broker or a market and would rather not write it, [open an issue](https://github.com/shubhamsborkar/greeksoup/issues/new/choose); there is a template for each.

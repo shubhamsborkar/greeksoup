@@ -69,5 +69,5 @@ Installed with one line on Mac, Windows or Linux. Six brokers connect read-only 
 ## Elsewhere
 
 - [The landing page](https://greeksoup.ai/): what the desk is, the fourteen screens, and the one-line install.
-- [The repository](https://github.com/shubhamsborkar/one-person-equity-research-desk): the whole desk, MIT licensed.
-- [What changed, newest first](https://github.com/shubhamsborkar/one-person-equity-research-desk/blob/main/VERSION): the same file the desk reads when it checks for an update.
+- [The repository](https://github.com/shubhamsborkar/greeksoup): the whole desk, MIT licensed.
+- [What changed, newest first](https://github.com/shubhamsborkar/greeksoup/blob/main/VERSION): the same file the desk reads when it checks for an update.

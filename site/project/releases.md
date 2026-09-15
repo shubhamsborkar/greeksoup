@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.33. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.34. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.34
+
+*16 September 2026, release 34.* The repository is github.com/shubhamsborkar/greeksoup now, and every address in the desk, the installers, the docs, the landing page and the README follows it (the old address keeps redirecting, so a desk on an earlier version still finds its updates). The README banner is the hero: the mark large on the left, the wordmark on the right over one line, your desk, your computer, your keys; the same composition sits behind the project's covers on GitHub, X, Substack and LinkedIn. The Community section carries where we post: GreekSoup and Shikshan Nivesh on LinkedIn, ShikshanNivesh on X and Substack.
 
 ## 2026-09-16.33
 

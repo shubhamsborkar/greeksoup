@@ -70,4 +70,4 @@ Yes. The desk keeps the files each update replaced. Tell your agent "go back to 
 Double-click **Uninstall Desk** in the desk folder. It stops the desk, removes the start-at-login entry, saves your lists to the Desktop and asks before deleting the folder. [Uninstall](/docs/install/uninstall/).
 
 **A number looks wrong.**
-Every number comes from a feed that can be wrong, late or restated, and the source is named on the screen. Check it against the primary source before acting. If the desk itself misread something, [tell us](https://github.com/shubhamsborkar/one-person-equity-research-desk/issues/new/choose) with the screen and the symbol.
+Every number comes from a feed that can be wrong, late or restated, and the source is named on the screen. Check it against the primary source before acting. If the desk itself misread something, [tell us](https://github.com/shubhamsborkar/greeksoup/issues/new/choose) with the screen and the symbol.

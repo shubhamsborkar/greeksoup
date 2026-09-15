@@ -4,5 +4,5 @@ contact_links:
     url: https://greeksoup.ai/docs/
     about: Install, brokers, markets, what runs with no key, and what to do when a page is blank.
   - name: A security problem
-    url: https://github.com/shubhamsborkar/one-person-equity-research-desk/blob/main/SECURITY.md
+    url: https://github.com/shubhamsborkar/greeksoup/blob/main/SECURITY.md
     about: How to report one privately.

@@ -234,7 +234,7 @@ def main():
 
     # the network, small and anonymous
     if not OFFLINE:
-        probes = [("GitHub (the version check)", "https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/VERSION"),
+        probes = [("GitHub (the version check)", "https://raw.githubusercontent.com/shubhamsborkar/greeksoup/main/VERSION"),
                   ("SEC EDGAR", "https://www.sec.gov/"),
                   ("Yahoo Finance quotes", "https://query1.finance.yahoo.com/"),
                   ("FRED", "https://fred.stlouisfed.org/")]

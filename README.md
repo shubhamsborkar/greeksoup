@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/actions/workflows/check.yml"><img src="https://img.shields.io/github/actions/workflow/status/shubhamsborkar/one-person-equity-research-desk/check.yml?branch=main&style=flat-square&label=checks" alt="Checks"></a>
-  <a href="https://greeksoup.ai/docs/project/releases/"><img src="https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Fshubhamsborkar%2Fone-person-equity-research-desk%2Fmain%2FVERSION&search=%5E(%5Cd%7B4%7D-%5Cd%7B2%7D-%5Cd%7B2%7D%5C.%5Cd%2B)&label=release&style=flat-square&color=ED5A24" alt="Latest release"></a>
+  <a href="https://github.com/shubhamsborkar/greeksoup/actions/workflows/check.yml"><img src="https://img.shields.io/github/actions/workflow/status/shubhamsborkar/greeksoup/check.yml?branch=main&style=flat-square&label=checks" alt="Checks"></a>
+  <a href="https://greeksoup.ai/docs/project/releases/"><img src="https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Fshubhamsborkar%2Fgreeksoup%2Fmain%2FVERSION&search=%5E(%5Cd%7B4%7D-%5Cd%7B2%7D-%5Cd%7B2%7D%5C.%5Cd%2B)&label=release&style=flat-square&color=ED5A24" alt="Latest release"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square" alt="Python 3.10 or newer"></a>
   <a href="https://greeksoup.ai/docs/install/"><img src="https://img.shields.io/badge/runs%20on-mac%20%C2%B7%20windows%20%C2%B7%20linux-ECEBE6?style=flat-square&labelColor=0F1114" alt="Runs on Mac, Windows and Linux"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-3ECF8E?style=flat-square" alt="Licence: MIT"></a>
@@ -195,10 +195,11 @@ Setup by hand, the file map, how to adapt the broker adapter, the data sources i
 
 ## Community
 
-- **Something wrong, or a broker or market you want**: the [issue chooser](https://github.com/shubhamsborkar/one-person-equity-research-desk/issues/new/choose) has a template for each. `python doctor.py` in the desk folder prints what a report needs and nothing private.
+- **Something wrong, or a broker or market you want**: the [issue chooser](https://github.com/shubhamsborkar/greeksoup/issues/new/choose) has a template for each. `python doctor.py` in the desk folder prints what a report needs and nothing private.
 - **A security problem**: [SECURITY.md](SECURITY.md) says how to reach us privately first.
 - **A contribution**: [CONTRIBUTING.md](CONTRIBUTING.md). Most arrive as one file to a written contract, drafted by your own agent; pull requests written with an agent are welcome.
 - **The newsletter**: [Alpha with AI](https://ai.shikshannivesh.com) carries the editions the desk grew out of, and every new screen is written up there first. GreekSoup is made by [Shikshan Nivesh](https://shikshannivesh.com).
+- **Where we post**: [GreekSoup on LinkedIn](https://www.linkedin.com/company/greeksoup) · [Shikshan Nivesh on LinkedIn](https://www.linkedin.com/company/shikshan-nivesh) · [@ShikshanNivesh on X](https://x.com/ShikshanNivesh) · [Shikshan Nivesh on Substack](https://substack.com/@shikshannivesh)
 
 ## Built with an agent
 

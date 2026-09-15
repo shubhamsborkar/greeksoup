@@ -31,7 +31,7 @@ except ImportError:
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "site")
 OUT = os.path.join(ROOT, "docs", "docs")
-REPO = "https://github.com/shubhamsborkar/one-person-equity-research-desk"
+REPO = "https://github.com/shubhamsborkar/greeksoup"
 SITE_NAME = "GreekSoup"
 SITE_URL = "https://greeksoup.ai"
 TAGLINE = "For analysts who refuse to settle."

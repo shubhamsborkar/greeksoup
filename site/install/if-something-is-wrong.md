@@ -13,7 +13,7 @@ In the desk folder, open a terminal and type:
 python doctor.py
 ```
 
-It prints your Python version, whether the desk is answering, which keys are set (by name, never by value), whether the start-at-login entry is there, the last error lines from the log, and which sources it can reach. Nothing in it is private. Copy the printout and give it to your agent with "read README.md in this folder, then fix what the check found", or paste it into [a bug report](https://github.com/shubhamsborkar/one-person-equity-research-desk/issues/new/choose).
+It prints your Python version, whether the desk is answering, which keys are set (by name, never by value), whether the start-at-login entry is there, the last error lines from the log, and which sources it can reach. Nothing in it is private. Copy the printout and give it to your agent with "read README.md in this folder, then fix what the check found", or paste it into [a bug report](https://github.com/shubhamsborkar/greeksoup/issues/new/choose).
 
 If you would rather not open a terminal, tell your agent: "run the check in this folder and fix what it finds."
 
@@ -36,4 +36,4 @@ If you would rather not open a terminal, tell your agent: "run the check in this
 
 ## Still stuck
 
-Open [an issue](https://github.com/shubhamsborkar/one-person-equity-research-desk/issues/new/choose). The template asks for what you saw and the check's printout, and that is all we need.
+Open [an issue](https://github.com/shubhamsborkar/greeksoup/issues/new/choose). The template asks for what you saw and the check's printout, and that is all we need.

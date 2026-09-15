@@ -8,8 +8,8 @@ lead: For the reader who wants to see every step. Five lines, then the same desk
 ## The five lines
 
 ```
-git clone https://github.com/shubhamsborkar/one-person-equity-research-desk.git
-cd one-person-equity-research-desk
+git clone https://github.com/shubhamsborkar/greeksoup.git
+cd greeksoup
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env

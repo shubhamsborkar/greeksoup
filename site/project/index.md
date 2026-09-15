@@ -22,4 +22,4 @@ It places no orders, it sends nothing about you anywhere, and it assumes no brok
 - [Releases](/docs/project/releases/): what changed, newest first, read from the same file your desk reads.
 - [Contributing](/docs/project/contributing/): a broker, a market or a provider is one file to a written contract.
 - [Security](/docs/project/security/): how to report a problem privately.
-- [Issues](https://github.com/shubhamsborkar/one-person-equity-research-desk/issues): something wrong, a broker you want, a market you want.
+- [Issues](https://github.com/shubhamsborkar/greeksoup/issues): something wrong, a broker you want, a market you want.

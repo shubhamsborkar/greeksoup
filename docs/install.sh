@@ -13,7 +13,7 @@
 # Knobs (optional): GREEKSOUP_HOME=/some/folder  GREEKSOUP_PORT=8770  GREEKSOUP_NO_SERVICE=1
 set -e
 
-REPO="shubhamsborkar/one-person-equity-research-desk"
+REPO="shubhamsborkar/greeksoup"
 ZIP_URL="https://codeload.github.com/$REPO/zip/refs/heads/main"
 DEST="${GREEKSOUP_HOME:-$HOME/GreekSoup}"
 PORT="${GREEKSOUP_PORT:-8765}"

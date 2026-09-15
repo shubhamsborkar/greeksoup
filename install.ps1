@@ -8,7 +8,7 @@
 # A fresh Windows machine runs this whole line on every change to the desk; if a line
 # still complains on yours, paste the window's text to your AI agent and ask it to fix it.
 $ErrorActionPreference = "Stop"
-$Repo = "shubhamsborkar/one-person-equity-research-desk"
+$Repo = "shubhamsborkar/greeksoup"
 $ZipUrl = "https://codeload.github.com/$Repo/zip/refs/heads/main"
 $Dest = if ($env:GREEKSOUP_HOME) { $env:GREEKSOUP_HOME } else { Join-Path $env:USERPROFILE "GreekSoup" }
 $Port = if ($env:GREEKSOUP_PORT) { $env:GREEKSOUP_PORT } else { "8765" }

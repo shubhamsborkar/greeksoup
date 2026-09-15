@@ -105,7 +105,7 @@
   }
 
   /* releases: read from VERSION on GitHub, the file the desk itself reads */
-  var URL = "https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/VERSION";
+  var URL = "https://raw.githubusercontent.com/shubhamsborkar/greeksoup/main/VERSION";
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function shortNote(t) {
     var cut = t.search(/[:;]/); if (cut > 24 && cut < 160) t = t.slice(0, cut);
@@ -122,6 +122,6 @@
       return '<li><span class="d">' + esc(r.v) + (i === 0 ? '<span class="cur">current</span>' : "") + '</span><span class="t">' + esc(shortNote(r.t)) + "</span></li>";
     }).join("");
     var note = d.getElementById("relnote");
-    if (note) note.innerHTML = 'Read just now from <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/blob/main/VERSION">VERSION</a> on GitHub, the same file your desk reads when it checks for an update.';
+    if (note) note.innerHTML = 'Read just now from <a href="https://github.com/shubhamsborkar/greeksoup/blob/main/VERSION">VERSION</a> on GitHub, the same file your desk reads when it checks for an update.';
   }).catch(function () { /* the list in the page stands */ });
 })();

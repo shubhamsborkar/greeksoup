@@ -40,8 +40,8 @@ Two honest notes on the free paths. Yahoo's endpoints are unofficial and rate-li
 ## Setup, once (if you would rather do it yourself)
 
 ```
-git clone https://github.com/shubhamsborkar/one-person-equity-research-desk.git
-cd one-person-equity-research-desk
+git clone https://github.com/shubhamsborkar/greeksoup.git
+cd greeksoup
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env      # optional: the Settings page writes this file for you

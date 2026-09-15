@@ -41,7 +41,7 @@ from datetime import datetime
 import requests
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = "shubhamsborkar/one-person-equity-research-desk"
+REPO = "shubhamsborkar/greeksoup"
 CACHE_DIR = os.path.join(HERE, "cache")
 CHECK_PATH = os.path.join(CACHE_DIR, "update_check.json")
 RESULT_PATH = os.path.join(CACHE_DIR, "update_result.json")
