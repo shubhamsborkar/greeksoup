@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.34. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.35. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.35
+
+*16 September 2026, release 35.* The landing page is rebuilt lean: seven sections instead of twelve, two typefaces instead of four, no icons, pills, cards or tilting frames; the fifteen screens are a list that drives one large screenshot beside it, the three figures drawn from the desk's own data sit flat on hairlines, keys are a three-column table, install is one line with the two other ways folded under it, what the desk talks to and what can go wrong share one section, and the closing section carries the Shikshan Nivesh mark and the edition without a second lockup. About forty percent shorter, nothing said on it dropped.
 
 ## 2026-09-16.34
 

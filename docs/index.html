@@ -7,9 +7,10 @@
 <meta name="description" content="GreekSoup is an open-source equity research desk that runs on your own computer. Fifteen screens: your book, 13F filings, the options tape, short interest, Congress trades, macro, a board of fifty-one commodities, your own value chains and a research vault. Every list is yours, your keys stay with you, and an AI you already pay for answers about your book. One line installs it.">
 <meta property="og:title" content="GreekSoup: the one-person equity research desk">
 <meta property="og:description" content="Run the whole research desk on your own computer. Open source, your keys stay with you, thirteen of fifteen screens run with no key at all.">
-<meta property="og:image" content="https://greeksoup.ai/img/og.jpg">
+<meta property="og:image" content="https://greeksoup.ai/img/greeksoup-social-2560x1280.png">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://greeksoup.ai/">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://greeksoup.ai/">
 <meta name="theme-color" content="#0F1114">
 <script type="application/ld+json">[{"@context":"https://schema.org","@type":"SoftwareApplication","name":"GreekSoup","alternateName":"GreekSoup: the one-person equity research desk","description":"An open-source equity research desk that runs on your own computer. Fifteen screens read your broker, SEC filings, the options tape, short interest, Congress trades, macro series, a board of fifty-one commodities, your own value chains and a research vault of plain files. Every list is yours, an AI you already pay for answers about your book, your keys stay on your machine and it places no orders.","applicationCategory":"FinanceApplication","operatingSystem":"macOS, Windows, Linux","url":"https://greeksoup.ai/","downloadUrl":"https://greeksoup.ai/#install","softwareVersion":"2026-09-16.34","isAccessibleForFree":true,"license":"https://github.com/shubhamsborkar/greeksoup/blob/main/LICENSE","codeRepository":"https://github.com/shubhamsborkar/greeksoup","softwareRequirements":"Python 3.10 or newer, and a browser","author":{"@type":"Organization","name":"Shikshan Nivesh","url":"https://shikshannivesh.com"}},{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does it cost anything?","acceptedAnswer":{"@type":"Answer","text":"No. GreekSoup is open source under the MIT licence. You bring your own keys, and without any key at all thirteen of the fifteen screens still run on the free public record."}},{"@type":"Question","name":"Does it place orders?","acceptedAnswer":{"@type":"Answer","text":"No. This copy reads your broker account and places no orders. If you extend it to trade, that is your own build, under your broker's and your regulator's rules."}},{"@type":"Question","name":"Which brokers connect?","acceptedAnswer":{"@type":"Answer","text":"Alpaca, ICICI Direct, Interactive Brokers, Tradier, Trading 212 and Zerodha, read-only, as the desk comes. Any other broker that lets a program read your account is one file an AI agent writes to the written contract inside the folder."}},{"@type":"Question","name":"Where do my keys live?","acceptedAnswer":{"@type":"Answer","text":"In a file inside the GreekSoup folder on your own computer. The Settings screen takes each key and keeps it there. The desk talks to your broker, to the public sources it reads, and once a day to GitHub to check for a newer version."}},{"@type":"Question","name":"Which AI can it use?","acceptedAnswer":{"@type":"Answer","text":"Any. An app you already pay for on this computer, Claude Code, Codex or Gemini CLI, answers with no key at all; fourteen providers are preset for a key, local models among them; and any AI agent on your computer can read the desk through a page made for it. Each one answers about your book and not about a stranger's."}},{"@type":"Question","name":"Does my book go to the AI?","acceptedAnswer":{"@type":"Answer","text":"When you ask, yes. The Ask box sends your question with the numbers on the screen you are on, and on Desk · Home those are your holdings. It goes to the one place you chose and nowhere else; a model running on your computer keeps it there. Nothing is sent until you press Enter."}},{"@type":"Question","name":"Can a web page I visit read my desk?","acceptedAnswer":{"@type":"Answer","text":"No. Every request must name your computer as its host and, from a browser, must come from the desk's own pages; anything else is refused before it is read. Security explains both guards."}},{"@type":"Question","name":"Is a server safer than my laptop?","acceptedAnswer":{"@type":"Answer","text":"No, the other way round. The desk's safety rests on nothing else being able to reach it, which holds on a laptop and turns around on a machine with a front door on the internet. Your computer or a server."}},{"@type":"Question","name":"The lists on the screens are someone else's. Can I change them?","acceptedAnswer":{"@type":"Answer","text":"Every list is yours. Funds, Capitol, Macro, Commodities and the options tape carry a Your list button: add, edit, remove with Undo, bring the starters back. Chain is yours to draft and build."}},{"@type":"Question","name":"Which markets?","acceptedAnswer":{"@type":"Answer","text":"The market follows the broker. India and the United States ship today, and another market is one short file to a written contract. Global takes any symbol from any exchange, and a reader with no broker names a home market in Settings."}},{"@type":"Question","name":"What does it run on?","acceptedAnswer":{"@type":"Answer","text":"Mac, Windows and Linux. It needs Python 3.10 or newer, which the one-line install finds or installs for you, and a browser. The desk opens at an address only your own computer can reach."}},{"@type":"Question","name":"Does it send anything anywhere?","acceptedAnswer":{"@type":"Answer","text":"Your broker, the public sources, your data provider and your AI if you connected them, and GitHub once a day to check for a newer version. No telemetry, no analytics, no account. The whole list."}},{"@type":"Question","name":"What happens to my files when it updates?","acceptedAnswer":{"@type":"Answer","text":"Nothing is lost. Your keys, your lists, your research vault and any file your agent changed stay as they are, and when a version changes the shape of a file you own the desk keeps a copy first and says so. The last three versions are kept, and one line goes back to any of them."}},{"@type":"Question","name":"How do I change it?","acceptedAnswer":{"@type":"Answer","text":"Open the folder in an AI agent, Claude Code, Codex, Kimi Code, Grok Build or whichever you use, and describe what you want. That is how the desk was built, and the README inside the folder is written for the agent as much as for you."}}]}]</script>
@@ -18,28 +19,27 @@
 <link rel="apple-touch-icon" href="img/greeksoup-favicon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Source+Serif+4:ital,opsz,wght@1,8..60,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site.css?v=202609160041">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css?v=202609160100">
 <script>try{var t=localStorage.getItem("gs-theme");if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 </head>
 <body>
-<div class="progress" id="progress" aria-hidden="true"></div>
 
 <header class="nav" id="nav">
-  <div class="nav-in">
+  <div class="wrap nav-in">
+    <a class="wordmark" href="#top" aria-label="GreekSoup, home"><svg class="gsm" viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l16 22-16 22" stroke="#ED5A24" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><rect x="48" y="66" width="12" height="20"/><rect x="66" y="50" width="12" height="36"/><rect x="84" y="34" width="12" height="52"/></svg><span>greeksoup<b>/</b></span></a>
     <nav class="nav-links" id="navlinks" aria-label="Page">
       <a href="#screens">Screens</a>
+      <a href="#drawn">Data</a>
+      <a href="#keys">Keys</a>
       <a href="#install">Install</a>
+      <a href="#talks">Security</a>
       <a href="docs/">Docs</a>
       <a href="https://github.com/shubhamsborkar/greeksoup">GitHub</a>
     </nav>
-    <a class="wordmark" href="#top" aria-label="GreekSoup, home"><svg class="gsm" viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l16 22-16 22" stroke="#ED5A24" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><rect x="48" y="66" width="12" height="20"/><rect x="66" y="50" width="12" height="36"/><rect x="84" y="34" width="12" height="52"/></svg><span>greeksoup<b>/</b></span></a>
     <div class="nav-right">
-      <div class="theme" role="group" aria-label="Theme">
-        <button type="button" data-theme-set="light" aria-label="Light"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
-        <button type="button" data-theme-set="dark" aria-label="Dark"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
-      </div>
-      <a class="btn btn-primary btn-sm" href="#install">Install</a>
+      <button class="theme" type="button" data-theme-toggle aria-label="Switch theme"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
+      <a class="btn btn-sm" href="#install">Install</a>
       <button class="menu" id="menu" aria-expanded="false" aria-controls="navlinks" aria-label="Menu"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
   </div>
@@ -47,40 +47,23 @@
 
 <main id="top">
 
-<!-- hero -->
+<!-- 1 · hero -->
 <section class="hero">
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <p class="eyebrow">the one-person equity research desk.</p>
-      <h1>Run <span class="mono-accent">the whole desk</span>. On your own computer.</h1>
-      <p class="lead">Fifteen screens that read your broker, the filings, the options tape and the public record, from Shikshan Nivesh. Every list on it is yours, an AI you already pay for answers about your book, your keys stay with you, and it places no orders.</p>
-      <div class="actions">
-        <a class="btn btn-primary" href="#install"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8l5 4-5 4M12 17h7"/></svg>Install in one line</a>
-        <a class="link-arrow" href="#screens">See the fifteen screens<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-      </div>
-    </div>
-    <aside class="card hero-card" aria-label="The one-line install">
-      <p class="eyebrow">one line.</p>
-      <div class="os-toggle" role="tablist" aria-label="Operating system">
-        <button type="button" role="tab" aria-selected="true" data-os="mac">Mac and Linux</button>
-        <button type="button" role="tab" aria-selected="false" data-os="win">Windows</button>
-      </div>
-      <div class="cmd" data-install>
-        <code class="mono" data-line="mac">curl -fsSL https://greeksoup.ai/install.sh | bash</code>
-        <code class="mono" data-line="win" hidden>irm https://greeksoup.ai/install.ps1 | iex</code>
-      </div>
-      <button class="btn btn-primary btn-block" type="button" data-copy-for="hero"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>Copy the line</button>
-      <div class="hr"></div>
-      <p class="small">Paste it in Terminal on a Mac or PowerShell on Windows, press Enter, and the desk opens in your browser. Or <a href="https://github.com/shubhamsborkar/greeksoup/archive/refs/heads/main.zip">download the folder</a> and open it in your AI agent.</p>
-      <p class="tiny mono">MIT licence · Mac, Windows, Linux · 2026-09-16.34</p>
-    </aside>
-  </div>
-
   <div class="wrap">
-    <div class="frame">
-    <div class="browser tilt" aria-label="The Commodities screen of the desk">
-      <div class="browser-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url mono">localhost:8765/commods</span></div>
-      <div class="browser-body">
+    <p class="label">The one-person equity research desk · open source · 2026-09-16.34</p>
+    <h1>Run the whole desk.<br>On your own computer.</h1>
+    <p class="lead">Fifteen screens that read your broker, the filings, the options tape and the public record. Every list on them is yours. An AI you already pay for answers about your book. Your keys stay with you, and it places no orders.</p>
+    <div class="install-line" data-install>
+      <code class="mono" data-line="mac">curl -fsSL https://greeksoup.ai/install.sh | bash</code>
+      <code class="mono" data-line="win" hidden>irm https://greeksoup.ai/install.ps1 | iex</code>
+      <button class="copy" type="button" data-copy aria-label="Copy the line"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span>Copy</span></button>
+    </div>
+    <p class="under mono"><button type="button" data-os="mac">Mac and Linux</button><button type="button" data-os="win">Windows</button><span class="sep">·</span>Paste it in a terminal, press Enter, the desk opens in your browser. <a href="#install">Two other ways in.</a></p>
+  </div>
+  <div class="wrap">
+    <figure class="shot shot-hero">
+      <div class="shot-bar mono"><span>localhost:8765/commods</span></div>
+      <div class="shot-body">
         <img src="img/full-commods.webp" width="1440" height="900" alt="The Commodities screen: movers over four windows, the commodities within five percent of a five-year high, and the names under commodity pressure this month" fetchpriority="high">
         <div class="float-card" id="rubber">
           <div class="card-head"><span class="card-name">Natural rubber</span><span class="mono card-meta">236.90 USD Cents / Kg · 2026-09-14</span></div>
@@ -94,76 +77,69 @@
 <circle class="tick" cx="340" cy="27.0" r="4"></circle>
 </svg>
           <div class="card-tiles">
-            <div><span class="tl">1D change</span><span class="mono dn">-0.59%</span></div>
-            <div><span class="tl">1M change</span><span class="mono up">+7.78%</span></div>
-            <div><span class="tl">1Y change</span><span class="mono up">+36.86%</span></div>
+            <div><span class="tl">1D</span><span class="mono dn">-0.59%</span></div>
+            <div><span class="tl">1M</span><span class="mono up">+7.78%</span></div>
+            <div><span class="tl">1Y</span><span class="mono up">+36.86%</span></div>
           </div>
-          <p class="card-note"><b class="dn">Squeezes</b> tyre makers, and Goodyear files a 1% move as about $8 million a year. <b class="up">Helps</b> rubber plantations and latex processors.</p>
+          <p class="card-note"><b class="dn">Squeezes</b> tyre makers; Goodyear files a 1% move as about $8 million a year. <b class="up">Helps</b> rubber plantations and latex processors.</p>
         </div>
       </div>
-    </div>
-    </div>
-    <p class="caption">The Commodities screen as it opened on 16 September 2026, with the Natural rubber card open. The live price is the daily read in cents per kilogram; the line behind it is the monthly benchmark in cents per pound, which is where the five-year high sits. Companies on the screens are examples.</p>
+      <figcaption>The Commodities screen as it opened on 16 September 2026, with the Natural rubber card open. Companies on the screens are examples.</figcaption>
+    </figure>
   </div>
 </section>
 
-<!-- the screens -->
-<section class="band band-warm" id="screens">
+<!-- 2 · the screens -->
+<section class="sec" id="screens">
   <div class="wrap">
-    <p class="eyebrow">what it shows.</p>
-    <h2>Fifteen screens. One desk. Every list on it yours.</h2>
-    <p class="sub">Every screen reads the public record or your own broker, and the source is named on the screen. What ships on each one is a starter: the funds, the members, the series, the commodities and the chains are yours to add to, edit and put away from the screen itself. Two screens need a broker key; the rest run without one.</p>
-    <div class="deskmap">
-      <div class="dm-col"><span class="dm-h">Desks</span><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg><h3>Desk · Home</h3><p>Your broker account, priced live, and beneath it the US panels for every reader: the hand-kept US book, the earnings countdown and the insider tape from Form 4 filings.</p><span class="key">broker key</span></div><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 19a2.5 2.5 0 0 1 2.5-2.5H20M8 8h8"/></svg><h3>Desk · Book</h3><p>A portfolio you keep by hand, in any market, with no broker at all.</p></div><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-6M12 17h.01"/></svg><h3>Risk</h3><p>The book against its index.</p></div></div><div class="dm-col"><span class="dm-h">Watchlists</span><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><h3>Watch · Home</h3><p>Your home-market watchlist, with live ticks in market hours.</p><span class="key">broker key</span></div><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><h3>Watch · US</h3><p>The US watch grid; a feed key adds the 50 and 200 day columns.</p></div><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><h3>Global</h3><p>Any symbol from any exchange, one grid.</p></div></div><div class="dm-col"><span class="dm-h">Intelligence</span><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/></svg><h3>Funds</h3><p>The latest 13F of every fund you follow, from SEC EDGAR, with what changed since last quarter. The list is yours.</p></div><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><h3>Flow</h3><p>The options tape on every US name, from CBOE's delayed chains: put/call, the walls, the expected move.</p></div><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l6 6 4-4 8 8M15 17h6v-6"/></svg><h3>Short</h3><p>FINRA short interest and the daily short-volume ratio, kept apart on purpose.</p></div><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M2 10l10-6 10 6z"/></svg><h3>Capitol</h3><p>Senate and House trading disclosures on your names, and the members you follow.</p></div></div><div class="dm-col"><span class="dm-h">Market</span><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg><h3>Macro</h3><p>Twenty-two FRED series in groups, any series you add, the home market's own cards and the economic calendar.</p></div><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 12l9-5M12 12v10M12 12L3 7"/></svg><h3>Commodities</h3><p>Fifty-one commodities as they come, yours to add to, the industries each move squeezes or helps, and the sensitivities companies file.</p></div><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10M6.5 7.5l4 8.5M17.5 7.5l-4 8.5"/></svg><h3>Chain</h3><p>Your own value-chain maps, priced live. Describe an industry and your AI drafts the map, upstream to downstream; you keep, change or drop every line.</p></div><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 15l3-4 3 2 4-5"/></svg><h3>Any ticker</h3><p>The chart, valuation, quality and insiders on one page; a feed key adds six years of statements and a DCF sandbox.</p></div></div><div class="dm-col"><span class="dm-h">Research</span><div class="feat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h4"/></svg><h3>Notes</h3><p>Your research vault: notes, annual reports and models as plain files, one folder per name, a journal that fills itself, tasks, live blocks in a note, and plugins.</p></div></div>
+    <div class="sec-head">
+      <p class="label">01 · The screens</p>
+      <h2>Fifteen screens. Every list on them yours.</h2>
+      <p class="sub">Each one reads the public record or your own broker, and names its source on the screen. What ships is a starter: the funds, the members, the series, the commodities and the chains are yours to add to, edit and put away. Two screens need a broker key; the rest run without one.</p>
     </div>
-  </div>
-</section>
-
-<!-- see it -->
-<section class="sec" id="see">
-  <div class="wrap">
-    <p class="eyebrow">see it.</p>
-    <h2>Every screen, as it opens.</h2>
-    <div class="tabs" role="tablist" aria-label="Screens">
-      <button type="button" role="tab" aria-selected="true" data-shot="home" data-url="/" data-cap="Desk · Home: the broker book priced live, the US panels beneath it, and the startup guide on the first opens.">Desk · Home</button><button type="button" role="tab" aria-selected="false" data-shot="flow" data-url="/flow" data-cap="Flow: the options tape on every US name, from CBOE's delayed chains.">Flow</button><button type="button" role="tab" aria-selected="false" data-shot="funds" data-url="/funds" data-cap="Funds: the latest 13F of each fund you follow, with what changed since the last one. Your list opens from the top bar.">Funds</button><button type="button" role="tab" aria-selected="false" data-shot="short" data-url="/short" data-cap="Short: FINRA short interest and the daily short-volume ratio.">Short</button><button type="button" role="tab" aria-selected="false" data-shot="capitol" data-url="/capitol" data-cap="Capitol: Senate and House trading disclosures on your names.">Capitol</button><button type="button" role="tab" aria-selected="false" data-shot="macro" data-url="/macro" data-cap="Macro: FRED series in groups, with two-year sparklines.">Macro</button><button type="button" role="tab" aria-selected="false" data-shot="commods" data-url="/commods" data-cap="Commodities: fifty-one on one board, with the industries each move squeezes or helps.">Commodities</button><button type="button" role="tab" aria-selected="false" data-shot="chain" data-url="/chain" data-cap="Chain: your own value-chain maps, drafted by your AI from a line or two and finished by you, priced live.">Chain</button><button type="button" role="tab" aria-selected="false" data-shot="global" data-url="/watch?list=global" data-cap="Global: any symbol from any market on one grid.">Global</button><button type="button" role="tab" aria-selected="false" data-shot="watchus" data-url="/watch?list=us" data-cap="Watch · US: the US watch grid.">Watch · US</button><button type="button" role="tab" aria-selected="false" data-shot="notes" data-url="/notes" data-cap="Notes: the research vault, with a note that carries the desk's live numbers.">Notes</button><button type="button" role="tab" aria-selected="false" data-shot="book" data-url="/book" data-cap="Desk · Book: a portfolio kept by hand, priced from the free feed.">Desk · Book</button><button type="button" role="tab" aria-selected="false" data-shot="risk" data-url="/risk" data-cap="Risk: the book against its index.">Risk</button><button type="button" role="tab" aria-selected="false" data-shot="settings" data-url="/settings" data-cap="Settings: three tabs. Connect opens with the AI apps already on your computer, then the broker and the data provider, picked from a list with nothing assumed.">Settings</button>
-    </div>
-    <div class="frame frame-show">
-    <div class="browser browser-show tilt">
-      <div class="browser-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url mono" id="showurl">localhost:8765/flow</span></div>
-      <div class="browser-body"><img id="showimg" src="img/full-flow.webp" width="1440" height="900" alt="A screen of the desk" loading="lazy"></div>
-    </div>
-    </div>
-    <p class="caption" id="showcap">Flow: the options tape on every US name, from CBOE's delayed chains.</p>
-  </div>
-</section>
-
-<!-- three figures -->
-<section class="band band-soft" id="figures">
-  <div class="wrap">
-    <p class="eyebrow">from its own data.</p>
-    <h2>Three things it draws.</h2>
-    <p class="sub">Drawn from the desk's own responses, each one dated. They describe positioning and carry no view.</p>
-    <div class="figs">
-      <figure class="card fig lift">
-        <figcaption><span class="mono fn">Fig. 1</span><span class="ft">Fifty-one commodities, one year.</span><p>Sorted by the one-year change, with the industries each move squeezes or helps on the card. Prices as the desk read them on 16 September 2026. One benchmark, Coking coal (Australia), has no year of history yet and is left out.</p></figcaption>
-        <div class="fig-draw fig1-wrap"><svg class="fig1" viewBox="0 0 1148 470" role="img" aria-label="Fifty-one commodities sorted by one-year change"><line class="grid" x1="44" y1="209.3" x2="1138" y2="209.3" stroke-width="1"></line><text class="lab" x="38" y="212.3" text-anchor="end">+50%</text><line class="grid" x1="44" y1="148.6" x2="1138" y2="148.6" stroke-width="1"></line><text class="lab" x="38" y="151.6" text-anchor="end">+100%</text><line class="axis" x1="44" y1="270" x2="1138" y2="270" stroke-width="1"></line><text class="lab" x="38" y="273" text-anchor="end">0</text><rect class="bar" x="44" y="90.0" width="16" height="180.0" fill="var(--up)" style="animation-delay:0ms"><title>EU gas (TTF): +148.3% over one year. Squeezes european chemicals, european fertiliser. Helps lng exporters (us, qatar, australia), gas producers (norway).</title></rect><text class="lab" x="55.5" y="278.0" transform="rotate(90 55.5 278.0)">EU gas +148%</text><rect class="bar" x="66" y="130.9" width="16" height="139.1" fill="var(--up)" style="animation-delay:8ms"><title>Heating oil (diesel proxy): +114.6% over one year. Squeezes road logistics, railways & trucking. Helps refiners (diesel crack).</title></rect><text class="lab" x="77.5" y="278.0" transform="rotate(90 77.5 278.0)">Heating oil +115%</text><rect class="bar" x="88" y="165.0" width="16" height="105.0" fill="var(--up)" style="animation-delay:16ms"><title>Lithium carbonate: +86.5% over one year. Squeezes ev battery cell makers, ev makers. Helps lithium miners & brine producers, lithium refiners.</title></rect><text class="lab" x="99.5" y="278.0" transform="rotate(90 99.5 278.0)">Lithium carbonate +86%</text><line class="axis" x1="96.0" y1="131.0" x2="96.0" y2="159.0" stroke-width="1"></line><text class="ann" x="102.0" y="119.0">Lithium carbonate +86%: squeezes battery cell makers,</text><text class="ann2" x="102.0" y="131.0">helps lithium miners</text><rect class="bar" x="110" y="188.7" width="16" height="81.3" fill="var(--up)" style="animation-delay:24ms"><title>WTI crude: +66.9% over one year. Squeezes airlines, shipping & logistics. Helps oil & gas producers, oilfield services.</title></rect><text class="lab" x="121.5" y="278.0" transform="rotate(90 121.5 278.0)">WTI crude +67%</text><line class="axis" x1="118.0" y1="154.7" x2="118.0" y2="182.7" stroke-width="1"></line><text class="ann" x="124.0" y="142.7">WTI crude +67%: squeezes airlines,</text><text class="ann2" x="124.0" y="154.7">helps oil producers</text><rect class="bar" x="132" y="196.0" width="16" height="74.0" fill="var(--up)" style="animation-delay:32ms"><title>Gasoline (RBOB): +60.9% over one year. Squeezes road logistics, consumers (discretionary spend). Helps refiners (crack spread), fuel retailers (with a lag).</title></rect><text class="lab" x="143.5" y="278.0" transform="rotate(90 143.5 278.0)">Gasoline +61%</text><rect class="bar" x="154" y="196.2" width="16" height="73.8" fill="var(--up)" style="animation-delay:40ms"><title>Brent crude: +60.8% over one year. Squeezes airlines, shipping & logistics. Helps oil & gas producers, oilfield services.</title></rect><rect class="bar" x="176" y="199.4" width="16" height="70.6" fill="var(--up)" style="animation-delay:48ms"><title>Bitumen: +58.2% over one year. Squeezes road builders & infrastructure contractors, roofing. Helps refiners (bottom of the barrel).</title></rect><rect class="bar" x="198" y="201.8" width="16" height="68.2" fill="var(--up)" style="animation-delay:56ms"><title>Steel (US Midwest HRC): +56.2% over one year. Squeezes autos, construction. Helps steel makers, steel service centres.</title></rect><rect class="bar" x="220" y="202.0" width="16" height="68.0" fill="var(--up)" style="animation-delay:64ms"><title>Baltic Dry Index: +56.0% over one year. Squeezes steel makers (ore & coal freight), grain importers. Helps dry-bulk shipowners, ship lessors.</title></rect><rect class="bar" x="242" y="207.6" width="16" height="62.4" fill="var(--up)" style="animation-delay:72ms"><title>Silver: +51.4% over one year. Squeezes solar cell makers (paste), electronics. Helps silver miners, base-metal miners (by-product credit).</title></rect><rect class="bar" x="264" y="209.2" width="16" height="60.8" fill="var(--up)" style="animation-delay:80ms"><title>Naphtha: +50.1% over one year. Squeezes petrochemical crackers (asia, feedstock), fertiliser (naphtha-based). Helps refiners (naphtha yield), condensate producers.</title></rect><rect class="bar" x="286" y="209.6" width="16" height="60.4" fill="var(--up)" style="animation-delay:88ms"><title>Tin: +49.8% over one year. Squeezes electronics assembly (solder), tinplate packaging. Helps tin miners (indonesia, myanmar, peru, congo).</title></rect><rect class="bar" x="308" y="212.8" width="16" height="57.2" fill="var(--up)" style="animation-delay:96ms"><title>Methanol: +47.1% over one year. Squeezes formaldehyde & resin makers (plywood, laminates), acetic acid & solvents. Helps methanol producers (gas or coal based).</title></rect><rect class="bar" x="330" y="215.8" width="16" height="54.2" fill="var(--up)" style="animation-delay:104ms"><title>Thermal coal (Newcastle): +44.7% over one year. Squeezes power utilities (coal-fired), cement. Helps coal miners, coal-exporting sovereigns (australia, indonesia).</title></rect><rect class="bar" x="352" y="222.7" width="16" height="47.3" fill="var(--up)" style="animation-delay:112ms"><title>Copper: +38.9% over one year. Squeezes cables & wires, electrical equipment & transformers. Helps copper miners, copper smelters (tc/rc dependent).</title></rect><text class="lab" x="363.5" y="278.0" transform="rotate(90 363.5 278.0)">Copper +39%</text><rect class="bar" x="374" y="223.1" width="16" height="46.9" fill="var(--up)" style="animation-delay:120ms"><title>Wheat (CBOT): +38.6% over one year. Squeezes flour millers, bakery & biscuits. Helps grain traders (volatility), farm equipment (farm income).</title></rect><rect class="bar" x="396" y="225.3" width="16" height="44.7" fill="var(--up)" style="animation-delay:128ms"><title>Rough rice: +36.9% over one year. Squeezes rice millers & exporters (procurement), packaged foods. Helps basmati exporters (india, pakistan), farm equipment.</title></rect><rect class="bar" x="418" y="225.3" width="16" height="44.7" fill="var(--up)" style="animation-delay:136ms"><title>Natural rubber: +36.9% over one year. Squeezes tyre makers, auto components (belts, hoses, seals). Helps rubber plantations (thailand, indonesia, vietnam, kerala), latex processors.</title></rect><text class="lab" x="429.5" y="278.0" transform="rotate(90 429.5 278.0)">Natural rubber +37%</text><rect class="bar" x="440" y="226.6" width="16" height="43.4" fill="var(--up)" style="animation-delay:144ms"><title>Soybean oil: +35.8% over one year. Squeezes edible oil refiners & packers, packaged foods & snacks. Helps soybean crushers, renewable diesel feedstock sellers.</title></rect><rect class="bar" x="462" y="232.0" width="16" height="38.0" fill="var(--up)" style="animation-delay:152ms"><title>Aluminium: +31.3% over one year. Squeezes autos, aerospace. Helps aluminium smelters, bauxite & alumina producers.</title></rect><rect class="bar" x="484" y="234.5" width="16" height="35.5" fill="var(--up)" style="animation-delay:160ms"><title>Cotton: +29.2% over one year. Squeezes spinning mills, textiles & apparel makers. Helps cotton growers & ginners, cotton-exporting sovereigns (us, brazil, india).</title></rect><rect class="bar" x="506" y="235.3" width="16" height="34.7" fill="var(--up)" style="animation-delay:168ms"><title>Polypropylene: +28.6% over one year. Squeezes plastics packaging, auto components (interiors). Helps petrochemical crackers, refiners with polymer integration.</title></rect><rect class="bar" x="528" y="235.9" width="16" height="34.1" fill="var(--up)" style="animation-delay:176ms"><title>Soybean meal: +28.1% over one year. Squeezes poultry & livestock (feed), aquaculture feed. Helps soybean crushers, soymeal exporters.</title></rect><rect class="bar" x="550" y="235.9" width="16" height="34.1" fill="var(--up)" style="animation-delay:184ms"><title>Zinc: +28.1% over one year. Squeezes galvanised steel makers, die-casting (autos). Helps zinc miners & smelters, silver by-product producers.</title></rect><rect class="bar" x="572" y="237.7" width="16" height="32.3" fill="var(--up)" style="animation-delay:192ms"><title>Corn: +26.6% over one year. Squeezes poultry & livestock (feed), ethanol producers. Helps grain traders, farm equipment.</title></rect><rect class="bar" x="594" y="237.8" width="16" height="32.2" fill="var(--up)" style="animation-delay:200ms"><title>Soybeans: +26.5% over one year. Squeezes poultry & livestock (soymeal feed), edible oil refiners. Helps crushers (crush margin), grain traders.</title></rect><rect class="bar" x="616" y="237.8" width="16" height="32.2" fill="var(--up)" style="animation-delay:208ms"><title>Platinum: +26.5% over one year. Squeezes auto catalysts (diesel), jewellery. Helps pgm miners (south africa, russia).</title></rect><rect class="bar" x="638" y="238.5" width="16" height="31.5" fill="var(--up)" style="animation-delay:216ms"><title>Synthetic rubber: +26.0% over one year. Squeezes tyre makers, auto components. Helps petrochemical producers (sbr, pbr), butadiene producers.</title></rect><rect class="bar" x="660" y="239.0" width="16" height="31.0" fill="var(--up)" style="animation-delay:224ms"><title>Cobalt: +25.5% over one year. Squeezes ev battery cell makers (nmc), superalloys (aerospace). Helps cobalt miners (congo, indonesia), cobalt refiners (china).</title></rect><rect class="bar" x="682" y="243.4" width="16" height="26.6" fill="var(--up)" style="animation-delay:232ms"><title>Sunflower oil: +21.9% over one year. Squeezes edible oil refiners & packers, packaged foods & snacks. Helps sunflower growers & crushers (ukraine, russia, argentina).</title></rect><rect class="bar" x="704" y="246.2" width="16" height="23.8" fill="var(--up)" style="animation-delay:240ms"><title>Uranium (U3O8): +19.6% over one year. Squeezes nuclear utilities (fuel, small share of cost). Helps uranium miners, enrichment & fuel fabrication.</title></rect><rect class="bar" x="726" y="248.0" width="16" height="22.0" fill="var(--up)" style="animation-delay:248ms"><title>Sugar (No. 11): +18.1% over one year. Squeezes confectionery & beverages, packaged foods. Helps sugar mills, ethanol (sugar-based) producers.</title></rect><rect class="bar" x="748" y="249.5" width="16" height="20.5" fill="var(--up)" style="animation-delay:256ms"><title>Gold: +16.9% over one year. Squeezes jewellery retailers (inventory financing, demand elasticity). Helps gold miners, gold royalty & streaming companies.</title></rect><text class="lab" x="759.5" y="278.0" transform="rotate(90 759.5 278.0)">Gold +17%</text><rect class="bar" x="770" y="253.1" width="16" height="16.9" fill="var(--up)" style="animation-delay:264ms"><title>Urea: +14.0% over one year. Squeezes farmers (farm income), fertiliser importers. Helps urea producers (gas-advantaged: middle east, us, russia), ammonia producers.</title></rect><rect class="bar" x="792" y="257.7" width="16" height="12.3" fill="var(--up)" style="animation-delay:272ms"><title>EU carbon permits: +10.2% over one year. Squeezes european heavy industry (steel, cement, chemicals), exporters to the eu under cbam (steel, aluminium, cement, fertiliser). Helps renewable generators (europe), nuclear generators (europe).</title></rect><rect class="bar" x="814" y="258.0" width="16" height="12.0" fill="var(--up)" style="animation-delay:280ms"><title>Palm oil (Malaysia): +9.9% over one year. Squeezes edible oil refiners & packers, packaged foods & snacks. Helps palm plantations & oil palm mills, oleochemical producers.</title></rect><rect class="bar" x="836" y="258.9" width="16" height="11.1" fill="var(--up)" style="animation-delay:288ms"><title>Palladium: +9.1% over one year. Squeezes auto catalysts (petrol), electronics. Helps pgm miners (russia, south africa).</title></rect><rect class="bar" x="858" y="259.4" width="16" height="10.6" fill="var(--up)" style="animation-delay:296ms"><title>USD/INR: +8.8% over one year. Squeezes importers of dollar-priced inputs (every commodity above, in rupee terms), airlines (dollar leases and fuel). Helps it services exporters, pharma exporters.</title></rect><rect class="bar" x="880" y="262.8" width="16" height="7.2" fill="var(--up)" style="animation-delay:304ms"><title>Tea (India auction): +5.9% over one year. Squeezes packaged tea brands. Helps tea estates (assam, darjeeling, kenya).</title></rect><rect class="bar" x="902" y="266.0" width="16" height="4.0" fill="var(--up)" style="animation-delay:312ms"><title>Ethanol: +3.3% over one year. Squeezes fuel blenders, beverage & industrial alcohol users. Helps ethanol producers (corn, sugarcane, grain), sugar mills with distilleries.</title></rect><rect class="bar" x="924" y="266.1" width="16" height="3.9" fill="var(--up)" style="animation-delay:320ms"><title>Nickel: +3.2% over one year. Squeezes stainless steel makers, ev battery cell makers (nmc chemistry). Helps nickel miners (indonesia, philippines, russia, canada), nickel refiners.</title></rect><rect class="bar" x="946" y="268.1" width="16" height="1.9" fill="var(--up)" style="animation-delay:328ms"><title>Steel (China HRC): +1.6% over one year. Squeezes autos, construction & real estate. Helps steel makers, steel traders & service centres (inventory gain).</title></rect><rect class="bar neg" x="968" y="270.0" width="16" height="1.6" fill="var(--dn)" style="animation-delay:336ms"><title>Lumber: -1.3% over one year. Squeezes homebuilders, furniture makers. Helps timber reits, sawmills & lumber producers.</title></rect><rect class="bar neg" x="990" y="270.0" width="16" height="4.7" fill="var(--dn)" style="animation-delay:344ms"><title>Nat gas (Henry Hub): -3.9% over one year. Squeezes us utilities (fuel), fertiliser (ammonia, urea). Helps us gas producers, lng exporters.</title></rect><text class="lab" x="1001.5" y="282.7" transform="rotate(90 1001.5 282.7)">Nat gas (Henry Hub) -4%</text><rect class="bar neg" x="1012" y="270.0" width="16" height="7.1" fill="var(--dn)" style="animation-delay:352ms"><title>USD/CNY: -5.9% over one year. Squeezes indian makers competing with chinese imports (steel, chemicals, solar modules, electronics), chinese importers of dollar-priced commodities. Helps chinese exporters.</title></rect><rect class="bar neg" x="1034" y="270.0" width="16" height="7.4" fill="var(--dn)" style="animation-delay:360ms"><title>Kraft pulp: -6.1% over one year. Squeezes paper & packaging makers (non-integrated), tissue makers. Helps pulp producers (brazil, canada, nordics), integrated paper makers with own pulp.</title></rect><rect class="bar neg" x="1056" y="270.0" width="16" height="8.1" fill="var(--dn)" style="animation-delay:368ms"><title>Lead: -6.7% over one year. Squeezes lead-acid battery makers (auto, inverter, telecom), cable sheathing. Helps lead miners & smelters, battery recyclers.</title></rect><text class="lab" x="1067.5" y="286.1" transform="rotate(90 1067.5 286.1)">Lead -7%</text><rect class="bar neg" x="1078" y="270.0" width="16" height="8.9" fill="var(--dn)" style="animation-delay:376ms"><title>Iron ore (62% Fe): -7.4% over one year. Squeezes steel makers (non-integrated), pellet & sponge iron makers. Helps iron ore miners, steel makers with captive mines.</title></rect><text class="lab" x="1089.5" y="286.9" transform="rotate(90 1089.5 286.9)">Iron ore -7%</text><rect class="bar neg" x="1100" y="270.0" width="16" height="27.0" fill="var(--dn)" style="animation-delay:384ms"><title>Cocoa: -22.3% over one year. Squeezes chocolate & confectionery makers, packaged foods. Helps cocoa growers (ivory coast, ghana), cocoa processors (grind margin).</title></rect><text class="lab" x="1111.5" y="305.0" transform="rotate(90 1111.5 305.0)">Cocoa -22%</text><rect class="bar neg" x="1122" y="270.0" width="16" height="41.8" fill="var(--dn)" style="animation-delay:392ms"><title>Coffee (Arabica): -34.5% over one year. Squeezes coffee chains & cafes, packaged coffee brands. Helps coffee growers & estates, instant coffee exporters (cost-plus, volume not price).</title></rect><text class="lab" x="1133.5" y="319.8" transform="rotate(90 1133.5 319.8)">Coffee -34%</text><line class="axis" x1="1130.0" y1="407.8" x2="1130.0" y2="421.8" stroke-width="1"></line><text class="ann" x="1124.0" y="435.8" text-anchor="end">Coffee -34%: helps coffee chains,</text><text class="ann2" x="1124.0" y="447.8" text-anchor="end">squeezes growers</text></svg></div>
-      </figure>
-      <div class="figs-2">
-        <figure class="card fig lift">
-          <figcaption><span class="mono fn">Fig. 2</span><span class="ft">What changed in a 13F.</span><p>The Funds screen reads every 13F-HR from SEC EDGAR and compares the two latest filings line by line. Berkshire Hathaway's filing for the quarter ending 30 June 2026, filed 14 August 2026, as the desk read it on 13 September 2026.</p></figcaption>
-          <div class="fig-draw fig2">
-            <div class="fig2-head"><span class="fund">Berkshire Hathaway</span><span class="mono">26 positions · $299.3B</span></div>
-            <div class="fig2-cols">
-              <div><span class="tl">New</span><div class="ln"><span>D R Horton</span><span class="mono up">new</span></div></div>
-              <div><span class="tl">Added</span><div class="ln"><span>Macy's</span><span class="mono up">+142%</span></div><div class="ln"><span>Alphabet</span><span class="mono up">+83%</span></div><div class="ln"><span>Delta Air Lines</span><span class="mono up">+44%</span></div><div class="ln"><span>Lennar</span><span class="mono up">+30%</span></div></div>
-              <div><span class="tl">Trimmed</span><div class="ln"><span>Capital One</span><span class="mono dn">-58%</span></div><div class="ln"><span>Nucor</span><span class="mono dn">-52%</span></div><div class="ln"><span>Kroger</span><span class="mono dn">-22%</span></div></div>
-              <div><span class="tl">Exited</span><div class="ln"><span>Constellation Brands</span><span class="mono dn">out</span></div></div>
-            </div>
-          </div>
+    <div class="screens">
+      <div class="screen-list" role="tablist" aria-label="Screens">
+        <span class="tl sl-h">Desks</span><button type="button" class="sl" role="tab" aria-selected="true" data-shot="home" data-url="/" data-cap="Desk · Home: the broker book priced live, the US panels beneath it, and the startup guide on the first opens."><span class="n">Desk · Home</span><span class="k">broker key</span><span class="d">Your broker account, priced live, and beneath it the US panels for every reader: the hand-kept US book, the earnings countdown and the insider tape from Form 4 filings.</span></button><button type="button" class="sl" role="tab" aria-selected="false" data-shot="book" data-url="/book" data-cap="Desk · Book: a portfolio kept by hand, priced from the free feed."><span class="n">Desk · Book</span><span class="k"></span><span class="d">A portfolio you keep by hand, in any market, with no broker at all.</span></button><button type="button" class="sl" role="tab" aria-selected="false" data-shot="risk" data-url="/risk" data-cap="Risk: the book against its index."><span class="n">Risk</span><span class="k"></span><span class="d">The book against its index, which is yours to choose.</span></button><span class="tl sl-h">Watchlists</span><div class="sl"><span class="n">Watch · Home</span><span class="k">broker key</span><span class="d">Your home-market watchlist, with live ticks in market hours.</span></div><button type="button" class="sl" role="tab" aria-selected="false" data-shot="watchus" data-url="/watch?list=us" data-cap="Watch · US: the US watch grid."><span class="n">Watch · US</span><span class="k"></span><span class="d">The US watch grid; a feed key adds the 50 and 200 day columns.</span></button><button type="button" class="sl" role="tab" aria-selected="false" data-shot="global" data-url="/watch?list=global" data-cap="Global: any symbol from any market on one grid."><span class="n">Global</span><span class="k"></span><span class="d">Any symbol from any exchange, one grid.</span></button><span class="tl sl-h">Intelligence</span><button type="button" class="sl" role="tab" aria-selected="false" data-shot="funds" data-url="/funds" data-cap="Funds: the latest 13F of each fund you follow, with what changed since the last one. Your list opens from the top bar."><span class="n">Funds</span><span class="k"></span><span class="d">The latest 13F of every fund you follow, from SEC EDGAR, with what changed since last quarter. The list is yours.</span></button><button type="button" class="sl" role="tab" aria-selected="false" data-shot="flow" data-url="/flow" data-cap="Flow: the options tape on every US name, from CBOE's delayed chains."><span class="n">Flow</span><span class="k"></span><span class="d">The options tape on every US name, from CBOE's delayed chains: put/call, the walls, the expected move.</span></button><button type="button" class="sl" role="tab" aria-selected="false" data-shot="short" data-url="/short" data-cap="Short: FINRA short interest and the daily short-volume ratio."><span class="n">Short</span><span class="k"></span><span class="d">FINRA short interest and the daily short-volume ratio, kept apart on purpose.</span></button><button type="button" class="sl" role="tab" aria-selected="false" data-shot="capitol" data-url="/capitol" data-cap="Capitol: Senate and House trading disclosures on your names."><span class="n">Capitol</span><span class="k"></span><span class="d">Senate and House trading disclosures on your names, and the members you follow.</span></button><span class="tl sl-h">Market</span><button type="button" class="sl" role="tab" aria-selected="false" data-shot="macro" data-url="/macro" data-cap="Macro: FRED series in groups, with two-year sparklines."><span class="n">Macro</span><span class="k"></span><span class="d">Twenty-two FRED series in groups, any series you add, the home market's own cards and the economic calendar.</span></button><button type="button" class="sl" role="tab" aria-selected="false" data-shot="commods" data-url="/commods" data-cap="Commodities: fifty-one on one board, with the industries each move squeezes or helps."><span class="n">Commodities</span><span class="k"></span><span class="d">Fifty-one commodities as they come, yours to add to, the industries each move squeezes or helps, and the sensitivities companies file.</span></button><button type="button" class="sl" role="tab" aria-selected="false" data-shot="chain" data-url="/chain" data-cap="Chain: your own value-chain maps, drafted by your AI from a line or two and finished by you, priced live."><span class="n">Chain</span><span class="k"></span><span class="d">Your own value-chain maps, priced live. Describe an industry and your AI drafts the map, upstream to downstream; you keep, change or drop every line.</span></button><div class="sl"><span class="n">Any ticker</span><span class="k"></span><span class="d">The chart, valuation, quality and insiders on one page; a feed key adds six years of statements and a DCF sandbox.</span></div><span class="tl sl-h">Research</span><button type="button" class="sl" role="tab" aria-selected="false" data-shot="notes" data-url="/notes" data-cap="Notes: the research vault, with a note that carries the desk's live numbers."><span class="n">Notes</span><span class="k"></span><span class="d">Your research vault: notes, annual reports and models as plain files, one folder per name, a journal that fills itself, tasks, live blocks in a note, and plugins.</span></button><button type="button" class="sl" role="tab" aria-selected="false" data-shot="settings" data-url="/settings" data-cap="Settings: three tabs. Connect opens with the AI apps already on your computer, then the broker and the data provider, picked from a list with nothing assumed."><span class="n">Settings</span><span class="k"></span><span class="d">Three tabs: Connect (broker, data, your AI), Your desk (screens, where the vault lives, how you invest, backups) and Plugins. Nothing on it is required.</span></button>
+      </div>
+      <div class="screen-show">
+        <figure class="shot shot-sticky">
+          <div class="shot-bar mono"><span id="showurl">localhost:8765/</span></div>
+          <div class="shot-body"><img id="showimg" src="img/full-home.webp" width="1440" height="900" alt="A screen of the desk" loading="lazy"></div>
+          <figcaption id="showcap">Desk · Home: the broker book priced live, the US panels beneath it, and the startup guide on the first opens.</figcaption>
         </figure>
-        <figure class="card fig lift">
-          <figcaption><span class="mono fn">Fig. 3</span><span class="ft">The walls.</span><p>Flow reads CBOE's free delayed chains and draws where the open interest stands: the strike with the most puts below the price, the strike with the most calls above it, and the move the options market is paying for. Apple, as the desk read it on 16 September 2026.</p></figcaption>
-          <div class="fig-draw fig3-wrap"><svg class="fig3" viewBox="0 0 560 190" role="img" aria-label="Apple options rail: put wall, spot, call wall and the expected move">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · drawn from its own data -->
+<section class="sec" id="drawn">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="label">02 · From its own data</p>
+      <h2>Three things it draws.</h2>
+      <p class="sub">Read from the desk's own responses, each one dated. They describe positioning and carry no view.</p>
+    </div>
+    <figure class="fig fig-wide">
+      <figcaption><span class="mono fn">Fig. 1</span><h3>Fifty-one commodities, one year.</h3><p>Sorted by the one-year change, with the industries each move squeezes or helps on the card. Prices as the desk read them on 16 September 2026. One benchmark, Coking coal (Australia), has no year of history yet and is left out.</p></figcaption>
+      <div class="fig-draw fig1-wrap"><svg class="fig1" viewBox="0 0 1148 470" role="img" aria-label="Fifty-one commodities sorted by one-year change"><line class="grid" x1="44" y1="209.3" x2="1138" y2="209.3" stroke-width="1"></line><text class="lab" x="38" y="212.3" text-anchor="end">+50%</text><line class="grid" x1="44" y1="148.6" x2="1138" y2="148.6" stroke-width="1"></line><text class="lab" x="38" y="151.6" text-anchor="end">+100%</text><line class="axis" x1="44" y1="270" x2="1138" y2="270" stroke-width="1"></line><text class="lab" x="38" y="273" text-anchor="end">0</text><rect class="bar" x="44" y="90.0" width="16" height="180.0" fill="var(--up)" style="animation-delay:0ms"><title>EU gas (TTF): +148.3% over one year. Squeezes european chemicals, european fertiliser. Helps lng exporters (us, qatar, australia), gas producers (norway).</title></rect><text class="lab" x="55.5" y="278.0" transform="rotate(90 55.5 278.0)">EU gas +148%</text><rect class="bar" x="66" y="131.2" width="16" height="138.8" fill="var(--up)" style="animation-delay:8ms"><title>Heating oil (diesel proxy): +114.3% over one year. Squeezes road logistics, railways & trucking. Helps refiners (diesel crack).</title></rect><text class="lab" x="77.5" y="278.0" transform="rotate(90 77.5 278.0)">Heating oil +114%</text><rect class="bar" x="88" y="165.0" width="16" height="105.0" fill="var(--up)" style="animation-delay:16ms"><title>Lithium carbonate: +86.5% over one year. Squeezes ev battery cell makers, ev makers. Helps lithium miners & brine producers, lithium refiners.</title></rect><text class="lab" x="99.5" y="278.0" transform="rotate(90 99.5 278.0)">Lithium carbonate +86%</text><line class="axis" x1="96.0" y1="131.0" x2="96.0" y2="159.0" stroke-width="1"></line><text class="ann" x="102.0" y="119.0">Lithium carbonate +86%: squeezes battery cell makers,</text><text class="ann2" x="102.0" y="131.0">helps lithium miners</text><rect class="bar" x="110" y="189.0" width="16" height="81.0" fill="var(--up)" style="animation-delay:24ms"><title>WTI crude: +66.7% over one year. Squeezes airlines, shipping & logistics. Helps oil & gas producers, oilfield services.</title></rect><text class="lab" x="121.5" y="278.0" transform="rotate(90 121.5 278.0)">WTI crude +67%</text><line class="axis" x1="118.0" y1="155.0" x2="118.0" y2="183.0" stroke-width="1"></line><text class="ann" x="124.0" y="143.0">WTI crude +67%: squeezes airlines,</text><text class="ann2" x="124.0" y="155.0">helps oil producers</text><rect class="bar" x="132" y="196.2" width="16" height="73.8" fill="var(--up)" style="animation-delay:32ms"><title>Gasoline (RBOB): +60.8% over one year. Squeezes road logistics, consumers (discretionary spend). Helps refiners (crack spread), fuel retailers (with a lag).</title></rect><text class="lab" x="143.5" y="278.0" transform="rotate(90 143.5 278.0)">Gasoline +61%</text><rect class="bar" x="154" y="196.4" width="16" height="73.6" fill="var(--up)" style="animation-delay:40ms"><title>Brent crude: +60.7% over one year. Squeezes airlines, shipping & logistics. Helps oil & gas producers, oilfield services.</title></rect><rect class="bar" x="176" y="199.4" width="16" height="70.6" fill="var(--up)" style="animation-delay:48ms"><title>Bitumen: +58.2% over one year. Squeezes road builders & infrastructure contractors, roofing. Helps refiners (bottom of the barrel).</title></rect><rect class="bar" x="198" y="201.8" width="16" height="68.2" fill="var(--up)" style="animation-delay:56ms"><title>Steel (US Midwest HRC): +56.2% over one year. Squeezes autos, construction. Helps steel makers, steel service centres.</title></rect><rect class="bar" x="220" y="202.0" width="16" height="68.0" fill="var(--up)" style="animation-delay:64ms"><title>Baltic Dry Index: +56.0% over one year. Squeezes steel makers (ore & coal freight), grain importers. Helps dry-bulk shipowners, ship lessors.</title></rect><rect class="bar" x="242" y="207.7" width="16" height="62.3" fill="var(--up)" style="animation-delay:72ms"><title>Silver: +51.3% over one year. Squeezes solar cell makers (paste), electronics. Helps silver miners, base-metal miners (by-product credit).</title></rect><rect class="bar" x="264" y="209.2" width="16" height="60.8" fill="var(--up)" style="animation-delay:80ms"><title>Naphtha: +50.1% over one year. Squeezes petrochemical crackers (asia, feedstock), fertiliser (naphtha-based). Helps refiners (naphtha yield), condensate producers.</title></rect><rect class="bar" x="286" y="209.6" width="16" height="60.4" fill="var(--up)" style="animation-delay:88ms"><title>Tin: +49.8% over one year. Squeezes electronics assembly (solder), tinplate packaging. Helps tin miners (indonesia, myanmar, peru, congo).</title></rect><rect class="bar" x="308" y="212.8" width="16" height="57.2" fill="var(--up)" style="animation-delay:96ms"><title>Methanol: +47.1% over one year. Squeezes formaldehyde & resin makers (plywood, laminates), acetic acid & solvents. Helps methanol producers (gas or coal based).</title></rect><rect class="bar" x="330" y="215.8" width="16" height="54.2" fill="var(--up)" style="animation-delay:104ms"><title>Thermal coal (Newcastle): +44.7% over one year. Squeezes power utilities (coal-fired), cement. Helps coal miners, coal-exporting sovereigns (australia, indonesia).</title></rect><rect class="bar" x="352" y="222.8" width="16" height="47.2" fill="var(--up)" style="animation-delay:112ms"><title>Copper: +38.9% over one year. Squeezes cables & wires, electrical equipment & transformers. Helps copper miners, copper smelters (tc/rc dependent).</title></rect><text class="lab" x="363.5" y="278.0" transform="rotate(90 363.5 278.0)">Copper +39%</text><rect class="bar" x="374" y="223.1" width="16" height="46.9" fill="var(--up)" style="animation-delay:120ms"><title>Wheat (CBOT): +38.6% over one year. Squeezes flour millers, bakery & biscuits. Helps grain traders (volatility), farm equipment (farm income).</title></rect><rect class="bar" x="396" y="225.3" width="16" height="44.7" fill="var(--up)" style="animation-delay:128ms"><title>Rough rice: +36.9% over one year. Squeezes rice millers & exporters (procurement), packaged foods. Helps basmati exporters (india, pakistan), farm equipment.</title></rect><rect class="bar" x="418" y="225.3" width="16" height="44.7" fill="var(--up)" style="animation-delay:136ms"><title>Natural rubber: +36.9% over one year. Squeezes tyre makers, auto components (belts, hoses, seals). Helps rubber plantations (thailand, indonesia, vietnam, kerala), latex processors.</title></rect><text class="lab" x="429.5" y="278.0" transform="rotate(90 429.5 278.0)">Natural rubber +37%</text><rect class="bar" x="440" y="226.6" width="16" height="43.4" fill="var(--up)" style="animation-delay:144ms"><title>Soybean oil: +35.8% over one year. Squeezes edible oil refiners & packers, packaged foods & snacks. Helps soybean crushers, renewable diesel feedstock sellers.</title></rect><rect class="bar" x="462" y="232.0" width="16" height="38.0" fill="var(--up)" style="animation-delay:152ms"><title>Aluminium: +31.3% over one year. Squeezes autos, aerospace. Helps aluminium smelters, bauxite & alumina producers.</title></rect><rect class="bar" x="484" y="234.5" width="16" height="35.5" fill="var(--up)" style="animation-delay:160ms"><title>Cotton: +29.2% over one year. Squeezes spinning mills, textiles & apparel makers. Helps cotton growers & ginners, cotton-exporting sovereigns (us, brazil, india).</title></rect><rect class="bar" x="506" y="235.3" width="16" height="34.7" fill="var(--up)" style="animation-delay:168ms"><title>Polypropylene: +28.6% over one year. Squeezes plastics packaging, auto components (interiors). Helps petrochemical crackers, refiners with polymer integration.</title></rect><rect class="bar" x="528" y="235.9" width="16" height="34.1" fill="var(--up)" style="animation-delay:176ms"><title>Soybean meal: +28.1% over one year. Squeezes poultry & livestock (feed), aquaculture feed. Helps soybean crushers, soymeal exporters.</title></rect><rect class="bar" x="550" y="235.9" width="16" height="34.1" fill="var(--up)" style="animation-delay:184ms"><title>Zinc: +28.1% over one year. Squeezes galvanised steel makers, die-casting (autos). Helps zinc miners & smelters, silver by-product producers.</title></rect><rect class="bar" x="572" y="237.7" width="16" height="32.3" fill="var(--up)" style="animation-delay:192ms"><title>Corn: +26.6% over one year. Squeezes poultry & livestock (feed), ethanol producers. Helps grain traders, farm equipment.</title></rect><rect class="bar" x="594" y="237.8" width="16" height="32.2" fill="var(--up)" style="animation-delay:200ms"><title>Soybeans: +26.5% over one year. Squeezes poultry & livestock (soymeal feed), edible oil refiners. Helps crushers (crush margin), grain traders.</title></rect><rect class="bar" x="616" y="237.9" width="16" height="32.1" fill="var(--up)" style="animation-delay:208ms"><title>Platinum: +26.5% over one year. Squeezes auto catalysts (diesel), jewellery. Helps pgm miners (south africa, russia).</title></rect><rect class="bar" x="638" y="238.5" width="16" height="31.5" fill="var(--up)" style="animation-delay:216ms"><title>Synthetic rubber: +26.0% over one year. Squeezes tyre makers, auto components. Helps petrochemical producers (sbr, pbr), butadiene producers.</title></rect><rect class="bar" x="660" y="239.0" width="16" height="31.0" fill="var(--up)" style="animation-delay:224ms"><title>Cobalt: +25.5% over one year. Squeezes ev battery cell makers (nmc), superalloys (aerospace). Helps cobalt miners (congo, indonesia), cobalt refiners (china).</title></rect><rect class="bar" x="682" y="243.4" width="16" height="26.6" fill="var(--up)" style="animation-delay:232ms"><title>Sunflower oil: +21.9% over one year. Squeezes edible oil refiners & packers, packaged foods & snacks. Helps sunflower growers & crushers (ukraine, russia, argentina).</title></rect><rect class="bar" x="704" y="246.2" width="16" height="23.8" fill="var(--up)" style="animation-delay:240ms"><title>Uranium (U3O8): +19.6% over one year. Squeezes nuclear utilities (fuel, small share of cost). Helps uranium miners, enrichment & fuel fabrication.</title></rect><rect class="bar" x="726" y="248.0" width="16" height="22.0" fill="var(--up)" style="animation-delay:248ms"><title>Sugar (No. 11): +18.1% over one year. Squeezes confectionery & beverages, packaged foods. Helps sugar mills, ethanol (sugar-based) producers.</title></rect><rect class="bar" x="748" y="249.6" width="16" height="20.4" fill="var(--up)" style="animation-delay:256ms"><title>Gold: +16.8% over one year. Squeezes jewellery retailers (inventory financing, demand elasticity). Helps gold miners, gold royalty & streaming companies.</title></rect><text class="lab" x="759.5" y="278.0" transform="rotate(90 759.5 278.0)">Gold +17%</text><rect class="bar" x="770" y="253.1" width="16" height="16.9" fill="var(--up)" style="animation-delay:264ms"><title>Urea: +14.0% over one year. Squeezes farmers (farm income), fertiliser importers. Helps urea producers (gas-advantaged: middle east, us, russia), ammonia producers.</title></rect><rect class="bar" x="792" y="257.7" width="16" height="12.3" fill="var(--up)" style="animation-delay:272ms"><title>EU carbon permits: +10.2% over one year. Squeezes european heavy industry (steel, cement, chemicals), exporters to the eu under cbam (steel, aluminium, cement, fertiliser). Helps renewable generators (europe), nuclear generators (europe).</title></rect><rect class="bar" x="814" y="258.0" width="16" height="12.0" fill="var(--up)" style="animation-delay:280ms"><title>Palm oil (Malaysia): +9.9% over one year. Squeezes edible oil refiners & packers, packaged foods & snacks. Helps palm plantations & oil palm mills, oleochemical producers.</title></rect><rect class="bar" x="836" y="258.9" width="16" height="11.1" fill="var(--up)" style="animation-delay:288ms"><title>Palladium: +9.1% over one year. Squeezes auto catalysts (petrol), electronics. Helps pgm miners (russia, south africa).</title></rect><rect class="bar" x="858" y="259.4" width="16" height="10.6" fill="var(--up)" style="animation-delay:296ms"><title>USD/INR: +8.8% over one year. Squeezes importers of dollar-priced inputs (every commodity above, in rupee terms), airlines (dollar leases and fuel). Helps it services exporters, pharma exporters.</title></rect><rect class="bar" x="880" y="262.8" width="16" height="7.2" fill="var(--up)" style="animation-delay:304ms"><title>Tea (India auction): +5.9% over one year. Squeezes packaged tea brands. Helps tea estates (assam, darjeeling, kenya).</title></rect><rect class="bar" x="902" y="266.0" width="16" height="4.0" fill="var(--up)" style="animation-delay:312ms"><title>Ethanol: +3.3% over one year. Squeezes fuel blenders, beverage & industrial alcohol users. Helps ethanol producers (corn, sugarcane, grain), sugar mills with distilleries.</title></rect><rect class="bar" x="924" y="266.1" width="16" height="3.9" fill="var(--up)" style="animation-delay:320ms"><title>Nickel: +3.2% over one year. Squeezes stainless steel makers, ev battery cell makers (nmc chemistry). Helps nickel miners (indonesia, philippines, russia, canada), nickel refiners.</title></rect><rect class="bar" x="946" y="268.1" width="16" height="1.9" fill="var(--up)" style="animation-delay:328ms"><title>Steel (China HRC): +1.6% over one year. Squeezes autos, construction & real estate. Helps steel makers, steel traders & service centres (inventory gain).</title></rect><rect class="bar neg" x="968" y="270.0" width="16" height="1.6" fill="var(--dn)" style="animation-delay:336ms"><title>Lumber: -1.3% over one year. Squeezes homebuilders, furniture makers. Helps timber reits, sawmills & lumber producers.</title></rect><rect class="bar neg" x="990" y="270.0" width="16" height="4.7" fill="var(--dn)" style="animation-delay:344ms"><title>Nat gas (Henry Hub): -3.9% over one year. Squeezes us utilities (fuel), fertiliser (ammonia, urea). Helps us gas producers, lng exporters.</title></rect><text class="lab" x="1001.5" y="282.7" transform="rotate(90 1001.5 282.7)">Nat gas (Henry Hub) -4%</text><rect class="bar neg" x="1012" y="270.0" width="16" height="7.1" fill="var(--dn)" style="animation-delay:352ms"><title>USD/CNY: -5.9% over one year. Squeezes indian makers competing with chinese imports (steel, chemicals, solar modules, electronics), chinese importers of dollar-priced commodities. Helps chinese exporters.</title></rect><rect class="bar neg" x="1034" y="270.0" width="16" height="7.4" fill="var(--dn)" style="animation-delay:360ms"><title>Kraft pulp: -6.1% over one year. Squeezes paper & packaging makers (non-integrated), tissue makers. Helps pulp producers (brazil, canada, nordics), integrated paper makers with own pulp.</title></rect><rect class="bar neg" x="1056" y="270.0" width="16" height="8.1" fill="var(--dn)" style="animation-delay:368ms"><title>Lead: -6.7% over one year. Squeezes lead-acid battery makers (auto, inverter, telecom), cable sheathing. Helps lead miners & smelters, battery recyclers.</title></rect><text class="lab" x="1067.5" y="286.1" transform="rotate(90 1067.5 286.1)">Lead -7%</text><rect class="bar neg" x="1078" y="270.0" width="16" height="8.9" fill="var(--dn)" style="animation-delay:376ms"><title>Iron ore (62% Fe): -7.4% over one year. Squeezes steel makers (non-integrated), pellet & sponge iron makers. Helps iron ore miners, steel makers with captive mines.</title></rect><text class="lab" x="1089.5" y="286.9" transform="rotate(90 1089.5 286.9)">Iron ore -7%</text><rect class="bar neg" x="1100" y="270.0" width="16" height="27.0" fill="var(--dn)" style="animation-delay:384ms"><title>Cocoa: -22.3% over one year. Squeezes chocolate & confectionery makers, packaged foods. Helps cocoa growers (ivory coast, ghana), cocoa processors (grind margin).</title></rect><text class="lab" x="1111.5" y="305.0" transform="rotate(90 1111.5 305.0)">Cocoa -22%</text><rect class="bar neg" x="1122" y="270.0" width="16" height="41.8" fill="var(--dn)" style="animation-delay:392ms"><title>Coffee (Arabica): -34.5% over one year. Squeezes coffee chains & cafes, packaged coffee brands. Helps coffee growers & estates, instant coffee exporters (cost-plus, volume not price).</title></rect><text class="lab" x="1133.5" y="319.8" transform="rotate(90 1133.5 319.8)">Coffee -34%</text><line class="axis" x1="1130.0" y1="407.8" x2="1130.0" y2="421.8" stroke-width="1"></line><text class="ann" x="1124.0" y="435.8" text-anchor="end">Coffee -34%: helps coffee chains,</text><text class="ann2" x="1124.0" y="447.8" text-anchor="end">squeezes growers</text></svg></div>
+    </figure>
+    <div class="figs-2">
+      <figure class="fig">
+        <figcaption><span class="mono fn">Fig. 2</span><h3>What changed in a 13F.</h3><p>Funds reads every 13F-HR from SEC EDGAR and compares the two latest filings line by line. Berkshire Hathaway, quarter ending 30 June 2026, filed 14 August 2026, as the desk read it on 13 September 2026.</p></figcaption>
+        <div class="fig-draw fig2">
+          <div class="fig2-head"><span class="fund">Berkshire Hathaway</span><span class="mono">26 positions · $299.3B</span></div>
+          <div class="fig2-cols">
+            <div><span class="tl">New</span><div class="ln"><span>D R Horton</span><span class="mono up">new</span></div></div>
+            <div><span class="tl">Added</span><div class="ln"><span>Macy's</span><span class="mono up">+142%</span></div><div class="ln"><span>Alphabet</span><span class="mono up">+83%</span></div><div class="ln"><span>Delta Air Lines</span><span class="mono up">+44%</span></div><div class="ln"><span>Lennar</span><span class="mono up">+30%</span></div></div>
+            <div><span class="tl">Trimmed</span><div class="ln"><span>Capital One</span><span class="mono dn">-58%</span></div><div class="ln"><span>Nucor</span><span class="mono dn">-52%</span></div><div class="ln"><span>Kroger</span><span class="mono dn">-22%</span></div></div>
+            <div><span class="tl">Exited</span><div class="ln"><span>Constellation Brands</span><span class="mono dn">out</span></div></div>
+          </div>
+        </div>
+      </figure>
+      <figure class="fig">
+        <figcaption><span class="mono fn">Fig. 3</span><h3>The walls.</h3><p>Flow reads CBOE's free delayed chains and draws where the open interest stands: the strike with the most puts below the price, the strike with the most calls above it, and the move the options market is paying for. Apple, as the desk read it on 16 September 2026.</p></figcaption>
+        <div class="fig-draw fig3-wrap"><svg class="fig3" viewBox="0 0 560 190" role="img" aria-label="Apple options rail: put wall, spot, call wall and the expected move">
 <text class="t" x="280.0" y="22" text-anchor="middle" font-size="11">AAPL · CBOE delayed chains · 2026-09-16 00:30</text>
 <text class="t" x="280.0" y="38" text-anchor="middle" font-size="11">calls 57% of standing open interest · put/call 0.74</text>
 <line class="rail" x1="40" y1="100" x2="520" y2="100" stroke-width="2"></line>
@@ -176,299 +152,206 @@
 <text x="361.8" y="70" font-size="12" fill="var(--fg)" text-anchor="middle">spot 330.22</text>
 <text class="t" x="361.8" y="172" font-size="11" text-anchor="middle">paid-for move ±2.1% to 2026-09-18</text>
 </svg></div>
-        </figure>
-      </div>
+      </figure>
     </div>
   </div>
 </section>
 
-<!-- what it needs -->
-<section class="sec" id="needs">
+<!-- 4 · keys -->
+<section class="sec" id="keys">
   <div class="wrap">
-    <p class="eyebrow">what it needs.</p>
-    <h2>Thirteen of the fifteen run with no key.</h2>
-    <p class="sub">Keys are optional. The desk reads the free public record first, and the Settings screen takes each key when you have it.</p>
-    <div class="keys">
-      <div class="card kc kc-hi">
-        <span class="pill">as it comes</span>
-        <p class="eyebrow">no key.</p>
-        <div class="kfig"><span class="n">13</span><span class="of">of the fifteen screens</span></div>
-        <p class="knote">Live the moment the desk starts, from SEC EDGAR, FINRA, CBOE, FRED, the House, Yahoo Finance and Trading Economics.</p>
-        <ul class="checks">
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>The US panels of Desk · Home, Desk · Book and Risk</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Watch · US and Global</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Funds, Flow, Short and Capitol</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Macro, Commodities, Chain and Notes</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Any ticker's chart, quote, ratios and insider table</li>
-        </ul>
-        <a class="btn btn-primary btn-block" href="#install"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8l5 4-5 4M12 17h7"/></svg>Install in one line</a>
+    <div class="sec-head">
+      <p class="label">03 · What it needs</p>
+      <h2>Nothing to sign up for.</h2>
+      <p class="sub">Keys are optional. The desk reads the free public record first, and the Settings screen takes each key when you have it. Picked from a list, nothing assumed; anything not on a list is one file an AI agent writes to a written contract inside the folder.</p>
+    </div>
+    <div class="table3">
+      <div class="col">
+        <span class="tl">No key</span>
+        <p class="big"><span class="n">13</span><span class="of">of the fifteen screens</span></p>
+        <p>Live the moment the desk starts: the US panels of Desk · Home, Desk · Book, Risk, Watch · US, Global, Funds, Flow, Short, Capitol, Macro, Commodities, Chain, Notes, and any ticker's chart, quote, ratios and insider table.</p>
+        <p class="mono src">SEC EDGAR · FINRA · CBOE delayed chains · FRED · Senate and House disclosures · Yahoo Finance · Trading Economics · the home market's exchange and statistics office</p>
       </div>
-      <div class="card kc lift">
-        <p class="eyebrow">a broker key.</p>
-        <div class="kfig"><span class="n">2</span><span class="of">more screens, read-only</span></div>
-        <p class="knote">Six brokers connect as the desk comes: Alpaca, ICICI Direct, Interactive Brokers, Tradier, Trading 212 and Zerodha. The market follows the broker.</p>
-        <ul class="checks">
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Desk · Home: holdings and cash, and where the broker serves them, futures and margin, priced live</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Watch · Home: your home-market list, with live ticks in market hours</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Any other broker is one file an AI agent writes to a written contract inside the folder</li>
-        </ul>
-        <a class="btn btn-dark btn-block" href="docs/brokers/">Broker guides<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <div class="col">
+        <span class="tl">A broker key</span>
+        <p class="big"><span class="n">2</span><span class="of">more screens, read-only</span></p>
+        <p>Desk · Home with holdings, cash and, where the broker serves them, futures and margin, priced live; Watch · Home with live ticks in market hours. The market follows the broker: India and the United States ship, and another market is one short file.</p>
+        <p class="mono src">Alpaca · ICICI Direct · Interactive Brokers · Tradier · Trading 212 · Zerodha · <a href="docs/brokers/another-broker/">any other</a></p>
       </div>
-      <div class="card kc lift">
-        <p class="eyebrow">a feed key.</p>
-        <div class="kfig"><span class="n">6<small>yrs</small></span><span class="of">of statements on any ticker</span></div>
-        <p class="knote">Financial Modeling Prep is the provider that ships. The desk was built on its Starter plan, and Settings has a button that says what your plan answers.</p>
-        <ul class="checks">
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Any ticker: statements, ratio history, segments, estimates, peers and the DCF sandbox</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Watch · US: the 50 and 200 day columns</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>The insider scan across the whole market</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Capitol: both chambers, cleaner rows</li>
-        </ul>
-        <a class="btn btn-dark btn-block" href="docs/setup/data-providers/">Data providers<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <div class="col">
+        <span class="tl">A feed key</span>
+        <p class="big"><span class="n">6<small>yrs</small></span><span class="of">of statements on any ticker</span></p>
+        <p>Statements, ratio history, segments, estimates, peers and the DCF sandbox on any ticker; the 50 and 200 day columns on Watch · US; the insider scan across the whole market; both chambers on Capitol.</p>
+        <p class="mono src">Financial Modeling Prep ships · <a href="docs/setup/data-providers/">another provider is one file</a></p>
       </div>
     </div>
-    <div class="split">
+    <div class="pair">
       <div>
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 16l-1.8-4.8L6 9.4l4.2-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8zM5 15l.6 1.4 1.4.6-1.4.6L5 19l-.6-1.4L3 17l1.4-.6z"/></svg>
-        <p class="eyebrow">your ai.</p>
+        <span class="tl">Your AI</span>
         <h3>The one you already pay for.</h3>
         <p>Claude Code, Codex or Gemini CLI on your computer answers the Ask box with no key at all, through its own sign-in, which the desk never sees. Or a key from any of fourteen labs, or a model running on your computer. The Ask box on every screen sends your question with that screen's own numbers, so the answer is about your own book. It never says buy, sell or hold.</p>
-        <a class="btn btn-dark" href="docs/setup/your-ai/">Your AI<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <p class="mono src">Claude Code · Codex · Gemini CLI, with no key · Anthropic · OpenAI · Google (Gemini) · DeepSeek · Kimi (Moonshot) · MiniMax · Z.ai (GLM) · Alibaba (Qwen) · xAI (Grok) · Mistral · OpenRouter (many models, one key) · Ollama on this computer · LM Studio on this computer · Any other endpoint</p>
+        <a class="more" href="docs/setup/your-ai/">Your AI<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
       <div>
-        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10l3 2.5L7 15M12 15h5"/></svg>
-        <p class="eyebrow">your agent.</p>
+        <span class="tl">Your agent</span>
         <h3>Change it by describing what you want.</h3>
-        <p>The desk carries a page any AI agent on your computer can read, and everything specific to a broker or a market sits in one file to a written contract. Open the folder in Claude Code, Codex, Kimi Code or whichever you use, and say what you want changed. That is how it was built.</p>
-        <a class="btn btn-dark" href="docs/install/with-an-agent/">With an agent<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <p>The desk carries a page any AI agent on your computer can read, and a file at the top of the folder that tells the agent what belongs to you and must not be touched. Open the folder in Claude Code, Codex, Kimi Code or whichever you use, and say what you want changed. That is how it was built.</p>
+        <a class="more" href="docs/install/with-an-agent/">With an agent<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- works with -->
-<section class="band band-warm" id="works">
+<!-- 5 · install -->
+<section class="sec" id="install">
   <div class="wrap">
-    <p class="eyebrow">works with.</p>
-    <h2>Your broker, your AI, the public record.</h2>
-    <p class="sub">Picked from a list, nothing assumed. Anything not on it is one file an AI agent writes to a written contract inside the folder.</p>
-    <div class="cells cells-4">
-      <div class="cell">
-        <div class="cell-h"><span class="tl">Brokers</span><span class="cell-n">6</span></div>
-        <p class="cell-p">Read-only, as the desk comes. The market follows the broker.</p>
-        <div class="tiles"><span class="tile">Alpaca</span><span class="tile">ICICI Direct</span><span class="tile">Interactive Brokers</span><span class="tile">Tradier</span><span class="tile">Trading 212</span><span class="tile">Zerodha</span><span class="tile more">any other: one file to the contract</span></div>
-      </div>
-      <div class="cell">
-        <div class="cell-h"><span class="tl">Your AI</span><span class="cell-n">3+14</span></div>
-        <p class="cell-p">An app you already pay for, a key from a lab, or a model running on your computer.</p>
-        <div class="tiles"><span class="tile">Anthropic</span><span class="tile">OpenAI</span><span class="tile">Google (Gemini)</span><span class="tile">DeepSeek</span><span class="tile">Kimi (Moonshot)</span><span class="tile">MiniMax</span><span class="tile">Z.ai (GLM)</span><span class="tile">Alibaba (Qwen)</span><span class="tile">xAI (Grok)</span><span class="tile">Mistral</span><span class="tile">OpenRouter (many models, one key)</span><span class="tile local">Ollama on this computer</span><span class="tile local">LM Studio on this computer</span><span class="tile">Any other endpoint</span></div>
-      </div>
-      <div class="cell">
-        <div class="cell-h"><span class="tl">The public record</span><span class="cell-n">8</span></div>
-        <p class="cell-p">Free, no key. Every source is named on the screen that reads it.</p>
-        <div class="tiles"><span class="tile">SEC EDGAR</span><span class="tile">FINRA</span><span class="tile">CBOE delayed chains</span><span class="tile">FRED</span><span class="tile">Senate and House disclosures</span><span class="tile">Yahoo Finance</span><span class="tile">Trading Economics</span><span class="tile">The home market's exchange and statistics office</span></div>
-      </div>
-      <div class="cell">
-        <div class="cell-h"><span class="tl">Markets</span><span class="cell-n">2</span></div>
-        <p class="cell-p">Ship today. Another market is one short file to the same kind of contract.</p>
-        <div class="tiles"><span class="tile">India</span><span class="tile">United States</span><span class="tile more">any other: one short file</span></div>
-      </div>
+    <div class="sec-head">
+      <p class="label">04 · Install</p>
+      <h2>One line, about a minute.</h2>
+      <p class="sub">It finds Python on your computer or installs it, downloads the desk into a GreekSoup folder in your home folder, sets it to start with your computer, and opens it in your browser at an address only your computer can reach. A Mac, a Windows PC or a Linux computer you leave on while you work. Nothing on this page needs an account.</p>
     </div>
-    <p class="caption">Financial Modeling Prep is the data provider that ships; another is one file to the same kind of contract. <a href="docs/setup/data-sources/">Every source and what it feeds</a>.</p>
-  </div>
-</section>
-
-<!-- install -->
-<section class="band band-soft" id="install">
-  <div class="wrap">
-    <p class="eyebrow">install.</p>
-    <h2>Three ways in.</h2>
-    <p class="sub">Most readers take the first one. All three end at the same desk, open in your browser.</p>
+    <div class="install-line install-big" data-install>
+      <code class="mono" data-line="mac">curl -fsSL https://greeksoup.ai/install.sh | bash</code>
+      <code class="mono" data-line="win" hidden>irm https://greeksoup.ai/install.ps1 | iex</code>
+      <button class="copy" type="button" data-copy aria-label="Copy the line"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span>Copy</span></button>
+    </div>
+    <p class="under mono"><button type="button" data-os="mac">Mac and Linux</button><button type="button" data-os="win">Windows</button></p>
     <div class="ways">
-      <div class="card way way-hi">
-        <span class="pill">most readers</span>
-        <div>
-          <p class="eyebrow">one line.</p>
-          <h3>Paste one line, press Enter.</h3>
-          <ul class="checks">
-            <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Finds Python on your computer, or installs it</li>
-            <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Downloads the desk into a GreekSoup folder in your home folder</li>
-            <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Sets the desk to start with your computer</li>
-            <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Opens it in your browser at an address only your computer can reach</li>
-          </ul>
-        </div>
-        <div>
-          <div class="os-toggle" role="tablist" aria-label="Operating system">
-            <button type="button" role="tab" aria-selected="true" data-os="mac">Mac and Linux</button>
-            <button type="button" role="tab" aria-selected="false" data-os="win">Windows</button>
+      <details class="way">
+        <summary><span class="tl">Or</span><span class="way-t">With an agent, about twenty minutes, the agent does the work</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+        <div class="way-body">
+          <p><a href="https://github.com/shubhamsborkar/greeksoup/archive/refs/heads/main.zip">Download the folder</a>, unzip it, drag it into Documents, open it in Claude Code, Codex, Kimi Code, Grok Build or whichever you use, and paste this. It installs what it needs and asks for each key one at a time.</p>
+          <div class="install-line install-tall" data-install>
+            <code class="mono" data-line="agent">Read README.md in this folder and set the desk up for me on this computer. Install what it needs, ask me for each key one at a time and tell me where to get it, and if I say I have no broker to connect, leave the broker keys empty. Then start the desk, set it to start by itself whenever I log in, and tell me the address to open.</code>
+            <button class="copy" type="button" data-copy aria-label="Copy the text"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span>Copy</span></button>
           </div>
-          <div class="cmd" data-install>
-            <code class="mono" data-line="mac">curl -fsSL https://greeksoup.ai/install.sh | bash</code>
-            <code class="mono" data-line="win" hidden>irm https://greeksoup.ai/install.ps1 | iex</code>
-          </div>
-          <button class="btn btn-primary btn-block" type="button" data-copy-for="way"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>Copy the line</button>
-          <p class="tiny">Paste it in Terminal on a Mac or PowerShell on Windows, press Enter, and the desk opens in your browser about a minute later.</p>
         </div>
-      </div>
-      <div class="card way lift">
-        <p class="eyebrow">with an agent.</p>
-        <h3>Let your AI agent set it up.</h3>
-        <ul class="checks">
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Download the folder, unzip it, drag it into Documents</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Open it in Claude Code, Codex, Kimi Code, Grok Build, whichever you use</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Paste the text below; the agent installs what it needs and asks for each key one at a time</li>
-        </ul>
-        <div class="cmd cmd-tall" data-install>
-          <code class="mono" data-line="agent">Read README.md in this folder and set the desk up for me on this computer. Install what it needs, ask me for each key one at a time and tell me where to get it, and if I say I have no broker to connect, leave the broker keys empty. Then start the desk, set it to start by itself whenever I log in, and tell me the address to open.</code>
-        </div>
-        <a class="btn btn-dark btn-block" href="https://github.com/shubhamsborkar/greeksoup/archive/refs/heads/main.zip"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download the folder</a>
-      </div>
-      <div class="card way lift">
-        <p class="eyebrow">from source.</p>
-        <h3>See what the agent does.</h3>
-        <ul class="checks">
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>One Python file serves the fifteen screens</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Your lists, chains and notes are plain files in a folder you can open</li>
-          <li><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Everything specific to a broker sits in one file per broker</li>
-        </ul>
-        <div class="cmd cmd-tall" data-install>
-          <code class="mono" data-line="source">git clone https://github.com/shubhamsborkar/greeksoup.git
+      </details>
+      <details class="way">
+        <summary><span class="tl">Or</span><span class="way-t">From source, to see what the agent does</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+        <div class="way-body">
+          <p>One Python file serves the fifteen screens. Your lists, chains and notes are plain files in a folder you can open, and everything specific to a broker sits in one file per broker.</p>
+          <div class="install-line install-tall" data-install>
+            <code class="mono" data-line="source">git clone https://github.com/shubhamsborkar/greeksoup.git
 cd greeksoup
 python3 -m venv .venv &amp;&amp; source .venv/bin/activate
 pip install -r requirements.txt
 python server.py</code>
+            <button class="copy" type="button" data-copy aria-label="Copy the lines"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span>Copy</span></button>
+          </div>
         </div>
-        <a class="btn btn-dark btn-block" href="https://github.com/shubhamsborkar/greeksoup"><svg class="i" viewBox="0 0 16 16" aria-hidden="true" style="fill:currentColor;stroke:none"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Open on GitHub</a>
-      </div>
+      </details>
     </div>
-    <p class="caption center">A Mac, a Windows PC or a Linux computer you leave on while you work, Python 3.10 or newer, found or installed for you, and a browser. Keys are optional; the Settings screen inside the desk takes them and keeps them on your computer. Nothing on this page needs an account.</p>
-    <div class="cells cells-4 after">
-      <div class="cell"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg><span class="tl">Update</span><p class="cell-p">One click on the strip inside the desk. Your keys and your lists stay as they are.</p></div>
-      <div class="cell"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6.5l1 1 2-2M3.5 12.5l1 1 2-2M3.5 18.5l1 1 2-2"/></svg><span class="tl">Check</span><p class="cell-p">One line prints what your agent needs to help you, and nothing private.</p></div>
-      <div class="cell"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v5h5"/><path d="M12 8v4l3 2"/></svg><span class="tl">Go back</span><p class="cell-p">The last three versions are kept. One line restores any of them.</p></div>
-      <div class="cell"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span class="tl">Uninstall</span><p class="cell-p">One double-click. Your lists are saved to the Desktop first, and nothing is left behind.</p></div>
-    </div>
-    <p class="caption center"><a href="docs/install/">How each of the four works</a>.</p>
-  </div>
-</section>
-
-<!-- it stays current -->
-<section class="sec" id="updates">
-  <div class="wrap two">
-    <div>
-      <p class="eyebrow">it stays current.</p>
-      <h2>It updates itself.</h2>
-      <p>Once a day the desk looks at GitHub. When a newer version exists, a strip appears at the top of every screen with the date and what changed, and one click brings it in. Your keys, your lists, your research vault and any file your agent changed for you stay exactly as they are; when a version changes the shape of a file you own, the desk keeps a copy first and says so. Then it restarts by itself.</p>
-      <div class="frame frame-strip">
-      <div class="browser browser-strip" aria-hidden="true">
-        <div class="strip">
-          <span class="tag">Newer version</span>
-          <span class="txt"><b>A newer version of the desk is available, 13 September 2026.</b> Your keys and your lists stay as they are.</span>
-          <span class="b">Update the desk</span>
-          <span class="b g">Not now</span>
-        </div>
-        <img src="img/strip-funds.webp" width="1160" height="190" alt="" loading="lazy">
+    <div class="after-grid">
+      <div class="after">
+        <span class="tl">After</span>
+        <dl class="dl">
+          <div><dt>Update</dt><dd>Once a day the desk looks at GitHub. When a newer version exists, a strip at the top of every screen says what changed, and one click brings it in. Your keys, your lists, your research vault and any file your agent changed stay as they are; when a version changes the shape of a file you own, the desk keeps a copy first and says so.</dd></div>
+          <div><dt>Check</dt><dd>One line prints what your agent needs to help you, and nothing private.</dd></div>
+          <div><dt>Go back</dt><dd>The last three versions are kept. One line restores any of them.</dd></div>
+          <div><dt>Uninstall</dt><dd>One double-click. Your lists are saved to the Desktop first, and nothing is left behind.</dd></div>
+        </dl>
+        <a class="more" href="docs/install/">How each of the four works<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
+      <div class="releases">
+        <span class="tl">Releases</span>
+        <ol class="rel" id="rel"><li><span class="d">2026-09-16.34<span class="cur">current</span></span><span class="t">The repository is github.com/shubhamsborkar/greeksoup now, and every address in the desk, the installers, the docs, the landing page and the README</span></li><li><span class="d">2026-09-16.33</span><span class="t">The repository reads like the project it is</span></li><li><span class="d">2026-09-15.32</span><span class="t">Two guards on every request, so a web page you visit cannot read your book or post to Settings</span></li><li><span class="d">2026-09-15.31</span><span class="t">The apps card under Your AI reads the computer itself, so Claude Code, Codex or Gemini CLI show as found before any plugin is in, and Use it for Ask</span></li><li><span class="d">2026-09-15.30</span><span class="t">An AI you already pay for, without a key</span></li></ol>
+        <p class="tiny" id="relnote">Read from <a href="https://github.com/shubhamsborkar/greeksoup/blob/main/VERSION">VERSION</a> on GitHub, the same file your desk reads when it checks for an update. <a href="docs/project/releases/">Every release</a>.</p>
       </div>
-    </div>
-    <div class="card releases lift">
-      <p class="eyebrow">releases.</p>
-      <ol class="rel" id="rel"><li><span class="d">2026-09-16.34<span class="cur">current</span></span><span class="t">The repository is github.com/shubhamsborkar/greeksoup now, and every address in the desk, the installers, the docs, the landing page and the README</span></li><li><span class="d">2026-09-16.33</span><span class="t">The repository reads like the project it is</span></li><li><span class="d">2026-09-15.32</span><span class="t">Two guards on every request, so a web page you visit cannot read your book or post to Settings</span></li><li><span class="d">2026-09-15.31</span><span class="t">The apps card under Your AI reads the computer itself, so Claude Code, Codex or Gemini CLI show as found before any plugin is in, and Use it for Ask</span></li><li><span class="d">2026-09-15.30</span><span class="t">An AI you already pay for, without a key</span></li><li><span class="d">2026-09-15.29</span><span class="t">Settings is three short tabs instead of one long page</span></li></ol>
-      <p class="tiny" id="relnote">Read from <a href="https://github.com/shubhamsborkar/greeksoup/blob/main/VERSION">VERSION</a> on GitHub, the same file your desk reads when it checks for an update.</p>
     </div>
   </div>
 </section>
 
-<!-- what it talks to -->
-<section class="loud" id="talks">
+<!-- 6 · what it talks to, and what can go wrong -->
+<section class="sec" id="talks">
   <div class="wrap">
-    <div class="loud-grid">
+    <div class="sec-head">
+      <p class="label">05 · Security</p>
+      <h2>It answers only to your computer.</h2>
+      <p class="sub">The desk runs on your computer and answers only to your computer. It runs no agent of its own, executes nothing a page or a feed says, and takes instructions from nobody but you. So the safe place for it is the computer in front of you, and the pages behind this section say so in full, limits included.</p>
+    </div>
+    <div class="pair pair-top">
       <div>
-        <p class="eyebrow">what it talks to.</p>
-        <h2>Your broker, the public record, and GitHub once a day.</h2>
-        <p class="loud-p">The desk runs on your computer and answers only to your computer. This is the whole list of places it sends a request. No telemetry, no analytics, no account, and nothing about you or your book goes anywhere.</p>
-        <a class="btn btn-paper" href="docs/install/what-it-talks-to/">The full page<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <span class="tl">Where it sends a request, the whole list</span>
+        <dl class="dl">
+          <div><dt>Your broker</dt><dd>Only if you connected one, with your keys, read-only.</dd></div>
+          <div><dt>The public record</dt><dd>SEC EDGAR, FINRA, CBOE, FRED, the Senate and the House, Yahoo Finance, Trading Economics, the home market's own sources.</dd></div>
+          <div><dt>Your data provider</dt><dd>Only if you gave it a key.</dd></div>
+          <div><dt>Your AI</dt><dd>Only if you chose one: an app on your computer under its own login, a key, or a local model. What goes is your question and the screen you asked from, when you press Enter.</dd></div>
+          <div><dt>GitHub, and greeksoup.ai</dt><dd>One small request a day for the version file, with no identifier; the update itself when you click; the plugin list when you open that tab.</dd></div>
+          <div><dt>Google Fonts</dt><dd>The desk's typefaces.</dd></div>
+        </dl>
+        <p class="end">That is the list. Nothing else. No telemetry, no analytics, no account.</p>
       </div>
-      <div class="cells cells-2 loud-cells">
-        <div class="cell"><span class="tl">Your broker</span><p class="cell-p">Only if you connected one, with your keys, read-only.</p></div>
-        <div class="cell"><span class="tl">The public record</span><p class="cell-p">SEC EDGAR, FINRA, CBOE, FRED, the Senate and the House, Yahoo Finance, Trading Economics, the home market's own sources.</p></div>
-        <div class="cell"><span class="tl">Your data provider</span><p class="cell-p">Only if you gave it a key.</p></div>
-        <div class="cell"><span class="tl">Your AI</span><p class="cell-p">Only if you chose one: an app on your computer under its own login, a key, or a local model. What goes is your question and the screen you asked from, when you press Enter.</p></div>
-        <div class="cell"><span class="tl">GitHub, and greeksoup.ai</span><p class="cell-p">One small request a day for the version file, with no identifier, the update itself when you click, and the plugin list when you open that tab.</p></div>
-        <div class="cell"><span class="tl">Google Fonts</span><p class="cell-p">The desk's typefaces.</p></div>
+      <div>
+        <span class="tl">What can go wrong, and what the desk does</span>
+        <dl class="dl">
+          <div><dt>A web page you visit</dt><dd>Every request must name your computer as its host, and every request from a browser must come from the desk's own pages. So a page elsewhere cannot read your book or post to Settings; a program you run on your computer can, because it is you.</dd></div>
+          <div><dt>A wrong number</dt><dd>Every broker file uses that broker's read endpoints and nothing else. There is no order path. A wrong number costs you a wrong read, never a trade.</dd></div>
+          <div><dt>Your keys</dt><dd>One file in the desk folder, written by Settings. The update never touches it, the backup never carries it, and the page your AI reads tells the AI not to read it.</dd></div>
+          <div><dt>The honest limits</dt><dd>Anyone at your unlocked computer can read the desk. A plugin runs with the desk's own reach, so read what you install. The AI you chose sees what you ask about; a local model keeps it home.</dd></div>
+        </dl>
+        <p class="end"><a href="docs/project/security/">Security, the whole page<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a> <a href="docs/install/your-computer-or-a-server/">Your computer or a server<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
       </div>
     </div>
-    <p class="loud-end">That is the list. Nothing else.</p>
   </div>
 </section>
 
-<!-- security -->
-<section class="sec" id="safe">
+<!-- 7 · faq -->
+<section class="sec" id="faq">
   <div class="wrap">
-    <p class="eyebrow">what can go wrong.</p>
-    <h2>It answers only to your computer, and here is exactly what that means.</h2>
-    <p class="sub">Other local agent projects taught readers to fear the laptop and rent a server. The desk is a different kind of program: it runs no agent of its own, executes nothing a page or a feed says, and takes instructions from nobody but you. So the safe place for it is the computer in front of you, and the page behind this section says so in full, limits included.</p>
-    <div class="cells cells-4">
-      <div class="cell"><span class="tl">Two guards, no login</span><p class="cell-p">Every request must name your computer as its host, and every request from a browser must come from the desk's own pages. A web page you visit cannot read your book or post to Settings; a program you run on your computer can, because it is you.</p></div>
-      <div class="cell"><span class="tl">No order path</span><p class="cell-p">Every broker file uses that broker's read endpoints and nothing else. A wrong number costs you a wrong read, never a trade.</p></div>
-      <div class="cell"><span class="tl">Your keys, one file</span><p class="cell-p">In the desk folder, written by Settings. The update never touches it, the backup never carries it, and the page your AI reads tells the AI not to read it.</p></div>
-      <div class="cell"><span class="tl">The honest limits</span><p class="cell-p">Anyone at your unlocked computer can read the desk. A plugin runs with the desk's own reach, so read what you install. The AI you chose sees what you ask about; a local model keeps it home.</p></div>
-    </div>
-    <p class="caption center"><a href="docs/project/security/">Security, the whole page</a> · <a href="docs/install/your-computer-or-a-server/">Your computer or a server</a></p>
-  </div>
-</section>
-
-<!-- faq -->
-<section class="band band-soft" id="faq">
-  <div class="wrap narrow">
-    <p class="eyebrow center">faq.</p>
-    <h2 class="center">Questions readers ask.</h2>
-    <div class="card acc">
-      <details><summary>Does it cost anything?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>No. GreekSoup is open source under the MIT licence. You bring your own keys, and without any key at all thirteen of the fifteen screens still run on the free public record.</p></details><details><summary>Does it place orders?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>No. This copy reads your broker account and places no orders. If you extend it to trade, that is your own build, under your broker's and your regulator's rules.</p></details><details><summary>Which brokers connect?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Alpaca, ICICI Direct, Interactive Brokers, Tradier, Trading 212 and Zerodha, read-only, as the desk comes. Any other broker that lets a program read your account is one file an AI agent writes to the written contract inside the folder.</p></details><details><summary>Where do my keys live?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>In a file inside the GreekSoup folder on your own computer. The Settings screen takes each key and keeps it there. The desk talks to your broker, to the public sources it reads, and once a day to GitHub to check for a newer version.</p></details><details><summary>Which AI can it use?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Any. An app you already pay for on this computer, Claude Code, Codex or Gemini CLI, answers with no key at all; fourteen providers are preset for a key, local models among them; and any AI agent on your computer can read the desk through a page made for it. Each one answers about your book and not about a stranger's.</p></details><details><summary>Does my book go to the AI?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>When you ask, yes. The Ask box sends your question with the numbers on the screen you are on, and on Desk · Home those are your holdings. It goes to the one place you chose and nowhere else; a model running on your computer keeps it there. Nothing is sent until you press Enter.</p></details><details><summary>Can a web page I visit read my desk?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>No. Every request must name your computer as its host and, from a browser, must come from the desk's own pages; anything else is refused before it is read. <a href="docs/project/security/">Security</a> explains both guards.</p></details><details><summary>Is a server safer than my laptop?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>No, the other way round. The desk's safety rests on nothing else being able to reach it, which holds on a laptop and turns around on a machine with a front door on the internet. <a href="docs/install/your-computer-or-a-server/">Your computer or a server</a>.</p></details><details><summary>The lists on the screens are someone else's. Can I change them?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Every list is yours. Funds, Capitol, Macro, Commodities and the options tape carry a Your list button: add, edit, remove with Undo, bring the starters back. Chain is yours to draft and build.</p></details><details><summary>Which markets?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>The market follows the broker. India and the United States ship today, and another market is one short file to a written contract. Global takes any symbol from any exchange, and a reader with no broker names a home market in Settings.</p></details><details><summary>What does it run on?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Mac, Windows and Linux. It needs Python 3.10 or newer, which the one-line install finds or installs for you, and a browser. The desk opens at an address only your own computer can reach.</p></details><details><summary>Does it send anything anywhere?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Your broker, the public sources, your data provider and your AI if you connected them, and GitHub once a day to check for a newer version. No telemetry, no analytics, no account. <a href="docs/install/what-it-talks-to/">The whole list</a>.</p></details><details><summary>What happens to my files when it updates?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Nothing is lost. Your keys, your lists, your research vault and any file your agent changed stay as they are, and when a version changes the shape of a file you own the desk keeps a copy first and says so. The last three versions are kept, and one line goes back to any of them.</p></details><details><summary>How do I change it?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Open the folder in an AI agent, Claude Code, Codex, Kimi Code, Grok Build or whichever you use, and describe what you want. That is how the desk was built, and the README inside the folder is written for the agent as much as for you.</p></details>
+    <div class="faq-grid">
+      <div class="sec-head">
+        <p class="label">06 · Questions</p>
+        <h2>What readers ask.</h2>
+      </div>
+      <div class="acc">
+        <details><summary>Does it cost anything?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>No. GreekSoup is open source under the MIT licence. You bring your own keys, and without any key at all thirteen of the fifteen screens still run on the free public record.</p></details><details><summary>Does it place orders?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>No. This copy reads your broker account and places no orders. If you extend it to trade, that is your own build, under your broker's and your regulator's rules.</p></details><details><summary>Which brokers connect?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Alpaca, ICICI Direct, Interactive Brokers, Tradier, Trading 212 and Zerodha, read-only, as the desk comes. Any other broker that lets a program read your account is one file an AI agent writes to the written contract inside the folder.</p></details><details><summary>Where do my keys live?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>In a file inside the GreekSoup folder on your own computer. The Settings screen takes each key and keeps it there. The desk talks to your broker, to the public sources it reads, and once a day to GitHub to check for a newer version.</p></details><details><summary>Which AI can it use?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Any. An app you already pay for on this computer, Claude Code, Codex or Gemini CLI, answers with no key at all; fourteen providers are preset for a key, local models among them; and any AI agent on your computer can read the desk through a page made for it. Each one answers about your book and not about a stranger's.</p></details><details><summary>Does my book go to the AI?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>When you ask, yes. The Ask box sends your question with the numbers on the screen you are on, and on Desk · Home those are your holdings. It goes to the one place you chose and nowhere else; a model running on your computer keeps it there. Nothing is sent until you press Enter.</p></details><details><summary>Can a web page I visit read my desk?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>No. Every request must name your computer as its host and, from a browser, must come from the desk's own pages; anything else is refused before it is read. <a href="docs/project/security/">Security</a> explains both guards.</p></details><details><summary>Is a server safer than my laptop?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>No, the other way round. The desk's safety rests on nothing else being able to reach it, which holds on a laptop and turns around on a machine with a front door on the internet. <a href="docs/install/your-computer-or-a-server/">Your computer or a server</a>.</p></details><details><summary>The lists on the screens are someone else's. Can I change them?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Every list is yours. Funds, Capitol, Macro, Commodities and the options tape carry a Your list button: add, edit, remove with Undo, bring the starters back. Chain is yours to draft and build.</p></details><details><summary>Which markets?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>The market follows the broker. India and the United States ship today, and another market is one short file to a written contract. Global takes any symbol from any exchange, and a reader with no broker names a home market in Settings.</p></details><details><summary>What does it run on?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Mac, Windows and Linux. It needs Python 3.10 or newer, which the one-line install finds or installs for you, and a browser. The desk opens at an address only your own computer can reach.</p></details><details><summary>Does it send anything anywhere?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Your broker, the public sources, your data provider and your AI if you connected them, and GitHub once a day to check for a newer version. No telemetry, no analytics, no account. <a href="docs/install/what-it-talks-to/">The whole list</a>.</p></details><details><summary>What happens to my files when it updates?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Nothing is lost. Your keys, your lists, your research vault and any file your agent changed stay as they are, and when a version changes the shape of a file you own the desk keeps a copy first and says so. The last three versions are kept, and one line goes back to any of them.</p></details><details><summary>How do I change it?<span class="plus"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></summary><p>Open the folder in an AI agent, Claude Code, Codex, Kimi Code, Grok Build or whichever you use, and describe what you want. That is how the desk was built, and the README inside the folder is written for the agent as much as for you.</p></details>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- from shikshan nivesh -->
-<section class="band band-warm colophon" id="about">
-  <div class="wrap narrow center">
-    <p class="eyebrow center">from shikshan nivesh.</p>
-    <h2 class="center">For analysts who refuse to settle.</h2>
-    <div class="marks-row" aria-hidden="true"><span class="gs-lock"><svg class="gsm" viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l16 22-16 22" stroke="#ED5A24" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><rect x="48" y="66" width="12" height="20"/><rect x="66" y="50" width="12" height="36"/><rect x="84" y="34" width="12" height="52"/></svg><span>greeksoup<b>/</b></span></span><span class="marks-by mono">a product of</span></div>
-    <a class="sn-mark" href="https://shikshannivesh.com" aria-label="Shikshan Nivesh"><svg class="snm" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 10l4 6-4 6" stroke="#ED5A24" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><rect x="13" y="9" width="10" height="3"/><rect x="13" y="14" width="15" height="3"/><rect x="13" y="19" width="12" height="3"/></svg><span>shikshan nivesh<b>/</b></span></a>
-    <p class="sub center">GreekSoup is a Shikshan Nivesh product: the research desk we use every day, built with Claude Code from plain-English descriptions and published so that you can run the same desk on your own computer, with your own keys, and change it by describing what you want. The edition that walks through every screen and the build is on Alpha with AI, our newsletter.</p>
-    <a class="card edition lift" href="https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity">
-      <div class="ed-pub"><span class="ed-name">Alpha with AI</span><span class="ed-date mono">3 September 2026</span></div>
-      <h3>How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable</h3>
-      <p class="ed-dek">A mini Bloomberg in Obsidian, built with Claude Fable 5.1 for three portfolios in two markets.</p>
-      <span class="btn btn-primary">Read the edition<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-    </a>
-    <a class="link-arrow mono ed-more" href="https://ai.shikshannivesh.com">Alpha with AI on Substack<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-    <p class="tiny ed-foot">Open source under the MIT licence · Nothing on this page needs an account</p>
-  </div>
+<!-- 8 · colophon -->
+<section class="sec colophon" id="about">
+  <div class="wrap"><div class="colophon-grid">
+    <div>
+      <p class="label">From Shikshan Nivesh</p>
+      <a class="sn-mark" href="https://shikshannivesh.com" aria-label="Shikshan Nivesh"><svg class="snm" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 10l4 6-4 6" stroke="#ED5A24" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><rect x="13" y="9" width="10" height="3"/><rect x="13" y="14" width="15" height="3"/><rect x="13" y="19" width="12" height="3"/></svg><span>shikshan nivesh<b>/</b></span></a>
+      <p class="sub">GreekSoup is the research desk we use every day, built with Claude Code from plain-English descriptions and published so that you can run the same desk on your own computer, with your own keys, and change it by describing what you want.</p>
+    </div>
+    <div class="edition">
+      <span class="tl">The edition that walks through every screen</span>
+      <a class="ed" href="https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity">
+        <span class="ed-pub mono">Alpha with AI · 3 September 2026</span>
+        <span class="ed-title">How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable</span>
+        <span class="ed-go">Read the edition<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="more" href="https://ai.shikshannivesh.com">Alpha with AI on Substack<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+  </div></div>
 </section>
 
 </main>
 
 <footer class="foot">
-  <div class="wrap"><p class="giant" aria-hidden="true">The one-person<br>equity research desk</p></div>
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <a class="wordmark" href="#top"><svg class="gsm" viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l16 22-16 22" stroke="#ED5A24" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><rect x="48" y="66" width="12" height="20"/><rect x="66" y="50" width="12" height="36"/><rect x="84" y="34" width="12" height="52"/></svg><span>greeksoup<b>/</b></span></a>
-      <p>The one-person equity research desk.</p>
-      <p class="tiny">A Shikshan Nivesh product. Open source under the MIT licence.</p>
+      <p>The one-person equity research desk. A Shikshan Nivesh product, open source under the MIT licence.</p>
     </div>
-    <div><span class="foot-h mono">Desk</span><a href="#screens">Screens</a><a href="#see">See it</a><a href="#works">Works with</a><a href="#install">Install</a><a href="#talks">What it talks to</a><a href="#safe">Security</a><a href="#faq">FAQ</a></div>
+    <div><span class="foot-h mono">Desk</span><a href="#screens">Screens</a><a href="#drawn">Data</a><a href="#keys">Keys</a><a href="#install">Install</a><a href="#talks">Security</a><a href="#faq">Questions</a></div>
     <div><span class="foot-h mono">Docs</span><a href="docs/get-started/">Get started</a><a href="docs/install/">Install</a><a href="docs/setup/">Setup</a><a href="docs/brokers/">Brokers</a><a href="docs/markets/">Markets</a><a href="docs/get-started/faq/">FAQ</a></div>
-    <div><span class="foot-h mono">Shikshan Nivesh</span><a href="https://shikshannivesh.com">shikshannivesh.com</a><a href="https://ai.shikshannivesh.com">Alpha with AI, the newsletter</a><a href="https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity">The edition</a></div>
     <div><span class="foot-h mono">Project</span><a href="https://github.com/shubhamsborkar/greeksoup">GitHub</a><a href="docs/project/releases/">Releases</a><a href="docs/project/contributing/">Contributing</a><a href="docs/project/security/">Security</a><a href="https://github.com/shubhamsborkar/greeksoup/issues/new/choose">Issues</a><a href="https://github.com/shubhamsborkar/greeksoup/blob/main/LICENSE">MIT licence</a></div>
+    <div><span class="foot-h mono">Shikshan Nivesh</span><a href="https://shikshannivesh.com">shikshannivesh.com</a><a href="https://ai.shikshannivesh.com">Alpha with AI</a><a href="https://www.linkedin.com/company/greeksoup">GreekSoup on LinkedIn</a><a href="https://www.linkedin.com/company/shikshan-nivesh">Shikshan Nivesh on LinkedIn</a><a href="https://x.com/ShikshanNivesh">@ShikshanNivesh on X</a><a href="https://substack.com/@shikshannivesh">Substack</a></div>
   </div>
   <div class="wrap">
     <p class="disc">This is an investment research tool, published for educational purposes by Shikshan Nivesh. Nothing on this page, in the repository, or on the desk itself is investment, legal or tax advice, a recommendation to buy, sell or hold any security, or tailored to anyone's situation. The author is not a registered investment adviser or research analyst. Companies visible on the screens are examples of what a screen displays and carry no view. The desk reads broker accounts, public filings, market data feeds and news sources; every number on it can be wrong, late or misread, because feeds change, filings get restated and code has bugs, so verify against the primary source before acting on anything. This copy places no orders. If you extend it to trade, you do so entirely at your own risk and under your own broker's and regulator's rules. Data from third-party providers is subject to their terms; a paid feed's data may not be redistributed. AI coding tools, including Claude Code, wrote this software. Investing carries risk, including the loss of capital. Do your own research and consult a qualified professional in your jurisdiction before making investment decisions.</p>
-    <p class="tiny copyright">© 2026 Shikshan Nivesh. A Shikshan Nivesh product, open source under the MIT licence.</p>
+    <p class="tiny copyright">© 2026 Shikshan Nivesh. Open source under the MIT licence.</p>
   </div>
 </footer>
 
-<script src="assets/site.js?v=202609160041" defer></script>
+<script src="assets/site.js?v=202609160100" defer></script>
 </body>
 </html>
