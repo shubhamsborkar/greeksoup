@@ -21,44 +21,9 @@ jobs:
       - run: python -m pytest tests -q
       - run: python doctor.py --offline
 
-  # The desk has no Windows PC behind it, so a fresh Windows machine runs the
-  # one-line install on every change instead. It installs from the published main
-  # branch, which is what a reader actually gets.
-  windows-install:
+  windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install the desk the way a reader does
-        shell: pwsh
-        env:
-          GREEKSOUP_HOME: ${{ runner.temp }}\GreekSoupTest
-          GREEKSOUP_PORT: "8799"
-          GREEKSOUP_NO_SERVICE: "1"
-        run: .\install.ps1
-      - name: Every screen answers, with no keys at all
-        shell: pwsh
-        run: |
-          $fail = 0
-          foreach ($p in @("/", "/commods", "/funds", "/flow", "/short", "/capitol", "/macro", "/chain", "/book", "/risk", "/settings", "/api/ping")) {
-            try {
-              $r = Invoke-WebRequest -Uri "http://localhost:8799$p" -UseBasicParsing -TimeoutSec 60
-              if ($r.StatusCode -ne 200) { Write-Host "$p -> $($r.StatusCode)"; $fail = 1 } else { Write-Host "$p -> 200" }
-            } catch { Write-Host "$p -> $($_.Exception.Message)"; $fail = 1 }
-          }
-          if ($fail) { throw "a screen did not answer on Windows" }
-      - name: The check runs there too
-        shell: pwsh
-        working-directory: ${{ runner.temp }}\GreekSoupTest
-        run: .\.venv\Scripts\python.exe doctor.py --offline
-      - name: Uninstall removes only this copy
-        shell: pwsh
-        working-directory: ${{ runner.temp }}\GreekSoupTest
-        run: |
-          $env:GREEKSOUP_DELETE = "n"
-          cmd /c "`"Uninstall Desk.bat`" < NUL"
-          Start-Sleep -Seconds 3
-          try {
-            Invoke-WebRequest -Uri "http://localhost:8799/api/ping" -UseBasicParsing -TimeoutSec 5 | Out-Null
-            throw "the desk is still answering after the uninstall"
-          } catch [System.Net.WebException] { Write-Host "the desk is stopped" }
-            catch { if ($_.Exception.Message -like "*still answering*") { throw } else { Write-Host "the desk is stopped" } }
+      - shell: pwsh
+        run: .\scripts\windows_smoke.ps1
