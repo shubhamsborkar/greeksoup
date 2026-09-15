@@ -20,6 +20,7 @@ main{max-width:1420px;margin:0 auto;padding:18px 22px}
 .tools input{flex:1 1 140px;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:6px 10px;font-size:12px;font-family:inherit;min-width:0}
 .chip{font-size:10.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink2);cursor:pointer;user-select:none;white-space:nowrap}
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+select.chip{font-family:inherit;padding:3px 6px}
 .chip.sym{font-family:Menlo,monospace;font-weight:700}
 .list{max-height:calc(100vh - 290px);overflow:auto}
 .nc{display:block;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;color:inherit;text-decoration:none}
@@ -86,14 +87,16 @@ main{max-width:1420px;margin:0 auto;padding:18px 22px}
   <div class="right"><span id="asof"></span></div>
 </header>
 <main>
-  <div class="sub">The research you write, kept as plain text files in the desk's own <b>data/notes</b> folder, one file per note. A note names the listings it is about and the project it belongs to, and links to other notes with <b>[[double brackets]]</b>, so a company page shows every note about it, a project shows every name and note inside it, and one note leads to the next. Open the folder in Obsidian or any editor and the same notes are there; your AI agent reads and writes them too.</div>
+  <div class="sub">The research you write, kept as plain text files in the desk's own <b>data/notes</b> folder, one file per note. A note says what it is about (a listing, a commodity, a sector, the macro picture, or nothing in particular), the quarter it is researching, the project it belongs to, and links to other notes with <b>[[double brackets]]</b>, so a company page shows every note about it, a project shows every name and note inside it, and one note leads to the next. Open the folder in Obsidian or any editor and the same notes are there; your AI agent reads and writes them too. Nothing is saved here unless you save it.</div>
   <div class="lay">
     <div class="panel">
       <div class="panel-h"><h2>Notes</h2><button class="chip on" id="newbtn">+ New note</button></div>
       <div class="tools">
         <input id="q" placeholder="search notes…" autocomplete="off">
-        <span class="chips" id="typechips"></span>
+        <select id="period" class="chip" title="the quarter or year a note is researching"><option value="">any period</option></select>
       </div>
+      <div class="tools"><span class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">About</span><span class="chips" id="kindchips"></span></div>
+      <div class="tools"><span class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Type</span><span class="chips" id="typechips"></span></div>
       <div class="tools" id="ctx" style="display:none"></div>
       <div class="list" id="list"><div class="empty">Loading…</div></div>
       <div class="stats" id="stats"></div>
@@ -103,9 +106,12 @@ main{max-width:1420px;margin:0 auto;padding:18px 22px}
       <div id="view" style="display:none"></div>
       <div class="ed" id="ed" style="display:none">
         <div class="row"><input class="title" id="e_title" placeholder="Title" autocomplete="off">
-          <select id="e_type"></select>
+          <select id="e_type" title="what sort of note"></select>
           <label class="chip" style="cursor:pointer"><input type="checkbox" id="e_pin" style="vertical-align:-2px;margin-right:5px">pinned</label></div>
-        <div class="row"><span class="lbl">Names</span><span class="chips" id="e_syms"></span>
+        <div class="row"><span class="lbl">About</span><select id="e_kind" title="what the note is about"></select>
+          <input id="e_about" placeholder="which commodity" style="width:220px;display:none" autocomplete="off" list="aboutlist"><datalist id="aboutlist"></datalist>
+          <span class="lbl" style="margin-left:8px">Period</span><input id="e_period" list="periodlist" placeholder="Q2 FY26" style="width:110px" autocomplete="off"><datalist id="periodlist"></datalist></div>
+        <div class="row" id="e_symrow"><span class="lbl">Names</span><span class="chips" id="e_syms"></span>
           <span class="symwrap"><input id="e_symin" placeholder="company name or symbol" autocomplete="off" style="width:220px"><div class="sugg" id="sugg"></div></span></div>
         <div class="row"><span class="lbl">Project</span><input id="e_project" list="projlist" placeholder="a project note's title, or leave empty" style="width:280px" autocomplete="off"><datalist id="projlist"></datalist>
           <span class="lbl" style="margin-left:8px">Tags</span><input id="e_tags" placeholder="comma, separated" style="width:200px" autocomplete="off"></div>
@@ -122,8 +128,12 @@ main{max-width:1420px;margin:0 auto;padding:18px 22px}
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const $=id=>document.getElementById(id);
 const P=new URLSearchParams(location.search);
-let TYPES=[], NOTES=[], CUR=null, F={type:"", symbol:P.get("symbol")||"", project:P.get("project")||"", q:""}, EDIT={syms:[]};
-const TYPE_LABEL={general:"Note",news:"News",insight:"Insight",concall:"Call",meeting:"Meeting",risk:"Risk",project:"Project"};
+let TYPES=[], KINDS=[], FACETS={periods:[],abouts:[]}, NOTES=[], CUR=null, EDIT={syms:[]};
+let F={type:"", kind:P.get("kind")||"", period:P.get("period")||"", about:P.get("about")||"", symbol:P.get("symbol")||"", project:P.get("project")||"", q:""};
+const TYPE_LABEL={general:"Note",news:"News",insight:"Insight",concall:"Call",meeting:"Meeting",risk:"Risk",answer:"AI answer",project:"Project"};
+const KIND_LABEL={stock:"Stock",commodity:"Commodity",sector:"Sector",macro:"Macro",general:"General"};
+const ABOUT_HINT={commodity:"which commodity, e.g. rubber",sector:"which sector, e.g. Gulf delivery",macro:"which theme, e.g. US rates",general:"a subject, or leave empty"};
+const subj=n=>n.kind==="stock"?"":(n.about?`${KIND_LABEL[n.kind]||n.kind} · ${n.about}`:(KIND_LABEL[n.kind]||n.kind));
 
 /* ---- a small Markdown renderer: headings, lists, bold, italics, code, links, [[notes]], $SYMBOLS ---- */
 function md(src){
@@ -152,27 +162,35 @@ async function post(url,body){ const r=await fetch(url,{method:"POST",headers:{"
 function say(t,k){ const e=$("e_msg"); e.textContent=t; e.className="msg "+(k||""); }
 
 async function load(){
-  const qs=new URLSearchParams(); if(F.type)qs.set("type",F.type); if(F.symbol)qs.set("symbol",F.symbol); if(F.project)qs.set("project",F.project); if(F.q)qs.set("q",F.q);
+  const qs=new URLSearchParams(); for(const k of ["type","kind","period","about","symbol","project","q"]) if(F[k]) qs.set(k,F[k]);
   const r=await fetch("/api/notes?"+qs); const d=await r.json();
-  TYPES=d.types||[]; NOTES=d.notes||[];
+  TYPES=d.types||[]; KINDS=d.kinds||[]; FACETS=d.facets||FACETS; NOTES=d.notes||[];
   $("asof").textContent="data/notes";
   $("typechips").innerHTML=`<button class="chip${F.type?"":" on"}" data-t="">all</button>`+TYPES.map(t=>`<button class="chip${F.type===t?" on":""}" data-t="${t}">${TYPE_LABEL[t]||t}</button>`).join("");
   $("typechips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F.type=b.dataset.t;load();});
-  const ctx=[]; if(F.symbol)ctx.push(`<span class="chip on sym" data-k="symbol">$${esc(F.symbol)} <span class="x">✕</span></span>`); if(F.project)ctx.push(`<span class="chip on" data-k="project">${esc(F.project)} <span class="x">✕</span></span>`);
+  $("kindchips").innerHTML=`<button class="chip${F.kind?"":" on"}" data-t="">all</button>`+KINDS.map(t=>`<button class="chip${F.kind===t?" on":""}" data-t="${t}">${KIND_LABEL[t]||t}</button>`).join("");
+  $("kindchips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F.kind=b.dataset.t;F.about="";load();});
+  const ps=FACETS.periods||[]; if(F.period&&!ps.includes(F.period)) ps.unshift(F.period);
+  $("period").innerHTML=`<option value="">any period</option>`+ps.map(p=>`<option value="${esc(p)}"${F.period===p?" selected":""}>${esc(p)}</option>`).join("");
+  $("period").className="chip"+(F.period?" on":"");
+  $("periodlist").innerHTML=ps.map(p=>`<option value="${esc(p)}">`).join("");
+  const ctx=[]; if(F.symbol)ctx.push(`<span class="chip on sym" data-k="symbol">$${esc(F.symbol)} <span class="x">✕</span></span>`); if(F.about)ctx.push(`<span class="chip on" data-k="about">${esc(F.about)} <span class="x">✕</span></span>`); if(F.project)ctx.push(`<span class="chip on" data-k="project">${esc(F.project)} <span class="x">✕</span></span>`);
   $("ctx").style.display=ctx.length?"flex":"none"; $("ctx").innerHTML=ctx.length?`<span class="lbl" style="font-size:10.5px;color:var(--muted)">showing</span>`+ctx.join(""):"";
   $("ctx").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F[b.dataset.k]="";load();});
-  if(!NOTES.length){ $("list").innerHTML=`<div class="empty">${F.symbol||F.project||F.q||F.type?"No notes match.":"No notes yet. The first one is one click away: <b>+ New note</b>."}</div>`; }
+  if(!NOTES.length){ $("list").innerHTML=`<div class="empty">${F.symbol||F.project||F.q||F.type||F.kind||F.period||F.about?"No notes match.":"No notes yet. The first one is one click away: <b>+ New note</b>."}</div>`; }
   else $("list").innerHTML=NOTES.map(n=>`<a class="nc${CUR&&CUR.id===n.id?" on":""}" href="/notes?id=${encodeURIComponent(n.id)}" data-id="${esc(n.id)}">
       <div class="t"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span><span>${esc(n.title)}</span>${n.pinned?'<span class="pin">pinned</span>':""}${n.example?'<span class="pin">example</span>':""}</div>
-      <div class="m"><span>${esc(n.updated)}</span>${n.symbols.slice(0,4).map(s=>`<span class="sy">$${esc(s)}</span>`).join("")}${n.project?`<span>in ${esc(n.project)}</span>`:""}</div>
+      <div class="m"><span>${esc(n.updated)}</span>${n.period?`<span style="color:var(--ink2)">${esc(n.period)}</span>`:""}${subj(n)?`<span>${esc(subj(n))}</span>`:""}${n.symbols.slice(0,4).map(s=>`<span class="sy">$${esc(s)}</span>`).join("")}${n.project?`<span>in ${esc(n.project)}</span>`:""}</div>
       <div class="sn">${esc(n.snippet||"")}</div></a>`).join("");
   $("list").querySelectorAll(".nc").forEach(a=>a.onclick=e=>{e.preventDefault(); open(a.dataset.id);});
   try{ const g=await (await fetch("/api/notes/graph")).json(); const c=g.counts||{};
     $("stats").innerHTML=`<span><b>${c.notes||0}</b> notes</span><span><b>${c.projects||0}</b> projects</span><span><b>${c.symbols||0}</b> names</span>`;
     $("projlist").innerHTML=(g.nodes||[]).filter(n=>n.kind==="project").map(n=>`<option value="${esc(n.label)}">`).join("");
+    $("aboutlist").innerHTML=(FACETS.abouts||[]).map(a=>`<option value="${esc(a.about)}">`).join("");
   }catch(e){}
 }
 $("q").addEventListener("input",()=>{clearTimeout(window._qt);window._qt=setTimeout(()=>{F.q=$("q").value.trim();load();},200);});
+$("period").addEventListener("change",()=>{F.period=$("period").value;load();});
 
 async function open(id){
   const r=await fetch("/api/notes/get?id="+encodeURIComponent(id)); const n=await r.json();
@@ -186,12 +204,14 @@ async function open(id){
   const related=g?(g.related_symbols||[]).filter(s=>!syms.includes(s)).slice(0,12):[];
   $("view").innerHTML=`<div class="view">
       <h1>${esc(n.title)}</h1>
-      <div class="meta"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span><span>updated ${esc(n.updated)}</span><span>created ${esc(n.created)}</span>${n.pinned?"<span>pinned</span>":""}${(n.tags||[]).map(t=>`<span>#${esc(t)}</span>`).join("")}<span class="mono" style="opacity:.7">${esc(n.file)}</span></div>
+      <div class="meta"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span>${subj(n)?`<span style="color:var(--ink2)">${esc(subj(n))}</span>`:""}${n.period?`<span style="color:var(--ink2)">${esc(n.period)}</span>`:""}<span>updated ${esc(n.updated)}</span><span>created ${esc(n.created)}</span>${n.pinned?"<span>pinned</span>":""}${(n.tags||[]).map(t=>`<span>#${esc(t)}</span>`).join("")}<span class="mono" style="opacity:.7">${esc(n.file)}</span></div>
       <div class="md">${md(n.body||"")}</div>
       <div class="btns"><button class="pri" id="v_edit">Edit</button>${n.type==="project"?`<button id="v_proj">Every note in this project</button>`:""}</div>
     </div>
     <div class="conn">
       <div class="g"><div class="l">Names in this note</div>${syms.length?syms.map(s=>`<a class="sy" href="/t?symbol=${encodeURIComponent(s)}">$${esc(s)}</a>`).join(""):'<span style="font-size:11.5px;color:var(--muted)">none named</span>'}</div>
+      ${n.about?`<div class="g"><div class="l">${esc(KIND_LABEL[n.kind]||n.kind)}</div><a href="/notes?kind=${encodeURIComponent(n.kind)}&about=${encodeURIComponent(n.about)}">${esc(n.about)}</a></div>`:""}
+      ${n.period?`<div class="g"><div class="l">Period</div><a href="/notes?period=${encodeURIComponent(n.period)}">${esc(n.period)}</a></div>`:""}
       <div class="g"><div class="l">Project</div>${n.project?`<a href="/notes?project=${encodeURIComponent(n.project)}">${esc(n.project)}</a>`:'<span style="font-size:11.5px;color:var(--muted)">none</span>'}</div>
       <div class="g"><div class="l">Links out</div>${links.length?links.map(x=>`<a href="/notes?id=${encodeURIComponent(x.id)}" data-id="${esc(x.id)}" class="nl">${esc(x.title)}</a>`).join(""):'<span style="font-size:11.5px;color:var(--muted)">none</span>'}</div>
       <div class="g"><div class="l">Linked from</div>${backs.length?backs.map(x=>`<a href="/notes?id=${encodeURIComponent(x.id)}" data-id="${esc(x.id)}" class="nl">${esc(x.title)}</a>`).join(""):'<span style="font-size:11.5px;color:var(--muted)">none yet</span>'}</div>
@@ -205,17 +225,21 @@ async function open(id){
 function edit(n){
   CUR=n||null; $("blank").style.display="none"; $("view").style.display="none"; $("ed").style.display="flex";
   $("e_type").innerHTML=TYPES.map(t=>`<option value="${t}">${TYPE_LABEL[t]||t}</option>`).join("");
+  $("e_kind").innerHTML=KINDS.map(t=>`<option value="${t}">${KIND_LABEL[t]||t}</option>`).join("");
   $("e_title").value=n?n.title:""; $("e_type").value=n?n.type:(P.get("type")||"general"); $("e_pin").checked=!!(n&&n.pinned);
   EDIT.syms=n?[...n.symbols]:(P.get("symbol")?[P.get("symbol").toUpperCase()]:[]); drawSyms();
+  $("e_kind").value=n?n.kind:(P.get("kind")||(EDIT.syms.length?"stock":"general")); $("e_about").value=n?(n.about||""):(P.get("about")||""); $("e_period").value=n?(n.period||""):(P.get("period")||""); kindChanged();
   $("e_project").value=n?(n.project||""):(P.get("project")||""); $("e_tags").value=n?(n.tags||[]).join(", "):""; $("e_body").value=n?n.body:"";
   $("e_del").style.display=n?"inline-block":"none"; say("");
   ($("e_title").value?$("e_body"):$("e_title")).focus();
 }
+function kindChanged(){ const k=$("e_kind").value; $("e_about").style.display=k==="stock"?"none":"inline-block"; $("e_about").placeholder=ABOUT_HINT[k]||""; }
+$("e_kind").addEventListener("change",kindChanged);
 function drawSyms(){ $("e_syms").innerHTML=EDIT.syms.map(s=>`<span class="chip sym" data-s="${esc(s)}">$${esc(s)}<span class="x">✕</span></span>`).join(""); $("e_syms").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{EDIT.syms=EDIT.syms.filter(x=>x!==c.dataset.s);drawSyms();}); }
 $("newbtn").onclick=()=>edit(null);
 $("e_cancel").onclick=()=>{ if(CUR&&CUR.body!==undefined) open(CUR.id); else {$("ed").style.display="none";$("blank").style.display="block";} };
 $("e_save").onclick=async()=>{
-  const body={id:CUR?CUR.id:"", title:$("e_title").value.trim(), type:$("e_type").value, pinned:$("e_pin").checked, symbols:EDIT.syms, project:$("e_project").value.trim(), tags:$("e_tags").value.split(",").map(s=>s.trim()).filter(Boolean), body:$("e_body").value};
+  const body={id:CUR?CUR.id:"", title:$("e_title").value.trim(), kind:$("e_kind").value, type:$("e_type").value, pinned:$("e_pin").checked, symbols:EDIT.syms, about:$("e_about").value.trim(), period:$("e_period").value.trim(), project:$("e_project").value.trim(), tags:$("e_tags").value.split(",").map(s=>s.trim()).filter(Boolean), body:$("e_body").value};
   if(!body.title) return say("A title first.","err");
   const r=await post("/api/notes/save",body);
   if(!r.ok) return say(r.error||"could not save","err");

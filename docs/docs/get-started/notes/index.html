@@ -43,7 +43,16 @@
       <h1>Notes, the research you write</h1>
       <p class="lead">Fourteen screens read the record. Notes is where you write what you make of it, and the desk connects what you write to the names and the other notes it belongs with.</p>
       <h2 id="what-a-note-is">What a note is</h2>
-<p>One plain text file in <code>data/notes</code>, one per note. The top of the file is the card: a title, a type (a general note, news, an insight, a call, a meeting, a risk, or a project), the listings it is about, the project it belongs to, and tags. The rest is the note itself, in Markdown. Open the folder in Obsidian or any editor and the same files are there, and an AI agent on your computer reads and writes them like any other file.</p>
+<p>One plain text file in <code>data/notes</code>, one per note. The top of the file is the card, the rest is the note itself, in Markdown. Open the folder in Obsidian or any editor and the same files are there, and an AI agent on your computer reads and writes them like any other file.</p>
+<p>The card answers three questions about a note:</p>
+<ul>
+<li><strong>What is it about?</strong> A listing, a commodity, a sector, the macro picture, or nothing in particular. A note about a listing names the listing; a note about a commodity, a sector or a theme names that instead, so <code>Commodity · rubber</code> and <code>Sector · Gulf delivery</code> are subjects the desk groups on the way it groups on a name.</li>
+<li><strong>Which period?</strong> The quarter or year the note is researching, written the way you say it: <code>Q2 FY26</code>, <code>H1 FY26</code>, <code>FY26</code>, <code>Q3 2026</code>. The desk tidies the spacing and the case and otherwise keeps your words, and the Notes screen filters on it, so everything you wrote on one quarter is one click.</li>
+<li><strong>What sort of note?</strong> A general note, news, an insight, a call, a meeting, a risk, an answer your AI gave that you chose to keep, or a project.</li>
+</ul>
+<p>Then the project it belongs to, and tags. Every field on the card is a property Obsidian reads, so its own filters and Bases work on the same fields.</p>
+<h2 id="why-the-folder-stays-flat">Why the folder stays flat</h2>
+<p>The folder stays flat on purpose. Links between notes resolve by title, so a note can change what it is about by editing one line on its card rather than moving a file, and nothing that links to it breaks. Obsidian filters on the card's fields, so "every commodity note" or "everything on Q2 FY26" is one filter with no folder to keep tidy. And an AI agent needs to know exactly one place to look.</p>
 <h2 id="how-notes-connect">How notes connect</h2>
 <p>Three things link a note to the rest of your research, and you get all three without doing anything extra:</p>
 <ul>
@@ -53,11 +62,13 @@
 </ul>
 <p>The page of any listing then shows one more line: the other names connected to it through your notes. Two companies that share a project, or sit in the same note, are connected, and that is how a note about a supplier turns up when you are looking at the customer.</p>
 <h2 id="writing-one">Writing one</h2>
-<p>On the Notes screen, <strong>New note</strong>. Type the company's name in the Names box and pick the listing from the list; the desk fills in the symbol. Give it a project by typing a project note's title, or leave that empty. Write. Save, or press the save shortcut. From any listing's page, <strong>Note on AAPL</strong> opens a new note with the name already filled in.</p>
+<p>On the Notes screen, <strong>New note</strong>. Say what it is about; for a listing, type the company's name in the Names box and pick it from the list, and the desk fills in the symbol. Give it a period, a project by typing a project note's title, or leave those empty. Write. Save, or press the save shortcut. From any listing's page, <strong>Note on AAPL</strong> opens a new note with the name already filled in.</p>
+<h2 id="keeping-an-answer">Keeping an answer</h2>
+<p>Every answer in the Ask box has a <strong>Save as note</strong> button under it. Press it and a small card opens, already filled from the screen you asked on: the name on a listing's page, commodity on the Commodities screen, macro on Macro. Set the period, change the title if you like, Save. The question and the answer land in <code>data/notes</code> as a note of type AI answer, with the screen, the date and the model written at the foot, so you can see later where it came from. Nothing is saved unless you press the button; an answer you do not keep is gone when you close the box.</p>
 <h2 id="the-examples">The examples</h2>
-<p>A fresh desk arrives with one example project and two example notes, so the screen shows how the pieces fit. They are three files in <code>data/notes</code> whose names start with <code>example-</code>; delete them from the Notes screen or from the folder whenever you like.</p>
+<p>A fresh desk arrives with one example project and three example notes (a call, a risk, and a commodity note with a period), so the screen shows how the pieces fit. They are four files in <code>data/notes</code> whose names start with <code>example-</code>; delete them from the Notes screen or from the folder whenever you like.</p>
 <h2 id="your-ai-reads-them">Your AI reads them</h2>
-<p>The Ask box on a listing's page sends your notes about that listing along with the screen's numbers, so the answer knows what you already think. On the Notes screen it sends the notes themselves. Nothing leaves your computer except that one question to your own AI key.</p>
+<p>The Ask box on a listing's page sends your notes about that listing along with the screen's numbers, so the answer knows what you already think. On Commodities it sends your commodity notes, on Macro your macro notes, and on the Notes screen the notes themselves. Nothing leaves your computer except that one question to your own AI key.</p>
     </article>
     <nav class="pn">
       <a class="prev" href="../../get-started/the-screens/"><small>Previous</small><b>The fifteen screens</b></a>
@@ -65,11 +76,11 @@
     </nav>
     <footer class="foot">
       <span>GreekSoup: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. For analysts who refuse to settle.</span>
-      <span class="mono">version 2026-09-15.8 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/get-started/notes.md">edit this page</a></span>
+      <span class="mono">version 2026-09-15.9 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/get-started/notes.md">edit this page</a></span>
     </footer>
   </main>
   <aside class="rail">
-    <div class="rail-t">On this page</div><ul><li><a href="#what-a-note-is">What a note is</a></li><li><a href="#how-notes-connect">How notes connect</a></li><li><a href="#writing-one">Writing one</a></li><li><a href="#the-examples">The examples</a></li><li><a href="#your-ai-reads-them">Your AI reads them</a></li></ul>
+    <div class="rail-t">On this page</div><ul><li><a href="#what-a-note-is">What a note is</a></li><li><a href="#why-the-folder-stays-flat">Why the folder stays flat</a></li><li><a href="#how-notes-connect">How notes connect</a></li><li><a href="#writing-one">Writing one</a></li><li><a href="#keeping-an-answer">Keeping an answer</a></li><li><a href="#the-examples">The examples</a></li><li><a href="#your-ai-reads-them">Your AI reads them</a></li></ul>
   </aside>
 </div>
 <div class="modal" id="modal" hidden>

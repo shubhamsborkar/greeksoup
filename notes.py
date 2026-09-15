@@ -4,10 +4,13 @@ the links between them, the names they are about and the projects they belong to
 One file per note. The first lines are the note's card, the rest is the note:
 
     ---
-    title: Talabat, second quarter call
-    type: concall            general | news | insight | concall | meeting | risk | project
+    title: "Talabat, second quarter call"
+    kind: stock              stock | commodity | sector | macro | general   (what it is about)
+    type: concall            general | news | insight | concall | meeting | risk | answer | project
     symbols: [TALABAT.AE]    the listings this note is about, Yahoo's symbols
-    project: Gulf delivery   the project this note belongs to, by the project note's title
+    about: ""                for a commodity, sector or macro note: rubber, Gulf delivery, US rates
+    period: "Q2 FY26"        the quarter (or year) being researched, as the reader says it
+    project: "Gulf delivery" the project this note belongs to, by the project note's title
     tags: [gulf, delivery]
     pinned: false
     created: 2026-09-15 11:40
@@ -16,11 +19,28 @@ One file per note. The first lines are the note's card, the rest is the note:
     The body, in Markdown. [[Another note]] links to a note by its title, and $TALABAT.AE
     names a listing anywhere in the text.
 
+Two axes on the card. `kind` is what the note is about: a listing (stock), a commodity,
+a sector, the macro picture, or nothing in particular (general). `type` is what sort of
+writing it is: a call, a meeting, a risk, news, an insight, an answer your AI gave that
+you chose to keep, or a project. A stock note carries its subject in `symbols`; the other
+kinds name theirs in `about`, so "commodity · rubber" and "sector · Gulf delivery" are
+subjects the desk can group and filter on like a listing. `period` is the quarter or year
+the note is researching, written the way the reader says it (Q2 FY26, H1 FY26, FY26,
+Q3 2026); the desk tidies the spacing and case and otherwise keeps the words.
+
+Why one flat folder with a card, rather than a folder per kind: Obsidian resolves
+[[links]] by title alone, and its Properties panel and Bases filter on card fields,
+so "every commodity note" or "everything on Q2 FY26" is one filter with no folder to keep;
+a note is re-filed by editing one line rather than moving a file, so nothing that links
+to it breaks; and an agent needs to know exactly one folder. The card is valid YAML
+(titles are quoted) so Obsidian reads every field as a property.
+
 A project is a note whose type is project; its symbols are the names in the project.
-That is the whole graph: a symbol is connected to every note that names it, a project
-to every note that belongs to it and every symbol it lists, and a note to every note
-it links to. Open the folder in Obsidian or any editor and the same files are there;
-an AI agent reads and writes them like any other file. Nothing here leaves this computer.
+That is the whole graph: a symbol is connected to every note that names it, a subject to
+every note about it, a project to every note that belongs to it and every symbol it
+lists, and a note to every note it links to. Open the folder in Obsidian or any editor
+and the same files are there; an AI agent reads and writes them like any other file.
+Nothing here leaves this computer, and nothing is written here unless the reader saves it.
 """
 import os
 import re
@@ -30,12 +50,14 @@ from datetime import datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 NOTES_DIR = os.path.join(HERE, "data", "notes")
-TYPES = ["general", "news", "insight", "concall", "meeting", "risk", "project"]
+TYPES = ["general", "news", "insight", "concall", "meeting", "risk", "answer", "project"]
+KINDS = ["stock", "commodity", "sector", "macro", "general"]
 _lock = threading.Lock()
 _index = {"at": 0.0, "notes": None}
 
 _WIKI = re.compile(r"\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]")
 _SYM = re.compile(r"(?<![\w$])\$([A-Z][A-Z0-9]{0,9}(?:[.\-][A-Z0-9]{1,6})?)\b")
+_PERIOD = re.compile(r"^(?:(Q[1-4]|H[12])\s*)?(FY|CY)?\s*'?(\d{2}|\d{4})$", re.I)
 
 
 def slug(title):
@@ -43,15 +65,49 @@ def slug(title):
     return s[:80] or "note"
 
 
+def period_key(text):
+    """The period the way the desk files it: 'q2fy26', '2Q FY 2026', 'Q2 FY26' all become
+    Q2 FY26; 'FY26', 'H1 FY26', 'Q3 2026' and 'CY26' keep their own shape. Anything the
+    pattern does not recognise is kept as typed, trimmed, so the reader is never corrected."""
+    t = re.sub(r"\s+", " ", (text or "").strip())[:40]
+    if not t:
+        return ""
+    s = t.upper().replace(" ", "")
+    m = re.match(r"^([1-4])Q(FY|CY)?'?(\d{2}|\d{4})$", s)          # 2QFY26 -> Q2 FY26
+    if m:
+        s = f"Q{m.group(1)}{m.group(2) or ''}{m.group(3)}"
+    m = _PERIOD.match(s)
+    if not m:
+        return t
+    part, basis, year = m.group(1), m.group(2), m.group(3)
+    if basis:
+        year = year[-2:]
+    return " ".join(x for x in (part, (basis or "") + year) if x)
+
+
+def _q(s):
+    """A card value as a YAML double-quoted scalar, so a colon or a hash in a title never breaks the card."""
+    return '"' + str(s or "").replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def _unq(v):
+    v = (v or "").strip()
+    if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
+        inner = v[1:-1]
+        return inner.replace('\\"', '"').replace("\\\\", "\\") if v[0] == '"' else inner
+    return v
+
+
 def _parse_list(v):
     v = (v or "").strip()
     if v.startswith("[") and v.endswith("]"):
         v = v[1:-1]
-    return [x.strip().strip('"').strip("'") for x in v.split(",") if x.strip().strip('"').strip("'")]
+    return [_unq(x) for x in v.split(",") if _unq(x)]
 
 
 def parse(text):
-    """Front matter and body. Tolerant: a file with no front matter is a general note titled by its first line."""
+    """Front matter and body. Tolerant: a file with no front matter is a general note titled by
+    its first line; a card with no kind is a stock note if it names a listing, general otherwise."""
     meta, body = {}, text
     if text.startswith("---"):
         end = text.find("\n---", 3)
@@ -62,35 +118,45 @@ def parse(text):
                     k, v = line.split(":", 1)
                     meta[k.strip().lower()] = v.strip()
     body = body.lstrip("\n")
-    title = meta.get("title", "").strip().strip('"')
+    title = _unq(meta.get("title", ""))
     if not title:
         first = next((l.strip("# ").strip() for l in body.splitlines() if l.strip()), "")
         title = first[:120] or "Untitled"
-    ntype = meta.get("type", "general").strip().lower()
+    ntype = _unq(meta.get("type", "general")).lower()
     if ntype not in TYPES:
         ntype = "general"
     symbols = [s.upper() for s in _parse_list(meta.get("symbols", ""))]
     for s in _SYM.findall(body):
         if s not in symbols:
             symbols.append(s)
+    kind = _unq(meta.get("kind", "")).lower()
+    if kind not in KINDS:
+        kind = "stock" if symbols else "general"
+    about = _unq(meta.get("about", ""))[:120]
+    if kind == "stock":
+        about = ""
     return {
-        "title": title, "type": ntype, "symbols": symbols,
-        "project": meta.get("project", "").strip().strip('"'),
+        "title": title, "kind": kind, "type": ntype, "symbols": symbols, "about": about,
+        "period": period_key(_unq(meta.get("period", ""))),
+        "project": _unq(meta.get("project", "")),
         "tags": [t.lower() for t in _parse_list(meta.get("tags", ""))],
-        "pinned": meta.get("pinned", "false").strip().lower() in ("true", "yes", "1"),
-        "created": meta.get("created", "").strip(), "updated": meta.get("updated", "").strip(),
+        "pinned": _unq(meta.get("pinned", "false")).lower() in ("true", "yes", "1"),
+        "created": _unq(meta.get("created", "")), "updated": _unq(meta.get("updated", "")),
         "links": [t.strip() for t in _WIKI.findall(body)],
         "body": body,
     }
 
 
 def render(note):
-    """The file back from the note: the card, then the body."""
+    """The file back from the note: the card, then the body. Every free-text field is quoted
+    so the card stays valid YAML and Obsidian shows each field as a property."""
     def lst(xs):
         return "[" + ", ".join(xs) + "]"
-    lines = ["---", f"title: {note['title']}", f"type: {note['type']}",
+    lines = ["---", f"title: {_q(note['title'])}", f"kind: {note.get('kind') or 'general'}", f"type: {note['type']}",
              f"symbols: {lst(note.get('symbols') or [])}",
-             f"project: {note.get('project') or ''}",
+             f"about: {_q(note.get('about') or '')}",
+             f"period: {_q(note.get('period') or '')}",
+             f"project: {_q(note.get('project') or '')}",
              f"tags: {lst(note.get('tags') or [])}",
              f"pinned: {'true' if note.get('pinned') else 'false'}",
              f"created: {note.get('created') or ''}", f"updated: {note.get('updated') or ''}", "---", ""]
@@ -145,8 +211,8 @@ def index(force=False):
 
 
 def card(n, snippet=True):
-    out = {k: n[k] for k in ("id", "title", "type", "symbols", "project", "project_id", "tags", "pinned",
-                             "created", "updated", "link_ids", "backlinks", "example", "file")}
+    out = {k: n[k] for k in ("id", "title", "kind", "type", "symbols", "about", "period", "project", "project_id",
+                             "tags", "pinned", "created", "updated", "link_ids", "backlinks", "example", "file")}
     out["implied_symbols"] = n.get("implied_symbols", [])
     if snippet:
         text = re.sub(r"\s+", " ", re.sub(r"[#*_>\[\]$`]", "", n["body"])).strip()
@@ -154,10 +220,31 @@ def card(n, snippet=True):
     return out
 
 
-def listing(symbol=None, project=None, ntype=None, tag=None, q=None):
+def facets():
+    """What the folder holds, for the filter chips: the periods and the subjects in use."""
+    notes = index()
+    periods = sorted({n["period"] for n in notes.values() if n["period"]}, key=_period_sort, reverse=True)
+    abouts = sorted({(n["kind"], n["about"]) for n in notes.values() if n["about"]})
+    return {"periods": periods, "abouts": [{"kind": k, "about": a} for k, a in abouts]}
+
+
+def _period_sort(p):
+    """Newest period first: the year, then the part of it; anything unrecognised sorts last."""
+    m = re.match(r"^(?:(Q[1-4]|H[12]) )?(?:FY|CY)?(\d{2,4})$", p)
+    if not m:
+        return (-1, 0, p)
+    part, year = m.group(1), int(m.group(2))
+    if year < 100:
+        year += 2000
+    frac = {"Q1": 1, "Q2": 2, "Q3": 3, "Q4": 4, "H1": 2, "H2": 4}.get(part or "", 5)
+    return (year, frac, p)
+
+
+def listing(symbol=None, project=None, ntype=None, tag=None, q=None, kind=None, period=None, about=None):
     notes = index()
     rows = []
     sym = (symbol or "").upper()
+    per = period_key(period) if period else ""
     for n in notes.values():
         if sym and sym not in n["symbols"] and not (n["type"] == "project" and sym in n.get("implied_symbols", [])):
             continue
@@ -165,10 +252,17 @@ def listing(symbol=None, project=None, ntype=None, tag=None, q=None):
             continue
         if ntype and n["type"] != ntype:
             continue
+        if kind and n["kind"] != kind:
+            continue
+        if per and n["period"] != per:
+            continue
+        if about and n["about"].lower() != about.lower():
+            continue
         if tag and tag.lower() not in n["tags"]:
             continue
         if q:
-            hay = (n["title"] + " " + n["body"] + " " + " ".join(n["tags"]) + " " + " ".join(n["symbols"])).lower()
+            hay = (n["title"] + " " + n["body"] + " " + n["about"] + " " + n["period"] + " "
+                   + " ".join(n["tags"]) + " " + " ".join(n["symbols"])).lower()
             if q.lower() not in hay:
                 continue
         rows.append(card(n))
@@ -207,7 +301,12 @@ def save(data):
         s = str(s).strip().upper()
         if s and s not in symbols:
             symbols.append(s)
-    note = {"title": title, "type": ntype, "symbols": symbols,
+    kind = (data.get("kind") or "").lower()
+    if kind not in KINDS:
+        kind = "stock" if symbols else "general"
+    note = {"title": title, "kind": kind, "type": ntype, "symbols": symbols,
+            "about": "" if kind == "stock" else str(data.get("about") or "").strip()[:120],
+            "period": period_key(str(data.get("period") or "")),
             "project": (data.get("project") or "").strip()[:120],
             "tags": [re.sub(r"[^a-z0-9-]", "", str(t).lower())[:40] for t in (data.get("tags") or []) if str(t).strip()],
             "pinned": bool(data.get("pinned")),
@@ -251,9 +350,12 @@ def graph(symbol=None):
         proj_titles = {n["title"].lower() for n in direct if n["type"] == "project"} | {(n.get("project") or "").lower() for n in direct}
         chosen = [n for n in notes.values() if n in direct or n["title"].lower() in proj_titles or (n.get("project") or "").lower() in proj_titles - {""}]
     for n in chosen:
-        nk = node("project" if n["type"] == "project" else "note", n["id"], n["title"], type=n["type"], updated=n["updated"])
+        nk = node("project" if n["type"] == "project" else "note", n["id"], n["title"], type=n["type"], about_kind=n["kind"],
+                  period=n["period"], updated=n["updated"])
         for s in n["symbols"] + n.get("implied_symbols", []):
             edges.append([nk, node("symbol", s, s)])
+        if n["about"]:   # a commodity, sector or theme is a subject like a listing: notes about it connect through it
+            edges.append([nk, node("subject", f"{n['kind']}:{n['about'].lower()}", n["about"], subject_kind=n["kind"])])
         if n.get("project_id"):
             edges.append([nk, node("project", n["project_id"], notes[n["project_id"]]["title"], type="project")])
         for lid in n["link_ids"]:

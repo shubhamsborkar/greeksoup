@@ -1,8 +1,11 @@
 ---
-title: Example: a call note
+title: "Example: a call note"
+kind: stock
 type: concall
 symbols: [AAPL]
-project: How notes connect
+about: ""
+period: "Q3 FY25"
+project: "How notes connect"
 tags: [example]
 pinned: false
 created: 2026-09-15 12:00

@@ -205,3 +205,38 @@ def test_notes_parse_render_and_links(tmp_path):
     finally:
         desk_notes.NOTES_DIR = old_dir
         desk_notes.index(force=True)
+
+
+def test_notes_kind_period_and_subject(tmp_path):
+    """The card's two axes: kind (what it is about) with a subject for the non-stock kinds,
+    and the period being researched, tidied to one shape. A title with a colon survives
+    the file, and the listing filters on kind, period and subject."""
+    import notes as desk_notes
+    assert desk_notes.period_key("q2fy26") == "Q2 FY26" == desk_notes.period_key("2Q FY 2026")
+    assert desk_notes.period_key("h1 fy26") == "H1 FY26" and desk_notes.period_key("fy2026") == "FY26"
+    assert desk_notes.period_key("Q3 2026") == "Q3 2026" and desk_notes.period_key("Dec 2025 quarter") == "Dec 2025 quarter"
+    n = desk_notes.parse(desk_notes.render({"title": 'Rubber: the "Q2" read', "kind": "commodity", "type": "insight",
+                                            "about": "Rubber", "period": "q2fy26", "symbols": [], "body": "x"}))
+    assert n["title"] == 'Rubber: the "Q2" read' and n["kind"] == "commodity" and n["about"] == "Rubber" and n["period"] == "Q2 FY26"
+    assert desk_notes.parse("---\ntitle: T\nsymbols: [AAPL]\n---\nb")["kind"] == "stock"      # no kind on the card: a listing makes it a stock note
+    assert desk_notes.parse("---\ntitle: T\n---\nb")["kind"] == "general"
+    assert desk_notes.parse("---\ntitle: T\nkind: stock\nabout: x\nsymbols: [AAPL]\n---\nb")["about"] == ""   # a stock note's subject is its symbols
+    old_dir = desk_notes.NOTES_DIR
+    desk_notes.NOTES_DIR = str(tmp_path)
+    try:
+        desk_notes.save({"title": "Rubber Q2", "kind": "commodity", "about": "rubber", "period": "Q2 FY26", "type": "insight", "body": "a"})
+        desk_notes.save({"title": "Rubber Q1", "kind": "commodity", "about": "rubber", "period": "q1 fy26", "type": "insight", "body": "b"})
+        desk_notes.save({"title": "Rates", "kind": "macro", "about": "US rates", "period": "Q2 FY26", "type": "answer", "body": "c"})
+        desk_notes.save({"title": "Apple call", "symbols": ["AAPL"], "period": "Q2 FY26", "type": "concall", "body": "d"})
+        assert {r["title"] for r in desk_notes.listing(kind="commodity")} == {"Rubber Q2", "Rubber Q1"}
+        assert {r["title"] for r in desk_notes.listing(period="q2fy26")} == {"Rubber Q2", "Rates", "Apple call"}
+        assert {r["title"] for r in desk_notes.listing(kind="commodity", about="Rubber")} == {"Rubber Q2", "Rubber Q1"}
+        assert desk_notes.listing(symbol="AAPL")[0]["kind"] == "stock"
+        f = desk_notes.facets()
+        assert f["periods"] == ["Q2 FY26", "Q1 FY26"] and {"kind": "macro", "about": "US rates"} in f["abouts"]
+        g = desk_notes.graph()
+        assert any(nd["kind"] == "subject" and nd["label"] == "rubber" for nd in g["nodes"])
+        assert sum(1 for e in g["edges"] if e[1] == "subject:commodity:rubber") == 2   # both rubber notes hang off one subject
+    finally:
+        desk_notes.NOTES_DIR = old_dir
+        desk_notes.index(force=True)

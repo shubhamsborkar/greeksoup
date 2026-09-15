@@ -238,3 +238,20 @@ html[data-rail="min"] #alertbar{left:var(--railc)}
 #askdock .ab button:hover{filter:brightness(1.08)}
 #askdock .ab button:disabled{opacity:.5;cursor:default;filter:none}
 #askdock .ab small{font-size:11px;color:var(--muted);line-height:1.35}
+/* Save as note, under an answer: a button, then a small card the reader fills in */
+#askdock .sv{margin-top:8px}
+#askdock .svb{background:none;color:var(--accent);border:1px solid var(--line2);border-radius:7px;
+  padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer}
+#askdock .svb:hover{border-color:var(--accent)}
+#askdock .svf{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--line2);border-radius:8px;background:var(--bg)}
+#askdock .svf input,#askdock .svf select{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);
+  border-radius:6px;padding:5px 8px;font:inherit;font-size:12px;min-width:0}
+#askdock .svf .svt{width:100%;font-weight:600}
+#askdock .svr{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#askdock .svr .svs,#askdock .svr .sva{flex:1 1 130px}
+#askdock .svr .svp{width:86px}
+#askdock .svr .svgo{background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer}
+#askdock .svr .svgo:disabled{opacity:.5;cursor:default}
+#askdock .svr .svno{background:none;color:var(--ink2);border:1px solid var(--line2);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer}
+#askdock .svm{font-size:11px;color:var(--muted);line-height:1.35}
+#askdock .svm a{color:var(--accent)}

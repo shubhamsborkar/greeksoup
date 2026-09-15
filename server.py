@@ -2791,8 +2791,8 @@ ASK_READS = {
     "/flow": ("Flow", ["/api/flow"]),
     "/short": ("Short", ["/api/short"]),
     "/capitol": ("Capitol", ["/api/capitol"]),
-    "/macro": ("Macro", ["/api/macro", "/api/econcal"]),
-    "/commods": ("Commodities", ["/api/commods"]),
+    "/macro": ("Macro", ["/api/macro", "/api/econcal", "/api/notes?kind=macro"]),
+    "/commods": ("Commodities", ["/api/commods", "/api/notes?kind=commodity"]),
     "/chain": ("Chain", ["/api/chain"]),
     "/t": ("Ticker", ["/api/ticker?symbol={symbol}&region={region}", "/api/notes?symbol={symbol}"]),
     "/notes": ("Notes", ["/api/notes", "/api/notes/graph"]),
@@ -2882,13 +2882,18 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
 /macro       Macro                          /api/macro      the macro cards;  /api/econcal  the calendar
 /commods     Commodities                    /api/commods    the commodity board and its exposure map
 /chain       Chain                          /api/chain      the value-chain maps, priced
-/notes       Notes, the research you write  /api/notes?symbol=&project=&type=&q=   the notes, filtered
+/notes       Notes, the research you write  /api/notes?symbol=&project=&kind=&period=&about=&type=&q=   the notes, filtered
                                             /api/notes/get?id=   one note with its body
                                             /api/notes/graph?symbol=   what connects to what
-             The notes are Markdown files in data/notes, one per note, with a front matter card
-             (title, type, symbols, project, tags). You may read and write those files directly;
-             the desk re-reads the folder within seconds. $AAPL in a body names a listing,
-             [[Title]] links to another note, a note of type project groups names and notes.
+             The notes are Markdown files in data/notes, one per note, with a front matter card:
+             title, kind (stock, commodity, sector, macro, general: what it is about), type
+             (general, news, insight, concall, meeting, risk, answer, project: what sort of
+             writing), symbols (the listings), about (the commodity, sector or theme when the
+             kind is not stock), period (the quarter or year researched, Q2 FY26 style), project,
+             tags. You may read and write those files directly; the desk re-reads the folder
+             within seconds. $AAPL in a body names a listing, [[Title]] links to another note,
+             a note of type project groups names and notes. Write a note only when the reader
+             asks for one; nothing here is saved on its own.
 /t?symbol=AAPL   a ticker page              /api/ticker?symbol=AAPL   chart, quote, ratios, insiders
 /t?symbol=X&region=home  a home-market name /api/ticker?symbol=X&region=home  (broker code or exchange symbol)
                                             /api/fin?symbol=AAPL      statements, estimates, peers (needs the data key)
@@ -2952,8 +2957,10 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/notes":
                 g = lambda k: (qs.get(k, [""])[0] or "").strip()[:120]  # noqa: E731
-                return self._send(json.dumps({"notes": desk_notes.listing(g("symbol"), g("project"), g("type"), g("tag"), g("q")),
-                                              "types": desk_notes.TYPES, "folder": desk_notes.NOTES_DIR}).encode(), "application/json")
+                return self._send(json.dumps({"notes": desk_notes.listing(g("symbol"), g("project"), g("type"), g("tag"), g("q"),
+                                                                           g("kind"), g("period"), g("about")),
+                                              "types": desk_notes.TYPES, "kinds": desk_notes.KINDS, "facets": desk_notes.facets(),
+                                              "folder": desk_notes.NOTES_DIR}).encode(), "application/json")
             elif path == "/api/notes/get":
                 n = desk_notes.get((qs.get("id", [""])[0] or "").strip())
                 return self._send(json.dumps(n or {"error": "no such note"}).encode(), "application/json")
@@ -3283,6 +3290,7 @@ class Handler(BaseHTTPRequestHandler):
         out = desk_ai.ask(question, label, context, desk_settings.profile_text(), history)
         out["read"] = used
         out["model"] = rd["model"]
+        out["screen"] = label
         return self._send(json.dumps(out).encode(), "application/json")
 
     def do_POST(self):  # noqa: N802 - stdlib naming

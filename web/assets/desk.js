@@ -513,7 +513,7 @@
       try {
         const st = await (await fetch("/api/ask", { cache: "no-store" })).json();
         if (st.ready) {
-          askNote(`<p>Ask anything about what is on this screen. The question goes with the screen's own numbers to <b>${esc(st.label || st.provider)}</b>, model <span class="mono">${esc(st.model)}</span>, and nowhere else.</p>`, "hint");
+          askNote(`<p>Ask anything about what is on this screen. The question goes with the screen's own numbers to <b>${esc(st.label || st.provider)}</b>, model <span class="mono">${esc(st.model)}</span>, and nowhere else. An answer worth keeping has a Save as note button under it; nothing is kept unless you press it.</p>`, "hint");
         } else {
           askNote(`<p>No AI is set yet. ${esc(st.why || "")} Pick a provider and paste a key on <a href="/settings">Settings</a>, under Your AI. A model running on this computer needs no key.</p>`, "hint");
         }
@@ -544,6 +544,7 @@
         wait.innerHTML = out.answer.split(/\n{2,}/).map(p => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("") +
           (out.read && out.read.length ? `<div class="rd">read ${out.read.map(esc).join(" · ")} · ${esc(out.model || "")}</div>` : "");
         askHistory.push({ role: "user", content: question }, { role: "assistant", content: out.answer });
+        offerSave(wait, question, out, query, label);
       }
     } catch (e) {
       wait.className = "a err";
@@ -551,6 +552,64 @@
     }
     askBusy = false; document.getElementById("asksend").disabled = false;
     m.scrollTop = m.scrollHeight; ta.focus();
+  }
+
+  /* ---- Save as note: an answer is kept only when the reader says so. The card is
+     filled from the screen (the name on a ticker page, commodity on Commodities,
+     macro on Macro) and the reader sets the period; the file lands in data/notes. */
+  const ASK_KIND = { "/t": "stock", "/commods": "commodity", "/macro": "macro", "/chain": "sector" };
+  const KIND_LABEL = { stock: "Stock", commodity: "Commodity", sector: "Sector", macro: "Macro", general: "General" };
+  const ABOUT_HINT = { commodity: "which commodity", sector: "which sector", macro: "which theme", general: "a subject, or leave empty" };
+  function offerSave(box, question, out, query, screen) {
+    const sv = document.createElement("div");
+    sv.className = "sv";
+    sv.innerHTML = `<button type="button" class="svb">Save as note</button>`;
+    box.appendChild(sv);
+    sv.querySelector(".svb").onclick = () => saveForm(sv, question, out, query, screen);
+  }
+  function saveForm(sv, question, out, query, screen) {
+    const page = askPage().page;
+    const sym = (query.symbol || "").toUpperCase();
+    const kind0 = ASK_KIND[page] || "general";
+    let lastPeriod = "";
+    try { lastPeriod = localStorage.getItem("gs.period") || ""; } catch (e) { /* private window */ }
+    const title0 = question.replace(/\s+/g, " ").trim().slice(0, 90);
+    sv.innerHTML =
+      `<div class="svf">` +
+      `<input class="svt" placeholder="Title" value="${esc(title0)}">` +
+      `<div class="svr"><select class="svk" title="what the note is about">${Object.keys(KIND_LABEL).map(k => `<option value="${k}"${k === kind0 ? " selected" : ""}>${KIND_LABEL[k]}</option>`).join("")}</select>` +
+      `<input class="svs" placeholder="symbols, comma separated" value="${esc(sym)}" title="the listings the note is about">` +
+      `<input class="sva" placeholder="${esc(ABOUT_HINT[kind0] || "")}" title="the commodity, sector or theme">` +
+      `<input class="svp" placeholder="Q2 FY26" value="${esc(lastPeriod)}" title="the quarter or year being researched"></div>` +
+      `<div class="svr"><button type="button" class="svgo">Save</button><button type="button" class="svno">Cancel</button><small class="svm">Files the question and this answer in data/notes.</small></div></div>`;
+    const k = sv.querySelector(".svk"), s = sv.querySelector(".svs"), a = sv.querySelector(".sva");
+    const showKind = () => { const st = k.value === "stock"; s.hidden = !st; a.hidden = st; a.placeholder = ABOUT_HINT[k.value] || ""; };
+    k.onchange = showKind; showKind();
+    sv.querySelector(".svno").onclick = () => { const box = sv.parentNode; sv.remove(); offerSave(box, question, out, query, screen); };
+    sv.querySelector(".svgo").onclick = async () => {
+      const msg = sv.querySelector(".svm");
+      const title = sv.querySelector(".svt").value.trim();
+      if (!title) { msg.textContent = "A title first."; return; }
+      const period = sv.querySelector(".svp").value.trim();
+      const when = new Date();
+      const stamp = when.getFullYear() + "-" + String(when.getMonth() + 1).padStart(2, "0") + "-" + String(when.getDate()).padStart(2, "0");
+      const body = "> " + question.replace(/\n/g, "\n> ") + "\n\n" + out.answer.trim() + "\n\n" +
+        `*Asked on ${screen}, ${stamp}; answered by ${out.model || "your AI"}. Verify against the source the screen names.*\n`;
+      const note = { title, kind: k.value, type: "answer", period,
+        symbols: k.value === "stock" ? s.value.split(",").map(x => x.trim().toUpperCase()).filter(Boolean) : [],
+        about: k.value === "stock" ? "" : a.value.trim(), tags: ["ask"], body };
+      sv.querySelector(".svgo").disabled = true; msg.textContent = "Saving…";
+      try {
+        const r = await fetch("/api/notes/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(note) });
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error || "could not save");
+        try { if (d.note.period) localStorage.setItem("gs.period", d.note.period); } catch (e) { /* fine */ }
+        sv.innerHTML = `<small class="svm">Saved. <a href="/notes?id=${encodeURIComponent(d.note.id)}">Open the note</a> · <span class="mono">${esc(d.note.file)}</span></small>`;
+      } catch (e) {
+        sv.querySelector(".svgo").disabled = false; msg.textContent = "Not saved: " + (e.message || "the desk did not answer.");
+      }
+    };
+    sv.querySelector(".svt").focus();
   }
 
   function boot() { buildRail(); refreshNav(); initAlertBar(); initUpdateBar(); }

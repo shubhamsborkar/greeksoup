@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.8. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.9. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.9
+
+*15 September 2026, release 9.* Notes say what they are about and which quarter: a note is about a listing, a commodity, a sector, the macro picture or nothing in particular, names its subject when that is not a listing, and carries the period it researches (Q2 FY26 style), so the Notes screen filters on any of the three; every answer in the Ask box gets a Save as note button that files the question and the answer under the name and the period you set, and nothing is saved unless you press it; the Ask box on Commodities and Macro reads your commodity and macro notes; the card at the top of every note is valid YAML, so Obsidian shows each field as a property; a fourth example note shows a commodity note with a period
 
 ## 2026-09-15.8
 

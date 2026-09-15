@@ -1,8 +1,11 @@
 ---
-title: Example: a risk note
+title: "Example: a risk note"
+kind: stock
 type: risk
 symbols: [MSFT]
-project: How notes connect
+about: ""
+period: ""
+project: "How notes connect"
 tags: [example]
 pinned: false
 created: 2026-09-15 12:00
