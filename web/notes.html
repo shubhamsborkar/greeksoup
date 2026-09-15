@@ -119,6 +119,7 @@ select.chip{font-family:inherit;padding:3px 6px}
       </div>
       <div class="tools"><span class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">About</span><span class="chips" id="kindchips"></span></div>
       <div class="tools"><span class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Type</span><span class="chips" id="typechips"></span></div>
+      <div class="tools"><span class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)" title="notes on names you have marked with a status">Status</span><span class="chips" id="statuschips"></span></div>
       <div class="tools" id="ctx" style="display:none"></div>
       <div class="list" id="list"><div class="empty">Loading…</div></div>
       <div class="stats" id="stats"></div>
@@ -153,7 +154,8 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const $=id=>document.getElementById(id);
 const P=new URLSearchParams(location.search);
 let TYPES=[], KINDS=[], FACETS={periods:[],abouts:[]}, NOTES=[], CUR=null, EDIT={syms:[]};
-let F={type:"", kind:P.get("kind")||"", period:P.get("period")||"", about:P.get("about")||"", symbol:P.get("symbol")||"", project:P.get("project")||"", q:""};
+let F={type:"", kind:P.get("kind")||"", period:P.get("period")||"", about:P.get("about")||"", symbol:P.get("symbol")||"", project:P.get("project")||"", status:P.get("status")||"", q:""};
+const STATUS_LABEL={watchlist:"Watchlist",researching:"Researching","thesis built":"Thesis built",invested:"Invested",exited:"Exited"};
 const TYPE_LABEL={general:"Note",news:"News",insight:"Insight",concall:"Call",meeting:"Meeting",risk:"Risk",answer:"AI answer",document:"Document",model:"Model",clipping:"Clipping",decision:"Decision",exit:"Exit",project:"Project"};
 const fmtSize=b=>b>=1048576?(b/1048576).toFixed(1)+" MB":b>=1024?Math.round(b/1024)+" KB":b+" B";
 const fileUrl=rel=>"/api/research/file?path="+encodeURIComponent(rel);
@@ -197,7 +199,7 @@ async function post(url,body){ const r=await fetch(url,{method:"POST",headers:{"
 function say(t,k){ const e=$("e_msg"); e.textContent=t; e.className="msg "+(k||""); }
 
 async function load(){
-  const qs=new URLSearchParams(); for(const k of ["type","kind","period","about","symbol","project","q"]) if(F[k]) qs.set(k,F[k]);
+  const qs=new URLSearchParams(); for(const k of ["type","kind","period","about","symbol","project","status","q"]) if(F[k]) qs.set(k,F[k]);
   const r=await fetch("/api/notes?"+qs); const d=await r.json();
   TYPES=d.types||[]; KINDS=d.kinds||[]; FACETS=d.facets||FACETS; NOTES=d.notes||[];
   $("asof").textContent="data/research";
@@ -205,19 +207,22 @@ async function load(){
   $("typechips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F.type=b.dataset.t;load();});
   $("kindchips").innerHTML=`<button class="chip${F.kind?"":" on"}" data-t="">all</button>`+KINDS.map(t=>`<button class="chip${F.kind===t?" on":""}" data-t="${t}">${KIND_LABEL[t]||t}</button>`).join("");
   $("kindchips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F.kind=b.dataset.t;F.about="";load();});
+  $("statuschips").innerHTML=`<button class="chip${F.status?"":" on"}" data-t="">any</button>`+(d.statuses||[]).map(t=>`<button class="chip${F.status===t?" on":""}" data-t="${t}">${STATUS_LABEL[t]||t}</button>`).join("");
+  $("statuschips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F.status=b.dataset.t;load();});
   const ps=FACETS.periods||[]; if(F.period&&!ps.includes(F.period)) ps.unshift(F.period);
   $("period").innerHTML=`<option value="">any period</option>`+ps.map(p=>`<option value="${esc(p)}"${F.period===p?" selected":""}>${esc(p)}</option>`).join("");
   $("period").className="chip"+(F.period?" on":"");
   $("periodlist").innerHTML=ps.map(p=>`<option value="${esc(p)}">`).join("");
   const ctx=[]; if(F.symbol)ctx.push(`<span class="chip on sym" data-k="symbol">$${esc(F.symbol)} <span class="x">✕</span></span>`); if(F.about)ctx.push(`<span class="chip on" data-k="about">${esc(F.about)} <span class="x">✕</span></span>`); if(F.project)ctx.push(`<span class="chip on" data-k="project">${esc(F.project)} <span class="x">✕</span></span>`);
   $("ctx").style.display=ctx.length?"flex":"none"; $("ctx").innerHTML=ctx.length?`<span class="lbl" style="font-size:10.5px;color:var(--muted)">showing</span>`+ctx.join(""):"";
-  $("ctx").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F[b.dataset.k]="";load();});
-  if(!NOTES.length){ $("list").innerHTML=`<div class="empty">${F.symbol||F.project||F.q||F.type||F.kind||F.period||F.about?"No notes match.":"No notes yet. The first one is one click away: <b>+ New note</b>."}</div>`; }
+  $("ctx").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F[b.dataset.k]=""; if(b.dataset.k==="symbol"&&!CUR){$("view").style.display="none";$("blank").style.display="block";} load();});
+  if(!NOTES.length){ $("list").innerHTML=`<div class="empty">${F.symbol||F.project||F.q||F.type||F.kind||F.period||F.about||F.status?"No notes match.":"No notes yet. The first one is one click away: <b>+ New note</b>."}</div>`; }
   else $("list").innerHTML=NOTES.map(n=>`<a class="nc${CUR&&CUR.id===n.id?" on":""}" href="/notes?id=${encodeURIComponent(n.id)}" data-id="${esc(n.id)}">
       <div class="t"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span><span>${esc(n.title)}</span>${n.file?`<span class="pin">${n.file_ok?fileExt(n.file):"file missing"}</span>`:""}${n.pinned?'<span class="pin">pinned</span>':""}${n.example?'<span class="pin">example</span>':""}</div>
       <div class="m"><span>${esc(n.updated)}</span>${n.period?`<span style="color:var(--ink2)">${esc(n.period)}</span>`:""}${subj(n)?`<span>${esc(subj(n))}</span>`:""}${n.symbols.slice(0,4).map(s=>`<span class="sy">$${esc(s)}</span>`).join("")}${n.project?`<span>in ${esc(n.project)}</span>`:""}</div>
       <div class="sn">${n.hit==="file"?'<span style="color:var(--accent)">in the file · </span>':""}${esc(n.snippet||"")}</div></a>`).join("");
   $("list").querySelectorAll(".nc").forEach(a=>a.onclick=e=>{e.preventDefault(); open(a.dataset.id);});
+  if(F.symbol&&!CUR&&$("ed").style.display==="none") showTimeline(F.symbol);
   const loose=d.loose||[];
   $("loose").innerHTML=loose.length?`<div class="loose"><div class="l">In the vault, on no note yet</div>${loose.map(f=>`<div class="f"><b title="${esc(f.file)}">${esc(f.name)}</b><span>${esc(f.subject)}</span><span>${fmtSize(f.size)}</span><a href="/notes?new&file=${encodeURIComponent(f.file)}${f.subject&&/^[A-Z0-9.\-]+$/.test(f.subject)?"&symbol="+encodeURIComponent(f.subject):""}">give it a note</a><button class="danger" data-f="${esc(f.file)}">delete</button></div>`).join("")}</div>`:"";
   $("loose").querySelectorAll("button").forEach(b=>b.onclick=async()=>{ if(!confirm(`Delete ${b.dataset.f} from the vault?`)) return; await post("/api/research/remove_file",{file:b.dataset.f}); load(); });
@@ -271,6 +276,17 @@ async function open(id){
   $("view").querySelectorAll("a.nl, a.wl[data-id]").forEach(a=>a.onclick=e=>{e.preventDefault();open(a.dataset.id);});
 }
 
+/* the Timeline: everything about one name by period and date, in the right panel while a name is being looked at */
+async function showTimeline(sym){
+  let tl; try{ tl=await (await fetch("/api/research/timeline?symbol="+encodeURIComponent(sym))).json(); }catch(e){ return; }
+  if(CUR||$("ed").style.display!=="none"||F.symbol!==sym) return;
+  const st=tl.status||{};
+  $("blank").style.display="none"; $("view").style.display="block";
+  $("view").innerHTML=`<div class="view"><h1 style="font-family:Menlo,monospace">$${esc(sym)}</h1>
+    <div class="meta"><span>${st.status?`status <b style="color:var(--ink2)">${esc(STATUS_LABEL[st.status]||st.status)}</b>${st.set_by==="you"&&st.since?" since "+esc(st.since):st.set_by==="the desk"?" (what the desk can see)":""}`:"no status yet; set one on the listing's page"}</span><a href="/t?symbol=${encodeURIComponent(sym)}" style="color:var(--accent);text-decoration:none">the listing's page</a></div>
+    <div class="conn" style="border-top:0;padding:0;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">${tl.count?(tl.groups||[]).map(gp=>`<div class="g"><div class="l" style="color:var(--accent)">${esc(gp.period||"no period")}</div>${gp.items.map(it=>it.what==="status"?`<div style="font-size:11.5px;color:var(--muted);padding:3px 0"><span class="mono">${esc(it.date)}</span> · status <b style="color:var(--ink2)">${esc(STATUS_LABEL[it.status]||it.status)}</b></div>`:`<div style="font-size:12px;padding:3px 0;display:flex;gap:8px;align-items:baseline"><span class="mono" style="color:var(--muted);flex:0 0 auto">${esc(it.date)}</span><span class="ty" style="font-size:9.5px;flex:0 0 auto">${TYPE_LABEL[it.type]||it.type}</span><a href="/notes?id=${encodeURIComponent(it.id)}" data-id="${esc(it.id)}" class="nl" style="margin:0;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.title)}</a>${it.file?`<span style="font-size:9.5px;color:var(--muted)">${it.file_ok?esc((it.file.split(".").pop()||"").toUpperCase()):"file missing"}</span>`:""}</div>`).join("")}</div>`).join(""):`<div style="font-size:12.5px;color:var(--muted)">Nothing about ${esc(sym)} yet. The first note or file lands here, by the period it belongs to.</div>`}</div></div>`;
+  $("view").querySelectorAll("a.nl").forEach(a=>a.onclick=e=>{e.preventDefault();open(a.dataset.id);});
+}
 function edit(n){
   CUR=n||null; $("blank").style.display="none"; $("view").style.display="none"; $("ed").style.display="flex";
   $("e_type").innerHTML=TYPES.map(t=>`<option value="${t}">${TYPE_LABEL[t]||t}</option>`).join("");

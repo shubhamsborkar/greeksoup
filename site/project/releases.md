@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.12. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.13. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.13
+
+*15 September 2026, release 13.* Where a name stands, and its timeline: every listing's page carries a status (watchlist, researching, thesis built, invested, exited), two of which the desk sees for itself from your books and watch grids, and your own word wins and is kept with every change dated; the Notes screen filters on status; and a Timeline under your notes on a listing's page, and on the Notes screen when you look at one name, lays out everything about the name by period and date, status changes included
 
 ## 2026-09-15.12
 

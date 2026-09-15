@@ -49,6 +49,14 @@ The loop closes both ways. **Remove file** on a note asks whether the file stays
 
 When a file arrives the desk reads its text once, locally, into `data/research/index`: a PDF page by page, a spreadsheet sheet by sheet with its first rows, a Word file by paragraph, a presentation by slide. Nothing leaves your computer and the index is rebuilt from the files whenever it is missing, so it is never the record. From then on the search box on the Notes screen and Command K find a phrase that lives only inside an annual report, marked **in the file**, and the Ask box on that listing's page reads your notes and your documents about it along with the screen's numbers, so an answer can quote the filing you brought in. A scanned image has no text to read; the file is kept and opens as it is, and the note says so.
 
+## Where a name stands
+
+Every listing's page carries a status: **watchlist**, **researching**, **thesis built**, **invested**, **exited**. Two of the five the desk can see for itself and shows as such: a name in one of your books reads invested, a name on a watch grid reads watchlist. Pick one yourself and your word wins, dated, and every change is kept in `data/research/status.json`, so an exit six months on still shows when the thesis was built. The Notes screen filters on status, so "everything on the names I am researching" is one click.
+
+## The timeline
+
+Under your notes on a listing's page, and on the Notes screen when you are looking at one name, the **Timeline** lays out everything about that name by the period it belongs to, newest first, and by date inside each: the Q1 call note, the model built after it, the annual report, the day the status changed. It is the folder drawn on a time axis, and it is how the note from twelve months back is one glance away rather than lost.
+
 ## Keeping an answer
 
 Every answer in the Ask box has a **Save as note** button under it. Press it and a small card opens, already filled from the screen you asked on: the name on a listing's page, commodity on the Commodities screen, macro on Macro. Set the period, change the title if you like, Save. The question and the answer land in the vault as a note of type AI answer, with the screen, the date and the model written at the foot, so you can see later where it came from. Nothing is saved unless you press the button; an answer you do not keep is gone when you close the box.

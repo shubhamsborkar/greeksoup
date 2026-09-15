@@ -355,12 +355,15 @@ def _period_sort(p):
     return (year, frac, p)
 
 
-def listing(symbol=None, project=None, ntype=None, tag=None, q=None, kind=None, period=None, about=None):
+def listing(symbol=None, project=None, ntype=None, tag=None, q=None, kind=None, period=None, about=None, status=None):
     notes = index()
     rows = []
     sym = (symbol or "").upper()
     per = period_key(period) if period else ""
+    with_status = {k for k, v in status_all().items() if v.get("status") == (status or "").lower()} if status else None
     for n in notes.values():
+        if with_status is not None and not (set(n["symbols"]) & with_status):
+            continue
         if sym and sym not in n["symbols"] and not (n["type"] == "project" and sym in n.get("implied_symbols", [])):
             continue
         if project and (n.get("project") or "").lower() != project.lower() and n["title"].lower() != project.lower():
@@ -702,8 +705,92 @@ def context(symbol=None, kind=None, about=None, budget=50000):
         docs_out.append({"title": r["title"], "file": r["file"], "period": r["period"], "pages": d.get("pages", 0),
                          "text": cut + ("…" if len(cut) < d["chars"] else "")})
         left -= len(cut)
+    st = status_all().get((symbol or "").upper()) if symbol else None
     return {"subject": symbol or about or kind or "", "notes": notes_out, "documents": docs_out,
+            "status": ({"status": st["status"], "since": st.get("since", "")} if st and st.get("status") else None),
             "note": "the reader's own notes and files about this subject, from their research vault; quote the note or file by title"}
+
+
+# ---- status on a name: watchlist, researching, thesis built, invested, exited. Two of the
+# five the desk can see for itself (a name on a watch grid; a name in a book); the reader
+# sets the rest from the ticker page. Kept in data/research/status.json with every change
+# dated, so the journal can read what happened and when.
+STATUSES = ["watchlist", "researching", "thesis built", "invested", "exited"]
+
+
+def _status_path():
+    return os.path.join(RESEARCH_DIR, "status.json")
+
+
+def status_all():
+    """Every status the reader set, by symbol: {"AAPL": {"status", "since", "history": [...]}}."""
+    try:
+        import json
+        with open(_status_path(), encoding="utf-8") as fh:
+            d = json.load(fh)
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def set_status(symbol, status):
+    """The reader's word on a name. An empty status clears it (the desk falls back to what it
+    can see). Every change is dated and kept, so a status is never overwritten without a trace."""
+    import json
+    sym = re.sub(r"[^A-Z0-9.\-^=]", "", (symbol or "").upper())[:24]
+    status = (status or "").strip().lower()
+    if not sym or (status and status not in STATUSES):
+        raise ValueError("not a status the desk knows")
+    d = status_all()
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    entry = d.get(sym) or {"status": "", "since": "", "history": []}
+    if entry.get("status") == status:
+        return {"symbol": sym, **entry}
+    entry["history"] = (entry.get("history") or []) + [{"status": status, "at": now}]
+    entry["status"], entry["since"] = status, now[:10]
+    d[sym] = entry
+    os.makedirs(RESEARCH_DIR, exist_ok=True)
+    with _lock:
+        tmp = _status_path() + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(d, fh, indent=2)
+        os.replace(tmp, _status_path())
+    return {"symbol": sym, **entry}
+
+
+def status_of(symbol, in_book=False, on_watch=False):
+    """What the desk shows for a name: the reader's word if they gave one, else what the desk
+    can see (invested when the name is in a book, watchlist when it is on a grid), else nothing."""
+    sym = (symbol or "").upper()
+    set_ = status_all().get(sym) or {}
+    if set_.get("status"):
+        return {"symbol": sym, "status": set_["status"], "since": set_.get("since", ""), "set_by": "you", "history": set_.get("history", [])}
+    seen = "invested" if in_book else "watchlist" if on_watch else ""
+    return {"symbol": sym, "status": seen, "since": "", "set_by": "the desk" if seen else "", "history": set_.get("history", [])}
+
+
+def timeline(symbol):
+    """Everything about one name on a time axis: the notes and documents by period, newest
+    first, then by date, and the status changes among them. The proof that nothing was lost."""
+    sym = (symbol or "").upper()
+    rows = listing(symbol=sym)
+    items = []
+    for r in rows:
+        items.append({"what": "note", "id": r["id"], "title": r["title"], "type": r["type"], "period": r["period"],
+                      "date": (r["created"] or r["updated"])[:10], "file": r["file"], "file_ok": r["file_ok"],
+                      "project": r["project"], "snippet": r.get("snippet", "")})
+    for h in (status_all().get(sym) or {}).get("history", []):
+        items.append({"what": "status", "status": h["status"] or "cleared", "date": h["at"][:10], "period": "", "title": ""})
+    groups = {}
+    for it in items:
+        groups.setdefault(it["period"], []).append(it)
+    out = []
+    for period in sorted(groups, key=lambda p: (p != "", _period_sort(p)), reverse=True):
+        rows_ = sorted(groups[period], key=lambda it: it["date"], reverse=True)
+        out.append({"period": period, "items": rows_})
+    # undated-period items (status changes, notes with no period) come last, by date
+    out.sort(key=lambda g: g["period"] == "")
+    return {"symbol": sym, "groups": out, "count": len(items)}
 
 
 def _forget_text(rel):

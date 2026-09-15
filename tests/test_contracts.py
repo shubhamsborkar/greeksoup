@@ -368,3 +368,44 @@ def test_research_text_search_and_context(tmp_path):
         desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR, desk_notes.INDEX_DIR = keep
         desk_notes.index(force=True)
 
+
+def test_research_status_and_timeline(tmp_path):
+    """Status on a name: the reader's word wins, every change is dated and kept, an empty
+    status clears it and the desk falls back to what it can see (a book, a grid). The
+    timeline groups everything about the name by period, newest first, status changes included."""
+    import notes as desk_notes
+    keep = (desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR, desk_notes.INDEX_DIR)
+    desk_notes.RESEARCH_DIR = str(tmp_path / "research")
+    desk_notes.NOTES_DIR = str(tmp_path / "research" / "notes")
+    desk_notes.FILES_DIR = str(tmp_path / "research" / "files")
+    desk_notes.LEGACY_NOTES_DIR = str(tmp_path / "notes")
+    desk_notes.INDEX_DIR = str(tmp_path / "research" / "index" / "text")
+    try:
+        assert desk_notes.status_of("AAPL", in_book=True)["status"] == "invested" and desk_notes.status_of("AAPL", on_watch=True)["status"] == "watchlist"
+        assert desk_notes.status_of("AAPL")["status"] == ""
+        st = desk_notes.set_status("aapl", "researching")
+        assert st["symbol"] == "AAPL" and st["status"] == "researching" and len(st["history"]) == 1
+        assert desk_notes.status_of("AAPL", in_book=True)["status"] == "researching"       # the reader's word wins over the book
+        desk_notes.set_status("AAPL", "thesis built")
+        desk_notes.set_status("AAPL", "thesis built")                                      # the same again writes nothing
+        assert len(desk_notes.status_all()["AAPL"]["history"]) == 2
+        try:
+            desk_notes.set_status("AAPL", "bought")
+            assert False
+        except ValueError:
+            pass
+        desk_notes.save({"title": "Q2 call", "symbols": ["AAPL"], "period": "Q2 FY26", "type": "concall", "body": "x"})
+        desk_notes.save({"title": "Q1 call", "symbols": ["AAPL"], "period": "Q1 FY26", "type": "concall", "body": "y"})
+        desk_notes.save({"title": "Loose thought", "symbols": ["AAPL"], "body": "z"})
+        assert [r["title"] for r in desk_notes.listing(status="thesis built")] == ["Loose thought", "Q1 call", "Q2 call"] or len(desk_notes.listing(status="thesis built")) == 3
+        assert desk_notes.listing(status="exited") == []
+        tl = desk_notes.timeline("AAPL")
+        assert [g["period"] for g in tl["groups"]] == ["Q2 FY26", "Q1 FY26", ""]
+        last = tl["groups"][-1]["items"]
+        assert {it["what"] for it in last} == {"note", "status"} and tl["count"] == 5
+        desk_notes.set_status("AAPL", "")
+        assert desk_notes.status_of("AAPL", in_book=True)["status"] == "invested" and len(desk_notes.status_all()["AAPL"]["history"]) == 3
+    finally:
+        desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR, desk_notes.INDEX_DIR = keep
+        desk_notes.index(force=True)
+

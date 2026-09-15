@@ -386,6 +386,40 @@ TICKER_TTL = 600
 _ticker_cache = {}
 
 
+def held_sets():
+    """Every name the desk can see the reader holds or watches: Desk · Book, the US book, the
+    broker's last snapshot, and the three watch grids. Symbols and broker codes, upper case."""
+    book, watch = set(), set()
+    for fname in ("book.json", "us_book.json"):
+        try:
+            with open(os.path.join(DATA_DIR, fname)) as fh:
+                for p in json.load(fh).get("positions", []):
+                    if p.get("symbol"):
+                        book.add(str(p["symbol"]).upper())
+        except (OSError, ValueError):
+            pass
+    snap = load_last_snapshot() or {}
+    for acc in ((snap.get("data") or {}).get("accounts") or {}).values():
+        for row in acc.get("equity") or []:
+            if row.get("code"):
+                book.add(str(row["code"]).upper())
+    for loader in (load_watchlist, load_watchlist_us, load_watchlist_global):
+        try:
+            for e in loader():
+                code = e.get("code") if isinstance(e, dict) else e
+                if code:
+                    watch.add(str(code).upper())
+        except Exception:  # noqa: BLE001
+            pass
+    return {"book": book, "watch": watch}
+
+
+def name_status(symbol):
+    sets = held_sets()
+    sym = (symbol or "").upper()
+    return desk_notes.status_of(sym, in_book=sym in sets["book"], on_watch=sym in sets["watch"])
+
+
 def _held_context(symbol):
     """Where this name sits across the books: US book position and/or watchlists."""
     ctx = {}
@@ -2893,6 +2927,8 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
                                             /api/research/file?path=files/AAPL/x.pdf   a file the reader brought in
                                             /api/research/text?path=files/AAPL/x.pdf   the text the desk read out of it
                                             /api/research/context?symbol=AAPL   the reader's notes and files on a subject, as text
+                                            /api/research/status?symbol=AAPL    where the name stands: watchlist, researching, thesis built, invested, exited
+                                            /api/research/timeline?symbol=AAPL  everything about the name by period and date
              The vault is data/research: notes/ holds one Markdown file per note, files/ holds
              what the reader brought in (annual reports, models, screenshots), one folder per
              subject. A note's front matter card: title, kind (stock, commodity, sector, macro,
@@ -2969,7 +3005,8 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/notes":
                 g = lambda k: (qs.get(k, [""])[0] or "").strip()[:120]  # noqa: E731
                 return self._send(json.dumps({"notes": desk_notes.listing(g("symbol"), g("project"), g("type"), g("tag"), g("q"),
-                                                                           g("kind"), g("period"), g("about")),
+                                                                           g("kind"), g("period"), g("about"), g("status")),
+                                              "statuses": desk_notes.STATUSES,
                                               "types": desk_notes.TYPES, "kinds": desk_notes.KINDS, "facets": desk_notes.facets(),
                                               "loose": desk_notes.loose_files(),
                                               "folder": desk_notes.RESEARCH_DIR}).encode(), "application/json")
@@ -2978,6 +3015,16 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(json.dumps(n or {"error": "no such note"}).encode(), "application/json")
             elif path == "/api/notes/graph":
                 return self._send(json.dumps(desk_notes.graph((qs.get("symbol", [""])[0] or "").strip())).encode(), "application/json")
+            elif path == "/api/research/status":
+                sym = (qs.get("symbol", [""])[0] or "").strip()
+                if sym:
+                    return self._send(json.dumps({**name_status(sym), "statuses": desk_notes.STATUSES}).encode(), "application/json")
+                return self._send(json.dumps({"set": desk_notes.status_all(), "statuses": desk_notes.STATUSES}).encode(), "application/json")
+            elif path == "/api/research/timeline":
+                sym = (qs.get("symbol", [""])[0] or "").strip()
+                out = desk_notes.timeline(sym)
+                out["status"] = name_status(sym)
+                return self._send(json.dumps(out).encode(), "application/json")
             elif path == "/api/research/context":
                 # the reader's notes and files about one subject, as text: what the Ask box reads
                 g = lambda k: (qs.get(k, [""])[0] or "").strip()[:120]  # noqa: E731
@@ -3364,6 +3411,12 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
             if self.path == "/api/notes/delete":
                 return self._send(json.dumps({"ok": desk_notes.delete(str(body.get("id", "")), bool(body.get("with_file")))}).encode(), "application/json")
+            if self.path == "/api/research/status":
+                try:
+                    st = desk_notes.set_status(str(body.get("symbol", "")), str(body.get("status", "")))
+                    return self._send(json.dumps({"ok": True, "status": name_status(st["symbol"])}).encode(), "application/json")
+                except ValueError as exc:
+                    return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
             if self.path == "/api/research/remove_file":
                 return self._send(json.dumps({"ok": desk_notes.remove_file(str(body.get("file", "")))}).encode(), "application/json")
             if self.path == "/api/notes/detach":
