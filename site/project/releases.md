@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.37. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.38. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.38
+
+*16 September 2026, release 38.* Yahoo's free quotes hold up through a burst: Yahoo throttles by the pair of your address and the browser string a request carries, so when one string is refused the desk moves to the next and stays there, instead of going quiet for five minutes; the ticker page and the free book prices come back sooner on a busy afternoon. The landing page carries a recording of the desk, eighty seconds, no voice, ten screens as they open, with a play button on a poster; the orange is back where it belongs, in the hero, on the buttons, and on the one loud block about what the desk talks to.
 
 ## 2026-09-16.37
 

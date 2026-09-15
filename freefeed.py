@@ -14,26 +14,42 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
-UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-      "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0 Safari/537.36"}
+# Yahoo throttles by the pair (address, browser string), verified 16 September 2026: the same
+# request answered 429 with one string and 200 with another from the same computer. So the
+# desk keeps a few ordinary browser strings, and when one is throttled it moves to the next
+# and stays there, which keeps a reader's desk answering through a burst.
+UAS = [
+    {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0 Safari/537.36"},
+    {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"},
+    {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0"},
+    {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0 Safari/537.36"},
+    {"User-Agent": "Mozilla/5.0"},
+]
+_ua = {"i": 0}
+UA = UAS[0]                     # kept for callers that read it; _get uses the one that works
 _Y = {"session": None, "crumb": None, "next_try": 0.0}
 _lock = threading.Lock()
-_throttle = {"until": 0.0}      # chart/search endpoints: five minutes off after a 429
+_throttle = {"until": 0.0}      # chart/search endpoints: five minutes off when every string is throttled
 
 
 def _get(path, params):
-    """GET against Yahoo with a 429 backoff and the second host as a retry."""
+    """GET against Yahoo: the browser string that last worked first, the others on a 429, the
+    second host as a retry; five minutes off only when all of them are throttled."""
     if time.time() < _throttle["until"]:
         return None
-    for host in ("query1", "query2"):
-        try:
-            r = requests.get(f"https://{host}.finance.yahoo.com{path}", params=params, headers=UA, timeout=15)
-        except Exception:  # noqa: BLE001
-            continue
-        if r.status_code == 200:
-            return r
-        if r.status_code == 429:
-            continue
+    n = len(UAS)
+    for k in range(n):
+        idx = (_ua["i"] + k) % n
+        for host in ("query1", "query2"):
+            try:
+                r = requests.get(f"https://{host}.finance.yahoo.com{path}", params=params, headers=UAS[idx], timeout=15)
+            except Exception:  # noqa: BLE001
+                continue
+            if r.status_code == 200:
+                _ua["i"] = idx
+                return r
+            if r.status_code != 429:
+                break
     _throttle["until"] = time.time() + 300
     return None
 
@@ -58,7 +74,7 @@ def _auth():
             return False
         try:
             s = requests.Session()
-            s.headers.update(UA)
+            s.headers.update(UAS[_ua["i"]])
             s.get("https://fc.yahoo.com", timeout=10)
             crumb = s.get("https://query1.finance.yahoo.com/v1/test/getcrumb", timeout=10).text
             if crumb and "<" not in crumb and len(crumb) < 40:

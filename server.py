@@ -249,16 +249,12 @@ def fetch_us_quote(symbol):
 # session cookie + crumb; when Yahoo throttles the crumb, we fall back to a
 # parallel FMP sweep (10s full-grid refresh) until the next crumb attempt.
 _yahoo = {"session": None, "crumb": None, "next_try": 0.0}
-_YUA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0 Safari/537.36"}
-
-
 def _yahoo_auth():
     if time.time() < _yahoo["next_try"]:
         return False
     try:
         s = requests.Session()
-        s.headers.update(_YUA)
+        s.headers.update(freefeed.UAS[freefeed._ua["i"]])   # the browser string Yahoo last answered
         s.get("https://fc.yahoo.com", timeout=10)
         crumb = s.get("https://query1.finance.yahoo.com/v1/test/getcrumb",
                       timeout=10).text.strip()
