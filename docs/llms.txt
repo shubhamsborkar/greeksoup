@@ -9,7 +9,7 @@ Installed with one line on Mac, Windows or Linux. Six brokers connect read-only 
 - [Get started](https://greeksoup.ai/docs/get-started/): What GreekSoup is, what you need, and the three ways to get it running on your own computer.
 - [The first ten minutes](https://greeksoup.ai/docs/get-started/first-ten-minutes/): What to open first on a fresh GreekSoup desk with no keys added, and what each screen is already showing you.
 - [The fifteen screens](https://greeksoup.ai/docs/get-started/the-screens/): Every screen on the GreekSoup desk in one line each, grouped the way the sidebar groups them, with what each one reads.
-- [Notes, the research you write](https://greeksoup.ai/docs/get-started/notes/): GreekSoup keeps your research notes as plain Markdown files in the desk folder, each one linked to the listings it names, the project it belongs to and the notes it links to.
+- [Notes and the research vault](https://greeksoup.ai/docs/get-started/notes/): GreekSoup keeps your research as plain files in the desk folder, the notes you write and the files you bring in, each one linked to the listings it names, the project it belongs to and the notes it links to.
 - [What runs with no key at all](https://greeksoup.ai/docs/get-started/no-key-needed/): Which GreekSoup screens are live with no broker and no data feed, and what each optional key adds.
 - [Questions readers ask](https://greeksoup.ai/docs/get-started/faq/): The questions readers ask about GreekSoup before and after installing it, answered plainly.
 

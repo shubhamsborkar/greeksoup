@@ -577,7 +577,7 @@
 
   /* ---- Save as note: an answer is kept only when the reader says so. The card is
      filled from the screen (the name on a ticker page, commodity on Commodities,
-     macro on Macro) and the reader sets the period; the file lands in data/notes. */
+     macro on Macro) and the reader sets the period; the file lands in the research vault, data/research. */
   const ASK_KIND = { "/t": "stock", "/commods": "commodity", "/macro": "macro", "/chain": "sector" };
   const KIND_LABEL = { stock: "Stock", commodity: "Commodity", sector: "Sector", macro: "Macro", general: "General" };
   const ABOUT_HINT = { commodity: "which commodity", sector: "which sector", macro: "which theme", general: "a subject, or leave empty" };
@@ -602,7 +602,7 @@
       `<input class="svs" placeholder="symbols, comma separated" value="${esc(sym)}" title="the listings the note is about">` +
       `<input class="sva" placeholder="${esc(ABOUT_HINT[kind0] || "")}" title="the commodity, sector or theme">` +
       `<input class="svp" placeholder="Q2 FY26" value="${esc(lastPeriod)}" title="the quarter or year being researched"></div>` +
-      `<div class="svr"><button type="button" class="svgo">Save</button><button type="button" class="svno">Cancel</button><small class="svm">Files the question and this answer in data/notes.</small></div></div>`;
+      `<div class="svr"><button type="button" class="svgo">Save</button><button type="button" class="svno">Cancel</button><small class="svm">Files the question and this answer in your research vault.</small></div></div>`;
     const k = sv.querySelector(".svk"), s = sv.querySelector(".svs"), a = sv.querySelector(".sva");
     const showKind = () => { const st = k.value === "stock"; s.hidden = !st; a.hidden = st; a.placeholder = ABOUT_HINT[k.value] || ""; };
     k.onchange = showKind; showKind();
@@ -625,7 +625,7 @@
         const d = await r.json();
         if (!d.ok) throw new Error(d.error || "could not save");
         try { if (d.note.period) localStorage.setItem("gs.period", d.note.period); } catch (e) { /* fine */ }
-        sv.innerHTML = `<small class="svm">Saved. <a href="/notes?id=${encodeURIComponent(d.note.id)}">Open the note</a> · <span class="mono">${esc(d.note.file)}</span></small>`;
+        sv.innerHTML = `<small class="svm">Saved. <a href="/notes?id=${encodeURIComponent(d.note.id)}">Open the note</a> · <span class="mono">${esc(d.note.path)}</span></small>`;
       } catch (e) {
         sv.querySelector(".svgo").disabled = false; msg.textContent = "Not saved: " + (e.message || "the desk did not answer.");
       }

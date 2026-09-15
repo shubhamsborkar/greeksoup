@@ -43,6 +43,19 @@ select.chip{font-family:inherit;padding:3px 6px}
 .ed button.ghost{background:var(--panel2);color:var(--ink2);border:1px solid var(--line2)}
 .ed button.danger{background:none;color:var(--neg);border:1px solid var(--line2)}
 .ed .msg{font-size:11.5px;color:var(--muted)}
+.ed.drop{outline:2px dashed var(--accent);outline-offset:-6px}
+.fchip{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:5px 10px}
+.fchip .x{cursor:pointer;opacity:.7} .fchip .x:hover{opacity:1;color:var(--neg)}
+.fcard{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:10px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2)}
+.fcard .fi{width:34px;height:34px;border-radius:8px;background:var(--accent);color:#fff;font-size:9.5px;font-weight:800;letter-spacing:.06em;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.fcard .fn{flex:1 1 auto;min-width:0} .fcard .fn b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .fcard .fn small{color:var(--muted);font-size:11px}
+.fcard a.op{font-size:12px;font-weight:700;color:#fff;background:var(--accent);border-radius:7px;padding:6px 12px;text-decoration:none}
+.fcard button{background:none;color:var(--ink2);border:1px solid var(--line2);border-radius:7px;padding:5px 10px;font-size:11.5px;cursor:pointer}
+.fcard.miss{border-color:var(--neg)} .fcard.miss .fi{background:var(--neg)}
+.fimg{max-width:100%;border-radius:10px;border:1px solid var(--line);margin:0 0 14px;display:block}
+.ask{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--ink2)}
+.ask button{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer}
+.ask button.danger{color:var(--neg)}
 .ed .msg.ok{color:var(--pos)} .ed .msg.err{color:var(--neg)}
 .symwrap{position:relative;display:inline-block}
 .sugg{position:absolute;left:0;top:calc(100% + 4px);z-index:20;min-width:340px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);overflow:hidden;display:none}
@@ -74,6 +87,12 @@ select.chip{font-family:inherit;padding:3px 6px}
 .conn a.sy{font-family:Menlo,monospace;font-weight:700}
 .stats{display:flex;gap:14px;font-size:11px;color:var(--muted);padding:0 15px 10px}
 .stats b{color:var(--ink2)}
+.loose{border-top:1px solid var(--line);padding:10px 15px 12px}
+.loose .l{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+.loose .f{display:flex;align-items:center;gap:8px;font-size:11.5px;padding:4px 0;color:var(--ink2)}
+.loose .f b{font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 auto;min-width:0}
+.loose .f a,.loose .f button{font-size:10.5px;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:none;font-family:inherit}
+.loose .f button.danger{color:var(--neg)}
 .view .btns{display:flex;gap:8px;margin-top:14px}
 .view .btns button{background:var(--panel2);color:var(--ink2);border:1px solid var(--line2);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer}
 .view .btns button.pri{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
@@ -87,7 +106,7 @@ select.chip{font-family:inherit;padding:3px 6px}
   <div class="right"><span id="asof"></span></div>
 </header>
 <main>
-  <div class="sub">The research you write, kept as plain text files in the desk's own <b>data/notes</b> folder, one file per note. A note says what it is about (a listing, a commodity, a sector, the macro picture, or nothing in particular), the quarter it is researching, the project it belongs to, and links to other notes with <b>[[double brackets]]</b>, so a company page shows every note about it, a project shows every name and note inside it, and one note leads to the next. Open the folder in Obsidian or any editor and the same notes are there; your AI agent reads and writes them too. Nothing is saved here unless you save it.</div>
+  <div class="sub">Your research vault: the notes you write and the files you bring in, kept as plain files in the desk's own <b>data/research</b> folder. A note says what it is about (a listing, a commodity, a sector, the macro picture, or nothing in particular), the quarter it is researching, the project it belongs to, and links to other notes with <b>[[double brackets]]</b>, so a company page shows every note about it, a project shows every name and note inside it, and one note leads to the next. An annual report, a model or a screenshot attaches to a note and lives in the vault with it. Open the folder in Obsidian or any editor and the same files are there; your AI agent reads and writes them too. Nothing is saved here unless you save it.</div>
   <div class="lay">
     <div class="panel">
       <div class="panel-h"><h2>Notes</h2><button class="chip on" id="newbtn">+ New note</button></div>
@@ -100,6 +119,7 @@ select.chip{font-family:inherit;padding:3px 6px}
       <div class="tools" id="ctx" style="display:none"></div>
       <div class="list" id="list"><div class="empty">Loading…</div></div>
       <div class="stats" id="stats"></div>
+      <div id="loose"></div>
     </div>
     <div class="panel" id="right">
       <div class="empty" id="blank">Pick a note on the left, or start a new one.</div>
@@ -115,6 +135,7 @@ select.chip{font-family:inherit;padding:3px 6px}
           <span class="symwrap"><input id="e_symin" placeholder="company name or symbol" autocomplete="off" style="width:220px"><div class="sugg" id="sugg"></div></span></div>
         <div class="row"><span class="lbl">Project</span><input id="e_project" list="projlist" placeholder="a project note's title, or leave empty" style="width:280px" autocomplete="off"><datalist id="projlist"></datalist>
           <span class="lbl" style="margin-left:8px">Tags</span><input id="e_tags" placeholder="comma, separated" style="width:200px" autocomplete="off"></div>
+        <div class="row"><span class="lbl">File</span><span id="e_file"></span><button class="ghost" id="e_attach" type="button">Attach a file</button><input type="file" id="e_fileinput" style="display:none"><span class="msg">An annual report, a model, a screenshot. It goes into the vault when you save the note, and nowhere else.</span></div>
         <textarea id="e_body" placeholder="The note, in Markdown. [[Another note]] links by title. $AAPL names a listing anywhere in the text."></textarea>
         <div class="row"><button id="e_save">Save</button><button class="ghost" id="e_cancel">Cancel</button><span style="flex:1"></span><button class="danger" id="e_del" style="display:none">Delete this note</button></div>
         <div class="msg" id="e_msg"></div>
@@ -130,7 +151,10 @@ const $=id=>document.getElementById(id);
 const P=new URLSearchParams(location.search);
 let TYPES=[], KINDS=[], FACETS={periods:[],abouts:[]}, NOTES=[], CUR=null, EDIT={syms:[]};
 let F={type:"", kind:P.get("kind")||"", period:P.get("period")||"", about:P.get("about")||"", symbol:P.get("symbol")||"", project:P.get("project")||"", q:""};
-const TYPE_LABEL={general:"Note",news:"News",insight:"Insight",concall:"Call",meeting:"Meeting",risk:"Risk",answer:"AI answer",project:"Project"};
+const TYPE_LABEL={general:"Note",news:"News",insight:"Insight",concall:"Call",meeting:"Meeting",risk:"Risk",answer:"AI answer",document:"Document",model:"Model",clipping:"Clipping",decision:"Decision",exit:"Exit",project:"Project"};
+const fmtSize=b=>b>=1048576?(b/1048576).toFixed(1)+" MB":b>=1024?Math.round(b/1024)+" KB":b+" B";
+const fileUrl=rel=>"/api/research/file?path="+encodeURIComponent(rel);
+const fileExt=rel=>(rel.split(".").pop()||"").toUpperCase().slice(0,5);
 const KIND_LABEL={stock:"Stock",commodity:"Commodity",sector:"Sector",macro:"Macro",general:"General"};
 const ABOUT_HINT={commodity:"which commodity, e.g. rubber",sector:"which sector, e.g. Gulf delivery",macro:"which theme, e.g. US rates",general:"a subject, or leave empty"};
 const subj=n=>n.kind==="stock"?"":(n.about?`${KIND_LABEL[n.kind]||n.kind} · ${n.about}`:(KIND_LABEL[n.kind]||n.kind));
@@ -165,7 +189,7 @@ async function load(){
   const qs=new URLSearchParams(); for(const k of ["type","kind","period","about","symbol","project","q"]) if(F[k]) qs.set(k,F[k]);
   const r=await fetch("/api/notes?"+qs); const d=await r.json();
   TYPES=d.types||[]; KINDS=d.kinds||[]; FACETS=d.facets||FACETS; NOTES=d.notes||[];
-  $("asof").textContent="data/notes";
+  $("asof").textContent="data/research";
   $("typechips").innerHTML=`<button class="chip${F.type?"":" on"}" data-t="">all</button>`+TYPES.map(t=>`<button class="chip${F.type===t?" on":""}" data-t="${t}">${TYPE_LABEL[t]||t}</button>`).join("");
   $("typechips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F.type=b.dataset.t;load();});
   $("kindchips").innerHTML=`<button class="chip${F.kind?"":" on"}" data-t="">all</button>`+KINDS.map(t=>`<button class="chip${F.kind===t?" on":""}" data-t="${t}">${KIND_LABEL[t]||t}</button>`).join("");
@@ -179,10 +203,13 @@ async function load(){
   $("ctx").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F[b.dataset.k]="";load();});
   if(!NOTES.length){ $("list").innerHTML=`<div class="empty">${F.symbol||F.project||F.q||F.type||F.kind||F.period||F.about?"No notes match.":"No notes yet. The first one is one click away: <b>+ New note</b>."}</div>`; }
   else $("list").innerHTML=NOTES.map(n=>`<a class="nc${CUR&&CUR.id===n.id?" on":""}" href="/notes?id=${encodeURIComponent(n.id)}" data-id="${esc(n.id)}">
-      <div class="t"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span><span>${esc(n.title)}</span>${n.pinned?'<span class="pin">pinned</span>':""}${n.example?'<span class="pin">example</span>':""}</div>
+      <div class="t"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span><span>${esc(n.title)}</span>${n.file?`<span class="pin">${n.file_ok?fileExt(n.file):"file missing"}</span>`:""}${n.pinned?'<span class="pin">pinned</span>':""}${n.example?'<span class="pin">example</span>':""}</div>
       <div class="m"><span>${esc(n.updated)}</span>${n.period?`<span style="color:var(--ink2)">${esc(n.period)}</span>`:""}${subj(n)?`<span>${esc(subj(n))}</span>`:""}${n.symbols.slice(0,4).map(s=>`<span class="sy">$${esc(s)}</span>`).join("")}${n.project?`<span>in ${esc(n.project)}</span>`:""}</div>
       <div class="sn">${esc(n.snippet||"")}</div></a>`).join("");
   $("list").querySelectorAll(".nc").forEach(a=>a.onclick=e=>{e.preventDefault(); open(a.dataset.id);});
+  const loose=d.loose||[];
+  $("loose").innerHTML=loose.length?`<div class="loose"><div class="l">In the vault, on no note yet</div>${loose.map(f=>`<div class="f"><b title="${esc(f.file)}">${esc(f.name)}</b><span>${esc(f.subject)}</span><span>${fmtSize(f.size)}</span><a href="/notes?new&file=${encodeURIComponent(f.file)}${f.subject&&/^[A-Z0-9.\-]+$/.test(f.subject)?"&symbol="+encodeURIComponent(f.subject):""}">give it a note</a><button class="danger" data-f="${esc(f.file)}">delete</button></div>`).join("")}</div>`:"";
+  $("loose").querySelectorAll("button").forEach(b=>b.onclick=async()=>{ if(!confirm(`Delete ${b.dataset.f} from the vault?`)) return; await post("/api/research/remove_file",{file:b.dataset.f}); load(); });
   try{ const g=await (await fetch("/api/notes/graph")).json(); const c=g.counts||{};
     $("stats").innerHTML=`<span><b>${c.notes||0}</b> notes</span><span><b>${c.projects||0}</b> projects</span><span><b>${c.symbols||0}</b> names</span>`;
     $("projlist").innerHTML=(g.nodes||[]).filter(n=>n.kind==="project").map(n=>`<option value="${esc(n.label)}">`).join("");
@@ -204,7 +231,9 @@ async function open(id){
   const related=g?(g.related_symbols||[]).filter(s=>!syms.includes(s)).slice(0,12):[];
   $("view").innerHTML=`<div class="view">
       <h1>${esc(n.title)}</h1>
-      <div class="meta"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span>${subj(n)?`<span style="color:var(--ink2)">${esc(subj(n))}</span>`:""}${n.period?`<span style="color:var(--ink2)">${esc(n.period)}</span>`:""}<span>updated ${esc(n.updated)}</span><span>created ${esc(n.created)}</span>${n.pinned?"<span>pinned</span>":""}${(n.tags||[]).map(t=>`<span>#${esc(t)}</span>`).join("")}<span class="mono" style="opacity:.7">${esc(n.file)}</span></div>
+      <div class="meta"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span>${subj(n)?`<span style="color:var(--ink2)">${esc(subj(n))}</span>`:""}${n.period?`<span style="color:var(--ink2)">${esc(n.period)}</span>`:""}<span>updated ${esc(n.updated)}</span><span>created ${esc(n.created)}</span>${n.pinned?"<span>pinned</span>":""}${(n.tags||[]).map(t=>`<span>#${esc(t)}</span>`).join("")}<span class="mono" style="opacity:.7">${esc(n.path)}</span></div>
+      ${n.file?(n.file_ok?`<div class="fcard"><div class="fi">${esc(fileExt(n.file))}</div><div class="fn"><b>${esc(n.file.split("/").pop())}</b><small>${fmtSize(n.file_size)} · ${esc(n.file)}</small></div><a class="op" href="${fileUrl(n.file)}" target="_blank" rel="noopener">Open</a><button id="v_detach">Remove file</button></div>${n.file_image?`<img class="fimg" src="${fileUrl(n.file)}" alt="">`:""}`:`<div class="fcard miss"><div class="fi">?</div><div class="fn"><b>${esc(n.file.split("/").pop())}</b><small>This file is not in the vault any more (${esc(n.file)}). Put it back in that folder, or take it off the note.</small></div><button id="v_detach">Take it off the note</button></div>`):""}
+      <div id="v_ask"></div>
       <div class="md">${md(n.body||"")}</div>
       <div class="btns"><button class="pri" id="v_edit">Edit</button>${n.type==="project"?`<button id="v_proj">Every note in this project</button>`:""}</div>
     </div>
@@ -218,6 +247,14 @@ async function open(id){
       ${related.length?`<div class="g"><div class="l">Also connected, through your notes</div>${related.map(s=>`<a class="sy" href="/t?symbol=${encodeURIComponent(s)}">$${esc(s)}</a>`).join("")}</div>`:""}
     </div>`;
   $("v_edit").onclick=()=>edit(n);
+  const vd=$("v_detach"); if(vd) vd.onclick=()=>{
+    const a=$("v_ask");
+    a.innerHTML=n.file_ok?`<div class="ask" style="margin:0 0 14px">Take the file off this note: <button id="d_keep">keep the file in the vault</button><button id="d_del" class="danger">delete the file too</button><button id="d_no">leave it</button></div>`
+                          :`<div class="ask" style="margin:0 0 14px">Take the missing file off this note? <button id="d_keep">yes</button><button id="d_no">no</button></div>`;
+    $("d_no").onclick=()=>a.innerHTML="";
+    $("d_keep").onclick=async()=>{ await post("/api/notes/detach",{id:n.id}); await load(); open(n.id); };
+    const dd=$("d_del"); if(dd) dd.onclick=async()=>{ await post("/api/notes/detach",{id:n.id,delete_file:true}); await load(); open(n.id); };
+  };
   const vp=$("v_proj"); if(vp) vp.onclick=()=>{F.project=n.title;load();};
   $("view").querySelectorAll("a.nl, a.wl[data-id]").forEach(a=>a.onclick=e=>{e.preventDefault();open(a.dataset.id);});
 }
@@ -231,21 +268,59 @@ function edit(n){
   $("e_kind").value=n?n.kind:(P.get("kind")||(EDIT.syms.length?"stock":"general")); $("e_about").value=n?(n.about||""):(P.get("about")||""); $("e_period").value=n?(n.period||""):(P.get("period")||""); kindChanged();
   $("e_project").value=n?(n.project||""):(P.get("project")||""); $("e_tags").value=n?(n.tags||[]).join(", "):""; $("e_body").value=n?n.body:"";
   $("e_del").style.display=n?"inline-block":"none"; say("");
+  EDIT.pending=null; EDIT.file=n?(n.file||""):(P.get("file")||""); drawFile();
+  if(!n&&EDIT.file){ const nm=EDIT.file.split("/").pop(); if(!$("e_title").value) $("e_title").value=nm.replace(/\.[^.]+$/,"").replace(/_+/g," "); const ext=(nm.split(".").pop()||"").toLowerCase(); $("e_type").value=/^(xlsx|xls|xlsm|csv|numbers|ods)$/.test(ext)?"model":/^(png|jpe?g|gif|webp)$/.test(ext)?"clipping":"document"; }
   ($("e_title").value?$("e_body"):$("e_title")).focus();
+  if(!n&&P.has("attach")){ P.delete("attach"); history.replaceState(null,"","/notes?"+P); setTimeout(()=>$("e_fileinput").click(),50); }
 }
+function drawFile(){
+  const el=$("e_file");
+  if(EDIT.pending) el.innerHTML=`<span class="fchip">${esc(EDIT.pending.name)} · ${fmtSize(EDIT.pending.size)} <span class="x" id="e_unpick" title="do not attach">✕</span></span>`;
+  else if(EDIT.file) el.innerHTML=`<span class="fchip"><a href="${fileUrl(EDIT.file)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${esc(EDIT.file.split("/").pop())}</a> <span class="x" id="e_unpick" title="take the file off this note (it stays in the vault)">✕</span></span>`;
+  else el.innerHTML="";
+  const u=$("e_unpick"); if(u) u.onclick=()=>{ EDIT.pending=null; EDIT.file=""; drawFile(); };
+  $("e_attach").textContent=(EDIT.pending||EDIT.file)?"Attach a different file":"Attach a file";
+}
+function pickFile(f){
+  if(!f) return;
+  EDIT.pending=f; drawFile();
+  if(!$("e_title").value.trim()) $("e_title").value=f.name.replace(/\.[^.]+$/,"").replace(/_+/g," ");
+  if($("e_type").value==="general"){ const ext=(f.name.split(".").pop()||"").toLowerCase(); $("e_type").value=/^(xlsx|xls|xlsm|csv|numbers|ods)$/.test(ext)?"model":/^(png|jpe?g|gif|webp)$/.test(ext)?"clipping":"document"; }
+}
+$("e_attach").onclick=()=>$("e_fileinput").click();
+$("e_fileinput").addEventListener("change",()=>{ pickFile($("e_fileinput").files[0]); $("e_fileinput").value=""; });
+$("ed").addEventListener("dragover",e=>{ e.preventDefault(); $("ed").classList.add("drop"); });
+$("ed").addEventListener("dragleave",()=>$("ed").classList.remove("drop"));
+$("ed").addEventListener("drop",e=>{ e.preventDefault(); $("ed").classList.remove("drop"); if(e.dataTransfer.files&&e.dataTransfer.files[0]) pickFile(e.dataTransfer.files[0]); });
 function kindChanged(){ const k=$("e_kind").value; $("e_about").style.display=k==="stock"?"none":"inline-block"; $("e_about").placeholder=ABOUT_HINT[k]||""; }
 $("e_kind").addEventListener("change",kindChanged);
 function drawSyms(){ $("e_syms").innerHTML=EDIT.syms.map(s=>`<span class="chip sym" data-s="${esc(s)}">$${esc(s)}<span class="x">✕</span></span>`).join(""); $("e_syms").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{EDIT.syms=EDIT.syms.filter(x=>x!==c.dataset.s);drawSyms();}); }
 $("newbtn").onclick=()=>edit(null);
 $("e_cancel").onclick=()=>{ if(CUR&&CUR.body!==undefined) open(CUR.id); else {$("ed").style.display="none";$("blank").style.display="block";} };
 $("e_save").onclick=async()=>{
-  const body={id:CUR?CUR.id:"", title:$("e_title").value.trim(), kind:$("e_kind").value, type:$("e_type").value, pinned:$("e_pin").checked, symbols:EDIT.syms, about:$("e_about").value.trim(), period:$("e_period").value.trim(), project:$("e_project").value.trim(), tags:$("e_tags").value.split(",").map(s=>s.trim()).filter(Boolean), body:$("e_body").value};
+  const body={id:CUR?CUR.id:"", title:$("e_title").value.trim(), kind:$("e_kind").value, type:$("e_type").value, pinned:$("e_pin").checked, symbols:EDIT.syms, about:$("e_about").value.trim(), period:$("e_period").value.trim(), project:$("e_project").value.trim(), tags:$("e_tags").value.split(",").map(s=>s.trim()).filter(Boolean), body:$("e_body").value, file:EDIT.file||""};
   if(!body.title) return say("A title first.","err");
+  if(EDIT.pending){
+    say(`Bringing ${EDIT.pending.name} into the vault…`);
+    const qs=new URLSearchParams({name:EDIT.pending.name, symbol:body.kind==="stock"?(EDIT.syms[0]||""):"", about:body.kind==="stock"?"":body.about});
+    let up; try{ up=await (await fetch("/api/research/upload?"+qs,{method:"POST",headers:{"Content-Type":"application/octet-stream"},body:EDIT.pending})).json(); }catch(e){ up={ok:false,error:"the desk did not answer"}; }
+    if(!up.ok) return say("The file did not go in: "+(up.error||"unknown"),"err");
+    body.file=up.file; EDIT.pending=null; EDIT.file=up.file;
+  }
   const r=await post("/api/notes/save",body);
   if(!r.ok) return say(r.error||"could not save","err");
   say("Saved.","ok"); await load(); open(r.note.id);
 };
-$("e_del").onclick=async()=>{ if(!CUR||!confirm(`Delete "${CUR.title}"? The file is removed from data/notes.`)) return; await post("/api/notes/delete",{id:CUR.id}); CUR=null; $("ed").style.display="none"; $("blank").style.display="block"; history.replaceState(null,"","/notes"); load(); };
+$("e_del").onclick=()=>{
+  if(!CUR) return;
+  const m=$("e_msg");
+  m.className="msg";
+  m.innerHTML=CUR.file&&CUR.file_ok?`<span class="ask">Delete "${esc(CUR.title)}"? <button id="x_note">the note only, keep its file</button><button id="x_both" class="danger">the note and its file</button><button id="x_no">keep it</button></span>`
+                                    :`<span class="ask">Delete "${esc(CUR.title)}"? <button id="x_note" class="danger">delete</button><button id="x_no">keep it</button></span>`;
+  const go=async(withFile)=>{ await post("/api/notes/delete",{id:CUR.id,with_file:withFile}); CUR=null; $("ed").style.display="none"; $("blank").style.display="block"; history.replaceState(null,"","/notes"); load(); };
+  $("x_note").onclick=()=>go(false); $("x_no").onclick=()=>say("");
+  const xb=$("x_both"); if(xb) xb.onclick=()=>go(true);
+};
 document.addEventListener("keydown",e=>{ if((e.metaKey||e.ctrlKey)&&e.key==="s"&&$("ed").style.display!=="none"){e.preventDefault();$("e_save").click();} });
 
 /* symbol search for the names chips */

@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.10. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.11. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.11
+
+*15 September 2026, release 11.* The research vault: notes move into data/research/notes (once, on the first start, nothing left behind) and files you bring in live beside them in data/research/files, one folder per subject; a document is a note with a file attached, so an annual report dropped on a listing's page, a model or a screenshot becomes a Document, Model or Clipping note that takes a period, joins a project and shows on the listing's page, with the file opening in a new tab; removing a file or deleting its note asks whether the file stays, a file no note points at is listed on the Notes screen with give-it-a-note and delete beside it, and a file moved away by hand shows as missing rather than vanishing; the backup takes the whole vault
 
 ## 2026-09-15.10
 

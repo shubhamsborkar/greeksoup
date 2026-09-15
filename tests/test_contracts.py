@@ -240,3 +240,59 @@ def test_notes_kind_period_and_subject(tmp_path):
     finally:
         desk_notes.NOTES_DIR = old_dir
         desk_notes.index(force=True)
+
+
+def test_research_vault_files(tmp_path):
+    """The vault: notes move from data/notes into data/research/notes once; a file the reader
+    brings in lands under files/<subject>/ with a safe name, never outside the vault; a note
+    with a file becomes a document, model or clipping by extension; detach keeps or deletes
+    the file, and deleting the note can take the file with it."""
+    import notes as desk_notes
+    keep = (desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR)
+    desk_notes.RESEARCH_DIR = str(tmp_path / "research")
+    desk_notes.NOTES_DIR = str(tmp_path / "research" / "notes")
+    desk_notes.FILES_DIR = str(tmp_path / "research" / "files")
+    desk_notes.LEGACY_NOTES_DIR = str(tmp_path / "notes")
+    try:
+        (tmp_path / "notes").mkdir()
+        (tmp_path / "notes" / "old.md").write_text("---\ntitle: Old\n---\nfrom before", encoding="utf-8")
+        idx = desk_notes.index(force=True)
+        assert "old" in idx and not (tmp_path / "notes").exists()            # moved, and the old folder is gone
+        assert (tmp_path / "research" / "notes" / "old.md").exists()
+        # bringing a file in
+        rel = desk_notes.store_file("Apple 10-K FY25 (final).pdf", b"%PDF-1.4 x", symbol="AAPL")
+        assert rel == "files/AAPL/apple-10-k-fy25-final.pdf"
+        rel2 = desk_notes.store_file("Apple 10-K FY25 (final).pdf", b"%PDF-1.4 y", symbol="AAPL")
+        assert rel2 == "files/AAPL/apple-10-k-fy25-final-2.pdf"                # never overwrites
+        assert desk_notes.store_file("q2.xlsx", b"x", about="Gulf delivery").startswith("files/gulf-delivery/")
+        assert desk_notes.file_type("a.xlsx") == "model" and desk_notes.file_type("a.PNG") == "clipping" and desk_notes.file_type("a.pdf") == "document"
+        assert desk_notes.file_path("../../etc/passwd") is None and desk_notes.file_path("files/../notes/old.md") is None
+        assert desk_notes.file_path("notes/old.md") is None
+        # the note that carries the file
+        n = desk_notes.save({"title": "Apple annual report", "symbols": ["AAPL"], "period": "FY25", "file": rel, "body": ""})
+        assert n["type"] == "document" and n["file"] == rel and n["file_ok"] and n["file_size"] == 10
+        try:
+            desk_notes.save({"title": "Bad", "file": "files/AAPL/not-there.pdf"})
+            assert False, "a file that is not in the vault must be refused"
+        except ValueError:
+            pass
+        # a missing file is reported, never dropped
+        (tmp_path / "research" / rel).unlink()
+        assert desk_notes.get(n["id"])["file_ok"] is False and desk_notes.get(n["id"])["file"] == rel
+        # detach keeps the note; delete with the file removes it and the emptied subject folder
+        n2 = desk_notes.save({"title": "Second", "symbols": ["AAPL"], "file": rel2})
+        assert desk_notes.detach(n["id"])["file"] == ""
+        assert desk_notes.delete(n2["id"], with_file=True) and not (tmp_path / "research" / rel2).exists()
+        assert not (tmp_path / "research" / "files" / "AAPL").exists()
+        assert (tmp_path / "research" / "files" / "gulf-delivery").exists()
+        # a file no note points at is listed, never hidden; it can be removed only while loose
+        loose = desk_notes.loose_files()
+        assert [f["file"] for f in loose] == ["files/gulf-delivery/q2.xlsx"] and loose[0]["type"] == "model"
+        n3 = desk_notes.save({"title": "Gulf model", "kind": "sector", "about": "Gulf delivery", "file": "files/gulf-delivery/q2.xlsx"})
+        assert desk_notes.loose_files() == [] and desk_notes.remove_file("files/gulf-delivery/q2.xlsx") is False
+        desk_notes.detach(n3["id"])
+        assert desk_notes.remove_file("files/gulf-delivery/q2.xlsx") and not (tmp_path / "research" / "files" / "gulf-delivery").exists()
+    finally:
+        desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR = keep
+        desk_notes.index(force=True)
+

@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Notes, the research you write · GreekSoup docs</title>
-<meta name="description" content="GreekSoup keeps your research notes as plain Markdown files in the desk folder, each one linked to the listings it names, the project it belongs to and the notes it links to.">
-<meta property="og:title" content="Notes, the research you write · GreekSoup docs">
-<meta property="og:description" content="GreekSoup keeps your research notes as plain Markdown files in the desk folder, each one linked to the listings it names, the project it belongs to and the notes it links to.">
+<title>Notes and the research vault · GreekSoup docs</title>
+<meta name="description" content="GreekSoup keeps your research as plain files in the desk folder, the notes you write and the files you bring in, each one linked to the listings it names, the project it belongs to and the notes it links to.">
+<meta property="og:title" content="Notes and the research vault · GreekSoup docs">
+<meta property="og:description" content="GreekSoup keeps your research as plain files in the desk folder, the notes you write and the files you bring in, each one linked to the listings it names, the project it belongs to and the notes it links to.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://greeksoup.ai/docs/get-started/notes/">
 <meta property="og:image" content="https://greeksoup.ai/img/og.jpg">
@@ -40,15 +40,17 @@
   <main class="content" id="content">
     <div class="crumb">Get started</div>
     <article class="prose">
-      <h1>Notes, the research you write</h1>
-      <p class="lead">Fourteen screens read the record. Notes is where you write what you make of it, and the desk connects what you write to the names and the other notes it belongs with.</p>
-      <h2 id="what-a-note-is">What a note is</h2>
-<p>One plain text file in <code>data/notes</code>, one per note. The top of the file is the card, the rest is the note itself, in Markdown. Open the folder in Obsidian or any editor and the same files are there, and an AI agent on your computer reads and writes them like any other file.</p>
+      <h1>Notes and the research vault</h1>
+      <p class="lead">Fourteen screens read the record. The research vault is where you keep what you make of it, notes and files alike, and the desk connects everything in it to the names and the other notes it belongs with, so nothing you did six months ago is lost.</p>
+      <h2 id="the-vault">The vault</h2>
+<p>Everything lives in the desk's own <code>data/research</code> folder, in plain files: <code>notes</code> holds one Markdown file per note, <code>files</code> holds what you bring in, an annual report, a model, a screenshot, one folder per subject (<code>files/AAPL</code>, <code>files/rubber</code>). Open the folder in Obsidian or any editor and the same files are there, an AI agent on your computer reads and writes them like any other file, and the backup on Settings takes the whole vault. Nothing is saved here unless you save it.</p>
+<h2 id="what-a-note-is">What a note is</h2>
+<p>One plain text file in <code>data/research/notes</code>. The top of the file is the card, the rest is the note itself, in Markdown.</p>
 <p>The card answers three questions about a note:</p>
 <ul>
 <li><strong>What is it about?</strong> A listing, a commodity, a sector, the macro picture, or nothing in particular. A note about a listing names the listing; a note about a commodity, a sector or a theme names that instead, so <code>Commodity · rubber</code> and <code>Sector · Gulf delivery</code> are subjects the desk groups on the way it groups on a name.</li>
 <li><strong>Which period?</strong> The quarter or year the note is researching, written the way you say it: <code>Q2 FY26</code>, <code>H1 FY26</code>, <code>FY26</code>, <code>Q3 2026</code>. The desk tidies the spacing and the case and otherwise keeps your words, and the Notes screen filters on it, so everything you wrote on one quarter is one click.</li>
-<li><strong>What sort of note?</strong> A general note, news, an insight, a call, a meeting, a risk, an answer your AI gave that you chose to keep, or a project.</li>
+<li><strong>What sort of note?</strong> A general note, news, an insight, a call, a meeting, a risk, an answer your AI gave that you chose to keep, a document, a model or a clipping (a note with a file attached), a decision or an exit, or a project.</li>
 </ul>
 <p>Then the project it belongs to, and tags. Every field on the card is a property Obsidian reads, so its own filters and Bases work on the same fields.</p>
 <h2 id="why-the-folder-stays-flat">Why the folder stays flat</h2>
@@ -63,10 +65,13 @@
 <p>The page of any listing then shows one more line: the other names connected to it through your notes. Two companies that share a project, or sit in the same note, are connected, and that is how a note about a supplier turns up when you are looking at the customer.</p>
 <h2 id="writing-one">Writing one</h2>
 <p>On the Notes screen, <strong>New note</strong>. Say what it is about; for a listing, type the company's name in the Names box and pick it from the list, and the desk fills in the symbol. Give it a period, a project by typing a project note's title, or leave those empty. Write. Save, or press the save shortcut. From any listing's page, <strong>Note on AAPL</strong> opens a new note with the name already filled in.</p>
+<h2 id="files-a-document-is-a-note-with-a-file-attached">Files: a document is a note with a file attached</h2>
+<p>Drop an annual report on a note, or press <strong>Attach a file</strong> on a listing's page, and it becomes a note of type Document with the file attached. The file goes into <code>files/AAPL</code> when you save the note and nowhere else; the note carries the connections, so the report shows on Apple's page, takes the period FY25, joins a project, and links to the call note that quotes it. A spreadsheet makes a Model, a screenshot makes a Clipping, and you can change the type if the desk guessed wrong. Open the file from the note in a new tab; an image shows on the note itself.</p>
+<p>The loop closes both ways. <strong>Remove file</strong> on a note asks whether the file stays in the vault or goes too. Deleting a note that has a file asks the same. A file that no note points at, dropped into the folder from Finder or left behind on purpose, is listed on the Notes screen under <strong>In the vault, on no note yet</strong>, with <strong>give it a note</strong> and <strong>delete</strong> beside it, so nothing brought in is ever hidden. A file you move away by hand shows as missing on its note rather than vanishing.</p>
 <h2 id="keeping-an-answer">Keeping an answer</h2>
-<p>Every answer in the Ask box has a <strong>Save as note</strong> button under it. Press it and a small card opens, already filled from the screen you asked on: the name on a listing's page, commodity on the Commodities screen, macro on Macro. Set the period, change the title if you like, Save. The question and the answer land in <code>data/notes</code> as a note of type AI answer, with the screen, the date and the model written at the foot, so you can see later where it came from. Nothing is saved unless you press the button; an answer you do not keep is gone when you close the box.</p>
+<p>Every answer in the Ask box has a <strong>Save as note</strong> button under it. Press it and a small card opens, already filled from the screen you asked on: the name on a listing's page, commodity on the Commodities screen, macro on Macro. Set the period, change the title if you like, Save. The question and the answer land in the vault as a note of type AI answer, with the screen, the date and the model written at the foot, so you can see later where it came from. Nothing is saved unless you press the button; an answer you do not keep is gone when you close the box.</p>
 <h2 id="the-examples">The examples</h2>
-<p>A fresh desk arrives with one example project and three example notes (a call, a risk, and a commodity note with a period), so the screen shows how the pieces fit. They are four files in <code>data/notes</code> whose names start with <code>example-</code>; delete them from the Notes screen or from the folder whenever you like.</p>
+<p>A fresh desk arrives with one example project and three example notes (a call, a risk, and a commodity note with a period), so the screen shows how the pieces fit. They are four files in <code>data/research/notes</code> whose names start with <code>example-</code>; delete them from the Notes screen or from the folder whenever you like.</p>
 <h2 id="your-ai-reads-them">Your AI reads them</h2>
 <p>The Ask box on a listing's page sends your notes about that listing along with the screen's numbers, so the answer knows what you already think. On Commodities it sends your commodity notes, on Macro your macro notes, and on the Notes screen the notes themselves. Nothing leaves your computer except that one question to your own AI key.</p>
     </article>
@@ -76,11 +81,11 @@
     </nav>
     <footer class="foot">
       <span>GreekSoup: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. For analysts who refuse to settle.</span>
-      <span class="mono">version 2026-09-15.10 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/get-started/notes.md">edit this page</a></span>
+      <span class="mono">version 2026-09-15.11 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/get-started/notes.md">edit this page</a></span>
     </footer>
   </main>
   <aside class="rail">
-    <div class="rail-t">On this page</div><ul><li><a href="#what-a-note-is">What a note is</a></li><li><a href="#why-the-folder-stays-flat">Why the folder stays flat</a></li><li><a href="#how-notes-connect">How notes connect</a></li><li><a href="#writing-one">Writing one</a></li><li><a href="#keeping-an-answer">Keeping an answer</a></li><li><a href="#the-examples">The examples</a></li><li><a href="#your-ai-reads-them">Your AI reads them</a></li></ul>
+    <div class="rail-t">On this page</div><ul><li><a href="#the-vault">The vault</a></li><li><a href="#what-a-note-is">What a note is</a></li><li><a href="#why-the-folder-stays-flat">Why the folder stays flat</a></li><li><a href="#how-notes-connect">How notes connect</a></li><li><a href="#writing-one">Writing one</a></li><li><a href="#files-a-document-is-a-note-with-a-file-attached">Files: a document is a note with a file attached</a></li><li><a href="#keeping-an-answer">Keeping an answer</a></li><li><a href="#the-examples">The examples</a></li><li><a href="#your-ai-reads-them">Your AI reads them</a></li></ul>
   </aside>
 </div>
 <div class="modal" id="modal" hidden>

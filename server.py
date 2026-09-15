@@ -42,7 +42,7 @@ import fred                        # FRED, keyless
 import freefeed          # keyless Yahoo fallbacks for the US pages
 import sec_form4         # keyless Form 4 from EDGAR
 import house_ptr         # keyless House trading disclosures
-import notes as desk_notes   # the research you write: Markdown files in data/notes, linked to names and projects
+import notes as desk_notes   # the research vault: notes and files in data/research, linked to names and projects
 
 PORT = int(os.getenv("DESK_PORT", "8765"))
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -2882,15 +2882,19 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
 /macro       Macro                          /api/macro      the macro cards;  /api/econcal  the calendar
 /commods     Commodities                    /api/commods    the commodity board and its exposure map
 /chain       Chain                          /api/chain      the value-chain maps, priced
-/notes       Notes, the research you write  /api/notes?symbol=&project=&kind=&period=&about=&type=&q=   the notes, filtered
+/notes       Notes, the research vault      /api/notes?symbol=&project=&kind=&period=&about=&type=&q=   the notes, filtered
                                             /api/notes/get?id=   one note with its body
                                             /api/notes/graph?symbol=   what connects to what
-             The notes are Markdown files in data/notes, one per note, with a front matter card:
-             title, kind (stock, commodity, sector, macro, general: what it is about), type
-             (general, news, insight, concall, meeting, risk, answer, project: what sort of
-             writing), symbols (the listings), about (the commodity, sector or theme when the
-             kind is not stock), period (the quarter or year researched, Q2 FY26 style), project,
-             tags. You may read and write those files directly; the desk re-reads the folder
+                                            /api/research/file?path=files/AAPL/x.pdf   a file the reader brought in
+             The vault is data/research: notes/ holds one Markdown file per note, files/ holds
+             what the reader brought in (annual reports, models, screenshots), one folder per
+             subject. A note's front matter card: title, kind (stock, commodity, sector, macro,
+             general: what it is about), type (general, news, insight, concall, meeting, risk,
+             answer, document, model, clipping, decision, exit, project: what sort of note),
+             symbols (the listings), about (the commodity, sector or theme when the kind is not
+             stock), period (the quarter or year researched, Q2 FY26 style), file (an attached
+             file, files/<subject>/<name>), project, tags. A document is a note with a file
+             attached. You may read and write those files directly; the desk re-reads the folder
              within seconds. $AAPL in a body names a listing, [[Title]] links to another note,
              a note of type project groups names and notes. Write a note only when the reader
              asks for one; nothing here is saved on its own.
@@ -2960,12 +2964,30 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(json.dumps({"notes": desk_notes.listing(g("symbol"), g("project"), g("type"), g("tag"), g("q"),
                                                                            g("kind"), g("period"), g("about")),
                                               "types": desk_notes.TYPES, "kinds": desk_notes.KINDS, "facets": desk_notes.facets(),
-                                              "folder": desk_notes.NOTES_DIR}).encode(), "application/json")
+                                              "loose": desk_notes.loose_files(),
+                                              "folder": desk_notes.RESEARCH_DIR}).encode(), "application/json")
             elif path == "/api/notes/get":
                 n = desk_notes.get((qs.get("id", [""])[0] or "").strip())
                 return self._send(json.dumps(n or {"error": "no such note"}).encode(), "application/json")
             elif path == "/api/notes/graph":
                 return self._send(json.dumps(desk_notes.graph((qs.get("symbol", [""])[0] or "").strip())).encode(), "application/json")
+            elif path == "/api/research/file":
+                # a file the reader brought into the vault, served back to them: inline, so a
+                # PDF or an image opens in the browser; never anything outside data/research/files
+                import mimetypes
+                full = desk_notes.file_path((qs.get("path", [""])[0] or "").strip())
+                if not full or not os.path.isfile(full):
+                    return self.send_error(404)
+                ctype = mimetypes.guess_type(full)[0] or "application/octet-stream"
+                with open(full, "rb") as fh:
+                    body = fh.read()
+                self.send_response(200)
+                self.send_header("Content-Type", ctype)
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("Content-Disposition", f'inline; filename="{os.path.basename(full)}"')
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(body)
             elif path == "/settings":
                 with open(os.path.join(HERE, "web", "settings.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
@@ -3298,6 +3320,19 @@ class Handler(BaseHTTPRequestHandler):
         only edit which names the READ-ONLY watch grid quotes."""
         try:
             length = int(self.headers.get("Content-Length", 0))
+            if self.path.startswith("/api/research/upload"):
+                # a file the reader is bringing into the vault, sent as its own bytes; it is
+                # stored under files/<subject>/ and nothing else happens until the note is saved
+                q = parse_qs(urlparse(self.path).query)
+                g = lambda k: (q.get(k, [""])[0] or "").strip()[:200]  # noqa: E731
+                if length > desk_notes.FILE_CAP:
+                    return self._send(b'{"ok":false,"error":"that file is larger than the desk keeps (200 MB)"}', "application/json")
+                data = self.rfile.read(length)
+                try:
+                    rel = desk_notes.store_file(g("name"), data, g("symbol"), g("about"))
+                except ValueError as exc:
+                    return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
+                return self._send(json.dumps({"ok": True, "file": rel, "size": len(data), "type": desk_notes.file_type(rel)}).encode(), "application/json")
             body = json.loads(self.rfile.read(length) or b"{}")
             region = str(body.get("list", "home")).lower()
             code = str(body.get("code", "")).strip().upper()
@@ -3309,7 +3344,12 @@ class Handler(BaseHTTPRequestHandler):
                 except ValueError as exc:
                     return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
             if self.path == "/api/notes/delete":
-                return self._send(json.dumps({"ok": desk_notes.delete(str(body.get("id", "")))}).encode(), "application/json")
+                return self._send(json.dumps({"ok": desk_notes.delete(str(body.get("id", "")), bool(body.get("with_file")))}).encode(), "application/json")
+            if self.path == "/api/research/remove_file":
+                return self._send(json.dumps({"ok": desk_notes.remove_file(str(body.get("file", "")))}).encode(), "application/json")
+            if self.path == "/api/notes/detach":
+                n = desk_notes.detach(str(body.get("id", "")), bool(body.get("delete_file")))
+                return self._send(json.dumps({"ok": bool(n), "note": n}).encode(), "application/json")
             if self.path.startswith("/api/settings/"):
                 return self._settings_post(body)
             if self.path == "/api/ask":
