@@ -18,7 +18,7 @@ $env:GREEKSOUP_NO_SERVICE = "1"
 & (Join-Path $Root "install.ps1")
 
 Write-Host "`n=== Every screen, with no keys at all ==="
-$screens = @("/", "/usdesk", "/book", "/risk", "/watch?list=us", "/global", "/funds", "/flow",
+$screens = @("/", "/usdesk", "/book", "/risk", "/watch?list=us", "/watch?list=global", "/funds", "/flow",
              "/short", "/capitol", "/macro", "/commods", "/chain", "/settings", "/api/ping", "/agent")
 $bad = @()
 foreach ($s in $screens) {
