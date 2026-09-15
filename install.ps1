@@ -97,7 +97,7 @@ if (-not (Up)) {
       Write-Host "`n  --- $f ($size bytes) ---"
       if ($size -gt 0) { Get-Content $p -Tail 40 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $_" } }
     } else {
-      Write-Host "`n  --- $f: not there ---"
+      Write-Host "`n  --- ${f}: not there ---"
     }
   }
   throw "The desk has not answered yet. Give it a minute, then open $Url . If it stays blank, read $Dest\logs\desk.log or give it to your AI agent."

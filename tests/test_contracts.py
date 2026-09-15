@@ -158,6 +158,23 @@ def test_ask_says_what_is_missing_before_it_asks_anything():
                 os.environ[k] = v
 
 
+def test_windows_scripts_have_no_drive_qualified_variables():
+    """PowerShell reads "$name:" as a drive, so a variable followed by a colon inside a
+    string is a parse error that stops the whole script. It cost one Windows run."""
+    for name in ("install.ps1", "desk-service.ps1", os.path.join("docs", "install.ps1")):
+        path = os.path.join(HERE, name)
+        if not os.path.isfile(path):
+            continue
+        for i, line in enumerate(open(path, encoding="utf-8"), 1):
+            for m in re.finditer(r"\$([A-Za-z_][A-Za-z0-9_]*):", line):
+                if m.group(1).lower() == "env":
+                    continue
+                if line[m.end():m.end() + 2] == "//":
+                    continue
+                raise AssertionError(
+                    f"{name}:{i} writes ${m.group(1)}: which PowerShell reads as a drive; write ${{{m.group(1)}}}: instead")
+
+
 def test_docs_nav_points_at_real_pages():
     nav = json.load(open(os.path.join(HERE, "site", "nav.json"), encoding="utf-8"))
     for sec in nav["sections"]:
