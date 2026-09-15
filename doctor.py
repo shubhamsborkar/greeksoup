@@ -62,15 +62,21 @@ def main():
         say(OK, f"desk folder: {HERE}")
     else:
         say(BAD, f"this is not the desk folder (no server.py here): {HERE}")
-        return
+        return problems
     venv = os.path.join(HERE, ".venv")
+    # A folder with the desk's files but no settings and no environment is the
+    # repository as it comes off GitHub, not a desk somebody installed. Nothing
+    # in it is broken, so the missing pieces below are said plainly, not as faults.
+    installed = os.path.isfile(os.path.join(HERE, ".env")) or os.path.isdir(venv)
+    if not installed:
+        say(OK, "these are the desk's files, and no desk is installed here yet (no settings file, no environment), so this check reports what is present and nothing is marked wrong")
     if os.path.isdir(venv):
         say(OK, "the desk's own Python environment (.venv) is present")
         in_venv = os.path.abspath(sys.prefix).startswith(os.path.abspath(venv))
         if not in_venv:
             say(WARN, "this check is not running inside .venv; the desk itself does, so a missing package below may be a false alarm")
     else:
-        say(BAD, "no .venv folder; run the install line again or tell your agent to create it")
+        say(BAD if installed else OK, "no .venv folder" + ("; run the install line again or tell your agent to create it" if installed else ""))
     for pkg in ("requests", "dotenv", "certifi"):
         try:
             __import__(pkg)
@@ -98,7 +104,7 @@ def main():
     # the settings, names only
     env = read_env()
     if env is None:
-        say(BAD, "no .env file; the Settings screen writes it, or copy .env.example to .env")
+        say(BAD if installed else OK, "no .env file" + ("; the Settings screen writes it, or copy .env.example to .env" if installed else "; the install line writes one"))
         env = {}
     else:
         say(OK, ".env present")
@@ -114,7 +120,10 @@ def main():
         with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/ping", timeout=3) as r:
             say(OK, f"the desk answers at http://localhost:{port} (status {r.status})")
     except Exception as exc:  # noqa: BLE001
-        say(BAD, f"nothing answers at http://localhost:{port} ({type(exc).__name__}); double-click Start Desk, or read the log lines below")
+        if installed:
+            say(BAD, f"nothing answers at http://localhost:{port} ({type(exc).__name__}); double-click Start Desk, or read the log lines below")
+        else:
+            say(OK, f"nothing answers at http://localhost:{port}, which is what a folder with no desk installed in it looks like")
         s = socket.socket()
         s.settimeout(1)
         try:
@@ -126,7 +135,7 @@ def main():
             s.close()
 
     # the always-on entry
-    system = platform.system()
+    system = platform.system() if installed else ""
     if system == "Darwin":
         plist = os.path.expanduser("~/Library/LaunchAgents/com.research-desk.plist")
         say(OK if os.path.isfile(plist) else WARN, "start-at-login entry " + ("present" if os.path.isfile(plist) else "absent; double-click Keep Desk Running to add it"))
@@ -187,6 +196,8 @@ def main():
     print()
     if problems:
         print(f"{problems} thing(s) marked [fix ]. Copy everything above and give it to your AI agent with: 'Read README.md in this folder, then fix what the check found.'")
+    elif not installed:
+        print("Nothing to fix. These are the desk's files; to install a desk here, read the Install section of README.md.")
     else:
         print("Nothing to fix. If a screen still looks wrong, copy everything above into a bug report or give it to your agent.")
     return problems

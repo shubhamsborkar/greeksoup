@@ -93,6 +93,71 @@ def test_version_and_manifest_agree():
         assert must in manifest["files"], f"{must} not in the manifest"
 
 
+def test_ask_box_reads_every_screen_in_the_sidebar():
+    """Every screen the sidebar offers can answer a question about itself."""
+    server = importlib.import_module("server")
+    js = open(os.path.join(HERE, "web", "assets", "desk.js"), encoding="utf-8").read()
+    tabs = js.split("const TABS = [", 1)[1].split("\n  ];", 1)[0]
+    hrefs = set(re.findall(r'\[\s*"(/[^"]*)"', tabs))
+    for href in hrefs:
+        page = href.split("?", 1)[0]
+        assert page in server.ASK_READS, f"the Ask box has no reads for {page}"
+
+
+def test_ask_box_reads_real_endpoints():
+    server = importlib.import_module("server")
+    source = open(os.path.join(HERE, "server.py"), encoding="utf-8").read()
+    for label, reads in server.ASK_READS.values():
+        assert label
+        for ep in reads:
+            path = ep.split("?", 1)[0]
+            assert f'"{path}"' in source, f"{path} is not an address this desk answers"
+
+
+def test_ask_box_never_advises():
+    """The Ask box describes; it does not tell the reader what to do."""
+    ai = importlib.import_module("ai")
+    s = ai.ASK_SYSTEM.lower()
+    assert "never tell the reader what to buy, sell or hold" in s
+    assert "say so plainly instead of guessing" in s
+    assert "never invent a figure" in s
+
+
+def test_slim_shortens_a_long_series_and_can_drop_the_bulky_keys():
+    server = importlib.import_module("server")
+    card = {"label": "Natural rubber", "value": 241.5,
+            "full": [[f"2020-01-{i:02d}", i * 1.5] for i in range(1, 400)],
+            "note": "x" * 900, "names": [{"code": "GT", "intensity": "y" * 900}]}
+    slim = server._slim(card)
+    assert slim["value"] == 241.5 and slim["label"] == "Natural rubber"
+    assert len(slim["full"]) == 13, "a long series keeps its first and last few points"
+    assert slim["full"][0] == card["full"][0] and slim["full"][-1] == card["full"][-1]
+    assert len(slim["note"]) < 200, "a long sentence is cut"
+    hard = server._slim(card, server.BULKY)
+    assert "full" not in hard and "note" not in hard
+    assert "intensity" not in hard["names"][0]
+    assert len(json.dumps(hard)) < len(json.dumps(server._slim(card)))
+
+
+def test_ask_says_what_is_missing_before_it_asks_anything():
+    """With nothing set, the Ask box explains rather than reaching the network."""
+    ai = importlib.import_module("ai")
+    keep = {k: os.environ.get(k) for k in ("AI_PROVIDER", "AI_API_KEY", "AI_MODEL", "AI_BASE_URL", "AI_FORMAT")}
+    try:
+        for k in keep:
+            os.environ.pop(k, None)
+        out = ai.ask("what is on this screen?", "Commodities", "{}")
+        assert out["ok"] is False and "provider" in out["error"].lower()
+        os.environ["AI_PROVIDER"] = "openai"
+        assert "key" in (ai.not_ready(ai.settings()) or "").lower()
+    finally:
+        for k, v in keep.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
 def test_docs_nav_points_at_real_pages():
     nav = json.load(open(os.path.join(HERE, "site", "nav.json"), encoding="utf-8"))
     for sec in nav["sections"]:
