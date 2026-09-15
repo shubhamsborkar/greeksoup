@@ -1,9 +1,9 @@
 {
   "name": "terminal",
   "label": "Terminal door",
-  "version": "2",
+  "version": "3",
   "author": "Shikshan Nivesh",
-  "what": "Lets the Ask box answer through an app already on this computer that you pay for another way (Claude Code on a Claude subscription, Codex on ChatGPT, Gemini CLI on a Google account), with the same screen data and your notes, so no separate AI key is needed.",
+  "what": "Lets the Ask box answer through an app already on this computer that you pay for another way (Claude Code on a Claude subscription, Codex on ChatGPT, Gemini CLI on a Google account, Kimi Code, Grok Build, Qwen Code, Cursor), with the same screen data and your notes, so no separate AI key is needed. It has no screen of its own: the apps it found, and the buttons to use one for Ask or sign in, are on Settings under Your AI.",
   "talks_to": [
     "the coding agent on this computer, which reaches its own provider with its own login"
   ],
@@ -35,12 +35,43 @@
           "-p",
           "Read the text on standard input and answer as it asks."
         ]
+      },
+      {
+        "label": "Kimi Code",
+        "command": [
+          "kimi",
+          "-p"
+        ],
+        "prompt": "arg"
+      },
+      {
+        "label": "Grok Build",
+        "command": [
+          "grok",
+          "-p"
+        ],
+        "prompt": "arg"
+      },
+      {
+        "label": "Qwen Code",
+        "command": [
+          "qwen",
+          "-o",
+          "text",
+          "-p"
+        ],
+        "prompt": "arg"
+      },
+      {
+        "label": "Cursor",
+        "command": [
+          "cursor-agent",
+          "-p",
+          "--output-format",
+          "text"
+        ],
+        "prompt": "arg"
       }
     ]
-  },
-  "screen": {
-    "href": "/plugins/terminal/screen.html",
-    "label": "Terminal",
-    "group": "Plugins"
   }
 }

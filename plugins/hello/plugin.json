@@ -1,10 +1,18 @@
 {
   "name": "hello",
-  "label": "Hello, a plugin to copy",
-  "version": "1",
+  "label": "Example, a plugin to copy",
+  "version": "2",
   "author": "Shikshan Nivesh",
-  "what": "The smallest plugin there is, here to be copied: one screen that reads a desk address, and one block a note can carry. Bring it in, open it, then change it.",
-  "talks_to": ["nothing outside this computer"],
-  "screen": {"href": "/plugins/hello/screen.html", "label": "Hello", "group": "Plugins"},
-  "blocks": ["blocks.js"]
+  "what": "An example, for anyone who wants to write a plugin: the smallest one there is, one screen that reads a desk address and one block a note can carry. If you did not mean to build a plugin you do not need it; remove it from Settings under Plugins and nothing changes.",
+  "talks_to": [
+    "nothing outside this computer"
+  ],
+  "screen": {
+    "href": "/plugins/hello/screen.html",
+    "label": "Example plugin",
+    "group": "Plugins"
+  },
+  "blocks": [
+    "blocks.js"
+  ]
 }

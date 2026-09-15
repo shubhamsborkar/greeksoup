@@ -9,7 +9,7 @@ The desk makes outbound requests to these places, and to nothing else:
 - **Your broker**, only if you connected one, with the keys you gave it, read-only. The six shipped adapters (Alpaca, ICICI Direct, Interactive Brokers, Tradier, Trading 212, Zerodha) use each broker's documented read endpoints. None of them places an order.
 - **The public record**: SEC EDGAR, FINRA, CBOE's delayed chains, FRED, the Senate and House disclosure sites, Yahoo Finance quotes, Trading Economics, and the India sources named on the Macro screen.
 - **Your data provider**, only if you gave it a key (Financial Modeling Prep today).
-- **Your AI**, only if you chose one: a key from a lab, an app you already pay for on this computer (Claude Code, Codex, Gemini CLI, which reach their own providers under your own account), or a model running on your computer. What goes is your question and the numbers on the screen you asked from, when you press Enter.
+- **Your AI**, only if you chose one: a key from a lab, an app you already pay for on this computer (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code, Cursor, which reach their own providers under your own account), or a model running on your computer. What goes is your question and the numbers on the screen you asked from, when you press Enter.
 - **GitHub**, once a day, one small request for the `VERSION` file, to know whether a newer version exists. The update itself downloads the repository ZIP from GitHub when you click.
 - **Google Fonts**, from the pages' markup, for the desk's typefaces.
 

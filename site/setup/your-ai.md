@@ -1,13 +1,13 @@
 ---
 title: Your AI
 nav: Your AI
-description: Three ways to have an AI on the GreekSoup desk: an app you already pay for (Claude Code, Codex, Gemini CLI) without a key, your own key from any of fourteen labs, or a model running on your own computer. What the Ask box sends, and what the desk never sees.
+description: Three ways to have an AI on the GreekSoup desk: an app you already pay for (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code, Cursor) without a key, your own key from any of fourteen labs, or a model running on your own computer. What the Ask box sends, and what the desk never sees.
 lead: Three ways in, and the first needs no key at all. An app you already pay for on this computer, a key from a lab, or a model running on your own computer. The Ask box on every screen, the chain draft and every answer on the desk go through whichever you pick.
 ---
 
 ## An app you already pay for
 
-Settings, under **Your AI**, opens with the apps the desk finds on this computer: Claude Code on a Claude subscription, Codex on a ChatGPT subscription, Gemini CLI on a Google account. Each card says whether the app is on this computer, and carries two buttons.
+Settings, under **Your AI**, opens with the apps the desk finds on this computer: Claude Code on a Claude subscription, Codex on a ChatGPT subscription, Gemini CLI on a Google account, Kimi Code, Grok Build, Qwen Code and Cursor on their own accounts. Each card says whether the app is on this computer, and carries two buttons.
 
 **Use it for Ask** makes that app the one who answers. From then on every question in the Ask box, and every chain draft, goes to it. The desk hands the app your question with the screen's numbers on standard input and reads the answer from standard output, exactly as you would at a terminal. If the Terminal door that carries this is not in yet, the button brings it in for you.
 
@@ -16,6 +16,12 @@ Settings, under **Your AI**, opens with the apps the desk finds on this computer
 The brief the desk gives the app says: answer from the data, run no commands, edit no files, ask for no permissions. The app's own permission settings apply on top, and reading them once is worth the minute.
 
 An app that is not on this computer shows a link to get it. Once it is installed, reopen Settings and the card finds it.
+
+## Is this allowed by the app's maker, and is my account safe
+
+A fair question, because in 2026 Anthropic cut off other programs that took a Claude subscription's login token and used it to reach Claude directly. The desk does not do that. It never sees a token: it runs the maker's own app on your computer, the way a shell script would, hands it a question and reads the answer. That is the app being used as the app, under your own sign-in, and each maker documents this way of running it (Claude Code's print mode, Codex's `exec`, Gemini CLI's `-p`, and the same flag on Kimi Code, Grok Build, Qwen Code and Cursor). Nothing about your desk is shared with anyone else, and nobody else's questions go through your account.
+
+What the maker's rules do govern is how the usage is counted. As of 15 June 2026 Anthropic says questions through Claude Code's print mode still draw from your subscription's usage limits, and that it has paused a plan to move them to a separate monthly credit; if that plan returns, the Ask box would count against that credit instead, and the desk's Settings page will say so. OpenAI documents `codex exec` for scripts on a ChatGPT plan and recommends an API key for heavy automation. Google's Gemini CLI runs on a Google account. If a maker changes its rules, the rules win: switch the Ask box to a key from a lab, or to a model running on your computer, and nothing else on the desk changes.
 
 ## A key from a lab
 

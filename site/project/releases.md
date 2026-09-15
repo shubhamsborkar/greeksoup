@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.35. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.36. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.36
+
+*16 September 2026, release 36.* Four more apps you may already pay for answer the Ask box: Kimi Code, Grok Build, Qwen Code and Cursor join Claude Code, Codex and Gemini CLI on Settings under Your AI, each found on the computer itself, each with Use it for Ask and Sign in (Grok Build answered through the door on the author's computer; the other three follow their makers' documented one-shot flag). The Terminal door no longer adds a page of its own, since everything about it lives on Settings; a shipped plugin you installed is brought up to the version that ships with a release when the desk starts, so that change reaches an installed copy on its own. The example plugin says on its first line that it is an example and how to remove it. Your AI in the docs and the FAQ answer the question of whether running Claude Code or Codex from the desk is allowed and how the usage is counted, with what each maker says as of 15 June 2026. The landing page carries a sliding Works with band, names and kinds, no logos: the seven apps, the labs, the local models, the six brokers, the public record, the data provider, the two markets.
 
 ## 2026-09-16.35
 

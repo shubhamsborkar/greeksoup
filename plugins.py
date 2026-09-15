@@ -103,7 +103,8 @@ def _read(name):
         for c in door.get("commands") or []:
             if isinstance(c, dict) and isinstance(c.get("command"), list) and c["command"] and all(isinstance(x, str) for x in c["command"]):
                 found = _which(c["command"][0])
-                cmds.append({"label": str(c.get("label") or c["command"][0])[:40], "command": c["command"][:12], "found": bool(found), "path": found or ""})
+                cmds.append({"label": str(c.get("label") or c["command"][0])[:40], "command": c["command"][:12], "found": bool(found), "path": found or "",
+                             "prompt": "arg" if c.get("prompt") == "arg" else "stdin"})
         out["door"] = {"label": str(door.get("label") or out["label"])[:40], "commands": cmds,
                        "ready": next((c for c in cmds if c["found"]), None)}
         out["adds"].append("a door")
@@ -135,10 +136,18 @@ def block_files():
 # the apps a door can be: the reader's own subscription, through the app's own login; the desk
 # never sees the token, it hands the app a question and reads the answer
 APPS = {
+    # The apps the desk knows how to hand a question to. Each one is the maker's own command-line
+    # app, run as the reader would run it; the desk never sees the login. `signin` is what a
+    # terminal window runs so the reader can sign in inside the app itself.
     "claude": {"label": "Claude Code", "pays": "your Claude subscription", "site": "https://claude.com/product/claude-code",
                "signin": "claude"},
     "codex": {"label": "Codex", "pays": "your ChatGPT subscription", "site": "https://openai.com/codex/", "signin": "codex login"},
     "gemini": {"label": "Gemini CLI", "pays": "your Google account", "site": "https://github.com/google-gemini/gemini-cli", "signin": "gemini"},
+    "kimi": {"label": "Kimi Code", "pays": "your Kimi account", "site": "https://www.kimi.com/code", "signin": "kimi"},
+    "grok": {"label": "Grok Build", "pays": "your xAI account", "site": "https://x.ai/build", "signin": "grok"},
+    "qwen": {"label": "Qwen Code", "pays": "your Qwen account", "site": "https://qwen.ai/qwencode", "signin": "qwen"},
+    "cursor-agent": {"label": "Cursor", "pays": "your Cursor subscription", "site": "https://cursor.com/docs/cli/overview",
+                     "signin": "cursor-agent login"},
 }
 
 
@@ -171,6 +180,28 @@ def apps_known():
 
 
 SHIPPED_DIR = os.path.join(HERE, "plugins")
+
+
+def refresh_shipped():
+    """A plugin that ships beside the code (the Terminal door, the example) and is installed in
+    the vault is brought up to the shipped version when a release carries a newer one; the
+    reader did not write it, so nothing of theirs is touched. Returns the names refreshed."""
+    done = []
+    for p in installed():
+        src = os.path.join(SHIPPED_DIR, p["name"])
+        if not os.path.isfile(os.path.join(src, "plugin.json")):
+            continue
+        try:
+            with open(os.path.join(src, "plugin.json"), encoding="utf-8") as fh:
+                shipped = json.load(fh)
+            if str(shipped.get("author", "")) != "Shikshan Nivesh" or str(p.get("author", "")) != "Shikshan Nivesh":
+                continue
+            if int(str(shipped.get("version", "0")) or 0) > int(str(p.get("version", "0")) or 0):
+                install_folder(src)
+                done.append(p["name"])
+        except (OSError, ValueError, json.JSONDecodeError):
+            continue
+    return done
 
 
 def install_shipped(name):
@@ -288,10 +319,15 @@ def run_door(name, prompt, timeout=240):
         return {"ok": False, "error": f"{p['door']['label']}: none of {want} is installed on this computer, or not on the path the desk sees"}
     cmd = list(ready["command"])
     cmd[0] = ready["path"]
+    # Most apps read the question on standard input; an app whose command says
+    # "prompt": "arg" takes it as its last argument instead (Kimi Code has no stdin mode).
+    as_arg = ready.get("prompt") == "arg"
+    if as_arg:
+        cmd.append(prompt)
     env = dict(os.environ)
     env.pop("CLAUDECODE", None)                       # a nested session refuses to start
     try:
-        r = subprocess.run(cmd, input=prompt, capture_output=True, text=True, timeout=timeout, env=env,
+        r = subprocess.run(cmd, input="" if as_arg else prompt, capture_output=True, text=True, timeout=timeout, env=env,
                            cwd=desk_notes.RESEARCH_DIR if os.path.isdir(desk_notes.RESEARCH_DIR) else HERE)
     except subprocess.TimeoutExpired:
         return {"ok": False, "error": f"{ready['label']} did not answer within {timeout // 60} minutes"}

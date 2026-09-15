@@ -539,14 +539,20 @@ def test_plugins_load_install_remove(tmp_path, monkeypatch):
     try:
         here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         t = desk_plugins.install_folder(os.path.join(here, "plugins", "terminal"))
-        assert t["adds"] == ["a screen", "a door"] and t["door"]["commands"][0]["label"] == "Claude Code"
+        assert t["adds"] == ["a door"] and t["door"]["commands"][0]["label"] == "Claude Code"   # the door has no screen; Settings carries it
+        assert t["door"]["commands"][0]["prompt"] == "stdin" and next(c for c in t["door"]["commands"] if c["label"] == "Kimi Code")["prompt"] == "arg"
         h = desk_plugins.install_folder(os.path.join(here, "plugins", "hello"))
         assert h["adds"] == ["a screen", "blocks"] and h["blocks"] == ["/plugins/hello/blocks.js"]
         assert [p["name"] for p in desk_plugins.installed(force=True)] == ["hello", "terminal"]
-        assert [s["key"] for s in desk_plugins.screens()] == ["plugin:hello", "plugin:terminal"]
+        assert [s["key"] for s in desk_plugins.screens()] == ["plugin:hello"]
         ds = desk_plugins.doors()                                              # one door per app the plugin names
-        assert [d["name"] for d in ds] == ["terminal:0", "terminal:1", "terminal:2"] and ds[0]["label"] == "Claude Code" and ds[0]["pays"]
-        assert {a["app"] for a in desk_plugins.apps_known()} == {"claude", "codex", "gemini"}
+        assert [d["name"] for d in ds] == [f"terminal:{i}" for i in range(7)] and ds[0]["label"] == "Claude Code" and ds[0]["pays"]
+        assert {a["app"] for a in desk_plugins.apps_known()} == {"claude", "codex", "gemini", "kimi", "grok", "qwen", "cursor-agent"}
+        # a shipped plugin installed at an older version is brought up when the desk starts
+        with open(os.path.join(desk_plugins.plugins_dir(), "terminal", "plugin.json"), "r+", encoding="utf-8") as fh:
+            old = json.load(fh); old["version"] = "1"; fh.seek(0); fh.truncate(); json.dump(old, fh)
+        desk_plugins.installed(force=True)
+        assert desk_plugins.refresh_shipped() == ["terminal"] and next(p for p in desk_plugins.installed(force=True) if p["name"] == "terminal")["version"] == t["version"]
         assert desk_plugins.run_door("terminal:9", "x")["error"] == "no such door"          # an index that is not there never falls back to another app
         missing = next((d for d in ds if not d["ready"]), None)
         if missing:

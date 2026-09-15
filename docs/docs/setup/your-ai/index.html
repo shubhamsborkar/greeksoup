@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Your AI · GreekSoup docs</title>
-<meta name="description" content="Three ways to have an AI on the GreekSoup desk: an app you already pay for (Claude Code, Codex, Gemini CLI) without a key, your own key from any of fourteen labs, or a model running on your own computer. What the Ask box sends, and what the desk never sees.">
+<meta name="description" content="Three ways to have an AI on the GreekSoup desk: an app you already pay for (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code, Cursor) without a key, your own key from any of fourteen labs, or a model running on your own computer. What the Ask box sends, and what the desk never sees.">
 <meta property="og:title" content="Your AI · GreekSoup docs">
-<meta property="og:description" content="Three ways to have an AI on the GreekSoup desk: an app you already pay for (Claude Code, Codex, Gemini CLI) without a key, your own key from any of fourteen labs, or a model running on your own computer. What the Ask box sends, and what the desk never sees.">
+<meta property="og:description" content="Three ways to have an AI on the GreekSoup desk: an app you already pay for (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code, Cursor) without a key, your own key from any of fourteen labs, or a model running on your own computer. What the Ask box sends, and what the desk never sees.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://greeksoup.ai/docs/setup/your-ai/">
 <meta property="og:image" content="https://greeksoup.ai/img/og.jpg">
@@ -43,11 +43,14 @@
       <h1>Your AI</h1>
       <p class="lead">Three ways in, and the first needs no key at all. An app you already pay for on this computer, a key from a lab, or a model running on your own computer. The Ask box on every screen, the chain draft and every answer on the desk go through whichever you pick.</p>
       <h2 id="an-app-you-already-pay-for">An app you already pay for</h2>
-<p>Settings, under <strong>Your AI</strong>, opens with the apps the desk finds on this computer: Claude Code on a Claude subscription, Codex on a ChatGPT subscription, Gemini CLI on a Google account. Each card says whether the app is on this computer, and carries two buttons.</p>
+<p>Settings, under <strong>Your AI</strong>, opens with the apps the desk finds on this computer: Claude Code on a Claude subscription, Codex on a ChatGPT subscription, Gemini CLI on a Google account, Kimi Code, Grok Build, Qwen Code and Cursor on their own accounts. Each card says whether the app is on this computer, and carries two buttons.</p>
 <p><strong>Use it for Ask</strong> makes that app the one who answers. From then on every question in the Ask box, and every chain draft, goes to it. The desk hands the app your question with the screen's numbers on standard input and reads the answer from standard output, exactly as you would at a terminal. If the Terminal door that carries this is not in yet, the button brings it in for you.</p>
 <p><strong>Sign in</strong> opens a terminal window running the app's own sign-in, which continues in your browser. The desk never sees the login: the app keeps its own, reaches its own provider under your own account, and that is the one thing it talks to. When the window says you are in, close it and come back.</p>
 <p>The brief the desk gives the app says: answer from the data, run no commands, edit no files, ask for no permissions. The app's own permission settings apply on top, and reading them once is worth the minute.</p>
 <p>An app that is not on this computer shows a link to get it. Once it is installed, reopen Settings and the card finds it.</p>
+<h2 id="is-this-allowed-by-the-apps-maker-and-is-my-account-safe">Is this allowed by the app's maker, and is my account safe</h2>
+<p>A fair question, because in 2026 Anthropic cut off other programs that took a Claude subscription's login token and used it to reach Claude directly. The desk does not do that. It never sees a token: it runs the maker's own app on your computer, the way a shell script would, hands it a question and reads the answer. That is the app being used as the app, under your own sign-in, and each maker documents this way of running it (Claude Code's print mode, Codex's <code>exec</code>, Gemini CLI's <code>-p</code>, and the same flag on Kimi Code, Grok Build, Qwen Code and Cursor). Nothing about your desk is shared with anyone else, and nobody else's questions go through your account.</p>
+<p>What the maker's rules do govern is how the usage is counted. As of 15 June 2026 Anthropic says questions through Claude Code's print mode still draw from your subscription's usage limits, and that it has paused a plan to move them to a separate monthly credit; if that plan returns, the Ask box would count against that credit instead, and the desk's Settings page will say so. OpenAI documents <code>codex exec</code> for scripts on a ChatGPT plan and recommends an API key for heavy automation. Google's Gemini CLI runs on a Google account. If a maker changes its rules, the rules win: switch the Ask box to a key from a lab, or to a model running on your computer, and nothing else on the desk changes.</p>
 <h2 id="a-key-from-a-lab">A key from a lab</h2>
 <p>Under the apps, pick a provider, paste a key, choose the model and click <em>Test it</em>, which sends one small line and shows what came back. Fourteen presets:</p>
 <p>Anthropic · OpenAI · Google (Gemini) · DeepSeek · Kimi (Moonshot) · MiniMax · Z.ai (GLM) · Alibaba (Qwen) · xAI (Grok) · Mistral · OpenRouter (many models, one key) · Ollama on this computer · LM Studio on this computer · Any other endpoint.</p>
@@ -74,11 +77,11 @@
     </nav>
     <footer class="foot">
       <span>GreekSoup: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. For analysts who refuse to settle.</span>
-      <span class="mono">version 2026-09-16.35 · built 2026-09-16 · <a href="https://github.com/shubhamsborkar/greeksoup/edit/main/site/setup/your-ai.md">edit this page</a></span>
+      <span class="mono">version 2026-09-16.36 · built 2026-09-16 · <a href="https://github.com/shubhamsborkar/greeksoup/edit/main/site/setup/your-ai.md">edit this page</a></span>
     </footer>
   </main>
   <aside class="rail">
-    <div class="rail-t">On this page</div><ul><li><a href="#an-app-you-already-pay-for">An app you already pay for</a></li><li><a href="#a-key-from-a-lab">A key from a lab</a></li><li><a href="#a-model-on-this-computer">A model on this computer</a></li><li><a href="#the-ask-box">The Ask box</a></li><li><a href="#where-else-the-ai-works">Where else the AI works</a></li><li><a href="#the-page-your-ai-app-reads">The page your AI app reads</a></li></ul>
+    <div class="rail-t">On this page</div><ul><li><a href="#an-app-you-already-pay-for">An app you already pay for</a></li><li><a href="#is-this-allowed-by-the-apps-maker-and-is-my-account-safe">Is this allowed by the app&#x27;s maker, and is my account safe</a></li><li><a href="#a-key-from-a-lab">A key from a lab</a></li><li><a href="#a-model-on-this-computer">A model on this computer</a></li><li><a href="#the-ask-box">The Ask box</a></li><li><a href="#where-else-the-ai-works">Where else the AI works</a></li><li><a href="#the-page-your-ai-app-reads">The page your AI app reads</a></li></ul>
   </aside>
 </div>
 <div class="modal" id="modal" hidden>

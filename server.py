@@ -4148,6 +4148,11 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     mig = desk_migrate.run(updater.local_version())
+    try:
+        for nm in desk_plugins.refresh_shipped():
+            print(f"plugin {nm} brought up to the version that ships with this desk")
+    except Exception as exc:  # noqa: BLE001 - a plugin must never stop the desk
+        print("plugins: refresh skipped:", exc)
     for m in mig["migrated"]:
         if not m["stamped"]:
             print(f"  brought {m['label']} up to this version's shape ({os.path.relpath(m['path'], HERE)}); the copy from before is at {os.path.relpath(m['kept'], HERE)}")

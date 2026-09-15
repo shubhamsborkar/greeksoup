@@ -37,7 +37,10 @@ In one settings file inside the GreekSoup folder on your own computer, written b
 Your broker, the public sources, your data provider and your AI if you connected them, and GitHub once a day to check for a newer version. No telemetry, no analytics, no account.
 
 **Which AI can it use?**
-Any. An app you already pay for on this computer (Claude Code, Codex, Gemini CLI) answers with no key at all; fourteen providers are preset for a key, models running on your own computer among them; and any AI app on your computer can read the desk through [a page made for it](/docs/setup/your-ai/).
+Any. An app you already pay for on this computer (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code, Cursor) answers with no key at all; fourteen providers are preset for a key, models running on your own computer among them; and any AI app on your computer can read the desk through [a page made for it](/docs/setup/your-ai/).
+
+**Will using Claude Code or Codex from the desk put my account at risk?**
+No. The desk never sees your login: it runs the maker's own app on your computer, the way a shell script would, hands it a question and reads the answer. That is the app being used as the app, under your own sign-in, which each maker documents. What the makers do decide is how the usage is counted; as of 15 June 2026 Anthropic counts Claude Code's print mode against your normal subscription limits and has paused a plan to move it to a separate monthly credit. If a maker changes its rules, switch the Ask box to a key or a local model and nothing else changes. [Your AI](/docs/setup/your-ai/) has the detail.
 
 **Does my book go to the AI?**
 When you ask, yes. The Ask box sends your question with the numbers on the screen you are on, and on Desk · Home those are your holdings. It goes to the one place you chose and nowhere else; a model running on your computer keeps it on your computer. Nothing is sent until you press Enter. [Security](/docs/project/security/).

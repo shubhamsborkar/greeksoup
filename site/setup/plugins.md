@@ -17,7 +17,7 @@ A plugin runs on your computer and reads what you let it. Settings shows what ea
 
 ## The terminal door
 
-The first plugin, and the one behind **Use it for Ask** under Your AI: when you pick Claude Code, Codex or Gemini CLI there, the desk brings this door in for you. The Ask box gains a picker at the top naming each app found on this computer and what it runs on; the question goes to the app you picked with the screen's numbers and your notes, and the answer comes back into the box, where Save as note and Save as task work as usual. No key on Settings is needed; the app reaches its own provider with its own login, which the desk never sees. The app is told to answer from the data and nothing else: no commands, no file edits, no permissions; its own permission settings apply on top. [Your AI](/docs/setup/your-ai/).
+The first plugin, and the one behind **Use it for Ask** under Your AI: when you pick Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code or Cursor there, the desk brings this door in for you. The Ask box gains a picker at the top naming each app found on this computer and what it runs on; the question goes to the app you picked with the screen's numbers and your notes, and the answer comes back into the box, where Save as note and Save as task work as usual. No key on Settings is needed; the app reaches its own provider with its own login, which the desk never sees. The app is told to answer from the data and nothing else: no commands, no file edits, no permissions; its own permission settings apply on top. [Your AI](/docs/setup/your-ai/).
 
 ## What a plugin can reach
 
