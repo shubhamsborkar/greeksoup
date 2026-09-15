@@ -1,0 +1,75 @@
+/* The US panels: the hand-kept US book, upcoming earnings, the market pulse and the insider
+   tape. Once a screen of their own (Desk · US); since 2026-09-15.20 the lower half of Desk · Home
+   for every reader, wherever the home market is. Scoped under #usdesk. */
+#usdesk .us-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:26px 0 12px;padding-top:18px;border-top:1px solid var(--line)}
+#usdesk .us-head h2{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink)}
+#usdesk .us-head span{font-size:11.5px;color:var(--muted)}
+#usdesk .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+#usdesk .tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 16px}
+#usdesk .tile .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink2);margin-bottom:7px}
+#usdesk .tile .v{font-size:20px;font-weight:700}
+#usdesk .tile .s{font-size:10.5px;color:var(--muted);margin-top:5px}
+#usdesk .bar{height:6px;border-radius:3px;background:var(--line);margin-top:9px;overflow:hidden}
+#usdesk .bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+#usdesk .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+#usdesk .panel-h{padding:11px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+#usdesk .panel-h h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2)}
+#usdesk .panel-h .sub{font-size:11px;color:var(--muted)}
+#usdesk .alloc{display:flex;gap:2px;height:28px;border-radius:8px;overflow:hidden;margin:12px 15px 0}
+#usdesk .alloc .as{display:flex;align-items:center;justify-content:center;min-width:3px;
+  text-decoration:none;border-radius:3px;transition:filter .15s}
+#usdesk .alloc .as span{font-size:9px;font-weight:800;color:var(--ink);letter-spacing:.03em;
+  text-shadow:0 1px 2px rgba(0,0,0,.85);overflow:hidden;white-space:nowrap}
+#usdesk .alloc .as:hover{filter:brightness(1.3)}
+#usdesk .alloc-cap{font-size:9.5px;color:var(--muted);margin:5px 15px 10px}
+#usdesk table{width:100%;border-collapse:collapse;font-size:13px}
+#usdesk th,#usdesk td{padding:9px 13px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+#usdesk th:first-child,#usdesk td:first-child{text-align:left}
+#usdesk th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+#usdesk tbody tr:last-child td{border-bottom:none}
+#usdesk tbody tr:hover td{background:var(--panel2)}
+#usdesk td.name a{color:var(--ink);font-weight:700;text-decoration:none}
+#usdesk td.name a:hover{color:var(--accent)}
+#usdesk td.name .co{color:var(--muted);font-size:10.5px;font-weight:400;display:block}
+#usdesk .pos{color:var(--pos)}
+#usdesk .neg{color:var(--neg)}
+#usdesk .dim{color:var(--muted)}
+#usdesk .note{font-size:11.5px;color:var(--muted);line-height:1.6;padding:13px 15px}
+#usdesk .note b{color:var(--ink2)}
+#usdesk .erail{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);
+  grid-auto-columns:180px;gap:12px;overflow-x:auto;padding:16px 15px 18px;
+  scrollbar-width:thin}
+#usdesk .erail>span.dim{grid-row:span 2}
+#usdesk .ecard{background:var(--panel2);border:1px solid var(--line2);
+  border-radius:11px;padding:12px 14px;position:relative}
+#usdesk .ecard.held-c{border-color:rgba(237,90,36,.45)}
+#usdesk .ecard .dd{position:absolute;top:11px;right:12px;font-size:11px;font-weight:800;
+  border-radius:6px;padding:2px 7px}
+#usdesk .dd.soon{background:rgba(241,100,114,.16);color:var(--neg)}
+#usdesk .dd.near{background:rgba(232,161,60,.14);color:var(--amber)}
+#usdesk .dd.far{background:var(--panel);color:var(--muted)}
+#usdesk .ecard .tick{font-size:16px;font-weight:800}
+#usdesk .ecard .tick a{color:var(--ink);text-decoration:none}
+#usdesk .ecard .tick a:hover{color:var(--accent)}
+#usdesk .ecard .held{font-size:8.5px;font-weight:700;letter-spacing:.08em;color:var(--accent);
+  border:1px solid rgba(237,90,36,.5);border-radius:4px;padding:1px 5px;
+  margin-left:7px;vertical-align:2px}
+#usdesk .ecard .when{font-size:11px;color:var(--ink2);margin-top:4px}
+#usdesk .ecard .est{font-size:10.5px;color:var(--muted);margin-top:9px;line-height:1.6}
+#usdesk .ecard .est b{color:var(--ink2);font-weight:600}
+#usdesk .secrow{display:flex;gap:6px;flex-wrap:wrap;padding:12px 15px;border-bottom:1px solid var(--line)}
+#usdesk .sec{font-size:10.5px;border-radius:6px;padding:3px 9px;font-weight:600;background:var(--panel2);
+  border:1px solid var(--line2)}
+#usdesk .sec b{font-weight:800;margin-left:5px}
+#usdesk .pulse3{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+#usdesk .pulse3{grid-template-columns:1fr}
+#usdesk .pcol{border-right:1px solid var(--line);min-width:0}
+#usdesk .pcol:last-child{border-right:none}
+#usdesk .pcol h3{font-size:9.5px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);
+  padding:9px 14px;border-bottom:1px solid var(--line)}
+#usdesk .prow{display:flex;align-items:baseline;gap:8px;padding:5.5px 14px;font-size:12px;
+  border-bottom:1px solid var(--line)}
+#usdesk .prow:last-child{border-bottom:none}
+#usdesk .prow a{color:var(--ink);font-weight:700;text-decoration:none;min-width:52px}
+#usdesk .prow a:hover{color:var(--accent)}
+#usdesk .prow .nm{color:var(--muted);font-size:10.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

@@ -2591,7 +2591,7 @@ def build_risk():
                               "series": series})
         cash = usb.get("cash_usd") or 0
         if positions:
-            books.append({"key": "us_book", "label": "Desk · US", "currency": "$",
+            books.append({"key": "us_book", "label": "US book", "currency": "$",
                           "bench": "^GSPC", "bench_label": "S&P 500", "region": "us",
                           "nav": cash + sum(p["exposure"] for p in positions),
                           "cash": cash, "positions": positions, "margin": None,
@@ -2964,11 +2964,11 @@ def broker_state():
 
 # ---------------------------------------------------------------- the sidebar
 # Every screen, by key. A reader hides any of them with one click on the rail or in
-# Settings, and that choice is kept in .env as SCREENS=usdesk:off,chain:off. What
-# nobody chose follows the home market: the US public-record desk is shown when the
-# home market is the United States and hidden otherwise, one click away either way.
+# Settings, and that choice is kept in .env as SCREENS=chain:off,short:off. The US
+# panels (the US book, the earnings ahead, the pulse, the insider tape) are part of
+# Desk · Home for every reader since 2026-09-15.20; they were a screen of their own.
 SCREENS = [
-    ("home", "/", "Desk · Home"), ("usdesk", "/usdesk", "Desk · US"), ("book", "/book", "Desk · Book"),
+    ("home", "/", "Desk · Home"), ("book", "/book", "Desk · Book"),
     ("risk", "/risk", "Risk"), ("watch", "/watch", "Watch · Home"), ("watchus", "/watch?list=us", "Watch · US"),
     ("global", "/watch?list=global", "Global"), ("funds", "/funds", "Funds"), ("flow", "/flow", "Flow"),
     ("short", "/short", "Short"), ("capitol", "/capitol", "Capitol"), ("macro", "/macro", "Macro"),
@@ -2991,7 +2991,7 @@ def screen_choices():
 def nav_state():
     hm = _market()
     hm_id = hm.META.get("id") if hm else None
-    default_hidden = set() if hm_id == "us" else {"usdesk"}
+    default_hidden = set()
     choices = screen_choices()
     hidden = [k for k, _, _ in SCREENS
               if k not in ALWAYS_SHOWN and not choices.get(k, k not in default_hidden)]
@@ -3032,8 +3032,7 @@ def settings_state():
 # ---------------------------------------------------------------- the Ask box
 # What the Ask box reads for each screen, the same addresses the /agent page lists.
 ASK_READS = {
-    "/": ("Desk · Home", ["/api/snapshot", "/api/alerts"]),
-    "/usdesk": ("Desk · US", ["/api/usbook", "/api/earnings", "/api/insiders"]),
+    "/": ("Desk · Home", ["/api/snapshot", "/api/alerts", "/api/usbook", "/api/earnings", "/api/insiders"]),
     "/book": ("Desk · Book", ["/api/book"]),
     "/risk": ("Risk", ["/api/risk"]),
     "/watch": ("Watch", ["/api/watch?list={list}", "/api/results_home"]),
@@ -3124,7 +3123,7 @@ Every figure names its source on the screen it came from; quote the source when 
 
 WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
 /            Desk - Home, the broker book  /api/snapshot   holdings, open futures, cash, margin
-/usdesk      Desk - US, the US book         /api/usbook     the US positions, priced
+             and, below it, the US panels    /api/usbook     the hand-kept US positions, priced
 /book        Desk - Book, kept by hand      /api/book       positions and cash by currency
 /risk        Risk                           /api/risk       concentration, sector, beta, drawdown
 /watch       Watch - Home                   /api/watch?list=home  quotes for the home watch grid
@@ -3216,8 +3215,10 @@ class Handler(BaseHTTPRequestHandler):
                 with open(os.path.join(HERE, "web", "watch.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/usdesk":
-                with open(os.path.join(HERE, "web", "usdesk.html"), "rb") as fh:
-                    self._send(fh.read(), "text/html; charset=utf-8")
+                # the US desk lives on Desk · Home since 2026-09-15.20; an old bookmark lands there
+                self.send_response(302)
+                self.send_header("Location", "/#usdesk")
+                self.end_headers()
             elif path == "/t":
                 with open(os.path.join(HERE, "web", "ticker.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")

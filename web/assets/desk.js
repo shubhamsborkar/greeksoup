@@ -35,8 +35,7 @@
   };
   const TABS = [
     /* [href, label, group, icon, key]. "Home" is your broker account (whatever market), "US" is the US public-record desk. Rename here. */
-    ["/", "Desk · Home", "Desks", I.deskin, "home"],
-    ["/usdesk", "Desk · US", "Desks", I.deskus, "usdesk"],
+    ["/", "Desk · Home", "Desks", I.deskin, "home"],   // carries the US panels too, for every reader
     ["/book", "Desk · Book", "Desks", I.book, "book"],
     ["/risk", "Risk", "Desks", I.risk, "risk"],
     ["/watch", "Watch · Home", "Watchlists", I.watch, "watch"],

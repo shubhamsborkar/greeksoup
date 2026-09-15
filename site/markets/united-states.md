@@ -1,7 +1,7 @@
 ---
 title: United States
 description: What the United States market file gives the GreekSoup home screens when a US broker is connected.
-lead: The smaller of the two files that ship, on purpose: the US public record already lives on Desk · US and the intelligence screens, so this file carries only what the home screens need to follow a US broker.
+lead: The smaller of the two files that ship, on purpose: the US public record already lives on the US panels of Desk · Home and the intelligence screens, so this file carries only what the home screens need to follow a US broker.
 ---
 
 <div class="fact" markdown="0">
@@ -16,7 +16,7 @@ lead: The smaller of the two files that ship, on purpose: the US public record a
 
 With a US broker on Desk · Home, the two desks sit side by side and the US record is already on the screens built for it:
 
-- The earnings countdown, the insider tape from Form 4 filings and the market pulse are on **Desk · US**, which needs no broker at all.
+- The earnings countdown, the insider tape from Form 4 filings and the market pulse are the **US panels of Desk · Home**, which need no broker at all.
 - The 13F tracker and the activist feed are on **Funds**; the options tape on every US name is on **Flow**; short interest on **Short**; the trading disclosures on **Capitol**.
 - Macro carries the twenty-two FRED series for every reader.
 

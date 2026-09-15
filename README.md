@@ -85,7 +85,7 @@ The exception is a broker whose regulator requires a fresh login every trading d
 
 The desk has two account screens, and they are built differently on purpose.
 
-- **Desk · US** is the US market read from the public record and the optional feed: a book of US positions priced live, the earnings countdown, the insider tape from Form 4 filings with cluster buys, and a market pulse. It needs no broker, so it works from anywhere. If you invest in the US, this is your desk.
+- **The US panels**, the lower half of Desk · Home for every reader wherever the home market is: a hand-kept book of US positions priced live, the earnings countdown, the insider tape from Form 4 filings with cluster buys, and a market pulse. They read the public record and the optional feed and need no broker, so they work from anywhere.
 - **Desk · Home** connects to a broker account in whatever market you trade: holdings priced live, cash, and where the broker reports them, open futures and options, margin used and an options tape on the index. You pick the broker on Settings. Six connect as the desk comes, read-only, each with what it hands out from its own dashboard: Alpaca, ICICI Direct, Interactive Brokers, Tradier, Trading 212 and Zerodha. What the screen shows depends on what the broker gives: every one returns holdings and cash, and a line the broker does not price is marked from Yahoo's free feed; a broker that also serves live ticks, open futures and options, margin, or index option chains has those appear too, and a broker that serves none of them simply has a smaller Home screen. Any other broker with an API is one file your agent writes from that broker's documentation, to the shape described in the brokers folder, and Settings lists the brokers the desk knows about without a file and the way in for each. A broker with no API exports a file, and Desk · Book takes it.
 
 The market follows the broker. Once a broker is connected, the desk knows which market it trades in, and the home screens take that market's shape: its session hours on the status dot, its index on the Risk screen, its currency and digit grouping, its exchanges in the add box on Watch · Home, and where that market's public record offers them, the results calendar on Desk · Home, the filings block on the home ticker page and the market's own macro cards. India and the United States ship; another market is one short file your agent writes from the description in the markets folder, and a reader with no broker can name a home market in Settings' file by hand.
@@ -94,7 +94,7 @@ So a reader in the US picks Alpaca, Interactive Brokers or Tradier and has both 
 
 ## The fourteen screens
 
-- **Desk · Home** and **Desk · US**: above.
+- **Desk · Home** and its US panels: above.
 - **Desk · Book**: a portfolio you keep by hand, for anyone with no broker to connect and no feed key. Any symbol Yahoo Finance knows, in any market (AAPL, RELIANCE.NS, MC.PA, 0700.HK); add a line in the page or paste your whole holdings list, and it is priced from Yahoo's free feed, US listings close to live and most other exchanges 15 to 20 minutes behind, with value, day move, profit since cost and weight, one currency at a time.
 - **Risk**: beta, volatility, worst drawdown and correlation for every book against its index, leverage at underlying notional, margin cushion, a 5 percent stress line, sector concentration.
 - **Watch · Home, Watch · US, Global**: three watch grids; add a name by typing it. Global takes any symbol from any exchange.
@@ -111,7 +111,7 @@ And **Settings**, the last entry in the sidebar: your broker, picked from the li
 
 ## What runs with no key at all
 
-With no broker key and no feed key the desk still starts, and twelve of the fourteen screens are live: Desk · US, Desk · Book, Watch · US, Global, Risk, Macro, Funds, Flow, Short, Capitol, Chain, Commodities, and the ticker page's chart, quote, ratios and insider table. The broker key lights up Desk · Home and Watch · Home. The feed key adds the parsed statements, ratio history, segments, estimates, peers, dividends and news on the ticker page, the 50 and 200 day columns on the US watch grid, a market-wide insider scan, and cleaner Congress rows.
+With no broker key and no feed key the desk still starts, and twelve of the fourteen screens are live: the US panels of Desk · Home, Desk · Book, Watch · US, Global, Risk, Macro, Funds, Flow, Short, Capitol, Chain, Commodities, and the ticker page's chart, quote, ratios and insider table. The broker key lights up Desk · Home and Watch · Home. The feed key adds the parsed statements, ratio history, segments, estimates, peers, dividends and news on the ticker page, the 50 and 200 day columns on the US watch grid, a market-wide insider scan, and cleaner Congress rows.
 
 ## Your own market on the Commodities screen
 

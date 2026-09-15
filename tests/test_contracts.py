@@ -630,3 +630,22 @@ def test_backup_restore_round_trip(tmp_path, monkeypatch):
     except ValueError:
         pass
 
+
+def test_us_panels_live_on_home():
+    """Desk · US is no longer a screen of its own: the sidebar list has no usdesk key, nothing is
+    hidden by the home market any more, /usdesk lands on Desk · Home, and the Ask box on Home
+    reads the US book, the earnings countdown and the insider tape along with the broker book."""
+    import server
+    assert "usdesk" not in {k for k, _, _ in server.SCREENS}
+    nav = server.nav_state()
+    assert nav["default_hidden"] == [] and "usdesk" not in nav["hidden"]
+    reads = server.ASK_READS["/"][1]
+    assert "/api/usbook" in reads and "/api/earnings" in reads and "/api/insiders" in reads
+    assert "/usdesk" not in server.ASK_READS
+    here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    home = open(os.path.join(here, "web", "index.html"), encoding="utf-8").read()
+    assert 'id="usdesk"' in home and "usdesk.js" in home and "usdesk.css" in home
+    assert not os.path.exists(os.path.join(here, "web", "usdesk.html"))
+    js = open(os.path.join(here, "web", "assets", "desk.js"), encoding="utf-8").read()
+    assert '"/usdesk"' not in js
+

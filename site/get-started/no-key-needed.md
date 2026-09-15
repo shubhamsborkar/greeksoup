@@ -7,11 +7,11 @@ lead: The desk is built to fetch whatever it can from the free record before it 
 
 ## With no key at all
 
-Twelve of the fourteen screens are live the moment the desk starts: Desk · US, Desk · Book, Watch · US, Global, Risk, Macro, Funds, Flow, Short, Capitol, Chain, Commodities, and the ticker page's chart, quote, ratios and insider table.
+Twelve of the fourteen screens are live the moment the desk starts: the US panels of Desk · Home, Desk · Book, Watch · US, Global, Risk, Macro, Funds, Flow, Short, Capitol, Chain, Commodities, and the ticker page's chart, quote, ratios and insider table.
 
 | Screen | With no key | What the feed key adds |
 |---|---|---|
-| Desk · US | Positions priced from Yahoo; earnings countdown from Yahoo; insider tape from SEC EDGAR on your names; market pulse empty | The insider scan across the whole market; the movers and sector pulse |
+| The US panels of Desk · Home | Positions priced from Yahoo; earnings countdown from Yahoo; insider tape from SEC EDGAR on your names; market pulse empty | The insider scan across the whole market; the movers and sector pulse |
 | Watch · US, Global | Yahoo quotes, any Yahoo symbol from any exchange | The fifty and two hundred day distance and market cap columns |
 | Ticker page | Chart and quote from Yahoo; profile, ratios, targets and analyst counts from Yahoo when it is not rate-limiting; insider table from EDGAR | Statements, ratio history, segments, estimates, peers, dividends, news, the DCF seeds |
 | Funds | 13F and 13D/G straight from EDGAR | Nothing; it never uses the feed |

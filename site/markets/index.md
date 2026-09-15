@@ -19,7 +19,7 @@ A broker file says which market its accounts trade in. The matching market file 
 
 <div class="cards" markdown="0">
 <a href="/docs/markets/india/"><b>India</b><span>NSE hours, NIFTY 50, rupees. The NSE results calendar and integrated filings, and three macro cards from public statistics.</span><em>The full example</em></a>
-<a href="/docs/markets/united-states/"><b>United States</b><span>US hours, the S&P 500, dollars. The rest of the US record already lives on Desk · US and the intelligence screens.</span><em>The minimal one</em></a>
+<a href="/docs/markets/united-states/"><b>United States</b><span>US hours, the S&P 500, dollars. The rest of the US record already lives on the US panels of Desk · Home and the intelligence screens.</span><em>The minimal one</em></a>
 </div>
 
 ## With no broker

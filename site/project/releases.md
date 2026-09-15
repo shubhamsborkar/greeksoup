@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.19. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.20. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.20
+
+*15 September 2026, release 20.* Desk · US lives on Desk · Home now, for every reader wherever the home market is: the hand-kept US book, the earnings countdown, the market pulse and the insider tape sit under the broker book, because a reader in any market holds and watches US names; the separate screen is gone, an old bookmark to it lands on Home, the Ask box on Home reads the US panels too, and the landing page's fourteen screens now include Notes
 
 ## 2026-09-15.19
 

@@ -8,7 +8,7 @@ lead: One line per screen, in the order the sidebar lists them. Every number on 
 ## Desks
 
 - **Desk · Home**: your broker account in whatever market you trade. Holdings priced live, cash, and where the broker reports them, open futures and options, margin used and an options tape on the index. The results calendar for your home watchlist sits under it. Dark until a broker is connected.
-- **Desk · US**: the US market read from the public record and the optional feed. A book of US positions priced live, the earnings countdown, the insider tape from Form 4 filings with cluster buys, and a market pulse. Needs no broker. It shows in the sidebar when your home market is the United States and stays one click away in Settings otherwise.
+- **The US panels of Desk · Home**: under the broker book, for every reader wherever the home market is, because a reader in any market holds and watches US names. A hand-kept book of US positions priced live, the earnings countdown, the insider tape from Form 4 filings with cluster buys, and a market pulse. Needs no broker.
 - **Desk · Book**: a portfolio you keep by hand, any listing in any market, priced from Yahoo's free feed. Type a company's name and pick the listing you hold; the desk knows the symbol. For anyone with no broker to connect, and for a book that spans markets. It arrives with a few example lines so the screen is not empty, and Clear the book removes them in one click.
 - **Risk**: beta, volatility, worst drawdown and correlation for every book against its index, leverage at underlying notional, the margin cushion where the broker reports one, a five percent stress line, and sector concentration.
 
