@@ -69,15 +69,28 @@ $NoService = -not [string]::IsNullOrWhiteSpace($env:GREEKSOUP_NO_SERVICE)
 function Up { try { Invoke-WebRequest -Uri "$Url/api/ping" -TimeoutSec 2 -UseBasicParsing | Out-Null; $true } catch { $false } }
 if (-not (Up)) {
   if ($NoService) {
-    Start-Process -FilePath ".venv\Scripts\python.exe" -ArgumentList "server.py" -WorkingDirectory $Dest `
-      -WindowStyle Hidden -RedirectStandardOutput "logs\desk.log" -RedirectStandardError "logs\desk-start.log"
+    Start-Process -FilePath (Join-Path $Dest ".venv\Scripts\python.exe") -ArgumentList "server.py" -WorkingDirectory $Dest `
+      -WindowStyle Hidden -RedirectStandardOutput (Join-Path $Dest "logs\desk.log") `
+      -RedirectStandardError (Join-Path $Dest "logs\desk-start.log")
   } else {
     $env:DESK_PORT = $Port
     & cmd /c "`"Keep Desk Running.bat`"" | Out-Null
   }
 }
 for ($i = 0; $i -lt 30; $i++) { if (Up) { break }; Start-Sleep -Seconds 2 }
-if (-not (Up)) { throw "The desk has not answered yet. Give it a minute, then open $Url . If it stays blank, read $Dest\logs\desk-service.log or give it to your AI agent." }
+if (-not (Up)) {
+  # Say what the desk itself printed, so the reader (or their agent) has the reason
+  # in front of them instead of only the fact that nothing answered.
+  Write-Host "`n  The desk has not answered yet. This is what it printed:"
+  foreach ($f in @("logs\desk.log", "logs\desk-start.log", "logs\desk-service.log")) {
+    $p = Join-Path $Dest $f
+    if (Test-Path $p) {
+      $tail = Get-Content $p -Tail 40 -ErrorAction SilentlyContinue
+      if ($tail) { Write-Host "`n  --- $f ---"; $tail | ForEach-Object { Write-Host "  $_" } }
+    }
+  }
+  throw "The desk has not answered yet. Give it a minute, then open $Url . If it stays blank, read $Dest\logs\desk.log or give it to your AI agent."
+}
 if (-not $NoService) { Start-Process $Url }
 $tail = if ($NoService) { "(this run only; not set to start at login)." } else { "and it starts with your computer from now on." }
 Write-Host "`n  Done. The desk is at $Url $tail"
