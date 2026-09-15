@@ -60,12 +60,24 @@ Nothing here leaves this computer, and nothing is written here unless the reader
 """
 import os
 import re
+import shutil
 import threading
 import time
 from datetime import datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-RESEARCH_DIR = os.path.join(HERE, "data", "research")
+DEFAULT_RESEARCH_DIR = os.path.join(HERE, "data", "research")
+
+
+def _vault_from_env():
+    """The vault lives in the desk folder unless RESEARCH_DIR in .env points it elsewhere: a folder
+    inside a drive the reader already syncs (iCloud Drive, Google Drive, Dropbox, OneDrive,
+    Syncthing), which is how the vault reaches a second machine with no service of ours."""
+    v = os.path.expanduser((os.getenv("RESEARCH_DIR") or "").strip())
+    return v if v and os.path.isabs(v) else DEFAULT_RESEARCH_DIR
+
+
+RESEARCH_DIR = _vault_from_env()
 NOTES_DIR = os.path.join(RESEARCH_DIR, "notes")
 FILES_DIR = os.path.join(RESEARCH_DIR, "files")
 LEGACY_NOTES_DIR = os.path.join(HERE, "data", "notes")   # where notes lived before 2026-09-15.11; moved on first scan
@@ -1256,6 +1268,70 @@ def tree():
                             and f["subject"].upper() not in {_subject_folder("", r["about"]).upper() for rows in subj_rows.values() for r in rows}],
             "counts": {"notes": sum(1 for n in notes.values() if n["type"] != "project"), "projects": len(projects),
                        "names": len(name_rows), "files": sum(1 for n in notes.values() if n["file"]) + len(loose)}}
+
+
+# ---- where the vault lives: the desk folder, or a folder the reader already syncs ----
+def vault_location():
+    return {"path": RESEARCH_DIR, "default": DEFAULT_RESEARCH_DIR, "in_desk": os.path.abspath(RESEARCH_DIR) == os.path.abspath(DEFAULT_RESEARCH_DIR),
+            "exists": os.path.isdir(RESEARCH_DIR)}
+
+
+def _point_at(path):
+    """Every path the vault uses follows the root; nothing here is cached at import."""
+    global RESEARCH_DIR, NOTES_DIR, FILES_DIR, INDEX_DIR
+    RESEARCH_DIR = path
+    NOTES_DIR = os.path.join(path, "notes")
+    FILES_DIR = os.path.join(path, "files")
+    INDEX_DIR = os.path.join(path, "index", "text")
+    index(force=True)
+
+
+def relocate(target):
+    """Move the vault to a folder, or adopt the vault already there and fold this one in.
+    Rules: a file the target lacks moves across; the same file is dropped here; a file that
+    differs stays in the target and the local copy is kept aside under cache/previous, so
+    nothing is lost either way. The desk then reads the vault from the new place at once.
+    Returns what happened; the caller writes RESEARCH_DIR to .env so it holds after a restart."""
+    target = os.path.abspath(os.path.expanduser((target or "").strip()))
+    if not target or not os.path.isabs(target):
+        raise ValueError("Give the folder's full path.")
+    here = os.path.abspath(HERE)
+    if target.startswith(os.path.join(here, "cache")) or target == here:
+        raise ValueError("Not there: pick a folder outside the desk's own program folder, or the default place inside data.")
+    src = os.path.abspath(RESEARCH_DIR)
+    if target == src:
+        return {"moved": 0, "same": 0, "kept": [], "adopted": False, "path": target}
+    os.makedirs(target, exist_ok=True)
+    if not os.access(target, os.W_OK):
+        raise ValueError("The desk cannot write in that folder.")
+    adopted = os.path.isdir(os.path.join(target, "notes")) or os.path.isdir(os.path.join(target, "files"))
+    kept_dir = os.path.join(here, "cache", "previous", "vault-move-" + datetime.now().strftime("%Y%m%d-%H%M%S"))
+    moved, same, kept = 0, 0, []
+    if os.path.isdir(src):
+        for dirpath, dirs, files in os.walk(src):
+            rel_dir = os.path.relpath(dirpath, src)
+            if rel_dir.split(os.sep)[0] == "index":
+                continue                                   # the index is rebuilt wherever the vault lands
+            for f in files:
+                if f.startswith(".") or f.endswith(".tmp"):
+                    continue
+                s_ = os.path.join(dirpath, f)
+                rel = os.path.normpath(os.path.join(rel_dir, f))
+                d_ = os.path.join(target, rel)
+                os.makedirs(os.path.dirname(d_), exist_ok=True)
+                if os.path.exists(d_):
+                    with open(s_, "rb") as a, open(d_, "rb") as b:
+                        if a.read() == b.read():
+                            os.remove(s_); same += 1
+                            continue
+                    k = os.path.join(kept_dir, rel)
+                    os.makedirs(os.path.dirname(k), exist_ok=True)
+                    shutil.move(s_, k); kept.append(rel.replace(os.sep, "/"))
+                    continue
+                shutil.move(s_, d_); moved += 1
+        shutil.rmtree(src, ignore_errors=True)
+    _point_at(target)
+    return {"moved": moved, "same": same, "kept": kept, "kept_in": kept_dir if kept else "", "adopted": adopted, "path": target}
 
 
 def _forget_text(rel):

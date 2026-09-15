@@ -594,8 +594,11 @@ def test_backup_restore_round_trip(tmp_path, monkeypatch):
     import io
     import zipfile
     import settings as desk_settings
+    import notes as desk_notes
     monkeypatch.setattr(desk_settings, "HERE", str(tmp_path))
-    (tmp_path / "data" / "research" / "notes").mkdir(parents=True)
+    keep = desk_notes.RESEARCH_DIR
+    desk_notes._point_at(str(tmp_path / "data" / "research"))          # _point_at scans, which makes notes/
+    (tmp_path / "data" / "research" / "notes").mkdir(parents=True, exist_ok=True)
     (tmp_path / "data" / "book.json").write_text('{"positions": [1]}', encoding="utf-8")
     (tmp_path / "data" / "research" / "notes" / "a.md").write_text("old", encoding="utf-8")
     buf = io.BytesIO()
@@ -629,6 +632,7 @@ def test_backup_restore_round_trip(tmp_path, monkeypatch):
         assert False
     except ValueError:
         pass
+    desk_notes._point_at(keep)
 
 
 def test_us_panels_live_on_home():
@@ -648,4 +652,43 @@ def test_us_panels_live_on_home():
     assert not os.path.exists(os.path.join(here, "web", "usdesk.html"))
     js = open(os.path.join(here, "web", "assets", "desk.js"), encoding="utf-8").read()
     assert '"/usdesk"' not in js
+
+
+def test_vault_relocates_and_adopts(tmp_path):
+    """The vault moves to a folder the reader syncs, and comes back: files the target lacks move,
+    identical ones are dropped, a differing one stays in the target with the local copy kept
+    aside; every path the vault uses follows the new root at once; the desk's own folders are
+    refused as a target."""
+    import notes as desk_notes
+    keep = (desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.INDEX_DIR, desk_notes.HERE)
+    desk_notes.HERE = str(tmp_path / "desk")
+    (tmp_path / "desk" / "cache").mkdir(parents=True)
+    desk_notes._point_at(str(tmp_path / "desk" / "data" / "research"))
+    try:
+        desk_notes.save({"title": "Mine", "body": "local"})
+        desk_notes.save({"title": "Shared", "body": "local version"})
+        desk_notes.set_status("AAPL", "researching")
+        synced = tmp_path / "drive" / "vault"
+        (synced / "notes").mkdir(parents=True)
+        (synced / "notes" / "shared.md").write_text("---\ntitle: Shared\n---\nremote version", encoding="utf-8")
+        (synced / "notes" / "theirs.md").write_text("---\ntitle: Theirs\n---\nfrom the other machine", encoding="utf-8")
+        rep = desk_notes.relocate(str(synced))
+        assert rep["adopted"] and rep["moved"] == 2 and rep["kept"] == ["notes/shared.md"]     # mine.md + status.json moved; shared kept aside
+        assert desk_notes.RESEARCH_DIR == str(synced) and desk_notes.NOTES_DIR == str(synced / "notes")
+        titles = {n["title"] for n in desk_notes.index(force=True).values()}
+        assert titles == {"Mine", "Shared", "Theirs"} and desk_notes.get("shared")["body"].startswith("remote")
+        assert open(os.path.join(rep["kept_in"], "notes", "shared.md"), encoding="utf-8").read().endswith("local version\n")
+        assert desk_notes.status_all()["AAPL"]["status"] == "researching"                       # status.json travelled
+        assert not (tmp_path / "desk" / "data" / "research").exists()
+        try:
+            desk_notes.relocate(str(tmp_path / "desk" / "cache" / "x"))
+            assert False, "the desk's cache is refused"
+        except ValueError:
+            pass
+        back = desk_notes.relocate(str(tmp_path / "desk" / "data" / "research"))
+        assert back["moved"] == 4 and desk_notes.vault_location()["path"] == str(tmp_path / "desk" / "data" / "research")
+        assert {n["title"] for n in desk_notes.index(force=True).values()} == {"Mine", "Shared", "Theirs"}
+    finally:
+        desk_notes.HERE = keep[4]
+        desk_notes._point_at(keep[0])
 

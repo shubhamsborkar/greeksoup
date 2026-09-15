@@ -167,6 +167,17 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
     </div>
   </div>
 
+  <!-- Where the vault lives -->
+  <div class="panel">
+    <div class="panel-h"><h2>Where the vault lives</h2><span class="st" id="v_loc_st"></span></div>
+    <div class="body">
+      <div class="row"><label>Now</label><div class="kv mono" id="v_loc"></div></div>
+      <div class="row"><span></span><div class="hint">Your research vault (notes, files, the journal, the tasks, the statuses, the plugins) is plain files in one folder. Point it at a folder inside a drive you already sync, iCloud Drive, Google Drive, Dropbox, OneDrive or Syncthing, and the same vault is on your other computer the moment its desk points at the same folder: no service, no account, your own storage. The desk moves the vault there now; if a vault is already in that folder, the desk adopts it and folds this one in, keeping any file that differs aside under cache/previous. Open the desk on one computer at a time for the smoothest sync.</div></div>
+      <div class="row"><label for="v_path">A folder</label><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="v_path" placeholder="~/Library/Mobile Documents/com~apple~CloudDocs/GreekSoup vault" style="min-width:380px"><button class="ghost" id="v_move">Move the vault there</button><button class="ghost" id="v_back" style="display:none">Bring it back into the desk folder</button></div></div>
+      <div class="msg" id="v_msg"></div>
+    </div>
+  </div>
+
   <!-- Plugins -->
   <div class="panel">
     <div class="panel-h"><h2>Plugins</h2><span class="st" id="p_status"></span></div>
@@ -411,6 +422,15 @@ $("s_auto").onchange=async()=>{ const on=$("s_auto").checked; $("s_auto").disabl
 /* restore */
 $("f_restore").onclick=()=>{ if(confirm("Restore a backup? Its files are written into the desk. Any file that changes is kept aside first, under cache/previous, so this can be undone.")) $("f_rzip").click(); };
 $("f_rzip").addEventListener("change",async()=>{ const f=$("f_rzip").files[0]; if(!f) return; say("f_msg","Restoring…"); try{ const r=await (await fetch("/api/settings/restore",{method:"POST",headers:{"Content-Type":"application/zip"},body:f})).json(); say("f_msg", r.ok?`Restored: ${r.written.length} file${r.written.length===1?"":"s"} written, ${r.unchanged} already the same${r.kept.length?`, ${r.kept.length} changed file${r.kept.length===1?"":"s"} kept aside in ${r.kept_in}`:""}. Reload the screens to see it.`:(r.error||"could not restore"), r.ok?"ok":"err"); }catch(e){ say("f_msg","The desk did not answer.","err"); } $("f_rzip").value=""; });
+/* where the vault lives */
+async function loadLocation(){
+  let d; try{ d=await (await fetch("/api/research/location")).json(); }catch(e){ return; }
+  $("v_loc").textContent=d.path; st("v_loc_st", d.in_desk?"in the desk folder":"in a folder of your own", "");
+  $("v_back").style.display=d.in_desk?"none":"inline-block";
+}
+$("v_move").onclick=async()=>{ const p=$("v_path").value.trim(); if(!p) return say("v_msg","Type the folder first.","err"); if(!confirm(`Move the research vault to\n${p}\n\nIf a vault is already there, this desk adopts it and folds its own in; any file that differs is kept aside. Go on?`)) return; say("v_msg","Moving…"); const r=await post("/api/research/relocate",{path:p}); say("v_msg", r.ok?`${r.adopted?"Adopted the vault found there and folded this one in":"Moved the vault"}: ${r.moved} file${r.moved===1?"":"s"} moved, ${r.same} already the same${r.kept.length?`, ${r.kept.length} kept aside in ${r.kept_in}`:""}. The desk reads from ${r.path} now.`:(r.error||"could not move"), r.ok?"ok":"err"); $("v_path").value=""; loadLocation(); };
+$("v_back").onclick=async()=>{ if(!confirm("Bring the vault back into the desk folder (data/research)? The synced folder is left as it is; the files move out of it.")) return; say("v_msg","Moving…"); const r=await post("/api/research/relocate",{default:true}); say("v_msg", r.ok?`Back in the desk folder: ${r.moved} file${r.moved===1?"":"s"} moved, ${r.same} already the same.`:(r.error||"could not move"), r.ok?"ok":"err"); loadLocation(); };
+loadLocation();
 /* plugins */
 async function loadPlugins(){
   let d; try{ d=await (await fetch("/api/plugins")).json(); }catch(e){ return; }

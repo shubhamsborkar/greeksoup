@@ -3269,6 +3269,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(json.dumps(resolve_block(spec), default=str).encode(), "application/json")
                 except Exception as exc:  # noqa: BLE001 - a block never breaks the note around it
                     return self._send(json.dumps({"spec": spec, "error": f"could not read this block ({type(exc).__name__})"}).encode(), "application/json")
+            elif path == "/api/research/location":
+                return self._send(json.dumps(desk_notes.vault_location()).encode(), "application/json")
             elif path == "/api/research/tree":
                 return self._send(json.dumps(desk_notes.tree()).encode(), "application/json")
             elif path == "/api/research/tasks":
@@ -3720,6 +3722,16 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(json.dumps({"ok": False, "error": str(exc)[:300]}).encode(), "application/json")
             if self.path == "/api/plugins/remove":
                 return self._send(json.dumps({"ok": desk_plugins.remove(str(body.get("name", "")))}).encode(), "application/json")
+            if self.path == "/api/research/relocate":
+                try:
+                    target = desk_notes.DEFAULT_RESEARCH_DIR if body.get("default") else str(body.get("path", ""))
+                    rep = desk_notes.relocate(target)
+                    desk_settings.write_env({"RESEARCH_DIR": "" if body.get("default") else rep["path"]})
+                    desk_plugins.installed(force=True)
+                    _cache["book"] = (0.0, None)
+                    return self._send(json.dumps({"ok": True, **rep, "location": desk_notes.vault_location()}).encode(), "application/json")
+                except (ValueError, OSError) as exc:
+                    return self._send(json.dumps({"ok": False, "error": str(exc)[:300]}).encode(), "application/json")
             if self.path == "/api/research/tasks/add":
                 try:
                     t = desk_notes.add_task(str(body.get("text", "")), str(body.get("symbol", "")), str(body.get("due", "")),

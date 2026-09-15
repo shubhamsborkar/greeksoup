@@ -38,6 +38,7 @@ ALLOWED = {
     "DESK_AUTO_UPDATE": (False, "on: bring a newer version in without the click"),
     "SCREENS": (False, "screens you chose to show or hide in the sidebar (key:on or key:off); the rest follow the home market"),
     "JOURNAL": (False, "ask (the default), always or never: how the journal takes the moments the desk sees"),
+    "RESEARCH_DIR": (False, "where the research vault lives when not in data/research: a folder inside a drive you already sync"),
 }
 try:
     import brokers as _brokers
@@ -255,9 +256,13 @@ def restore_zip(data):
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     kept_dir = os.path.join(HERE, "cache", "previous", f"restore-{stamp}")
     written, kept, same = [], [], 0
+    import notes as desk_notes
     for n in wanted:
         blob = z.read(n)
-        dst = os.path.join(HERE, *n.split("/"))
+        if n.startswith("data/research/"):
+            dst = os.path.join(desk_notes.RESEARCH_DIR, *n[len("data/research/"):].split("/"))
+        else:
+            dst = os.path.join(HERE, *n.split("/"))
         if os.path.isfile(dst):
             with open(dst, "rb") as fh:
                 cur = fh.read()
@@ -281,6 +286,7 @@ def backup_zip():
     Never the key file, never the daily tokens, never the downloaded caches."""
     import io
     import zipfile
+    import notes as desk_notes
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         for top in ("data", "research"):
@@ -293,6 +299,17 @@ def backup_zip():
                         continue
                     full = os.path.join(dirpath, f)
                     zf.write(full, os.path.relpath(full, HERE))
+        vault = os.path.abspath(desk_notes.RESEARCH_DIR)
+        if os.path.isdir(vault) and not vault.startswith(os.path.abspath(HERE) + os.sep):
+            # the vault lives in a synced folder outside the desk: it goes in under data/research all the same
+            for dirpath, _dirs, files in os.walk(vault):
+                if os.path.relpath(dirpath, vault).split(os.sep)[0] == "index":
+                    continue
+                for f in files:
+                    if f.startswith(".") or f.endswith(".tmp"):
+                        continue
+                    full = os.path.join(dirpath, f)
+                    zf.write(full, os.path.join("data", "research", os.path.relpath(full, vault)))
     return buf.getvalue()
 
 

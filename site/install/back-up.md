@@ -14,7 +14,7 @@ The zip never contains your settings file with the keys in it, the daily broker 
 
 Next to **Back up** sits **Restore a backup**. Pick the zip and the desk writes its files back into place, on this copy or on a fresh one on another computer. A file the restore would change is kept aside first under `cache/previous/restore-<date>`, so a restore can itself be undone, and the message afterwards says how many files were written, how many were already the same, and where the changed ones were kept. Keys are re-entered on the Settings screen of the new copy; that is the one thing the zip does not carry, on purpose.
 
-That is also the way to carry the vault to a second computer today: back up here, restore there.
+That is one way to carry the vault to a second computer. The other needs no zip at all: put the vault in a folder you already sync, on Settings under Where the vault lives; see [Two computers](/docs/setup/two-computers/).
 
 ## By hand
 

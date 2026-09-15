@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.20. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.21. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.21
+
+*15 September 2026, release 21.* Two computers with no service and no account: Settings gains Where the vault lives, point it at a folder inside a drive you already sync (iCloud Drive, Google Drive, Dropbox, OneDrive, Syncthing) and the desk moves the vault there and reads from it from then on; the desk on your other computer pointed at the same folder adopts the vault it finds and folds its own in, an identical file dropped, a differing one kept aside; Bring it back is the way back; backups and restores follow the vault wherever it lives
 
 ## 2026-09-15.20
 
