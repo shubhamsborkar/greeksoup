@@ -155,6 +155,87 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 8000);
   }
   window.deskToast = railToast;   // a page's own undo (a deleted chain, a removed name) uses the same strip
+  /* ---- the row menu: wherever a name appears as a link to its ticker page, a small ⋯ appears on
+     hover with the next thing to do from here: open it, add it to a watchlist, a note on it, a
+     task, put it on a chain, ask the AI about it. One component; no page has to know. ------- */
+  (function () {
+    let dot = null, pop = null, cur = null;
+    function nameOf(a) {
+      const u = new URL(a.getAttribute("href"), location.origin);
+      const symbol = (u.searchParams.get("symbol") || "").toUpperCase();
+      const region = (u.searchParams.get("region") || "us").toLowerCase();
+      return symbol ? { symbol, region: region === "us" ? "us" : region === "global" ? "global" : "home", label: (a.textContent || symbol).trim().slice(0, 80), href: a.getAttribute("href") } : null;
+    }
+    function place(el, a) {
+      const r = a.getBoundingClientRect();
+      el.style.top = (window.scrollY + r.top + r.height / 2 - 9) + "px";
+      el.style.left = (window.scrollX + r.right + 4) + "px";
+    }
+    function hide() { if (pop) { pop.remove(); pop = null; } }
+    document.addEventListener("mouseover", e => {
+      const a = e.target.closest && e.target.closest('a[href^="/t?symbol="]');
+      if (!a || a.closest("#askdock") || a.closest("#listdrawer")) return;
+      const n = nameOf(a); if (!n) return;
+      if (!dot) {
+        dot = document.createElement("button"); dot.type = "button"; dot.id = "rowdot"; dot.textContent = "⋯"; dot.title = "What to do with this name";
+        dot.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); openMenu(); };
+        dot.addEventListener("mouseleave", () => { dot._t = setTimeout(() => { if (!pop) dot.style.display = "none"; }, 400); });
+        dot.addEventListener("mouseenter", () => clearTimeout(dot._t));
+        document.body.appendChild(dot);
+      }
+      cur = n; place(dot, a); dot.style.display = "block"; clearTimeout(dot._t);
+      a.addEventListener("mouseleave", () => { dot._t = setTimeout(() => { if (!pop) dot.style.display = "none"; }, 400); }, { once: true });
+    });
+    document.addEventListener("click", e => { if (pop && !pop.contains(e.target) && e.target !== dot) hide(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") hide(); });
+    const post = (url, body) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) }).then(r => r.json());
+    function item(label, fn) { const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.onclick = ev => { ev.stopPropagation(); fn(b); }; return b; }
+    function say(text) { railToast(text, "OK", () => {}); }
+    async function openMenu() {
+      hide();
+      const n = cur; if (!n) return;
+      pop = document.createElement("div"); pop.id = "rowmenu";
+      const h = document.createElement("div"); h.className = "rm-h"; h.textContent = n.label + (n.label.toUpperCase() !== n.symbol ? " · " + n.symbol : ""); pop.appendChild(h);
+      pop.appendChild(item("Open the name", () => { location.href = n.href; }));
+      const watchLabel = { us: "Watch · US", global: "Global", home: "Watch · Home" }[n.region];
+      const onThatList = location.pathname === "/watch" && ((new URLSearchParams(location.search).get("list") || "home") === n.region);
+      if (!onThatList) pop.appendChild(item("Add to " + watchLabel, async b => {
+        b.disabled = true; const out = await post("/api/watch/add", { code: n.symbol, list: n.region });
+        say(out.ok ? `${n.symbol} is on ${watchLabel}.` : (out.error || "That did not work.")); if (out.journal && window.deskJournal) window.deskJournal(out.journal); hide();
+      }));
+      pop.appendChild(item("A note on it", () => { location.href = "/notes?new&symbol=" + encodeURIComponent(n.symbol); }));
+      pop.appendChild(item("A task on it", b => {
+        const t = prompt(`A task on ${n.symbol} (a line; add "by 2026-10-01" for a date)`); if (!t) return;
+        const m = t.match(/\bby\s+(\d{4}-\d{2}-\d{2})\b/); const text = m ? t.replace(m[0], "").trim() : t.trim();
+        post("/api/research/tasks/add", { text, symbol: n.symbol, due: m ? m[1] : "" }).then(out => { say(out.ok ? "Task saved. Open your tasks on Notes." : (out.error || "That did not save.")); hide(); });
+      }));
+      pop.appendChild(item("Put it on a chain", async b => {
+        b.disabled = true;
+        let d; try { d = await (await fetch("/api/chain", { cache: "no-store" })).json(); } catch (e) { say("The chains could not be read."); return; }
+        const chains = (d.chains || []);
+        const sub = document.createElement("div"); sub.className = "rm-sub";
+        if (!chains.length) { sub.textContent = "No chain yet; make one on Chain first."; }
+        chains.forEach(c => {
+          const t = document.createElement("div"); t.className = "rm-chain"; t.textContent = c.title; sub.appendChild(t);
+          (c.layers || []).forEach(l => sub.appendChild(item("  " + l.n + " · " + l.name, async () => {
+            const chain = JSON.parse(JSON.stringify(c)); delete chain.starter;
+            const layer = chain.layers.find(x => x.n === l.n);
+            if (!layer.names.some(x => (x.code || "").toUpperCase() === n.symbol)) layer.names.push({ code: n.symbol, label: n.label.toUpperCase() === n.symbol ? n.symbol : n.label, region: n.region === chain.region ? "" : n.region, status: "CONTEXT", receipt: "REPORTED", note: "", source: "" });
+            const out = await post("/api/chain/save", { chain });
+            say(out.ok ? `${n.symbol} is on ${c.title}, layer ${l.n}.` : (out.error || "That did not save.")); if (out.journal && window.deskJournal) window.deskJournal(out.journal); hide();
+          })));
+        });
+        b.replaceWith(sub);
+      }));
+      pop.appendChild(item("Ask your AI about it", () => {
+        hide(); openAsk(true);
+        setTimeout(() => { const i = document.getElementById("askin"); if (i) { i.value = `What does this screen show for ${n.symbol}, and what would you look at next?`; i.focus(); } }, 250);
+      }));
+      document.body.appendChild(pop);
+      place(pop, dot); pop.style.top = (parseFloat(dot.style.top) + 20) + "px"; pop.style.left = dot.style.left;
+      const r = pop.getBoundingClientRect(); if (r.right > window.innerWidth - 8) pop.style.left = (window.scrollX + window.innerWidth - r.width - 12) + "px";
+    }
+  })();
   (function () {   // the reader's own lists: the drawer script, on every page
     if (document.querySelector('script[src="/assets/lists.js"]')) return;
     const sc = document.createElement("script"); sc.src = "/assets/lists.js"; sc.defer = true; document.head.appendChild(sc);

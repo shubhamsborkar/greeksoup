@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.26. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.27. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.27
+
+*15 September 2026, release 27.* Wherever a name appears on any screen, a small ⋯ on hover carries the next thing to do from right there: open it, add it to a watchlist, a note on it, a task on it, put it on one of your chains (pick the chain and the layer), or ask your AI about it; one menu for every screen, so the reader leaves the screen they are on as rarely as possible
 
 ## 2026-09-15.26
 
