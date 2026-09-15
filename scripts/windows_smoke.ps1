@@ -82,3 +82,6 @@ if ((Test-Path $lnk) -or $taskLeft) { throw "a start-at-login entry is still the
 Write-Host "  no start-at-login entry left behind"
 
 Write-Host "`nWindows: install, every screen, the check and the uninstall all passed.`n"
+# The last native command above may have been a schtasks query that found nothing, whose
+# exit code would otherwise be taken as the whole run's.
+exit 0
