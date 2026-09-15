@@ -1,16 +1,46 @@
 {
   "name": "terminal",
   "label": "Terminal door",
-  "version": "1",
+  "version": "2",
   "author": "Shikshan Nivesh",
-  "what": "Lets the Ask box answer through the coding agent already installed on this computer (Claude Code or Codex), with the same screen data and your notes, so no separate AI key is needed.",
-  "talks_to": ["the coding agent on this computer, which reaches its own provider with its own login"],
+  "what": "Lets the Ask box answer through an app already on this computer that you pay for another way (Claude Code on a Claude subscription, Codex on ChatGPT, Gemini CLI on a Google account), with the same screen data and your notes, so no separate AI key is needed.",
+  "talks_to": [
+    "the coding agent on this computer, which reaches its own provider with its own login"
+  ],
   "door": {
     "label": "Terminal",
     "commands": [
-      {"label": "Claude Code", "command": ["claude", "-p", "--output-format", "text"]},
-      {"label": "Codex", "command": ["codex", "exec", "--skip-git-repo-check", "-"]}
+      {
+        "label": "Claude Code",
+        "command": [
+          "claude",
+          "-p",
+          "--output-format",
+          "text"
+        ]
+      },
+      {
+        "label": "Codex",
+        "command": [
+          "codex",
+          "exec",
+          "--skip-git-repo-check",
+          "-"
+        ]
+      },
+      {
+        "label": "Gemini CLI",
+        "command": [
+          "gemini",
+          "-p",
+          "Read the text on standard input and answer as it asks."
+        ]
+      }
     ]
   },
-  "screen": {"href": "/plugins/terminal/screen.html", "label": "Terminal", "group": "Plugins"}
+  "screen": {
+    "href": "/plugins/terminal/screen.html",
+    "label": "Terminal",
+    "group": "Plugins"
+  }
 }

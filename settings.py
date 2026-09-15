@@ -41,6 +41,7 @@ ALLOWED = {
     "RESEARCH_DIR": (False, "where the research vault lives when not in data/research: a folder inside a drive you already sync"),
     "RISK_BENCHMARK": (False, "the index the home book is measured against on Risk, a Yahoo symbol; empty follows the home market"),
     "RISK_BENCHMARK_LABEL": (False, "what Risk calls that index"),
+    "AI_DOOR": (False, "the app on this computer the Ask box uses by default (a door such as terminal:0); empty means the provider above"),
     "GUIDE": (False, "done once the reader closes the startup guide; empty shows it"),
     "GUIDE_TICKS": (False, "the guide's steps the reader ticked by hand"),
 }

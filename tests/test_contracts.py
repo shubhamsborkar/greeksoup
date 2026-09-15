@@ -544,7 +544,13 @@ def test_plugins_load_install_remove(tmp_path, monkeypatch):
         assert h["adds"] == ["a screen", "blocks"] and h["blocks"] == ["/plugins/hello/blocks.js"]
         assert [p["name"] for p in desk_plugins.installed(force=True)] == ["hello", "terminal"]
         assert [s["key"] for s in desk_plugins.screens()] == ["plugin:hello", "plugin:terminal"]
-        assert desk_plugins.doors()[0]["name"] == "terminal"
+        ds = desk_plugins.doors()                                              # one door per app the plugin names
+        assert [d["name"] for d in ds] == ["terminal:0", "terminal:1", "terminal:2"] and ds[0]["label"] == "Claude Code" and ds[0]["pays"]
+        assert {a["app"] for a in desk_plugins.apps_known()} == {"claude", "codex", "gemini"}
+        assert desk_plugins.run_door("terminal:9", "x")["error"] == "no such door"          # an index that is not there never falls back to another app
+        missing = next((d for d in ds if not d["ready"]), None)
+        if missing:
+            assert "not installed" in desk_plugins.run_door(missing["name"], "x")["error"]
         assert desk_plugins.file_path("hello", "screen.html") and desk_plugins.file_path("hello", "../terminal/plugin.json") is None
         assert desk_plugins.file_path("hello", "plugin.py") is None            # only the kinds a page needs
         # a zip: one top folder, plugin.json inside

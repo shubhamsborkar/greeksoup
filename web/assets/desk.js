@@ -740,14 +740,15 @@
       if (askDoors.length) {
         via.hidden = false;
         via.innerHTML = `<option value="">${esc(st.ready ? (st.label || st.provider) + " (Settings)" : "Your AI (not set)")}</option>` +
-          askDoors.map(d => `<option value="${esc(d.name)}"${d.ready ? "" : " disabled"}>${esc(d.label)}${d.via ? " · " + esc(d.via) : d.ready ? "" : " (not found)"}</option>`).join("");
-        const want = askDoor();
+          askDoors.map(d => `<option value="${esc(d.name)}"${d.ready ? "" : " disabled"}>${esc(d.label)}${d.pays ? " · " + esc(d.pays) : d.ready ? "" : " (not found)"}</option>`).join("");
+        const want = askDoor() || st.default_door || "";     // the reader's last pick, else the app chosen on Settings
         if (askDoors.some(d => d.name === want && d.ready)) via.value = want;
         via.onchange = () => { try { store.setItem("gs.door", via.value); } catch (e) { /* fine */ } };
       } else via.hidden = true;
       if (!m.childElementCount) {
         if (st.ready || askDoors.some(d => d.ready)) {
-          const who = st.ready ? `<b>${esc(st.label || st.provider)}</b>, model <span class="mono">${esc(st.model)}</span>` : "the door you pick above";
+          const dd = askDoors.find(d => d.name === via.value);
+          const who = dd ? `<b>${esc(dd.label)}</b> on this computer${dd.pays ? ", on " + esc(dd.pays) : ""}` : st.ready ? `<b>${esc(st.label || st.provider)}</b>, model <span class="mono">${esc(st.model)}</span>` : "the app you pick above";
           askNote(`<p>Ask anything about what is on this screen. The question goes with the screen's own numbers to ${who}, and nowhere else.${askDoors.length ? " The picker above chooses who answers." : ""} An answer worth keeping has a Save as note button under it; nothing is kept unless you press it.</p>`, "hint");
         } else {
           askNote(`<p>No AI is set yet. ${esc(st.why || "")} Pick a provider and paste a key on <a href="/settings">Settings</a>, under Your AI. A model running on this computer needs no key.</p>`, "hint");

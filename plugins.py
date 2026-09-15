@@ -132,10 +132,40 @@ def block_files():
     return [f for p in installed() for f in p.get("blocks", [])]
 
 
+# the apps a door can be: the reader's own subscription, through the app's own login; the desk
+# never sees the token, it hands the app a question and reads the answer
+APPS = {
+    "claude": {"label": "Claude Code", "pays": "your Claude subscription", "site": "https://claude.com/product/claude-code",
+               "signin": "claude"},
+    "codex": {"label": "Codex", "pays": "your ChatGPT subscription", "site": "https://openai.com/codex/", "signin": "codex login"},
+    "gemini": {"label": "Gemini CLI", "pays": "your Google account", "site": "https://github.com/google-gemini/gemini-cli", "signin": "gemini"},
+}
+
+
 def doors():
-    return [{"name": p["name"], "label": p["door"]["label"], "ready": bool(p["door"]["ready"]),
-             "via": (p["door"]["ready"] or {}).get("label", ""), "commands": p["door"]["commands"]}
-            for p in installed() if p.get("door")]
+    """One door per app found on this computer (name plugin:index), so the reader picks the app,
+    not the plugin; the bare plugin name still means its first app found."""
+    out = []
+    for p in installed():
+        if not p.get("door"):
+            continue
+        for i, c in enumerate(p["door"]["commands"]):
+            app = APPS.get(os.path.basename(c["command"][0]), {})
+            out.append({"name": f"{p['name']}:{i}", "plugin": p["name"], "label": app.get("label") or c["label"],
+                        "pays": app.get("pays", ""), "site": app.get("site", ""), "signin": app.get("signin", ""),
+                        "ready": bool(c["found"]), "via": c["label"], "app": os.path.basename(c["command"][0])})
+    return out
+
+
+def apps_known():
+    """Every app the desk knows how to talk to, found or not, for the Your AI card."""
+    seen = {d["app"]: d for d in doors()}
+    rows = []
+    for key, a in APPS.items():
+        d = seen.get(key)
+        rows.append({"app": key, "label": a["label"], "pays": a["pays"], "site": a["site"], "signin": a["signin"],
+                     "found": bool(d and d["ready"]), "door": d["name"] if d else ""})
+    return rows
 
 
 def file_path(name, rel):
@@ -227,10 +257,18 @@ def remove(name):
 def run_door(name, prompt, timeout=240):
     """Hand the Ask box's prompt to the door's command on this computer and return what it
     says. The command is the plugin's own, found on PATH; nothing else is run."""
-    p = next((p for p in installed() if p["name"] == _safe_name(name) and p.get("door")), None)
+    pname, _, idx = str(name or "").partition(":")
+    p = next((p for p in installed() if p["name"] == _safe_name(pname) and p.get("door")), None)
     if not p:
         return {"ok": False, "error": "no such door"}
     ready = p["door"]["ready"]
+    if idx:
+        if not idx.isdigit() or int(idx) >= len(p["door"]["commands"]):
+            return {"ok": False, "error": "no such door"}
+        c = p["door"]["commands"][int(idx)]
+        if not c["found"]:
+            return {"ok": False, "error": f"{c['label']} is not installed on this computer, or not on the path the desk sees"}
+        ready = c
     if not ready:
         want = ", ".join(c["label"] for c in p["door"]["commands"]) or "a command"
         return {"ok": False, "error": f"{p['door']['label']}: none of {want} is installed on this computer, or not on the path the desk sees"}

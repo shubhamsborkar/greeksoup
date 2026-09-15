@@ -11,6 +11,9 @@ in this file assumes a particular broker, market or data provider.
 
 import json
 import os
+import sys
+import subprocess
+import shutil
 import re
 import socket
 import threading
@@ -2276,8 +2279,8 @@ def _chain_post(self, body):
         _chain_changed()
         return self._send(json.dumps(out).encode(), "application/json")
     if path == "/api/chain/draft":
-        door = str(body.get("door", "") or "")
         rd = ask_ready()
+        door = str(body.get("door", "") or "") if "door" in body else rd["default_door"]
         if not door and not rd["ready"]:
             return self._send(json.dumps({"ok": False, "error": rd["why"], "settings": True}).encode(), "application/json")
         held = set()
@@ -3172,9 +3175,36 @@ def _slim(obj, drop=frozenset()):
 def ask_ready():
     s = desk_ai.settings()
     why = desk_ai.not_ready(s)
+    doors = desk_plugins.doors()
+    default_door = (os.getenv("AI_DOOR") or "").strip()
+    if default_door and not any(d["name"] == default_door and d["ready"] for d in doors):
+        default_door = ""
     return {"ready": why is None, "why": why, "provider": s["provider"],
             "label": desk_ai.PROVIDERS.get(s["provider"], {}).get("label", ""), "model": s["model"],
-            "doors": desk_plugins.doors()}
+            "doors": doors, "default_door": default_door}
+
+
+def open_signin_window(app):
+    """A terminal window on this computer running the app's own sign-in, which opens the reader's
+    browser; the desk never sees the login. Returns words for the reader."""
+    a = desk_plugins.APPS.get(app)
+    if not a:
+        return {"ok": False, "error": "no such app"}
+    cmd = a["signin"]
+    try:
+        if sys.platform == "darwin":
+            subprocess.Popen(["osascript", "-e", 'tell application "Terminal" to activate',
+                              "-e", f'tell application "Terminal" to do script "{cmd}"'])
+        elif sys.platform.startswith("win"):
+            subprocess.Popen(f'start "GreekSoup sign in" cmd /k {cmd}', shell=True)
+        else:
+            term = shutil.which("x-terminal-emulator") or shutil.which("gnome-terminal") or shutil.which("konsole") or shutil.which("xterm")
+            if not term:
+                return {"ok": False, "error": f"Open a terminal yourself and run: {cmd}"}
+            subprocess.Popen([term, "-e", cmd] if "gnome" not in term else [term, "--", "bash", "-lc", cmd])
+    except OSError as exc:
+        return {"ok": False, "error": f"Could not open a terminal ({exc}). Open one yourself and run: {cmd}"}
+    return {"ok": True, "text": f"A terminal window opened with {a['label']}. Its sign-in runs in your browser; when it says you are in, close that window and come back here."}
 
 
 def ask_context(page, query):
@@ -3545,6 +3575,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(json.dumps(_cached("short", SHORT_TTL, build_short)).encode(), "application/json")
             elif path == "/api/guide":
                 self._send(json.dumps(build_guide()).encode(), "application/json")
+            elif path == "/api/ai/apps":
+                self._send(json.dumps({"apps": desk_plugins.apps_known(), "default_door": ask_ready()["default_door"]}).encode(), "application/json")
             elif path == "/api/lists":
                 self._send(json.dumps({k: {"label": v["label"], "screen": v["screen"]} for k, v in desk_lists.KINDS.items()}).encode(), "application/json")
             elif path.startswith("/api/lists/"):
@@ -3816,8 +3848,8 @@ class Handler(BaseHTTPRequestHandler):
         question = str(body.get("question", "")).strip()[:4000]
         if not question:
             return self._send(b'{"ok":false,"error":"Type a question first."}', "application/json")
-        door = str(body.get("door", "") or "")
         rd = ask_ready()
+        door = str(body.get("door", "") or "") if "door" in body else rd["default_door"]
         if not door and not rd["ready"]:
             return self._send(json.dumps({"ok": False, "error": rd["why"], "settings": True}).encode(), "application/json")
         page = str(body.get("page", "/"))
@@ -3882,6 +3914,14 @@ class Handler(BaseHTTPRequestHandler):
                 return _chain_post(self, body)
             if self.path.startswith("/api/lists/"):
                 return _lists_post(self, body)
+            if self.path == "/api/ai/app/use":
+                door = str(body.get("door", "") or "")
+                if door and not any(d["name"] == door for d in desk_plugins.doors()):
+                    return self._send(b'{"ok":false,"error":"no such app on this computer"}', "application/json")
+                desk_settings.write_env({"AI_DOOR": door})
+                return self._send(json.dumps({"ok": True, "default_door": ask_ready()["default_door"]}).encode(), "application/json")
+            if self.path == "/api/ai/app/signin":
+                return self._send(json.dumps(open_signin_window(str(body.get("app", "")))).encode(), "application/json")
             if self.path == "/api/guide":
                 # the reader's own ticks, Done, and Show it again; nothing else is written
                 env = desk_settings.read_env()

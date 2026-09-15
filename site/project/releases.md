@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.29. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.30. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.30
+
+*15 September 2026, release 30.* An AI you already pay for, without a key: Settings, under Your AI, now shows the apps found on this computer (Claude Code on a Claude subscription, Codex on ChatGPT, Gemini CLI on a Google account), each with Use it for Ask and Sign in, which opens the app's own sign-in in a terminal window and your browser; the desk never sees the login, it hands the app a question and reads the answer; the Ask box and the chain draft then answer through that app by default, and the picker on the Ask box names the app and what it runs on
 
 ## 2026-09-15.29
 

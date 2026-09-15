@@ -8,6 +8,18 @@
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
 <style>
+.apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.app{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.app.on{border-color:var(--accent)}
+.app b{font-size:13px}
+.app .pays{font-size:11.5px;color:var(--ink2);margin:2px 0 8px}
+.app .found{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.app .found.yes{color:var(--pos)}
+.app .ab{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.app .ab button,.app .ab a{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:4px 10px;font:inherit;font-size:11.5px;cursor:pointer;text-decoration:none}
+.app .ab button:hover,.app .ab a:hover{border-color:var(--accent);color:var(--accent)}
+.app .ab button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.app .msg{font-size:11.5px;color:var(--ink2);margin-top:6px;line-height:1.5}
 .stabs{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
 .stabs button{background:var(--panel);color:var(--ink2);border:1px solid var(--line2);border-radius:10px;padding:9px 16px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;text-align:left}
 .stabs button span{display:block;font-weight:400;font-size:11px;color:var(--muted);margin-top:2px}
@@ -129,6 +141,9 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   <div class="panel" data-tab="connect">
     <div class="panel-h" id="ai"><h2>Your AI</h2><span class="st" id="a_status"></span></div>
     <div class="body">
+      <div class="kv" style="margin-bottom:10px">Three ways to have an AI on the desk. <b>An app you already pay for</b>, on this computer, through its own sign-in (the desk never sees the login; it hands the app a question and reads the answer). <b>A key from a lab</b>, pasted below. <b>A model on this computer</b> through Ollama or LM Studio, which needs no key. The Ask box, the chain draft and every answer on the desk go through whichever you pick.</div>
+      <div class="apps" id="a_apps">looking for apps on this computer…</div>
+      <div class="row" style="margin-top:14px"><span></span><div class="hint"><b>Or a key, or a local model:</b></div></div>
       <div class="row"><label for="a_prov">Provider</label><select id="a_prov"><option value="">none yet</option></select></div>
       <div class="row"><label for="a_fmt">How it is spoken to</label><select id="a_fmt"></select></div>
       <div class="row"><span></span><div class="hint" id="a_fmthint">Two ways exist: the common one, which most labs and every local model speak, and Anthropic's own. Picking a provider sets the right one; change it only if the provider's page says so.</div></div>
@@ -472,6 +487,18 @@ $("p_zip").addEventListener("change",async()=>{ const f=$("p_zip").files[0]; if(
 loadPlugins();
 $("s_upd").onchange=async()=>{ const r=await post("/api/settings/save",{DESK_AUTO_UPDATE:$("s_upd").checked?"on":"off"}); if(r.ok){ render(r.state); say("s_msg","Saved.","ok"); } };
 $("g_again").onclick=()=>{ if(window.deskGuide) window.deskGuide.show(); };
+/* the apps you already pay for: found on this computer or not, use one for Ask, sign in through its own window */
+async function loadApps(){
+  let d; try{ d=await (await fetch("/api/ai/apps",{cache:"no-store"})).json(); }catch(e){ $("a_apps").textContent="The apps could not be read."; return; }
+  $("a_apps").innerHTML=d.apps.map(a=>`<div class="app ${a.found&&d.default_door===a.door?"on":""}" data-app="${esc(a.app)}">
+    <b>${esc(a.label)}</b><div class="pays">on ${esc(a.pays)}</div>
+    <div class="found ${a.found?"yes":""}">${a.found?(d.default_door===a.door?"answers the Ask box":"on this computer"):"not on this computer"}</div>
+    <div class="ab">${a.found?(d.default_door===a.door?`<button class="ghost" data-use="">Stop using it</button>`:`<button class="primary" data-use="${esc(a.door)}">Use it for Ask</button>`)+`<button data-signin="${esc(a.app)}">Sign in</button>`:`<a href="${esc(a.site)}" target="_blank" rel="noopener">Get ${esc(a.label)}</a>`}</div>
+    <div class="msg"></div></div>`).join("");
+  $("a_apps").querySelectorAll("[data-use]").forEach(b=>b.onclick=async()=>{ const r=await post("/api/ai/app/use",{door:b.dataset.use}); if(!r.ok){ alert(r.error||"That did not save."); return; } loadApps(); });
+  $("a_apps").querySelectorAll("[data-signin]").forEach(b=>b.onclick=async()=>{ const r=await post("/api/ai/app/signin",{app:b.dataset.signin}); b.closest(".app").querySelector(".msg").textContent=r.ok?r.text:(r.error||"That did not work."); });
+}
+loadApps();
 $("e_save").onclick=async()=>{ const v=$("e_mail").value.trim(); if(!v) return say("s_msg","Type the address first.","err"); const r=await post("/api/settings/save",{EDGAR_CONTACT:v}); if(r.ok){ $("e_mail").value=""; say("s_msg","Saved.","ok"); render(r.state);} };
 
 /* ---------- render ---------- */
