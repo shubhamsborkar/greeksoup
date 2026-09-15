@@ -33,9 +33,35 @@ def git(*args):
     return subprocess.check_output(["git", *args], cwd=ROOT, text=True)
 
 
+SHIP_EXT = (".py", ".html", ".js", ".css", ".json", ".md", ".txt", ".sh", ".ps1", ".plist")
+
+
+def unstaged_ship_files():
+    """Program files that would ship but are not staged: a modified tracked file whose change
+    is only in the working copy, or a new file never added. The manifest hashes the index, so
+    a release made with these outstanding stamps the new version on the old code (2026-09-15.22
+    did exactly that: chains.py never left the author's machine)."""
+    out = []
+    for line in git("status", "--porcelain", "--untracked-files=all").splitlines():
+        code, rel = line[:2], line[3:].strip()
+        if rel.startswith(SKIP_DIRS) or rel in SKIP or not rel.endswith(SHIP_EXT):
+            continue
+        if rel.startswith("data/") and code != "??":
+            continue          # the author's own book and lists; the shipped copies are the staged ones
+        if code[1] == "M" or code == "??":
+            out.append(rel)
+    return out
+
+
 def main():
     version = (parse_version_text(open(os.path.join(ROOT, "VERSION"), encoding="utf-8").read())
                or [{"version": ""}])[0]["version"]
+    loose = unstaged_ship_files()
+    if loose and "--anyway" not in sys.argv:
+        print("MANIFEST.json NOT written. These files would ship but are not staged, so the manifest "
+              "would stamp the new version on old code:\n  " + "\n  ".join(loose) +
+              "\nStage them by name (git add <file>) and run this again; --anyway skips the check.")
+        sys.exit(2)
     tracked = [p for p in git("ls-files").splitlines()
                if p and p not in SKIP and not p.startswith(SKIP_DIRS)]
     files = {}

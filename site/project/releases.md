@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.22. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.23. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.23
+
+*15 September 2026, release 23.* The .22 update carried its notes but not its code (the manifest was made before the new files were staged), so a desk that took it shows the old Chain screen with the new version stamped; this release carries the whole of .22, and the release script now refuses to write a manifest while a file that would ship is not staged
 
 ## 2026-09-15.22
 
