@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.28. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.29. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.29
+
+*15 September 2026, release 29.* Settings is three short tabs instead of one long page: Connect (broker, data, your AI), Your desk (screens, where the vault lives, how you invest, journal, this desk, backups, help) and Plugins; a link into Settings opens the right tab; and the words on the screen are the reader's, so an endpoint is where the AI answers and a request format is how it is spoken to
 
 ## 2026-09-15.28
 

@@ -17,8 +17,8 @@ import os
 import requests
 
 FORMATS = {
-    "openai": "OpenAI chat shape (.../chat/completions)",
-    "anthropic": "Anthropic messages shape (.../v1/messages)",
+    "openai": "the common way (most labs, every local model)",
+    "anthropic": "Anthropic's own way",
 }
 
 # id -> preset. base_url ends where the format's path is appended.

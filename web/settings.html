@@ -8,6 +8,13 @@
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
 <style>
+.stabs{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+.stabs button{background:var(--panel);color:var(--ink2);border:1px solid var(--line2);border-radius:10px;padding:9px 16px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;text-align:left}
+.stabs button span{display:block;font-weight:400;font-size:11px;color:var(--muted);margin-top:2px}
+.stabs button.on{color:var(--ink);border-color:var(--accent);background:var(--panel2)}
+.stabs button:hover{color:var(--accent)}
+main .panel[data-tab]{display:none}
+main.t-connect .panel[data-tab="connect"],main.t-desk .panel[data-tab="desk"],main.t-plugins .panel[data-tab="plugins"]{display:block}
 main{max-width:980px;margin:0 auto;padding:18px 22px}
 .sub{color:var(--muted);font-size:12px;margin-bottom:16px;line-height:1.55}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
@@ -58,10 +65,15 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   <div class="right"><span id="asof"></span></div>
 </header>
 <main>
-  <div class="sub">Everything the desk needs from you, on one screen. Each key is optional, each one is yours, and each one stays in a file inside the desk folder on this computer; the desk writes that file for you, and a new version never touches it. Nothing on this screen places an order anywhere.</div>
+  <div class="sub">Everything the desk needs from you. Each key is optional, each one is yours, and each one stays in a file inside the desk folder on this computer; the desk writes that file for you, and a new version never touches it. Nothing on this screen places an order anywhere.</div>
+  <div class="stabs" role="tablist">
+    <button type="button" data-tab="connect" class="on">Connect <span>broker · data · your AI</span></button>
+    <button type="button" data-tab="desk">Your desk <span>screens · vault · journal · backups</span></button>
+    <button type="button" data-tab="plugins">Plugins <span>screens, blocks and doors others made</span></button>
+  </div>
 
   <!-- Broker -->
-  <div class="panel">
+  <div class="panel" data-tab="connect">
     <div class="panel-h"><h2>Broker</h2><span class="st" id="b_status"></span></div>
     <div class="body">
       <div class="row"><label for="b_pick">Your broker</label><select id="b_pick"></select></div>
@@ -87,7 +99,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   </div>
 
   <!-- Data provider -->
-  <div class="panel">
+  <div class="panel" data-tab="connect">
     <div class="panel-h"><h2>Data provider</h2><span class="st" id="d_status"></span></div>
     <div class="body">
       <div class="row"><label for="d_pick">Your provider</label><select id="d_pick">
@@ -104,7 +116,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
       <div id="d_other" style="display:none">
         <div class="row"><label for="d_name">Provider</label><input id="d_name" placeholder="finnhub, eodhd, polygon, twelvedata ..." autocomplete="off" spellcheck="false"></div>
         <div class="row"><label for="d_okey">Key</label><input class="mono" id="d_okey" type="password" autocomplete="off"></div>
-        <div class="row"><label for="d_obase">Address</label><input class="mono" id="d_obase" placeholder="https://" autocomplete="off" spellcheck="false"></div>
+        <div class="row"><label for="d_obase">Where it answers</label><input class="mono" id="d_obase" placeholder="https://" autocomplete="off" spellcheck="false"></div>
         <div class="row"><span></span><div class="hint">The desk ships one provider's reads today, and the file that turns any other provider into the same reads is a job for your AI agent: open the desk folder in it and say <i>write a data provider for &lt;name&gt; from its documentation, to the contract in data_providers/CONTRACT.md</i>. The key and address you save here are what that file reads.</div></div>
         <div class="btns"><button id="d_osave">Save</button></div>
       </div>
@@ -114,13 +126,13 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   </div>
 
   <!-- AI -->
-  <div class="panel">
+  <div class="panel" data-tab="connect">
     <div class="panel-h" id="ai"><h2>Your AI</h2><span class="st" id="a_status"></span></div>
     <div class="body">
       <div class="row"><label for="a_prov">Provider</label><select id="a_prov"><option value="">none yet</option></select></div>
-      <div class="row"><label for="a_fmt">Request shape</label><select id="a_fmt"></select></div>
-      <div class="row"><span></span><div class="hint" id="a_fmthint">Two shapes exist: the OpenAI chat shape, which most providers and every local model server speak, and the Anthropic messages shape, which Anthropic speaks and a few others offer as a second door. The preset picks the right one; change it only if your endpoint says so.</div></div>
-      <div class="row"><label for="a_base">Address</label><input class="mono" id="a_base" autocomplete="off" spellcheck="false" placeholder="https://"></div>
+      <div class="row"><label for="a_fmt">How it is spoken to</label><select id="a_fmt"></select></div>
+      <div class="row"><span></span><div class="hint" id="a_fmthint">Two ways exist: the common one, which most labs and every local model speak, and Anthropic's own. Picking a provider sets the right one; change it only if the provider's page says so.</div></div>
+      <div class="row"><label for="a_base">Where it answers</label><input class="mono" id="a_base" autocomplete="off" spellcheck="false" placeholder="https://"></div>
       <div class="row"><label for="a_key">Key</label><input class="mono" id="a_key" type="password" autocomplete="off"></div>
       <div class="row"><label for="a_model">Model</label><input class="mono" id="a_model" autocomplete="off" spellcheck="false"></div>
       <div class="row"><span></span><div class="hint">Optional. A key from any lab, or a model running on this computer through Ollama or LM Studio, which need no key. Once it is set, <b>Ask · your AI</b> in the sidebar (or ⌘I) opens a box on every screen: your question goes with that screen's own numbers to this model, and nowhere else, and the answer comes back in the box. The test sends one line to the model and shows what came back.</div></div>
@@ -130,7 +142,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   </div>
 
   <!-- Connect your AI app -->
-  <div class="panel">
+  <div class="panel" data-tab="connect">
     <div class="panel-h"><h2>Connect your AI app</h2></div>
     <div class="body">
       <div class="kv" style="margin-bottom:10px">Any AI agent that can open addresses on this computer (Claude Code, Codex, Kimi Code, Grok Build, OpenClaw, Cursor and the like) reads the whole desk through one page. Give it this address and it knows what every screen is and where to read the numbers.</div>
@@ -140,7 +152,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   </div>
 
   <!-- Screens -->
-  <div class="panel">
+  <div class="panel" data-tab="desk">
     <div class="panel-h"><h2>Screens</h2><span class="st" id="n_status"></span></div>
     <div class="body">
       <div class="row"><label>In the sidebar</label><div class="chips" id="n_chips"></div></div>
@@ -150,7 +162,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   </div>
 
   <!-- How you invest -->
-  <div class="panel">
+  <div class="panel" data-tab="desk">
     <div class="panel-h"><h2>How you invest</h2><span class="st" id="p_status"></span></div>
     <div class="body">
       <div class="kv" style="margin-bottom:12px">Optional, and none of it leaves this computer. What you set here goes on the agent page above, so any AI that reads the desk shapes its answers to the way you invest instead of to a stranger. Click to pick; type to add your own.</div>
@@ -168,7 +180,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   </div>
 
   <!-- Where the vault lives -->
-  <div class="panel">
+  <div class="panel" data-tab="desk">
     <div class="panel-h" id="vault"><h2>Where the vault lives</h2><span class="st" id="v_loc_st"></span></div>
     <div class="body">
       <div class="row"><label>Now</label><div class="kv mono" id="v_loc"></div></div>
@@ -179,19 +191,19 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   </div>
 
   <!-- Plugins -->
-  <div class="panel">
+  <div class="panel" data-tab="plugins">
     <div class="panel-h"><h2>Plugins</h2><span class="st" id="p_status"></span></div>
     <div class="body">
       <div class="row"><label>In this desk</label><div id="p_list" style="font-size:12.5px;line-height:1.5"></div></div>
-      <div class="row"><span></span><div class="hint">A plugin is a folder in data/research/plugins that adds a screen to the sidebar, blocks a note can carry, or a door (a way for the Ask box to talk to something on this computer, such as the coding agent you already have). It runs on your computer and reads what you let it; what each one talks to is written beside it. One click removes it. Nothing is brought in on its own.</div></div>
+      <div class="row"><span></span><div class="hint">A plugin is a small folder inside your research vault that adds a screen to the sidebar, blocks a note can carry, or a door (a way for the Ask box to talk to something on this computer, such as the coding agent you already have). It runs on your computer and reads what you let it; what each one talks to is written beside it. One click removes it. Nothing is brought in on its own.</div></div>
       <div class="row"><label>From the list</label><div id="p_avail" style="font-size:12.5px;line-height:1.5">reading the list…</div></div>
-      <div class="row"><label>From this computer</label><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="p_folder" placeholder="a folder that holds a plugin.json" style="min-width:280px"><button class="ghost" id="p_addf">Bring the folder in</button><button class="ghost" id="p_addz">Or pick a zip</button><input type="file" id="p_zip" accept=".zip" style="display:none"></div></div>
+      <div class="row"><label>From this computer</label><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="p_folder" placeholder="the plugin's folder on this computer" style="min-width:280px"><button class="ghost" id="p_addf">Bring the folder in</button><button class="ghost" id="p_addz">Or pick a zip</button><input type="file" id="p_zip" accept=".zip" style="display:none"></div></div>
       <div class="msg" id="p_msg"></div>
     </div>
   </div>
 
   <!-- Journal -->
-  <div class="panel">
+  <div class="panel" data-tab="desk">
     <div class="panel-h"><h2>Journal</h2><span class="st" id="j_status"></span></div>
     <div class="body">
       <div class="row"><label>The moments the desk sees</label><div class="chips" id="j_chips"></div></div>
@@ -201,7 +213,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   </div>
 
   <!-- Desk -->
-  <div class="panel">
+  <div class="panel" data-tab="desk">
     <div class="panel-h"><h2>This desk</h2><span class="st" id="v_status"></span></div>
     <div class="body">
       <div class="row"><label>Where it runs</label><div class="kv" id="v_where"></div></div>
@@ -215,7 +227,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   </div>
 
   <!-- Your files -->
-  <div class="panel">
+  <div class="panel" data-tab="desk">
     <div class="panel-h"><h2>Your files</h2><span class="st" id="f_status"></span></div>
     <div class="body">
       <div class="kv" style="margin-bottom:10px">Everything you have put into the desk is a plain file in the <span class="mono">data</span> folder, and the folder is yours: open it in any editor, copy it to another computer, or hand it to your agent. A new version never overwrites a file you changed. The backup below is that folder as one zip, with your keys and the downloaded market data left out.</div>
@@ -226,7 +238,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   </div>
 
   <!-- Help -->
-  <div class="panel">
+  <div class="panel" data-tab="desk">
     <div class="panel-h"><h2>If something is wrong</h2></div>
     <div class="body kv">
       <p style="margin-bottom:8px"><b>A screen is blank or a number looks off.</b> Reload the page once. Most screens rebuild on their own within a few minutes; the free quote feeds sometimes ask a new desk to wait, and the desk retries by itself.</p>
@@ -239,6 +251,17 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
 
 <script>
 "use strict";
+/* three tabs, one page: the panels keep their ids, so everything below works as before; the tab is
+   remembered, and a link to #ai or #vault opens the right tab and scrolls to the panel */
+(function(){
+  const main=document.querySelector("main"); const TABS=["connect","desk","plugins"];
+  const ANCHOR={ai:"connect",vault:"desk",broker:"connect",plugins:"plugins"};
+  function show(t){ if(!TABS.includes(t)) t="connect"; main.className="t-"+t; document.querySelectorAll(".stabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t)); try{ localStorage.setItem("settings_tab",t); }catch(e){} }
+  document.querySelectorAll(".stabs button").forEach(b=>b.onclick=()=>show(b.dataset.tab));
+  function fromHash(){ const hash=(location.hash||"").slice(1); let t=ANCHOR[hash]; if(!t){ try{ t=localStorage.getItem("settings_tab"); }catch(e){} }
+    show(t||"connect"); if(hash&&document.getElementById(hash)) setTimeout(()=>document.getElementById(hash).scrollIntoView({block:"start",behavior:"smooth"}),50); }
+  fromHash(); window.addEventListener("hashchange",fromHash);
+})();
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let S=null, P={}, PC={};
@@ -386,8 +409,8 @@ function renderAI(s){
 }
 function altHint(){
   const p=S.ai.providers[$("a_prov").value]||{};
-  const base="Two shapes exist: the OpenAI chat shape, which most providers and every local model server speak, and the Anthropic messages shape, which Anthropic speaks and a few others offer as a second door. The preset picks the right one; change it only if your endpoint says so.";
-  $("a_fmthint").innerHTML = p.alt ? esc(base)+` <b>${esc(p.label)}</b> also speaks the ${p.alt.format==="anthropic"?"Anthropic":"OpenAI"} shape at <span class="mono">${esc(p.alt.base_url)}</span>; pick that shape and paste that address to use it.` : esc(base);
+  const base="Two ways exist: the common one, which most labs and every local model speak, and Anthropic's own. Picking a provider sets the right one; change it only if the provider's page says so.";
+  $("a_fmthint").innerHTML = p.alt ? esc(base)+` <b>${esc(p.label)}</b> can also be spoken to ${p.alt.format==="anthropic"?"Anthropic's way":"the common way"} at <span class="mono">${esc(p.alt.base_url)}</span>; pick that way and paste that address to use it.` : esc(base);
 }
 $("a_prov").onchange=()=>{ const p=S.ai.providers[$("a_prov").value]||{}; $("a_fmt").value=p.format||"openai"; $("a_base").value=p.base_url||""; $("a_model").value=p.model||""; $("a_key").placeholder = S.ai.key ? "saved · "+S.ai.key : (p.needs_key===false?"optional here":"not saved"); altHint(); };
 $("a_save").onclick=async()=>{
@@ -437,7 +460,7 @@ async function loadPlugins(){
   const inst=d.installed||[];
   st("p_status", inst.length?`${inst.length} in`:"none yet","");
   $("p_list").innerHTML=inst.length?inst.map(p=>`<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)"><b>${esc(p.label||p.name)}</b>${p.version?`<span class="mono" style="color:var(--muted);font-size:11px">v${esc(p.version)}</span>`:""}${p.error?`<span style="color:var(--neg)">${esc(p.error)}</span>`:`<span style="color:var(--ink2)">${esc(p.what||"")}</span><span style="color:var(--muted);font-size:11px">adds ${esc((p.adds||[]).join(", ")||"nothing")}${p.door?` · ${p.door.ready?"via "+esc(p.door.ready.label):"no command found: "+esc((p.door.commands||[]).map(c=>c.label).join(", "))}`:""}</span>${(p.talks_to||[]).length?`<span style="color:var(--muted);font-size:11px">talks to: ${esc(p.talks_to.join("; "))}</span>`:""}`}<button class="chip" data-rm="${esc(p.name)}" style="margin-left:auto;color:var(--neg)">remove</button></div>`).join(""):`<span style="color:var(--muted)">No plugin yet. The list below has the first ones.</span>`;
-  $("p_list").querySelectorAll("[data-rm]").forEach(b=>b.onclick=async()=>{ if(!confirm(`Remove the plugin "${b.dataset.rm}"? Its folder is deleted from data/research/plugins.`)) return; const r=await post("/api/plugins/remove",{name:b.dataset.rm}); say("p_msg", r.ok?"Removed. The sidebar updates on the next page.":"could not remove", r.ok?"ok":"err"); loadPlugins(); if(window.deskRefreshNav) deskRefreshNav(); });
+  $("p_list").querySelectorAll("[data-rm]").forEach(b=>b.onclick=async()=>{ if(!confirm(`Remove the plugin "${b.dataset.rm}"? Its folder is deleted from your vault.`)) return; const r=await post("/api/plugins/remove",{name:b.dataset.rm}); say("p_msg", r.ok?"Removed. The sidebar updates on the next page.":"could not remove", r.ok?"ok":"err"); loadPlugins(); if(window.deskRefreshNav) deskRefreshNav(); });
   let l; try{ l=await (await fetch("/api/plugins/list")).json(); }catch(e){ l={ok:false,error:"the list could not be read"}; }
   const have=new Set(inst.map(p=>p.name));
   $("p_avail").innerHTML=l.ok?((l.plugins||[]).length?l.plugins.map(p=>`<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)"><b>${esc(p.label||p.name)}</b><span style="color:var(--ink2)">${esc(p.what||"")}</span><span style="color:var(--muted);font-size:11px">${p.author?"by "+esc(p.author)+" · ":""}adds ${esc((p.adds||[]).join(", "))}${(p.talks_to||[]).length?" · talks to: "+esc(p.talks_to.join("; ")):""}</span>${have.has(p.name)?`<span class="chip" style="margin-left:auto;color:var(--muted)">in</span>`:`<button class="chip" data-in="${esc(p.name)}" style="margin-left:auto">bring it in</button>`}</div>`).join("")+`<div style="font-size:11px;color:var(--muted);margin-top:6px">the list at ${esc(l.url)}, read ${esc(l.checked||"")}</div>`:`<span style="color:var(--muted)">The list is empty.</span>`):`<span style="color:var(--muted)">${esc(l.error||"the list could not be read")}</span>`;
