@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.32. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.33. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.33
+
+*16 September 2026, release 33.* The repository reads like the project it is: the README opens with the GreekSoup mark and wordmark, a row of live badges (checks, the current release, Python, the three systems, the licence, the newsletter), one paragraph on what stays yours and a link row to the site, the docs, the screens, security, releases and the FAQ; a table of where to read next and a Community section at the end; the screen count is fifteen everywhere and Notes has its line; the install lines here and in the docs are the short greeksoup.ai ones. AGENTS.md at the root (with CLAUDE.md and GEMINI.md pointing to it) tells any AI agent opened in the desk folder what the desk is, what belongs to the reader and must not be overwritten, and how to start, check, test and roll back. Every release is now tagged and published on GitHub's Releases page with the same line the update strip shows.
 
 ## 2026-09-15.32
 

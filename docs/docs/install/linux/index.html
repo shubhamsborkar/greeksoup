@@ -44,7 +44,7 @@
       <p class="lead">The same line as the Mac. Python has to be there already; the line tells you the package if it is not.</p>
       <h2 id="the-line">The line</h2>
 <p>In a terminal:</p>
-<pre><code>curl -fsSL https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/install.sh | bash
+<pre><code>curl -fsSL https://greeksoup.ai/install.sh | bash
 </code></pre>
 <p>Python 3.10 or newer is needed. If it is missing the line stops and says what to install: on Ubuntu or Debian <code>sudo apt install python3 python3-venv</code>, on Fedora <code>sudo dnf install python3</code>. Run the line again after that.</p>
 <p>The desk goes into <code>~/GreekSoup</code>, with its own environment inside that folder. The line then writes a small systemd user service, <code>greeksoup-desk.service</code>, enables it and starts it, so the desk starts at every login and restarts by itself if it stops. It opens the address in your browser if a browser is there to open it.</p>
@@ -72,7 +72,7 @@ WantedBy=default.target
     </nav>
     <footer class="foot">
       <span>GreekSoup: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. For analysts who refuse to settle.</span>
-      <span class="mono">version 2026-09-15.32 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/install/linux.md">edit this page</a></span>
+      <span class="mono">version 2026-09-16.33 · built 2026-09-16 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/install/linux.md">edit this page</a></span>
     </footer>
   </main>
   <aside class="rail">

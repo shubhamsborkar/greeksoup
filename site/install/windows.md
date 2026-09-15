@@ -10,7 +10,7 @@ lead: One line in PowerShell. Written from Microsoft's documented commands.
 Press the Windows key, type `PowerShell`, press Enter, then paste this line and press Enter:
 
 ```
-irm https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/install.ps1 | iex
+irm https://greeksoup.ai/install.ps1 | iex
 ```
 
 If Python is not on your PC yet, the line installs it with winget and a window may ask you to approve. Everything else goes into a folder called `GreekSoup` in your user folder. When the line finishes, the desk is open in your browser at `http://localhost:8765` and it starts when you log on from then on, through a task in Task Scheduler.

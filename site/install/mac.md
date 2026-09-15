@@ -10,7 +10,7 @@ lead: One line in Terminal. About a minute, most of it the download.
 Press Command and Space together, type `Terminal`, press Enter; a plain window opens. Paste this line into it and press Enter:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/install.sh | bash
+curl -fsSL https://greeksoup.ai/install.sh | bash
 ```
 
 If Python is not on your Mac yet, the line installs it from python.org and your Mac asks for your password once. Everything else goes into a folder called `GreekSoup` in your home folder. When the line finishes, the desk is open in your browser at `http://localhost:8765` and it starts with your Mac from then on.
@@ -32,7 +32,7 @@ Set any of these on the same line, before `curl`, and the install follows them.
 For example:
 
 ```
-GREEKSOUP_PORT=8770 curl -fsSL https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/install.sh | bash
+GREEKSOUP_PORT=8770 curl -fsSL https://greeksoup.ai/install.sh | bash
 ```
 
 ## Running it again

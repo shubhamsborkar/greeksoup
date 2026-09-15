@@ -10,7 +10,7 @@ lead: The same line as the Mac. Python has to be there already; the line tells y
 In a terminal:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/install.sh | bash
+curl -fsSL https://greeksoup.ai/install.sh | bash
 ```
 
 Python 3.10 or newer is needed. If it is missing the line stops and says what to install: on Ubuntu or Debian `sudo apt install python3 python3-venv`, on Fedora `sudo dnf install python3`. Run the line again after that.

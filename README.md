@@ -1,8 +1,30 @@
 # GreekSoup: the one-person equity research desk
 
-GreekSoup is a research desk that runs on your own computer: fourteen screens with your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a commodity board that names the industries each move squeezes or helps, and a page for any ticker, priced live. It reads the public record (SEC EDGAR, CBOE, FINRA, FRED, Yahoo), your broker if you connect one, and one optional data feed, and it opens in any browser at an address on your own computer.
+<p align="center">
+  <a href="https://greeksoup.ai">
+    <picture>
+      <source media="(prefers-color-scheme: light)" srcset="https://greeksoup.ai/img/greeksoup-readme-light.png">
+      <img src="https://greeksoup.ai/img/greeksoup-readme-dark.png" alt="GreekSoup. The one-person equity research desk. Runs on your own computer." width="100%">
+    </picture>
+  </a>
+</p>
 
-You do not write any of it. One line pasted into a terminal installs it (below), and an AI coding agent (Claude Code, Codex, Kimi Code or Grok Build) can install it for you instead and changes it later when you ask. It is open source under the MIT licence, your keys stay in a file on your computer, and it updates itself. The edition that walks through every screen and the build is [How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity); the screenshots there show the author's own copy, and this repository is that desk without the author's positions.
+<p align="center">
+  <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/actions/workflows/check.yml"><img src="https://img.shields.io/github/actions/workflow/status/shubhamsborkar/one-person-equity-research-desk/check.yml?branch=main&style=flat-square&label=checks" alt="Checks"></a>
+  <a href="https://greeksoup.ai/docs/project/releases/"><img src="https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Fshubhamsborkar%2Fone-person-equity-research-desk%2Fmain%2FVERSION&search=%5E(%5Cd%7B4%7D-%5Cd%7B2%7D-%5Cd%7B2%7D%5C.%5Cd%2B)&label=release&style=flat-square&color=ED5A24" alt="Latest release"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square" alt="Python 3.10 or newer"></a>
+  <a href="https://greeksoup.ai/docs/install/"><img src="https://img.shields.io/badge/runs%20on-mac%20%C2%B7%20windows%20%C2%B7%20linux-ECEBE6?style=flat-square&labelColor=0F1114" alt="Runs on Mac, Windows and Linux"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-3ECF8E?style=flat-square" alt="Licence: MIT"></a>
+  <a href="https://ai.shikshannivesh.com"><img src="https://img.shields.io/badge/newsletter-Alpha%20with%20AI-ED5A24?style=flat-square" alt="Alpha with AI on Substack"></a>
+</p>
+
+GreekSoup is a research desk that runs on your own computer: fifteen screens with your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a board of fifty-one commodities that names the industries each move squeezes or helps, your own value chains, a research vault for your notes, and a page for any ticker, priced live. It reads the public record (SEC EDGAR, CBOE, FINRA, FRED, Yahoo), your broker if you connect one, and one optional data feed, and it opens in any browser at an address on your own computer.
+
+**Yours, and nothing leaves.** Every list a screen runs on is yours to add to, edit and put back. Your keys sit in one file in the desk folder and the desk sends nothing about you or your book anywhere; the one request it makes on its own is a daily look at whether a newer version exists. An AI you already pay for (Claude Code, Codex, Gemini CLI) answers questions about your own screens without a key, and the desk never sees that login. There is no account, no hosted copy and no telemetry. What it talks to, and what it does about a web page trying to reach it, is on the [security page](https://greeksoup.ai/docs/project/security/).
+
+You do not write any of it. One line pasted into a terminal installs it (below), and an AI coding agent can install it for you instead and change it later when you ask. It is open source under the MIT licence and it updates itself. The edition that walks through every screen and the build is [How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity); the screenshots there show the author's own copy, and this repository is that desk without the author's positions.
+
+[Website](https://greeksoup.ai) · [Docs](https://greeksoup.ai/docs/) · [Install](https://greeksoup.ai/docs/install/) · [The first ten minutes](https://greeksoup.ai/docs/get-started/first-ten-minutes/) · [The screens](https://greeksoup.ai/docs/get-started/the-screens/) · [Security](https://greeksoup.ai/docs/project/security/) · [Releases](https://greeksoup.ai/docs/project/releases/) · [FAQ](https://greeksoup.ai/docs/get-started/faq/) · [Newsletter](https://ai.shikshannivesh.com)
 
 ## How it works, in plain words
 
@@ -26,13 +48,13 @@ Three things are involved, and it helps to know which is which.
 On a Mac, press Command and Space together, type `Terminal`, press Enter; a plain window opens. Paste this line into it and press Enter:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/install.sh | bash
+curl -fsSL https://greeksoup.ai/install.sh | bash
 ```
 
 On Windows, press the Windows key, type `PowerShell`, press Enter, then paste this line and press Enter:
 
 ```
-irm https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-desk/main/install.ps1 | iex
+irm https://greeksoup.ai/install.ps1 | iex
 ```
 
 It finds Python on your computer (and installs it if it is missing), downloads the desk into a folder called GreekSoup in your home folder, installs what it needs into that folder and nothing else, sets the desk to start with your computer, starts it, and opens it in your browser. About a minute on a Mac; the Windows line was written from Microsoft's documented commands and has not been run on a Windows machine by the author, so if it complains, paste the window's text to an AI agent. Keys are optional. When you want one, open **Settings**, the last entry in the desk's sidebar, paste it there, and the desk keeps it in a file inside that folder; you never open the file yourself.
@@ -92,7 +114,7 @@ The market follows the broker. Once a broker is connected, the desk knows which 
 
 So a reader in the US picks Alpaca, Interactive Brokers or Tradier and has both desks; a reader in the UK picks Trading 212 or Interactive Brokers; a reader in India picks either of the two Indian brokers; a reader in Australia has the agent write the file for an ASX broker, or keeps the book by hand while it is written.
 
-## The fourteen screens
+## The fifteen screens
 
 - **Desk · Home** and its US panels: above.
 - **Desk · Book**: a portfolio you keep by hand, for anyone with no broker to connect and no feed key. Any symbol Yahoo Finance knows, in any market (AAPL, RELIANCE.NS, MC.PA, 0700.HK); add a line in the page or paste your whole holdings list, and it is priced from Yahoo's free feed, US listings close to live and most other exchanges 15 to 20 minutes behind, with value, day move, profit since cost and weight, one currency at a time.
@@ -105,6 +127,7 @@ So a reader in the US picks Alpaca, Interactive Brokers or Tradier and has both 
 - **Capitol**: Senate and House trading disclosures on your names, plus members you track.
 - **Chain**: your own value-chain maps, receipt-graded and priced live. Describe an industry, a product or a company and your AI drafts the first map, upstream to downstream, for you to keep, change or drop line by line; the maps live in your research vault.
 - **Commodities**: 51 commodities in seven groups, from crude and copper to rubber, coking coal, palm oil, tea and the dollar against the rupee and the yuan, each with the level, five change windows and the distance from its five-year high. Click one and it shows the industries a rise squeezes and the industries it helps, the same in any country, and under each industry the listed names you have mapped to it, priced live, with the raw-material share from their own filings. A names-under-pressure panel adds up every commodity a name sits on and ranks who is squeezed and who is helped this month. It ships with the US names; you add your own market in one file (below).
+- **Notes**: the research you write, kept as plain Markdown files in your research vault and connected to the listings they name, the projects they belong to and the notes they link to; files you bring in (a filing, a deck, a PDF) attach to them and the desk reads the text out.
 - **Any ticker**: Cmd+K, type a symbol: chart, valuation, quality, estimates, insiders, dividends, news, and with a feed key six years of statements, ratios, segments, peers and a DCF sandbox.
 
 And **Settings**, the last entry in the sidebar: your broker, picked from the list, with what it hands out and the daily login where a broker needs one; your data provider, with a button that says what your plan answers; your own AI, from any lab or a model running on your computer, with the request shape the endpoint speaks and a test; the address that lets any AI agent on your computer read the whole desk; a short page on how you invest (style, what you look at first, sectors, risk, holding period, your own words) that the agent page carries so any AI reading the desk answers you and not a stranger, two switches, *Start with the computer* and *Newer versions*, a list of your files with a one-click backup, and what to do when something is wrong. Nothing on it is required; every key is yours and stays on your computer.
@@ -149,23 +172,33 @@ A newer version of this desk is in my Downloads folder, in the folder that came 
 
 That paste also works on any copy, at any time, if you would rather not use the strip. If you took the desk with git instead of the ZIP, `git pull` in the desk folder does the same, and the agent restarts it.
 
-What was added, newest first:
-
-- **2026-09-15**: the Ask box. **Ask · your AI** at the bottom of the sidebar opens a box on every screen; your question goes with that screen's own numbers to the AI you set in Settings, and the answer comes back in the box. It describes what the numbers show and never says buy, sell or hold.
-- **2026-09-14**: what a finished desk carries around itself. A check you run in the folder, an uninstall that saves your lists first and asks before deleting, an updater that keeps the last three versions and can go back, a security page, a contributing guide, issue templates, a check that runs on every change holding every broker and market file to its contract, and docs for your AI, data providers, data sources, what the desk talks to and what to do when something is wrong.
-- **2026-09-13, later**: nothing in the desk assumes one broker or one country any more. A broker file is read for what it has (holdings and cash always; ticks, futures, margin, chains and a symbol master when the broker serves them), and the market the broker trades in supplies the session, the index, the currency, the results calendar, the filings and its own macro cards from a file in the markets folder (India and the United States ship). The daily-login helper files are gone; Settings does that job.
-- **2026-09-13**: the desk looks for a newer version once a day and, when there is one, says so on every screen and brings it in with one click, keeping your keys, your lists and any file your agent changed.
-- **2026-09-12**: the US names on the Commodities screen now carry their filed figures, 58 of 59, each with the document it came from; the one left blank says why. Three tickers corrected (Barrick is B, Solaris Energy Infrastructure is SEI, US Steel removed since it no longer trades).
-- **2026-09-09**: the **Commodities** screen (51 commodities, the industries each one squeezes and helps, the names you map to them from their filings, a names-under-pressure panel, two new alert rules) and **Desk · Book**, the hand-kept portfolio for readers with no broker and no feed.
-- **2026-09-03**: first public version, twelve screens.
+What was added and when, newest first, is on the [releases page](https://greeksoup.ai/docs/project/releases/), read from the same `VERSION` file at the top of this folder that your desk reads when it checks for an update.
 
 ## If you also use Obsidian
 
 Optional, and nothing above depends on it. If you keep notes in Obsidian, the desk can appear as a tab inside it: in Obsidian, Settings, Core plugins, switch on **Web Viewer**; copy the note `obsidian/Live Desk.md` from the desk folder into your vault; open that note. The optional `obsidian/desk.css` file, dropped into your vault's `.obsidian/snippets/` folder and enabled under Appearance, lets the note use the full width. Or tell your agent: *put the desk inside my Obsidian vault*.
 
+## Where to read next
+
+| You want to | Start here |
+| --- | --- |
+| Install it, keep it running, update it, uninstall it | [Install](https://greeksoup.ai/docs/install/) · [Keep it running](https://greeksoup.ai/docs/install/keep-it-running/) · [Updates](https://greeksoup.ai/docs/install/updates/) · [Your computer or a server](https://greeksoup.ai/docs/install/your-computer-or-a-server/) |
+| Connect a broker or add your market | [Brokers](https://greeksoup.ai/docs/brokers/) · [Markets](https://greeksoup.ai/docs/markets/) · [Your own market](https://greeksoup.ai/docs/markets/your-own-market/) |
+| Set up your AI, your lists, your chains, a data provider | [Your AI](https://greeksoup.ai/docs/setup/your-ai/) · [Your lists](https://greeksoup.ai/docs/setup/your-lists/) · [Chains](https://greeksoup.ai/docs/setup/chains/) · [Data providers](https://greeksoup.ai/docs/setup/data-providers/) · [Plugins](https://greeksoup.ai/docs/setup/plugins/) |
+| Know what runs with no key, and what each screen shows | [No key needed](https://greeksoup.ai/docs/get-started/no-key-needed/) · [The screens](https://greeksoup.ai/docs/get-started/the-screens/) · [Notes](https://greeksoup.ai/docs/get-started/notes/) |
+| Know what it talks to and what keeps it safe | [What it talks to](https://greeksoup.ai/docs/install/what-it-talks-to/) · [Security](https://greeksoup.ai/docs/project/security/) |
+| Fix something | [If something is wrong](https://greeksoup.ai/docs/install/if-something-is-wrong/) · [The page is blank](https://greeksoup.ai/docs/install/the-page-is-blank/) · [FAQ](https://greeksoup.ai/docs/get-started/faq/) |
+
 ## For the technical reader
 
-Setup by hand, the file map, how to adapt the broker adapter, the data sources in detail, and how the always-on service works on Mac, Windows and Linux: [TECHNICAL.md](TECHNICAL.md). What the desk talks to, where keys live and how to report a problem: [SECURITY.md](SECURITY.md). Adding a broker, a market or a data provider to its written contract, and the checks that run on every change: [CONTRIBUTING.md](CONTRIBUTING.md).
+Setup by hand, the file map, how to adapt the broker adapter, the data sources in detail, and how the always-on service works on Mac, Windows and Linux: [TECHNICAL.md](TECHNICAL.md). What the desk talks to, where keys live and how to report a problem: [SECURITY.md](SECURITY.md). Adding a broker, a market or a data provider to its written contract, and the checks that run on every change: [CONTRIBUTING.md](CONTRIBUTING.md). What an AI agent should know before it changes anything in this folder: [AGENTS.md](AGENTS.md).
+
+## Community
+
+- **Something wrong, or a broker or market you want**: the [issue chooser](https://github.com/shubhamsborkar/one-person-equity-research-desk/issues/new/choose) has a template for each. `python doctor.py` in the desk folder prints what a report needs and nothing private.
+- **A security problem**: [SECURITY.md](SECURITY.md) says how to reach us privately first.
+- **A contribution**: [CONTRIBUTING.md](CONTRIBUTING.md). Most arrive as one file to a written contract, drafted by your own agent; pull requests written with an agent are welcome.
+- **The newsletter**: [Alpha with AI](https://ai.shikshannivesh.com) carries the editions the desk grew out of, and every new screen is written up there first. GreekSoup is made by [Shikshan Nivesh](https://shikshannivesh.com).
 
 ## Built with an agent
 
