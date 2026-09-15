@@ -18,7 +18,7 @@ The Settings screen carries the same switch, *Start with the computer*, and show
 
 ## What is behind it
 
-On a Mac it is a launch agent, a small file at `~/Library/LaunchAgents/com.research-desk.plist` that tells macOS to run the desk at login and restart it if it exits. On Windows it is a task named "Research Desk" in Task Scheduler that runs a hidden PowerShell script at logon. On Linux it is the systemd user unit `greeksoup-desk.service`. Nothing else is installed anywhere on your computer.
+On a Mac it is a launch agent, a small file at `~/Library/LaunchAgents/com.research-desk.plist` that tells macOS to run the desk at login and restart it if it exits. On Windows it is a task named "Research Desk" in Task Scheduler that runs a hidden PowerShell script at logon, made for your user only and with no time limit; on a PC that refuses the task (work and school PCs often answer "Access is denied") it is a shortcut named "GreekSoup Desk" in your own Startup folder instead, which every Windows allows. Neither needs an administrator. On Linux it is the systemd user unit `greeksoup-desk.service`. Nothing else is installed anywhere on your computer.
 
 Two copies of the desk on one computer share the service name, so the switch on one copy stays out of the way when the other owns the service, and says so.
 

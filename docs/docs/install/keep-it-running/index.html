@@ -49,7 +49,7 @@
 <p>The Settings screen carries the same switch, <em>Start with the computer</em>, and shows whether it is on.</p>
 <p><strong>Stop Desk</strong> switches the always-on desk off. On a Mac, double-clicking it again switches it back on; on Windows, double-click Keep Desk Running again.</p>
 <h2 id="what-is-behind-it">What is behind it</h2>
-<p>On a Mac it is a launch agent, a small file at <code>~/Library/LaunchAgents/com.research-desk.plist</code> that tells macOS to run the desk at login and restart it if it exits. On Windows it is a task named "Research Desk" in Task Scheduler that runs a hidden PowerShell script at logon. On Linux it is the systemd user unit <code>greeksoup-desk.service</code>. Nothing else is installed anywhere on your computer.</p>
+<p>On a Mac it is a launch agent, a small file at <code>~/Library/LaunchAgents/com.research-desk.plist</code> that tells macOS to run the desk at login and restart it if it exits. On Windows it is a task named "Research Desk" in Task Scheduler that runs a hidden PowerShell script at logon, made for your user only and with no time limit; on a PC that refuses the task (work and school PCs often answer "Access is denied") it is a shortcut named "GreekSoup Desk" in your own Startup folder instead, which every Windows allows. Neither needs an administrator. On Linux it is the systemd user unit <code>greeksoup-desk.service</code>. Nothing else is installed anywhere on your computer.</p>
 <p>Two copies of the desk on one computer share the service name, so the switch on one copy stays out of the way when the other owns the service, and says so.</p>
 <h2 id="how-to-tell-it-is-running">How to tell it is running</h2>
 <p>The address opens. If the page is blank, <a href="../../install/the-page-is-blank/">the page is blank</a> has the steps in order.</p>
@@ -62,7 +62,7 @@
     </nav>
     <footer class="foot">
       <span>GreekSoup: the one-person equity research desk. For analysts who refuse to settle.</span>
-      <span class="mono">version 2026-09-15.4 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/install/keep-it-running.md">edit this page</a></span>
+      <span class="mono">version 2026-09-15.6 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/install/keep-it-running.md">edit this page</a></span>
     </footer>
   </main>
   <aside class="rail">

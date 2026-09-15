@@ -2,8 +2,16 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.4. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.6. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.6
+
+*15 September 2026, release 6.* Windows needs no administrator: the start-at-login entry is a task made for your user only, with no time limit, and when a work or school PC refuses that with Access is denied, a shortcut in your own Startup folder takes its place; a reader hit that refusal on the first try. Running the install line again on an installed desk now brings it up to date first and never waits on a hidden prompt
+
+## 2026-09-15.5
+
+*15 September 2026, release 5.* Stop Desk and Uninstall Desk on Windows now stop the desk they belong to: the desk writes its own process number into its folder once it holds its door, and the stop looks there first, then at whatever answers on that door when it or the launcher that started it runs from this folder; the first full Windows run had reported the desk stopped while it went on answering
 
 ## 2026-09-15.4
 

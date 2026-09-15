@@ -4,9 +4,9 @@
 #
 # Finds Python (installs it with winget if missing), downloads the desk into
 # %USERPROFILE%\GreekSoup, installs what it needs into its own folder, sets the desk to
-# start at logon, starts it, and opens http://localhost:8765. Written from Microsoft's
-# documented commands and not yet run on a Windows machine by the author; if a line
-# complains, paste the window's text to your AI agent and ask it to fix it.
+# start at logon (no administrator needed), starts it, and opens http://localhost:8765.
+# A fresh Windows machine runs this whole line on every change to the desk; if a line
+# still complains on yours, paste the window's text to your AI agent and ask it to fix it.
 $ErrorActionPreference = "Stop"
 $Repo = "shubhamsborkar/one-person-equity-research-desk"
 $ZipUrl = "https://codeload.github.com/$Repo/zip/refs/heads/main"
@@ -33,8 +33,34 @@ if (-not $Py) {
 }
 Write-Host "`n  Python found: $Py"
 
+# Ask 127.0.0.1 rather than "localhost": on Windows "localhost" is often the IPv6
+# address first, and the desk listens on the IPv4 one, so the name can say nothing is
+# there while the desk is running perfectly well.
+function Up { try { Invoke-WebRequest -Uri "http://127.0.0.1:$Port/api/ping" -TimeoutSec 2 -UseBasicParsing | Out-Null; $true } catch { $false } }
+
 if (Test-Path (Join-Path $Dest "server.py")) {
-  Write-Host "`n  The desk is already installed at $Dest. Starting it; new versions arrive through the strip inside the desk."
+  if (Up) {
+    Write-Host "`n  The desk is already installed at $Dest and running. New versions arrive through the strip inside the desk."
+  } else {
+    # Running the line again on an installed desk that is not up brings the folder to
+    # the current version first (keys, lists and logs untouched), then starts it. A copy
+    # too old to carry the updater gets the current files copied over it instead.
+    Write-Host "`n  The desk is already installed at $Dest. Bringing it up to date, then starting it."
+    if ((Test-Path (Join-Path $Dest "updater.py")) -and (Test-Path (Join-Path $Dest ".venv\Scripts\python.exe"))) {
+      Push-Location $Dest
+      try { & .venv\Scripts\python.exe updater.py apply 2>$null | Out-Null } catch {}
+      Pop-Location
+    } else {
+      $Tmp = Join-Path $env:TEMP ("greeksoup-" + [guid]::NewGuid().ToString())
+      New-Item -ItemType Directory -Path $Tmp | Out-Null
+      Invoke-WebRequest -Uri $ZipUrl -OutFile (Join-Path $Tmp "desk.zip")
+      Expand-Archive -Path (Join-Path $Tmp "desk.zip") -DestinationPath $Tmp
+      $Src = (Get-ChildItem -Path $Tmp -Directory | Select-Object -First 1).FullName
+      Get-ChildItem -Path $Src -Force | Where-Object { $_.Name -notin @(".env", "data", "logs", "cache", ".venv") } |
+        ForEach-Object { Copy-Item -Path $_.FullName -Destination $Dest -Recurse -Force }
+      Remove-Item -Recurse -Force $Tmp
+    }
+  }
 } else {
   Write-Host "`n  Downloading the desk into $Dest ..."
   $Tmp = Join-Path $env:TEMP ("greeksoup-" + [guid]::NewGuid().ToString())
@@ -66,10 +92,6 @@ $Url = "http://localhost:$Port"
 # entry and without opening a browser. It is how the desk is tested on a fresh Windows
 # machine that nobody is sitting at.
 $NoService = -not [string]::IsNullOrWhiteSpace($env:GREEKSOUP_NO_SERVICE)
-# Ask 127.0.0.1 rather than "localhost": on Windows "localhost" is often the IPv6
-# address first, and the desk listens on the IPv4 one, so the name can say nothing is
-# there while the desk is running perfectly well.
-function Up { try { Invoke-WebRequest -Uri "http://127.0.0.1:$Port/api/ping" -TimeoutSec 2 -UseBasicParsing | Out-Null; $true } catch { $false } }
 $proc = $null
 if (-not (Up)) {
   if ($NoService) {
@@ -77,8 +99,11 @@ if (-not (Up)) {
       -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $Dest "logs\desk.log") `
       -RedirectStandardError (Join-Path $Dest "logs\desk-start.log")
   } else {
+    # Start at logon and start now, with no administrator needed: a task for this
+    # user, or a Startup shortcut when Windows refuses the task. Run as its own
+    # PowerShell so a PC that forbids scripts still runs this one.
     $env:DESK_PORT = $Port
-    & cmd /c "`"Keep Desk Running.bat`"" | Out-Null
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Dest "desk-autostart.ps1")
   }
 }
 for ($i = 0; $i -lt 30; $i++) { if (Up) { break }; Start-Sleep -Seconds 2 }

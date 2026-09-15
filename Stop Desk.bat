@@ -1,9 +1,8 @@
 @echo off
 rem Double-click me to switch the always-on desk OFF. Run "Keep Desk Running.bat" to switch it back on.
 cd /d "%~dp0"
-set "TASK=Research Desk"
-schtasks /End /TN "%TASK%" >nul 2>&1
-schtasks /Delete /TN "%TASK%" /F >nul 2>&1
+rem remove the start-at-login entry only when it is this folder's own
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0desk-autostart.ps1" -Remove
 rem stop only the desk that runs from THIS folder, never other Python programs
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0desk-stop.ps1"
 echo.

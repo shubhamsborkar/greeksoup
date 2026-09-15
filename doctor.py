@@ -164,16 +164,29 @@ def main():
         else:
             say(WARN, "start-at-login entry absent; the install line adds it, or run Keep Desk Running")
     elif system == "Windows":
+        # Either a scheduled task or, on PCs that refuse one, a shortcut in the user's
+        # Startup folder. The shortcut is a binary file with its arguments in UTF-16.
+        lnk = os.path.join(os.environ.get("APPDATA", ""), "Microsoft", "Windows", "Start Menu", "Programs", "Startup", "GreekSoup Desk.lnk")
+        lnk_mine = False
+        try:
+            if os.path.isfile(lnk):
+                lnk_mine = os.path.abspath(HERE).encode("utf-16-le").lower() in open(lnk, "rb").read().lower()
+        except OSError:
+            pass
         try:
             p = subprocess.run(["schtasks", "/Query", "/TN", "Research Desk", "/XML"], capture_output=True, text=True, timeout=10)
-            if p.returncode != 0:
-                say(WARN, "start-at-login task absent; double-click Keep Desk Running.bat to add it")
-            elif mine(p.stdout):
+            if p.returncode == 0 and mine(p.stdout):
                 say(OK, "start-at-login task present, and it points at this folder")
-            else:
+            elif lnk_mine:
+                say(OK, "start-at-login shortcut present in the Startup folder, and it points at this folder")
+            elif p.returncode == 0:
                 say(WARN, "a start-at-login task exists but it points at another copy of the desk")
+            elif os.path.isfile(lnk):
+                say(WARN, "a Startup shortcut exists but it points at another copy of the desk")
+            else:
+                say(WARN, "start-at-login entry absent; double-click Keep Desk Running.bat to add it")
         except Exception:  # noqa: BLE001
-            say(WARN, "could not query the scheduled task")
+            say(OK if lnk_mine else WARN, "start-at-login shortcut present in the Startup folder" if lnk_mine else "could not query the scheduled task")
 
     # disk and folders
     try:

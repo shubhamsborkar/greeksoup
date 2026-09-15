@@ -11,6 +11,14 @@ $Dest = if ($env:GREEKSOUP_HOME) { $env:GREEKSOUP_HOME } else { Join-Path $env:T
 $Port = if ($env:GREEKSOUP_PORT) { $env:GREEKSOUP_PORT } else { "8799" }
 $Base = "http://127.0.0.1:$Port"
 
+Write-Host "`n=== Every PowerShell file parses ==="
+foreach ($f in (Get-ChildItem -Path $Root -Filter *.ps1 -Recurse | Where-Object { $_.FullName -notmatch '\\\.venv\\' })) {
+  $errs = $null
+  [System.Management.Automation.Language.Parser]::ParseFile($f.FullName, [ref]$null, [ref]$errs) | Out-Null
+  if ($errs -and $errs.Count -gt 0) { $errs | ForEach-Object { Write-Host ("  {0}: {1}" -f $f.Name, $_.Message) }; throw ("does not parse: " + $f.Name) }
+  Write-Host ("  {0,-28} ok" -f $f.Name)
+}
+
 Write-Host "`n=== Installing into $Dest on door $Port ==="
 $env:GREEKSOUP_HOME = $Dest
 $env:GREEKSOUP_PORT = $Port
@@ -37,6 +45,21 @@ Write-Host "`n=== The desk's own check ==="
 & (Join-Path $Dest ".venv\Scripts\python.exe") (Join-Path $Dest "doctor.py") "--offline"
 if ($LASTEXITCODE -ne 0) { throw "the check found something to fix on Windows" }
 
+Write-Host "`n=== Start at login, the way a reader's PC gets it ==="
+# A fresh machine in the cloud is the closest thing to a locked-down work PC: the
+# task may be refused, and the Startup shortcut must then take over. Either way the
+# check must see an entry that names this folder.
+$env:GREEKSOUP_NO_TASK = "1"     # first the way a locked-down PC goes: the task refused, the shortcut takes over
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Dest "desk-autostart.ps1")
+$doc = & (Join-Path $Dest ".venv\Scripts\python.exe") (Join-Path $Dest "doctor.py") "--offline" 2>&1 | Out-String
+if ($doc -notmatch "start-at-login shortcut present") { Write-Host $doc; throw "the Startup shortcut was not made for this folder" }
+Write-Host "  Startup shortcut made and the check sees it"
+$env:GREEKSOUP_NO_TASK = ""      # then the ordinary way
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Dest "desk-autostart.ps1")
+$doc = & (Join-Path $Dest ".venv\Scripts\python.exe") (Join-Path $Dest "doctor.py") "--offline" 2>&1 | Out-String
+if ($doc -notmatch "start-at-login task present") { Write-Host $doc; throw "the scheduled task was not made for this folder" }
+Write-Host "  scheduled task made and the check sees it"
+
 Write-Host "`n=== Uninstall, keeping the folder ==="
 Push-Location $Dest
 try {
@@ -53,5 +76,9 @@ try {
 } catch { }
 if ($stillUp) { throw "the desk is still answering after the uninstall" }
 Write-Host "  the desk is stopped"
+$lnk = Join-Path ([Environment]::GetFolderPath("Startup")) "GreekSoup Desk.lnk"
+$taskLeft = (schtasks /Query /TN "Research Desk" 2>$null) -join ''
+if ((Test-Path $lnk) -or $taskLeft) { throw "a start-at-login entry is still there after the uninstall" }
+Write-Host "  no start-at-login entry left behind"
 
 Write-Host "`nWindows: install, every screen, the check and the uninstall all passed.`n"

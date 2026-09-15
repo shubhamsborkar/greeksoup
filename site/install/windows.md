@@ -16,7 +16,7 @@ irm https://raw.githubusercontent.com/shubhamsborkar/one-person-equity-research-
 If Python is not on your PC yet, the line installs it with winget and a window may ask you to approve. Everything else goes into a folder called `GreekSoup` in your user folder. When the line finishes, the desk is open in your browser at `http://localhost:8765` and it starts when you log on from then on, through a task in Task Scheduler.
 
 !!! warning "An honest note"
-    The Windows line was written from Microsoft's documented commands and has not been run on a Windows machine by the author. If it complains, paste the window's text to an AI agent and ask it to fix it; that is the same method that built the desk.
+    A fresh Windows machine runs this line on every change to the desk: install, every screen, the check, start at login and uninstall, all tested before a version ships. No administrator is needed; on a work or school PC that refuses a scheduled task, the desk uses a shortcut in your own Startup folder instead. If the line still complains on yours, paste the window's text to an AI agent and ask it to fix it; that is the same method that built the desk.
 
 ## Knobs, if you want them
 

@@ -26,4 +26,4 @@ Python stays on your computer. It was installed for you if you did not have it, 
 
 ## By hand, if you prefer
 
-Switch the always-on service off with **Stop Desk**, then delete the `GreekSoup` folder in your home folder. On a Mac the start-at-login entry is `~/Library/LaunchAgents/com.research-desk.plist`; on Linux it is `~/.config/systemd/user/greeksoup-desk.service`; on Windows it is the scheduled task named "Research Desk". Stop Desk removes it on all three.
+Switch the always-on service off with **Stop Desk**, then delete the `GreekSoup` folder in your home folder. On a Mac the start-at-login entry is `~/Library/LaunchAgents/com.research-desk.plist`; on Linux it is `~/.config/systemd/user/greeksoup-desk.service`; on Windows it is the scheduled task named "Research Desk", or the "GreekSoup Desk" shortcut in your Startup folder on a PC that refused the task. Stop Desk removes it on all three.
