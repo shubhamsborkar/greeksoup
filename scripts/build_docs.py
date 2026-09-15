@@ -33,6 +33,7 @@ SRC = os.path.join(ROOT, "site")
 OUT = os.path.join(ROOT, "docs", "docs")
 REPO = "https://github.com/shubhamsborkar/one-person-equity-research-desk"
 SITE_NAME = "GreekSoup"
+SITE_URL = "https://greeksoup.ai"
 TAGLINE = "For analysts who refuse to settle."
 
 
@@ -130,6 +131,9 @@ SHELL = """<!DOCTYPE html>
 <meta property="og:title" content="{title} · {site} docs">
 <meta property="og:description" content="{description}">
 <meta property="og:type" content="article">
+<meta property="og:url" content="{canonical}">
+<meta property="og:image" content="https://greeksoup.ai/img/og.jpg">
+<link rel="canonical" href="{canonical}">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -228,6 +232,7 @@ def build():
         lead = f'<p class="lead">{p["lead"]}</p>' if p["lead"] else ""
         page = SHELL.format(
             title=html.escape(p["title"]), site=SITE_NAME, description=html.escape(p["description"] or strip_tags(p["lead"]) or p["title"]),
+            canonical=SITE_URL + p["url"],
             rel=rel, repo=REPO, sidebar=sidebar_html(sections, pages, p["url"], rel), section=html.escape(p["section"]),
             lead=relativise(lead, rel), body=relativise(p["body"], rel), prev=link(prev_, "prev", "Previous"),
             next=link(next_, "next", "Next"), tagline=TAGLINE, version=ver, built=built,
@@ -246,6 +251,7 @@ def build():
     body, _ = render_md(text)
     home = SHELL.format(
         title=html.escape(meta.get("title", "Documentation")), site=SITE_NAME, description=html.escape(meta.get("description", "")),
+        canonical=SITE_URL + "/docs/",
         rel="", repo=REPO, sidebar=sidebar_html(sections, pages, "/docs/", ""), section="Documentation",
         lead=(f'<p class="lead">{meta["lead"]}</p>' if meta.get("lead") else ""), body=relativise(body, ""),
         prev="<span></span>", next=(f'<a class="next" href="{order[0]["url"][len("/docs/"):]}"><small>Next</small><b>{html.escape(order[0]["title"])}</b></a>' if order else "<span></span>"),
@@ -254,7 +260,54 @@ def build():
         fh.write(home)
     with open(os.path.join(OUT, "search.json"), "w", encoding="utf-8") as fh:
         json.dump(search, fh, ensure_ascii=False)
+    write_discovery(sections, pages, order, built)
     print(f"docs: {len(order)} pages + home, version {ver}, into {os.path.relpath(OUT, ROOT)}/")
+
+
+def write_discovery(sections, pages, order, built):
+    """Three files at the site's root, for the machines that read it: the map every
+    search engine asks for, the file that says everything here is open to read, and
+    the plain-text index an answer engine or an AI agent reads instead of the HTML."""
+    site = os.path.dirname(OUT)          # docs/, which is the site's root on Pages
+    urls = [(SITE_URL + "/", "1.0"), (SITE_URL + "/docs/", "0.9")] + [(SITE_URL + p["url"], "0.8") for p in order]
+    xml = ['<?xml version="1.0" encoding="UTF-8"?>',
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for url, pri in urls:
+        xml.append(f"  <url><loc>{url}</loc><lastmod>{built}</lastmod><priority>{pri}</priority></url>")
+    xml.append("</urlset>")
+    with open(os.path.join(site, "sitemap.xml"), "w", encoding="utf-8") as fh:
+        fh.write("\n".join(xml) + "\n")
+
+    with open(os.path.join(site, "robots.txt"), "w", encoding="utf-8") as fh:
+        fh.write("# GreekSoup: the one-person equity research desk. Everything here is open to read.\n"
+                 "User-agent: *\nAllow: /\n\n"
+                 f"Sitemap: {SITE_URL}/sitemap.xml\n")
+
+    lines = ["# GreekSoup",
+             "",
+             "> The one-person equity research desk: fourteen screens that read your broker, the filings, the "
+             "options tape and the public record, running on your own computer. Open source under the MIT licence, "
+             "your keys stay with you, and it places no orders. Twelve of the fourteen screens run with no key at all.",
+             "",
+             "Installed with one line on Mac, Windows or Linux. Six brokers connect read-only as it comes and any "
+             "other is one file written to a contract in the repository. Nothing here needs an account, and no page "
+             "on this site is behind a login.",
+             ""]
+    for sec in sections:
+        lines.append(f"## {sec['title']}")
+        lines.append("")
+        for pg in sec["pages"]:
+            p = pages[(sec["dir"], pg)]
+            desc = strip_tags(p["description"] or p["lead"]).strip()
+            lines.append(f"- [{p['title']}]({SITE_URL}{p['url']}): {desc}")
+        lines.append("")
+    lines += ["## Elsewhere", "",
+              f"- [The landing page]({SITE_URL}/): what the desk is, the fourteen screens, and the one-line install.",
+              f"- [The repository]({REPO}): the whole desk, MIT licensed.",
+              f"- [What changed, newest first]({REPO}/blob/main/VERSION): the same file the desk reads when it checks for an update.",
+              ""]
+    with open(os.path.join(site, "llms.txt"), "w", encoding="utf-8") as fh:
+        fh.write("\n".join(lines))
 
 
 if __name__ == "__main__":

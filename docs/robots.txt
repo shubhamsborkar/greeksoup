@@ -1,0 +1,5 @@
+# GreekSoup: the one-person equity research desk. Everything here is open to read.
+User-agent: *
+Allow: /
+
+Sitemap: https://greeksoup.ai/sitemap.xml

@@ -1,0 +1,67 @@
+# GreekSoup
+
+> The one-person equity research desk: fourteen screens that read your broker, the filings, the options tape and the public record, running on your own computer. Open source under the MIT licence, your keys stay with you, and it places no orders. Twelve of the fourteen screens run with no key at all.
+
+Installed with one line on Mac, Windows or Linux. Six brokers connect read-only as it comes and any other is one file written to a contract in the repository. Nothing here needs an account, and no page on this site is behind a login.
+
+## Get started
+
+- [Get started](https://greeksoup.ai/docs/get-started/): What GreekSoup is, what you need, and the three ways to get it running on your own computer.
+- [The first ten minutes](https://greeksoup.ai/docs/get-started/first-ten-minutes/): What to open first on a fresh GreekSoup desk with no keys added, and what each screen is already showing you.
+- [The fourteen screens](https://greeksoup.ai/docs/get-started/the-screens/): Every screen on the GreekSoup desk in one line each, grouped the way the sidebar groups them, with what each one reads.
+- [What runs with no key at all](https://greeksoup.ai/docs/get-started/no-key-needed/): Which GreekSoup screens are live with no broker and no data feed, and what each optional key adds.
+- [Questions readers ask](https://greeksoup.ai/docs/get-started/faq/): The questions readers ask about GreekSoup before and after installing it, answered plainly.
+
+## Install
+
+- [Install](https://greeksoup.ai/docs/install/): The ways to install GreekSoup on a Mac, Windows or Linux computer: one line in a terminal, with an AI agent, or from source.
+- [Install on a Mac](https://greeksoup.ai/docs/install/mac/): Install GreekSoup on a Mac with one line in Terminal.
+- [Install on Windows](https://greeksoup.ai/docs/install/windows/): Install GreekSoup on Windows with one line in PowerShell.
+- [Install on Linux](https://greeksoup.ai/docs/install/linux/): Install GreekSoup on Linux with one line, kept running by a systemd user service.
+- [Install with an AI agent](https://greeksoup.ai/docs/install/with-an-agent/): Have an AI coding agent install GreekSoup, connect your broker and fill in your keys for you.
+- [Install from source](https://greeksoup.ai/docs/install/from-source/): Set GreekSoup up by hand from a clone of the repository.
+- [Keep it running](https://greeksoup.ai/docs/install/keep-it-running/): How GreekSoup starts with your computer and comes back by itself if it stops, and the files that switch that on and off.
+- [Getting a newer version](https://greeksoup.ai/docs/install/updates/): How GreekSoup tells you a newer version exists and brings it in with one click, keeping your keys and your lists.
+- [Back up](https://greeksoup.ai/docs/install/back-up/): One zip of everything on the GreekSoup desk that is yours.
+- [Uninstall](https://greeksoup.ai/docs/install/uninstall/): Remove GreekSoup from your computer completely: one file to double-click, or one line, and nothing is left behind.
+- [What it talks to](https://greeksoup.ai/docs/install/what-it-talks-to/): Every place GreekSoup sends a request, what it sends, and what it never sends. No telemetry, no account, no analytics.
+- [If something is wrong](https://greeksoup.ai/docs/install/if-something-is-wrong/): Symptom first. What each thing a GreekSoup screen can do means, and the one check that tells your agent what to fix.
+- [The page is blank](https://greeksoup.ai/docs/install/the-page-is-blank/): What to do when the GreekSoup address does not open, in order.
+
+## Setup
+
+- [Setup](https://greeksoup.ai/docs/setup/): The Settings screen inside GreekSoup: your broker, your data provider, your AI, how you invest, the always-on switch, your files and a backup, all in one place.
+- [Your AI](https://greeksoup.ai/docs/setup/your-ai/): How an AI reads GreekSoup: the page made for any AI app on your computer, and your own key with fourteen presets, models on your own computer among them.
+- [Data providers](https://greeksoup.ai/docs/setup/data-providers/): What a data provider key adds to GreekSoup, the one that ships (Financial Modeling Prep), and how any other provider is one file to a written contract.
+- [Data sources](https://greeksoup.ai/docs/setup/data-sources/): Every source behind GreekSoup's fourteen screens, what each one feeds, and which need a key.
+
+## Brokers
+
+- [Brokers](https://greeksoup.ai/docs/brokers/): How GreekSoup connects to a broker account, read-only, and which six connect as the desk comes.
+- [Alpaca](https://greeksoup.ai/docs/brokers/alpaca/): Connect an Alpaca account to GreekSoup: where the keys come from, the paper switch, and what the desk shows.
+- [ICICI Direct](https://greeksoup.ai/docs/brokers/icici-direct/): Connect an ICICI Direct account to GreekSoup through the Breeze API: the app, the daily login, and the full Home screen it serves.
+- [Interactive Brokers](https://greeksoup.ai/docs/brokers/interactive-brokers/): Connect an Interactive Brokers account to GreekSoup through the Flex Web Service, with no gateway program to run.
+- [Tradier](https://greeksoup.ai/docs/brokers/tradier/): Connect a Tradier account to GreekSoup with one access token.
+- [Trading 212](https://greeksoup.ai/docs/brokers/trading-212/): Connect a Trading 212 Invest or ISA account to GreekSoup with a key generated in the app.
+- [Zerodha](https://greeksoup.ai/docs/brokers/zerodha/): Connect a Zerodha account to GreekSoup through Kite Connect, with a login every trading day.
+- [Another broker](https://greeksoup.ai/docs/brokers/another-broker/): Connect a broker GreekSoup does not ship a file for, with an AI agent and the broker's own documentation.
+
+## Markets
+
+- [Markets](https://greeksoup.ai/docs/markets/): How the home screens of GreekSoup take the shape of the market your broker trades in, and what a market file supplies.
+- [India](https://greeksoup.ai/docs/markets/india/): What the India market file gives the GreekSoup home screens: NSE hours, NIFTY 50, the results calendar, the integrated filings and three macro cards.
+- [United States](https://greeksoup.ai/docs/markets/united-states/): What the United States market file gives the GreekSoup home screens when a US broker is connected.
+- [Your own market](https://greeksoup.ai/docs/markets/your-own-market/): Add a market GreekSoup does not ship, with one short file written by an AI agent to the markets contract.
+
+## Project
+
+- [The project](https://greeksoup.ai/docs/project/): Who is behind GreekSoup, the licence, what is free, and how to take part.
+- [Releases](https://greeksoup.ai/docs/project/releases/): What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
+- [Contributing](https://greeksoup.ai/docs/project/contributing/): How to add a broker, a market or a data provider to GreekSoup, and what every contribution keeps true.
+- [Security](https://greeksoup.ai/docs/project/security/): How GreekSoup keeps your keys on your computer, what it talks to, and how to report a security problem privately.
+
+## Elsewhere
+
+- [The landing page](https://greeksoup.ai/): what the desk is, the fourteen screens, and the one-line install.
+- [The repository](https://github.com/shubhamsborkar/one-person-equity-research-desk): the whole desk, MIT licensed.
+- [What changed, newest first](https://github.com/shubhamsborkar/one-person-equity-research-desk/blob/main/VERSION): the same file the desk reads when it checks for an update.

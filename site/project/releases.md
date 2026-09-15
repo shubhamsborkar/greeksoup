@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.1. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.1
+
+*15 September 2026, release 1.* The site tells a machine what it holds: a sitemap of every page, a robots file that says everything here is open to read, and an llms.txt, the plain-text index an answer engine or an AI agent reads instead of the HTML; every docs page carries its own canonical address and share card; the landing page carries the desk's own description and the ten questions readers ask in the shape a search engine parses; the check that runs on every change now knows the difference between an installed desk and the repository, and holds the Ask box to its reads, its addresses and the line that keeps it from telling anyone what to buy
 
 ## 2026-09-15
 

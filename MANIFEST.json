@@ -1,7 +1,7 @@
 {
- "version": "2026-09-15",
- "generated": "2026-09-15 05:39",
- "commits_scanned": 47,
+ "version": "2026-09-15.1",
+ "generated": "2026-09-15 05:45",
+ "commits_scanned": 48,
  "files": {
   ".env.example": "e265472952dbe4c0c5180b8aa7d6127e9f5b90a33bceef6e72e4196abe71af2a",
   ".github/ISSUE_TEMPLATE/broker.yml": "7a078be513076d3e7262364df80aac5adef7c815889efeb33c84ade7c4f2a409",
@@ -23,7 +23,7 @@
   "TECHNICAL.md": "a56d2e80dfb264e8793ad3f43b8dba06b53940c34dd0162ed29b1270576e0b05",
   "Uninstall Desk.bat": "697179c8eb048a9ff630c5665df9bd7304236e1b56bacfa737b2dee7e72ca5b9",
   "Uninstall Desk.command": "0fe82587340a9add4ceca9b5ff0fe49d6f20d008a6b7d0bb559c8afb34c74188",
-  "VERSION": "0358f0b4be32b5049ef3782bf6c31093326db88a029aa77c7283cc1a8057103f",
+  "VERSION": "3ce3ba15c880ed444beeff4a90c7164009ac02be256502491671263ca83bca3b",
   "activist.py": "78089c14f53da696553d3c3cd74f88553496d2504b7ebc94a36e6ec4f4db1062",
   "ai.py": "b4cf8f95d4013c5dcc559a98581661b318a1afdfe1e53cc6ff6739399f4448de",
   "breeze_session.py": "9062187bd4b808c7b224845705cf75facb01261b9e56ea0844ff09e4ccec074a",
@@ -76,9 +76,12 @@
   "docs/img/full-watchus.webp": "b372fb7eeb149967c82b764ab9f23387276360ec40664adacc3de801f6050954",
   "docs/img/og.jpg": "dc1f0f8b889483bccf4a4177e10963cfc381a6f03d060ff7ba3ba462c3884bb4",
   "docs/img/strip-funds.webp": "5f604dd45a0e068c7209fb2c4c6c17b2e2f963d733c5ba79786cd5c2881401d3",
-  "docs/index.html": "816b2702bf29854c00c6f13ee31d10455d7d4b4475e21f1b8ff479481bfcb6ae",
+  "docs/index.html": "51dbdca6b2559c86a3985fecdcce77822f79408416055d09c70c1278c23f9ceb",
   "docs/install.ps1": "4cebcbbfda3a2127d10fbea9e30a2029a440bede5a7edcbdefc0c8a622c29a07",
   "docs/install.sh": "4af578376f8bb46b117dc9681ead7ff5f5d346c99cd42f75ca2d18e8c06bfb28",
+  "docs/llms.txt": "88628f1df3baea2338bba5a383313eafc3e156322c68376456a5b653bdfed811",
+  "docs/robots.txt": "64855f734ab60dffd0e2dfa532976f614ac4ad469f534eca1a0ba17fa6aabe75",
+  "docs/sitemap.xml": "f5a4260476761edff9cb2e40581ad95339d2d08088f3649ca9f8d7889e71a1be",
   "docs/uninstall.sh": "6d69540d3a86a89e9734ddbc5af9da84a89f00ffef526d2c4a67b109da4003ca",
   "doctor.py": "090a3e1d0eb505f954f75b610383c4c3a4f1a5cf51c9cd169a45d3e0ce96a559",
   "fno.py": "60c74e4cc2533f26886339626ef091a2d9d945f35255e90fe5149a60d4bc26a7",
@@ -105,7 +108,7 @@
   "risk.py": "524f9d231242d36622c246a34730ee4bb731448d791282863dc6f2c504c2d101",
   "run.py": "ac51761248685cef55fcfdd2c6a5021812af7f45c1ac1b203e6461eeff8fb151",
   "scripts/audit_fmp.py": "41c869ba202ba0b33bb38f94fb8a22efe111e0c24edd2948f2962138fc8329c1",
-  "scripts/build_docs.py": "b16ff8b6c62647d7bfe70d221de4a4f17bf1dc84baf2c6090b28f9ca6f771081",
+  "scripts/build_docs.py": "c27f020b0e2145e45b43962cccaee5635d89301fe98cc1547d5aec40e50fca5e",
   "scripts/fmp_audit_results.json": "2c9f64b6d8c0526b7929b4c82ad51c99ea89b4bd5755acb46372dd78968faa47",
   "scripts/make_manifest.py": "82b45180d1903de265297bf8541d36d61632f4a1a41e07eaef0f51617f419025",
   "scripts/make_releases.py": "6411f28880e70ac84a21382e0d41f2645fdf891ad842c90399debb420cc6300a",
@@ -243,6 +246,7 @@
   "VERSION": [
    "0358f0b4be32b5049ef3782bf6c31093326db88a029aa77c7283cc1a8057103f",
    "0635621e818613348825ef5573c17b78fba46a7d1c2868a2b7f78377314d918b",
+   "3ce3ba15c880ed444beeff4a90c7164009ac02be256502491671263ca83bca3b",
    "47c43840df50e95be40480ebb245a48dd15bfe0ddaa6c531b0eed658b7f7530e",
    "5528746d4a4fa085c97a7ea45b851dd4747f766b89cc060afd90dc14a2aed5e8",
    "742cbc4fc83dbf9b84f97af3287bd0fdac141a86aa622026c7e4a560865b1ab0",
@@ -732,6 +736,7 @@
    "1f1ab8e05f85c2223b9e51fcd3f18e4c211fcd89ee6b7e6d09c6ec99f1577449",
    "22db8479f16f0cff90fd9838f51c1a5d4312cc8b24b275df7b26da47df57dfda",
    "2745e343f7ee9a9ad1b9b68f798efc01b4ab28c7c5003bab738aff64b0a1dedf",
+   "51dbdca6b2559c86a3985fecdcce77822f79408416055d09c70c1278c23f9ceb",
    "5d756cad71915312e6a7b216f64ee5f678088ec8d9c58265aa1ba58355233dfb",
    "60ce6ea9e5e5711c7953471f9ac4c791ebbeb81c4270d4c05ae618d7256ce8d7",
    "816b2702bf29854c00c6f13ee31d10455d7d4b4475e21f1b8ff479481bfcb6ae",
@@ -748,6 +753,15 @@
   "docs/install.sh": [
    "4af578376f8bb46b117dc9681ead7ff5f5d346c99cd42f75ca2d18e8c06bfb28",
    "9cc3a921814b55e07536154992f84346e81466b9cdc61114e05da5b0da079be3"
+  ],
+  "docs/llms.txt": [
+   "88628f1df3baea2338bba5a383313eafc3e156322c68376456a5b653bdfed811"
+  ],
+  "docs/robots.txt": [
+   "64855f734ab60dffd0e2dfa532976f614ac4ad469f534eca1a0ba17fa6aabe75"
+  ],
+  "docs/sitemap.xml": [
+   "f5a4260476761edff9cb2e40581ad95339d2d08088f3649ca9f8d7889e71a1be"
   ],
   "docs/uninstall.sh": [
    "6d69540d3a86a89e9734ddbc5af9da84a89f00ffef526d2c4a67b109da4003ca"
@@ -851,7 +865,8 @@
   ],
   "scripts/build_docs.py": [
    "858879b366855cfa09e93421da2ff545a008b30de9fa660bbe553648e7cedeeb",
-   "b16ff8b6c62647d7bfe70d221de4a4f17bf1dc84baf2c6090b28f9ca6f771081"
+   "b16ff8b6c62647d7bfe70d221de4a4f17bf1dc84baf2c6090b28f9ca6f771081",
+   "c27f020b0e2145e45b43962cccaee5635d89301fe98cc1547d5aec40e50fca5e"
   ],
   "scripts/fmp_audit_results.json": [
    "2c9f64b6d8c0526b7929b4c82ad51c99ea89b4bd5755acb46372dd78968faa47"
