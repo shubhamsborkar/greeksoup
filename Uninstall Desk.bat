@@ -6,10 +6,10 @@ cd /d "%~dp0"
 echo.
 echo   GreekSoup: uninstall
 echo   --------------------
+rem Remove the start-at-login task only when it starts THIS folder's desk. Somebody
+rem with a second copy of the desk keeps that copy's task exactly as it is.
 set "TASK=Research Desk"
-schtasks /End /TN "%TASK%" >nul 2>&1
-schtasks /Delete /TN "%TASK%" /F >nul 2>&1
-echo   Start-at-login task removed.
+powershell -NoProfile -Command "$t = (schtasks /Query /TN '%TASK%' /XML 2>$null) -join ''; if (-not $t) { Write-Host '  No start-at-login task to remove.' } elseif ($t -like ('*' + '%~dp0'.TrimEnd('\') + '*')) { schtasks /End /TN '%TASK%' | Out-Null; schtasks /Delete /TN '%TASK%' /F | Out-Null; Write-Host '  Start-at-login task removed.' } else { Write-Host '  Left the start-at-login task alone: it starts another copy of the desk, not this one.' }"
 rem stop only the desk that runs from THIS folder, never other Python programs
 powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*server.py*' -and $_.CommandLine -like '*%~dp0*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }"
 echo   The desk is stopped.

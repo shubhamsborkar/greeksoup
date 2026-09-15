@@ -135,17 +135,43 @@ def main():
             s.close()
 
     # the always-on entry
+    # An entry exists for THIS folder only when it names this folder: a reader with
+    # two copies of the desk must not be told the other copy's entry is theirs.
+    def mine(text):
+        return bool(text) and os.path.abspath(HERE) in text
+
+    def read(path):
+        try:
+            return open(path, encoding="utf-8", errors="replace").read()
+        except OSError:
+            return ""
+
     system = platform.system() if installed else ""
     if system == "Darwin":
         plist = os.path.expanduser("~/Library/LaunchAgents/com.research-desk.plist")
-        say(OK if os.path.isfile(plist) else WARN, "start-at-login entry " + ("present" if os.path.isfile(plist) else "absent; double-click Keep Desk Running to add it"))
+        if mine(read(plist)):
+            say(OK, "start-at-login entry present, and it points at this folder")
+        elif os.path.isfile(plist):
+            say(WARN, "a start-at-login entry exists but it points at another copy of the desk; double-click Keep Desk Running in this folder to point it here")
+        else:
+            say(WARN, "start-at-login entry absent; double-click Keep Desk Running to add it")
     elif system == "Linux":
         unit = os.path.expanduser("~/.config/systemd/user/greeksoup-desk.service")
-        say(OK if os.path.isfile(unit) else WARN, "start-at-login entry " + ("present" if os.path.isfile(unit) else "absent; the install line adds it, or run Keep Desk Running"))
+        if mine(read(unit)):
+            say(OK, "start-at-login entry present, and it points at this folder")
+        elif os.path.isfile(unit):
+            say(WARN, "a start-at-login entry exists but it points at another copy of the desk")
+        else:
+            say(WARN, "start-at-login entry absent; the install line adds it, or run Keep Desk Running")
     elif system == "Windows":
         try:
-            p = subprocess.run(["schtasks", "/Query", "/TN", "Research Desk"], capture_output=True, text=True, timeout=10)
-            say(OK if p.returncode == 0 else WARN, "start-at-login task " + ("present" if p.returncode == 0 else "absent; double-click Keep Desk Running.bat to add it"))
+            p = subprocess.run(["schtasks", "/Query", "/TN", "Research Desk", "/XML"], capture_output=True, text=True, timeout=10)
+            if p.returncode != 0:
+                say(WARN, "start-at-login task absent; double-click Keep Desk Running.bat to add it")
+            elif mine(p.stdout):
+                say(OK, "start-at-login task present, and it points at this folder")
+            else:
+                say(WARN, "a start-at-login task exists but it points at another copy of the desk")
         except Exception:  # noqa: BLE001
             say(WARN, "could not query the scheduled task")
 

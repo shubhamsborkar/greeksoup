@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.1. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.2. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.2
+
+*15 September 2026, release 2.* Uninstall is exact about which desk it removes: the folder you name always wins, a desk is closed only when the program answering on its own door number is working inside that folder, and the start-at-login entry is left alone unless it names that folder, so a reader with a second copy of the desk keeps it untouched; the check tells the same difference, and says so when the entry it finds belongs to another copy
 
 ## 2026-09-15.1
 
