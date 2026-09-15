@@ -282,3 +282,37 @@ html[data-rail="min"] #alertbar{left:var(--railc)}
 #askdock .svr .svno{background:none;color:var(--ink2);border:1px solid var(--line2);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer}
 #askdock .svm{font-size:11px;color:var(--muted);line-height:1.35}
 #askdock .svm a{color:var(--accent)}
+
+/* the reader's own lists: the button on a screen that runs on a list, and the drawer */
+.listbtn{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:4px 11px;
+  font:inherit;font-size:12px;cursor:pointer;margin-right:12px}
+.listbtn:hover{border-color:var(--accent);color:var(--accent)}
+#listdrawer{position:fixed;top:0;right:0;bottom:0;width:min(460px,94vw);z-index:70;background:var(--panel);color:var(--ink);
+  border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(0,0,0,.25);transform:translateX(102%);transition:transform .22s ease;
+  display:flex;flex-direction:column}
+#listdrawer.on{transform:none}
+#listdrawer .ld-h{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);font-size:14px}
+#listdrawer .ld-x{margin-left:auto;background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer;line-height:1}
+#listdrawer .ld-x:hover{color:var(--accent)}
+#listdrawer .ld-body{padding:14px 18px;overflow:auto;flex:1}
+#listdrawer .ld-hint{font-size:11.5px;color:var(--muted);line-height:1.55;margin-bottom:12px}
+#listdrawer .ld-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+#listdrawer button{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:5px 12px;font:inherit;font-size:12px;cursor:pointer}
+#listdrawer button:hover{border-color:var(--accent);color:var(--accent)}
+#listdrawer button.ghost{background:transparent}
+#listdrawer .ld-save{background:var(--accent);color:#fff;border-color:var(--accent)}
+#listdrawer .ld-row{display:flex;align-items:center;gap:8px;padding:7px 4px;border-top:1px solid var(--line);font-size:12.5px}
+#listdrawer .ld-row:first-child{border-top:0}
+#listdrawer .ld-name{font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#listdrawer .ld-key{font-size:10.5px;color:var(--muted)}
+#listdrawer .ld-st{font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line2);border-radius:4px;padding:1px 5px}
+#listdrawer .ld-edit,#listdrawer .ld-rm{background:none;border:0;color:var(--muted);padding:2px 6px;font-size:13px}
+#listdrawer .ld-rm:hover{color:var(--neg)}
+#listdrawer .ld-form{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+#listdrawer .ld-form h4{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2);margin-bottom:8px}
+#listdrawer .ld-form label{display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center;margin-bottom:7px;font-size:11.5px;color:var(--ink2)}
+#listdrawer .ld-form label i{color:var(--muted);font-style:normal;font-size:10px}
+#listdrawer .ld-form input,#listdrawer .ld-form select,#listdrawer .ld-form textarea{background:var(--panel);color:var(--ink);border:1px solid var(--line2);
+  border-radius:7px;padding:5px 8px;font:inherit;font-size:12.5px;width:100%}
+#listdrawer .ld-form textarea{min-height:54px;resize:vertical}
+#listdrawer .ld-msg{font-size:11.5px;color:var(--ink2)} #listdrawer .ld-msg.err{color:var(--neg)}

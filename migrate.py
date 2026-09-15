@@ -20,6 +20,7 @@ from datetime import datetime
 
 import notes as desk_notes
 import chains as desk_chains
+import lists as desk_lists
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(HERE, "data")
@@ -44,6 +45,8 @@ def _vault(pattern):
 KINDS = [
     {"kind": "chain", "label": "your chains", "paths": _vault("chains/*.json"),
      "format": lambda: desk_chains.FORMAT, "migrations": lambda: desk_chains.MIGRATIONS, "owner": "chains.py"},
+    {"kind": "lists", "label": "your lists", "paths": _vault("lists/*.json"),
+     "format": lambda: desk_lists.FORMAT, "migrations": lambda: desk_lists.MIGRATIONS, "owner": "lists.py"},
     {"kind": "book", "label": "Desk · Book", "paths": _data("book.json"),
      "format": lambda: 1, "migrations": lambda: {}, "owner": "server.py"},
     {"kind": "us_book", "label": "the hand-kept US book", "paths": _data("us_book.json"),
@@ -57,7 +60,8 @@ KINDS = [
 # shipped starters: files beside the code the desk reads as examples; the updater refreshes
 # them only while the reader has not edited them, so a change here is a change readers see
 STARTERS = ["data/supply_chain.json", "data/commodities.json", "data/exposure_us.json",
-            "data/exposure_example.json", "data/funds.json", "data/members.json", "data/alerts.json"]
+            "data/exposure_example.json", "data/funds.json", "data/members.json", "data/alerts.json",
+            "data/fno_watchlist.json"]
 
 
 def owners():

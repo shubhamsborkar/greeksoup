@@ -155,6 +155,10 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 8000);
   }
   window.deskToast = railToast;   // a page's own undo (a deleted chain, a removed name) uses the same strip
+  (function () {   // the reader's own lists: the drawer script, on every page
+    if (document.querySelector('script[src="/assets/lists.js"]')) return;
+    const sc = document.createElement("script"); sc.src = "/assets/lists.js"; sc.defer = true; document.head.appendChild(sc);
+  })();
   /* ---- the journal's question: a moment the desk saw, held until the reader says.
      This time writes it; Always writes it and every one after without asking; Not now
      lets it go; Never switches the journal off. A decision (a status, a book change)

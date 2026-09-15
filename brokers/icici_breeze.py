@@ -288,10 +288,14 @@ def sparks(client, futures_rows):
 # ---- the index options tape ----------------------------------------------------
 def _tape_names():
     try:
-        with open(TAPE_PATH) as fh:
-            rows = json.load(fh).get("names", [])
-    except (OSError, ValueError):
-        return []
+        import lists as desk_lists            # the reader's own list, starters from the file below
+        rows = desk_lists.effective("fno")
+    except Exception:  # noqa: BLE001
+        try:
+            with open(TAPE_PATH) as fh:
+                rows = json.load(fh).get("names", [])
+        except (OSError, ValueError):
+            return []
     return [(r.get("stock_code"), r.get("exchange_code") or "NFO") for r in rows if r.get("stock_code")]
 
 

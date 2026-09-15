@@ -787,3 +787,56 @@ def test_updates_never_lose_saved_work(tmp_path):
     assert desk_migrate.run("2026-09-15.24", kinds)["migrated"] == []                # a second start touches nothing
     broken = [{**kinds[0], "format": lambda: 3}]
     assert desk_migrate.check_registry(broken) == ["thing: format 3 but no migration from 2 to 3"]
+
+
+def test_lists_are_the_readers_own(tmp_path):
+    """One pattern for every list a screen runs on: starters show until put away, an edited
+    starter becomes the reader's copy in place, an added row goes to the end, remove keeps a
+    copy for Undo, the starters come back, and the builders read the effective list."""
+    import notes as desk_notes
+    import lists as desk_lists
+    keep = desk_notes.RESEARCH_DIR
+    desk_notes._point_at(str(tmp_path / "research"))
+    try:
+        v = desk_lists.view("funds")
+        n = len(v["rows"])
+        assert n and all(r["starter"] for r in v["rows"]) and v["hidden_starters"] == 0 and v["key"] == "cik"
+        first = v["rows"][0]
+        # a starter put away, then back
+        assert desk_lists.remove("funds", first["cik"])["kind"] == "starter"
+        assert len(desk_lists.effective("funds")) == n - 1 and desk_lists.view("funds")["hidden_starters"] == 1
+        desk_lists.show_starters("funds")
+        assert len(desk_lists.effective("funds")) == n
+        # an edited starter: the reader's copy, in place
+        desk_lists.save("funds", {**first, "note": "mine now"}, was=first["cik"])
+        eff = desk_lists.effective("funds")
+        assert eff[0]["cik"] == first["cik"] and eff[0]["note"] == "mine now" and len(eff) == n
+        assert desk_lists.view("funds")["rows"][0]["own"] and not desk_lists.view("funds")["rows"][0]["starter"]
+        # an added row goes to the end; a required field is checked in words
+        desk_lists.save("funds", {"name": "My fund", "cik": "0009999999"})
+        assert desk_lists.effective("funds")[-1]["name"] == "My fund"
+        try:
+            desk_lists.save("funds", {"name": "No cik"}); assert False
+        except ValueError as exc:
+            assert "CIK is needed" in str(exc)
+        # remove the reader's own row: kept aside, undo brings it back
+        out = desk_lists.remove("funds", "0009999999")
+        assert out["kind"] == "own" and out["undo"] and not any(r["cik"] == "0009999999" for r in desk_lists.effective("funds"))
+        assert desk_lists.undo_remove(out["undo"])["ok"] and desk_lists.effective("funds")[-1]["cik"] == "0009999999"
+        assert not desk_lists.undo_remove("../x")["ok"]
+        # the file is in the vault with a format
+        d = json.load(open(tmp_path / "research" / "lists" / "funds.json", encoding="utf-8"))
+        assert d["format"] == desk_lists.FORMAT and len(d["rows"]) == 2
+        # commodities: the form's yahoo/fred fields go back under sources, other sources kept
+        c = desk_lists.view("commodities")["rows"][0]
+        assert c["yahoo"] and "sources" in c
+        desk_lists.save("commodities", {**c, "yahoo": "XX=F", "cost": "Airlines\nShipping"}, was=c["id"])
+        e = desk_lists.effective("commodities")[0]
+        assert e["sources"]["yahoo"] == "XX=F" and e["cost"] == ["Airlines", "Shipping"] and "yahoo" not in e
+        # members: the chamber must be one the feed knows
+        try:
+            desk_lists.save("members", {"label": "Someone", "name": "someone", "chamber": "lords"}); assert False
+        except ValueError as exc:
+            assert "house, senate" in str(exc)
+    finally:
+        desk_notes._point_at(keep)

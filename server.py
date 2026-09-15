@@ -46,6 +46,7 @@ import notes as desk_notes   # the research vault: notes and files in data/resea
 import plugins as desk_plugins   # folders in data/research/plugins that add a screen, blocks or a door
 import chains as desk_chains     # the reader's own value chains in data/research/chains, starters beside the code
 import migrate as desk_migrate   # reader-owned files carry a format number; an update brings them up, a copy kept aside
+import lists as desk_lists       # the reader's own lists (funds, members, macro series, commodities, the tape) in the vault, starters beside the code
 
 PORT = int(os.getenv("DESK_PORT", "8765"))
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -1598,6 +1599,7 @@ MACRO_SERIES = [
     ("SP500", "S&P 500", "", "Equities"),
     ("NASDAQCOM", "Nasdaq Composite", "", "Equities"),
 ]
+desk_lists.MACRO_STARTERS = MACRO_SERIES     # the shipped set is the starter of the reader's own list
 
 
 # ---- economic calendar (FMP; the Trading-Economics-style dated prints) -------
@@ -1635,11 +1637,12 @@ def build_macro():
             extra = list(m.macro_series())
         except Exception:  # noqa: BLE001
             extra = []
-    jobs = [(sid, lambda s=sid: fred.csv(s)) for sid, *_ in MACRO_SERIES]
+    series = [(r["id"], r["label"], r.get("unit", ""), r.get("group", "Other")) for r in desk_lists.effective("macro")]
+    jobs = [(sid, lambda s=sid: fred.csv(s)) for sid, *_ in series]
     jobs += [(row[0], row[4]) for row in extra]
     with ThreadPoolExecutor(max_workers=6) as ex:
         fetched = dict(zip((sid for sid, _ in jobs), ex.map(lambda j: j[1](), jobs)))
-    all_series = list(MACRO_SERIES) + [tuple(row[:4]) for row in extra]
+    all_series = list(series) + [tuple(row[:4]) for row in extra]
     for sid, label, unit, group in all_series:
         data = fetched.get(sid) or []
         if not data:
@@ -1887,8 +1890,7 @@ def _fund_13f(cik, name, note):
 
 
 def build_funds():
-    with open(os.path.join(DATA_DIR, "funds.json")) as fh:
-        funds = json.load(fh).get("funds", [])
+    funds = desk_lists.effective("funds")        # the reader's list; the shipped funds are starters
     out = []
     with ThreadPoolExecutor(max_workers=4) as ex:   # EDGAR allows 10 req/s; be modest
         futs = [ex.submit(_fund_13f, f["cik"], f["name"], f.get("note", "")) for f in funds]
@@ -2216,6 +2218,40 @@ def _chain_changed():
         _cache["chain"] = (0.0, None)
 
 
+def _lists_post(self, body):
+    """The reader's own lists: save a row, remove one (kept aside; a starter is put away), undo,
+    the starters back. The screen that runs on the list rebuilds behind the page."""
+    parts = self.path.split("/")
+    kind, action = (parts[3] if len(parts) > 3 else ""), (parts[4] if len(parts) > 4 else "")
+    if action == "undo":
+        out = desk_lists.undo_remove(str(body.get("undo", "")))
+        kind = out.get("kind", kind)
+    elif kind not in desk_lists.KINDS:
+        return self.send_error(404)
+    elif action == "save":
+        try:
+            row = desk_lists.save(kind, body.get("row") or {}, str(body.get("was", "")))
+        except ValueError as exc:
+            return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
+        out = {"ok": True, "row": row}
+    elif action == "remove":
+        out = desk_lists.remove(kind, str(body.get("key", "")))
+    elif action == "starters":
+        out = desk_lists.show_starters(kind)
+    else:
+        return self.send_error(404)
+    if out.get("ok"):
+        for c in desk_lists.caches_for(kind):
+            if c in _cache:
+                _cache[c] = (0.0, _cache[c][1])       # stale at once: the next read rebuilds behind the page
+                builder = {"funds": build_funds, "act13d": build_activist, "capitol": build_capitol,
+                           "macro": build_macro, "commods": build_commods, "tape": build_tape}.get(c)
+                if builder:
+                    _spawn(c, builder)
+        out["list"] = desk_lists.view(kind)
+    return self._send(json.dumps(out).encode(), "application/json")
+
+
 def _chain_post(self, body):
     """The Chain screen's edits: save (the reader's own file in the vault), delete (kept aside,
     undo brings it back; a starter is put away), the starters back, and the AI draft."""
@@ -2269,7 +2305,7 @@ def build_commods():
     """commods.build() needs no broker; this wrapper prices the exposure names
     (US names through the US feed, home names through the home quote path) and
     lets the broker's file attach local price lines where it has them."""
-    d = commods.build()
+    d = commods.build(desk_lists.effective("commodities"))
     m = _market()
     home_sym = m.META["symbol"] if m else ""
     seen = {}
@@ -2691,12 +2727,7 @@ def build_activist():
                 our[p["symbol"]] = "held"
     except OSError:
         pass
-    try:
-        with open(os.path.join(DATA_DIR, "funds.json")) as fh:
-            funds = json.load(fh).get("funds", [])
-    except (OSError, ValueError):
-        funds = []
-    return activist.build(our, funds)
+    return activist.build(our, desk_lists.effective("funds"))
 
 
 # ---- US options flow (CBOE delayed chains; the options-tape method) ----------
@@ -2820,8 +2851,7 @@ def build_capitol():
     ours |= {n["code"] for n in load_watchlist_us()}
 
     try:
-        with open(os.path.join(DATA_DIR, "members.json")) as fh:
-            tracked_members = json.load(fh).get("members", [])
+        tracked_members = desk_lists.effective("members")
     except (OSError, ValueError):
         tracked_members = []
     if not os.getenv("FMP_API_KEY", "").strip():
@@ -3457,6 +3487,13 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/short":
                 self._send(json.dumps(_cached("short", SHORT_TTL, build_short)).encode(), "application/json")
+            elif path == "/api/lists":
+                self._send(json.dumps({k: {"label": v["label"], "screen": v["screen"]} for k, v in desk_lists.KINDS.items()}).encode(), "application/json")
+            elif path.startswith("/api/lists/"):
+                kind = path.split("/")[3] if len(path.split("/")) > 3 else ""
+                if kind not in desk_lists.KINDS:
+                    return self.send_error(404)
+                self._send(json.dumps(desk_lists.view(kind)).encode(), "application/json")
             elif path == "/api/chain":
                 d = _cached("chain", CHAIN_TTL, build_chain)
                 if "hidden_starters" not in (d or {}):     # a copy from before chains were the reader's own
@@ -3781,6 +3818,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._book_post(body)
             if self.path.startswith("/api/chain/"):
                 return _chain_post(self, body)
+            if self.path.startswith("/api/lists/"):
+                return _lists_post(self, body)
             if self.path == "/api/notes/save":
                 try:
                     note = desk_notes.save(body)

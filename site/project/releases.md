@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.24. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.25. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.25
+
+*15 September 2026, release 25.* Every list a screen runs on is yours: Funds, Capitol, Macro and Commodities carry a Your list button in the top bar (the options tape on Desk · Home has it on its panel) that opens a drawer to add a row, edit one, remove one with Undo, and bring the shipped starters back; the shipped funds, members, macro series, commodities and tape names are starters, an edited starter becomes your copy in place, and your rows live in your research vault beside your notes, so they sync, back up and restore with them
 
 ## 2026-09-15.24
 

@@ -476,12 +476,16 @@ def pressure(cards, by_name, n=10):
             "helped": [r for r in reversed(rows) if r["net"] > 0][:n]}
 
 
-def build():
+def build(items=None):
+    """The board. `items` is the reader's own list when the desk passes one; the shipped
+    commodities.json otherwise (the scripts and tests that call this alone)."""
     cfg = load_config()
-    items = cfg.get("commodities", [])
+    items = items if items is not None else cfg.get("commodities", [])
     with ThreadPoolExecutor(max_workers=5) as ex:
         cards = list(ex.map(_card, items))
     order = {g: i for i, g in enumerate(cfg.get("groups", []))}
+    for c in cards:                                  # a group the reader named goes after the shipped ones
+        order.setdefault(c["group"], len(order))
     cards.sort(key=lambda c: (order.get(c["group"], 99),))
     names = load_exposure()
     for c in cards:
