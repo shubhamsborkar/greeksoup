@@ -167,6 +167,18 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
     </div>
   </div>
 
+  <!-- Plugins -->
+  <div class="panel">
+    <div class="panel-h"><h2>Plugins</h2><span class="st" id="p_status"></span></div>
+    <div class="body">
+      <div class="row"><label>In this desk</label><div id="p_list" style="font-size:12.5px;line-height:1.5"></div></div>
+      <div class="row"><span></span><div class="hint">A plugin is a folder in data/research/plugins that adds a screen to the sidebar, blocks a note can carry, or a door (a way for the Ask box to talk to something on this computer, such as the coding agent you already have). It runs on your computer and reads what you let it; what each one talks to is written beside it. One click removes it. Nothing is brought in on its own.</div></div>
+      <div class="row"><label>From the list</label><div id="p_avail" style="font-size:12.5px;line-height:1.5">reading the list…</div></div>
+      <div class="row"><label>From this computer</label><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="p_folder" placeholder="a folder that holds a plugin.json" style="min-width:280px"><button class="ghost" id="p_addf">Bring the folder in</button><button class="ghost" id="p_addz">Or pick a zip</button><input type="file" id="p_zip" accept=".zip" style="display:none"></div></div>
+      <div class="msg" id="p_msg"></div>
+    </div>
+  </div>
+
   <!-- Journal -->
   <div class="panel">
     <div class="panel-h"><h2>Journal</h2><span class="st" id="j_status"></span></div>
@@ -395,6 +407,22 @@ $("p_save").onclick=async()=>{
 
 /* ---------- desk ---------- */
 $("s_auto").onchange=async()=>{ const on=$("s_auto").checked; $("s_auto").disabled=true; say("s_msg", on?"Setting the desk to start with the computer…":"Switching it off…"); const r=await post("/api/settings/autostart",{on}); $("s_auto").disabled=false; if(r.ok){ say("s_msg",r.text||"Done.","ok"); if(r.status){ $("s_auto_txt").textContent=r.status.text; $("s_auto").checked=r.status.state==="on"; } } else { say("s_msg",r.error||"could not change it","err"); $("s_auto").checked=!on; } };
+/* plugins */
+async function loadPlugins(){
+  let d; try{ d=await (await fetch("/api/plugins")).json(); }catch(e){ return; }
+  const inst=d.installed||[];
+  st("p_status", inst.length?`${inst.length} in`:"none yet","");
+  $("p_list").innerHTML=inst.length?inst.map(p=>`<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)"><b>${esc(p.label||p.name)}</b>${p.version?`<span class="mono" style="color:var(--muted);font-size:11px">v${esc(p.version)}</span>`:""}${p.error?`<span style="color:var(--neg)">${esc(p.error)}</span>`:`<span style="color:var(--ink2)">${esc(p.what||"")}</span><span style="color:var(--muted);font-size:11px">adds ${esc((p.adds||[]).join(", ")||"nothing")}${p.door?` · ${p.door.ready?"via "+esc(p.door.ready.label):"no command found: "+esc((p.door.commands||[]).map(c=>c.label).join(", "))}`:""}</span>${(p.talks_to||[]).length?`<span style="color:var(--muted);font-size:11px">talks to: ${esc(p.talks_to.join("; "))}</span>`:""}`}<button class="chip" data-rm="${esc(p.name)}" style="margin-left:auto;color:var(--neg)">remove</button></div>`).join(""):`<span style="color:var(--muted)">No plugin yet. The list below has the first ones.</span>`;
+  $("p_list").querySelectorAll("[data-rm]").forEach(b=>b.onclick=async()=>{ if(!confirm(`Remove the plugin "${b.dataset.rm}"? Its folder is deleted from data/research/plugins.`)) return; const r=await post("/api/plugins/remove",{name:b.dataset.rm}); say("p_msg", r.ok?"Removed. The sidebar updates on the next page.":"could not remove", r.ok?"ok":"err"); loadPlugins(); if(window.deskRefreshNav) deskRefreshNav(); });
+  let l; try{ l=await (await fetch("/api/plugins/list")).json(); }catch(e){ l={ok:false,error:"the list could not be read"}; }
+  const have=new Set(inst.map(p=>p.name));
+  $("p_avail").innerHTML=l.ok?((l.plugins||[]).length?l.plugins.map(p=>`<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)"><b>${esc(p.label||p.name)}</b><span style="color:var(--ink2)">${esc(p.what||"")}</span><span style="color:var(--muted);font-size:11px">${p.author?"by "+esc(p.author)+" · ":""}adds ${esc((p.adds||[]).join(", "))}${(p.talks_to||[]).length?" · talks to: "+esc(p.talks_to.join("; ")):""}</span>${have.has(p.name)?`<span class="chip" style="margin-left:auto;color:var(--muted)">in</span>`:`<button class="chip" data-in="${esc(p.name)}" style="margin-left:auto">bring it in</button>`}</div>`).join("")+`<div style="font-size:11px;color:var(--muted);margin-top:6px">the list at ${esc(l.url)}, read ${esc(l.checked||"")}</div>`:`<span style="color:var(--muted)">The list is empty.</span>`):`<span style="color:var(--muted)">${esc(l.error||"the list could not be read")}</span>`;
+  $("p_avail").querySelectorAll("[data-in]").forEach(b=>b.onclick=async()=>{ b.disabled=true; say("p_msg","Bringing it in…"); const r=await post("/api/plugins/install",{from_list:b.dataset.in}); say("p_msg", r.ok?`${r.plugin.label} is in.`:(r.error||"could not bring it in"), r.ok?"ok":"err"); loadPlugins(); if(window.deskRefreshNav) deskRefreshNav(); });
+}
+$("p_addf").onclick=async()=>{ const f=$("p_folder").value.trim(); if(!f) return say("p_msg","Type the folder first.","err"); const r=await post("/api/plugins/install",{folder:f}); say("p_msg", r.ok?`${r.plugin.label} is in.`:(r.error||"could not bring it in"), r.ok?"ok":"err"); loadPlugins(); if(window.deskRefreshNav) deskRefreshNav(); };
+$("p_addz").onclick=()=>$("p_zip").click();
+$("p_zip").addEventListener("change",async()=>{ const f=$("p_zip").files[0]; if(!f) return; say("p_msg","Reading the zip…"); const r=await (await fetch("/api/plugins/install_zip",{method:"POST",headers:{"Content-Type":"application/zip"},body:f})).json(); say("p_msg", r.ok?`${r.plugin.label} is in.`:(r.error||"could not bring it in"), r.ok?"ok":"err"); $("p_zip").value=""; loadPlugins(); if(window.deskRefreshNav) deskRefreshNav(); });
+loadPlugins();
 $("s_upd").onchange=async()=>{ const r=await post("/api/settings/save",{DESK_AUTO_UPDATE:$("s_upd").checked?"on":"off"}); if(r.ok){ render(r.state); say("s_msg","Saved.","ok"); } };
 $("e_save").onclick=async()=>{ const v=$("e_mail").value.trim(); if(!v) return say("s_msg","Type the address first.","err"); const r=await post("/api/settings/save",{EDGAR_CONTACT:v}); if(r.ok){ $("e_mail").value=""; say("s_msg","Saved.","ok"); render(r.state);} };
 

@@ -1,0 +1,10 @@
+{
+  "name": "hello",
+  "label": "Hello, a plugin to copy",
+  "version": "1",
+  "author": "Shikshan Nivesh",
+  "what": "The smallest plugin there is, here to be copied: one screen that reads a desk address, and one block a note can carry. Bring it in, open it, then change it.",
+  "talks_to": ["nothing outside this computer"],
+  "screen": {"href": "/plugins/hello/screen.html", "label": "Hello", "group": "Plugins"},
+  "blocks": ["blocks.js"]
+}

@@ -523,3 +523,66 @@ def test_live_blocks_resolve(monkeypatch):
     assert server.resolve_block("")["error"]
     assert set(server.BLOCKS) == {"quote", "chart", "watch", "commodity", "status", "notes", "tasks", "timeline", "book"}
 
+
+def test_plugins_load_install_remove(tmp_path, monkeypatch):
+    """A plugin is a folder with a plugin.json: the loader reads what it adds (a screen, blocks,
+    a door), serves only files inside its own folder, brings one in from a zip that cannot
+    reach outside, refuses a zip without plugin.json, and removes it in one call. The shipped
+    plugins in plugins/ load, and the published list names them."""
+    import io
+    import json
+    import zipfile
+    import notes as desk_notes
+    import plugins as desk_plugins
+    keep = desk_notes.RESEARCH_DIR
+    desk_notes.RESEARCH_DIR = str(tmp_path / "research")
+    try:
+        here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        t = desk_plugins.install_folder(os.path.join(here, "plugins", "terminal"))
+        assert t["adds"] == ["a screen", "a door"] and t["door"]["commands"][0]["label"] == "Claude Code"
+        h = desk_plugins.install_folder(os.path.join(here, "plugins", "hello"))
+        assert h["adds"] == ["a screen", "blocks"] and h["blocks"] == ["/plugins/hello/blocks.js"]
+        assert [p["name"] for p in desk_plugins.installed(force=True)] == ["hello", "terminal"]
+        assert [s["key"] for s in desk_plugins.screens()] == ["plugin:hello", "plugin:terminal"]
+        assert desk_plugins.doors()[0]["name"] == "terminal"
+        assert desk_plugins.file_path("hello", "screen.html") and desk_plugins.file_path("hello", "../terminal/plugin.json") is None
+        assert desk_plugins.file_path("hello", "plugin.py") is None            # only the kinds a page needs
+        # a zip: one top folder, plugin.json inside
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as z:
+            z.writestr("mine/plugin.json", json.dumps({"name": "mine", "label": "Mine", "screen": {"label": "Mine"}}))
+            z.writestr("mine/screen.html", "<p>hi</p>")
+        m = desk_plugins.install_zip(buf.getvalue())
+        assert m["name"] == "mine" and (tmp_path / "research" / "plugins" / "mine" / "screen.html").read_text() == "<p>hi</p>"
+        bad = io.BytesIO()
+        with zipfile.ZipFile(bad, "w") as z:
+            z.writestr("x/../../escape.txt", "no")
+            z.writestr("x/plugin.json", "{}")
+        try:
+            desk_plugins.install_zip(bad.getvalue())
+            assert False, "a zip that reaches outside must be refused"
+        except ValueError:
+            pass
+        nometa = io.BytesIO()
+        with zipfile.ZipFile(nometa, "w") as z:
+            z.writestr("y/readme.md", "no")
+        try:
+            desk_plugins.install_zip(nometa.getvalue())
+            assert False
+        except ValueError:
+            pass
+        try:
+            desk_plugins.install_zip(buf.getvalue(), expect_name="other")
+            assert False, "the list's name must match the zip's"
+        except ValueError:
+            pass
+        assert desk_plugins.remove("mine") and desk_plugins.remove("mine") is False
+        assert [p["name"] for p in desk_plugins.installed(force=True)] == ["hello", "terminal"]
+        assert desk_plugins.run_door("nothing", "x")["ok"] is False
+        with open(os.path.join(here, "docs", "plugins", "index.json"), encoding="utf-8") as fh:
+            lst = json.load(fh)
+        assert {p["name"] for p in lst["plugins"]} >= {"terminal", "hello"} and all(p["zip"].startswith("https://greeksoup.ai/plugins/") for p in lst["plugins"])
+    finally:
+        desk_notes.RESEARCH_DIR = keep
+        desk_plugins.installed(force=True)
+

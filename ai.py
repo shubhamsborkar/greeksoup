@@ -160,6 +160,20 @@ ASK_SYSTEM = """You are the reader's own AI, reading GreekSoup, the one-person e
 Answer from those numbers, in plain words, in a few short paragraphs. When you use a figure, say which screen and source it came from. When the data includes the reader's own notes or documents (their research vault), treat them as the reader's work: quote a note or a file by its title when you draw on it, and never present the reader's own view back to them as the model's finding. When the answer is not in the data, say so plainly instead of guessing, and say which screen of the desk would carry it. Describe what the numbers show; never tell the reader what to buy, sell or hold, and never invent a figure the data does not carry. Currencies and units are as the data gives them. Keep it short."""
 
 
+def door_prompt(question, screen, context, profile="", history=None):
+    """The same brief the Ask box gives a provider, as one text for a door: a command on the
+    reader's computer (their coding agent) that reads standard input and answers on standard output."""
+    text = ASK_SYSTEM + "\n\nSCREEN: " + screen
+    if profile:
+        text += "\n\nHOW THIS READER INVESTS (from their Settings screen; shape answers to it)\n" + profile
+    text += "\n\nTHE SCREEN'S DATA\n" + context
+    turns = [m for m in (history or []) if m.get("role") in ("user", "assistant") and isinstance(m.get("content"), str)][-6:]
+    if turns:
+        text += "\n\nTHE CONVERSATION SO FAR\n" + "\n".join(f"{m['role'].upper()}: {m['content']}" for m in turns)
+    text += "\n\nTHE QUESTION\n" + question + "\n\nAnswer the question in plain words, a few short paragraphs, and nothing else. Do not run commands, edit files or ask for permissions; answer from the data above, and say plainly when the data does not carry the answer."
+    return text
+
+
 def ask(question, screen, context, profile="", history=None, s=None):
     """The Ask box. `context` is the screen's data as text; `history` the last few
     turns as [{'role','content'}]. Returns {'ok', 'answer'} or {'ok': False, 'error'}."""

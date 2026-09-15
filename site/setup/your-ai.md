@@ -9,6 +9,8 @@ lead: Two ways in. The Ask box on every screen sends your question with that scr
 
 Click **Ask · your AI** at the bottom of the sidebar, or press ⌘I (Ctrl+I on Windows and Linux). A box opens on the right of whichever screen you are on. Type a question and press Enter. The question goes to the AI you set in Settings together with that screen's own numbers, the same numbers the screen is showing you, and the answer comes back in the box with a line saying which addresses it read. The box remembers the conversation while the screen is open, so a second question can build on the first.
 
+With the terminal door plugin in (Settings, Plugins), a picker at the top of the box offers the coding agent already on your computer as the one who answers, with no key on Settings needed; see [Plugins](/docs/setup/plugins/).
+
 What it sends: your question, the screen's numbers, and the "how you invest" lines from Settings if you filled them in, so the answer fits you. Where it sends them: to the one address you chose under Your AI, and nowhere else. A model running on your computer through Ollama or LM Studio never leaves it.
 
 What it does not do: it does not tell you what to buy, sell or hold, and it is told to say so when a question is not answered by the screen's numbers rather than guess. Every figure it quotes should match the screen and the source the screen names; check it there before acting on anything.

@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.17. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.18. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.18
+
+*15 September 2026, release 18.* Plugins, and the terminal door as the first one: a plugin is a folder in data/research/plugins that adds a screen to the sidebar, blocks a note can carry, or a door for the Ask box; Settings shows what each one adds and what it talks to, brings one in from the list at greeksoup.ai, a folder or a zip, and removes it in one click; the terminal door lets the Ask box answer through the coding agent already on this computer (Claude Code or Codex) with the same screen data and your notes, no key needed, chosen from a picker at the top of the box; a second plugin, Hello, is the smallest one there is, to be copied; the sidebar fits its groups without scrolling
 
 ## 2026-09-15.17
 

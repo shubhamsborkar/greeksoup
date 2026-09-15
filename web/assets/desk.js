@@ -56,6 +56,10 @@
      /api/nav is kept in this browser so the rail paints right on the first frame, and
      the desk is asked again on every page for the current truth. */
   const FIXED = new Set(["home", "settings"]);
+  let PLUGIN_TABS = [];   // screens that plugins add, from /api/nav: [href, label, group, icon, key]
+  try { PLUGIN_TABS = JSON.parse(store.getItem("desk_plugin_tabs") || "[]"); } catch (e) { /* first visit */ }
+  const PLUG_ICON = '<path d="M5 2.5v3M11 2.5v3"/><path d="M3.5 5.5h9v3a4.5 4.5 0 01-9 0z"/><path d="M8 13v1.5"/>';
+  const allTabs = () => TABS.concat(PLUGIN_TABS);
   let hidden = new Set();
   try { hidden = new Set(JSON.parse(store.getItem("desk_hidden") || "[]")); } catch (e) { /* first visit */ }
   const HIDE_ICON = '<path d="M4 4l8 8M12 4l-8 8"/>';
@@ -77,7 +81,7 @@
     if (old) old.remove();
     const cur = current();
     const groups = [];
-    for (const [href, label, group, icon, key] of TABS) {
+    for (const [href, label, group, icon, key] of allTabs()) {
       if (hidden.has(key) && href !== cur) continue;   // the page you are on always shows in the rail
       let g = groups[groups.length - 1];
       if (!g || g.name !== group) { g = { name: group, items: [] }; groups.push(g); }
@@ -85,7 +89,7 @@
     }
     // whatever is hidden stays in the rail, dimmed, under its own heading, with Show one click away:
     // hiding is never a one-way door
-    const gone = TABS.filter(([href, , , , key]) => hidden.has(key) && href !== cur);
+    const gone = allTabs().filter(([href, , , , key]) => hidden.has(key) && href !== cur);
     const el = document.createElement("aside");
     el.id = "siderail";
     el.innerHTML =
@@ -114,7 +118,7 @@
     el.querySelectorAll(".rhide").forEach(b => b.onclick = e => {
       e.preventDefault(); e.stopPropagation();
       setShown(b.dataset.key, false);
-      const label = (TABS.find(t => t[4] === b.dataset.key) || [])[1] || "Screen";
+      const label = (allTabs().find(t => t[4] === b.dataset.key) || [])[1] || "Screen";
       railToast(`${label} hidden. `, "Undo", () => setShown(b.dataset.key, true));
     });
     el.querySelectorAll(".rgone").forEach(b => b.onclick = e => { e.preventDefault(); setShown(b.dataset.key, true); });
@@ -188,8 +192,10 @@
   };
   function applyNav(nav) {
     const next = new Set(nav.hidden || []);
-    const same = next.size === hidden.size && [...next].every(k => hidden.has(k));
+    let same = next.size === hidden.size && [...next].every(k => hidden.has(k));
     hidden = next; store.setItem("desk_hidden", JSON.stringify([...hidden]));
+    const ptabs = (nav.plugin_screens || []).map(p => [p.href, p.label, p.group || "Plugins", PLUG_ICON, p.key]);
+    if (JSON.stringify(ptabs) !== JSON.stringify(PLUGIN_TABS)) { PLUGIN_TABS = ptabs; store.setItem("desk_plugin_tabs", JSON.stringify(ptabs)); same = false; }
     if (!same) buildRail();
     if (nav.journal_pending && !document.getElementById("jtoast") && location.pathname !== "/notes" && !sessionStorage.getItem("jseen")) {
       try { sessionStorage.setItem("jseen", "1"); } catch (e) { /* fine */ }
@@ -251,7 +257,7 @@
     if (open) {
       const inp = el.querySelector("input");
       inp.value = ""; inp.focus();
-      renderCk({ pages: TABS.map(([href, label]) => ({ href, label })), us: [], in: [] });
+      renderCk({ pages: allTabs().map(([href, label]) => ({ href, label })), us: [], in: [] });
     }
   }
   function go(item) {
@@ -270,7 +276,7 @@
   }
   async function runSearch(q) {
     const seq = ++ckSeq;
-    const pages = TABS.filter(([, label]) =>
+    const pages = allTabs().filter(([, label]) =>
       !q || label.toLowerCase().includes(q.toLowerCase()))
       .map(([href, label]) => ({ href, label }));
     if (q.length < 2) { renderCk({ pages, us: [], in: [], notes: [] }); return; }
@@ -531,8 +537,9 @@
 
   /* ---- the Ask box: the reader's question, with this screen's numbers, to the
      AI they set in Settings. Reads the desk; writes nothing. ------------------- */
-  let askOpen = false, askBusy = false;
+  let askOpen = false, askBusy = false, askDoors = [];
   const askHistory = [];
+  function askDoor() { try { return store.getItem("gs.door") || ""; } catch (e) { return ""; } }
   function askPage() {
     const p = location.pathname === "/index.html" ? "/" : location.pathname;
     const sp = new URLSearchParams(location.search);
@@ -549,6 +556,7 @@
     el.setAttribute("aria-label", "Ask your AI");
     el.innerHTML =
       '<div class="ah"><div><b>Ask your AI</b><small id="asksub">reading this screen</small></div>' +
+      '<select id="askvia" title="who answers: the AI on Settings, or a door a plugin opened" hidden></select>' +
       '<button class="ax" id="askclose" title="Close (Esc)">×</button></div>' +
       '<div class="am" id="askmsgs"></div>' +
       '<div class="af"><textarea id="askin" placeholder="Ask about what is on this screen. Enter sends, Shift+Enter for a new line."></textarea>' +
@@ -576,16 +584,27 @@
     const { label } = askPage();
     document.getElementById("asksub").textContent = "reading " + label;
     const m = document.getElementById("askmsgs");
-    if (!m.childElementCount) {
-      try {
-        const st = await (await fetch("/api/ask", { cache: "no-store" })).json();
-        if (st.ready) {
-          askNote(`<p>Ask anything about what is on this screen. The question goes with the screen's own numbers to <b>${esc(st.label || st.provider)}</b>, model <span class="mono">${esc(st.model)}</span>, and nowhere else. An answer worth keeping has a Save as note button under it; nothing is kept unless you press it.</p>`, "hint");
+    try {
+      const st = await (await fetch("/api/ask", { cache: "no-store" })).json();
+      askDoors = st.doors || [];
+      const via = document.getElementById("askvia");
+      if (askDoors.length) {
+        via.hidden = false;
+        via.innerHTML = `<option value="">${esc(st.ready ? (st.label || st.provider) + " (Settings)" : "Your AI (not set)")}</option>` +
+          askDoors.map(d => `<option value="${esc(d.name)}"${d.ready ? "" : " disabled"}>${esc(d.label)}${d.via ? " · " + esc(d.via) : d.ready ? "" : " (not found)"}</option>`).join("");
+        const want = askDoor();
+        if (askDoors.some(d => d.name === want && d.ready)) via.value = want;
+        via.onchange = () => { try { store.setItem("gs.door", via.value); } catch (e) { /* fine */ } };
+      } else via.hidden = true;
+      if (!m.childElementCount) {
+        if (st.ready || askDoors.some(d => d.ready)) {
+          const who = st.ready ? `<b>${esc(st.label || st.provider)}</b>, model <span class="mono">${esc(st.model)}</span>` : "the door you pick above";
+          askNote(`<p>Ask anything about what is on this screen. The question goes with the screen's own numbers to ${who}, and nowhere else.${askDoors.length ? " The picker above chooses who answers." : ""} An answer worth keeping has a Save as note button under it; nothing is kept unless you press it.</p>`, "hint");
         } else {
           askNote(`<p>No AI is set yet. ${esc(st.why || "")} Pick a provider and paste a key on <a href="/settings">Settings</a>, under Your AI. A model running on this computer needs no key.</p>`, "hint");
         }
-      } catch (e) { /* the send will say */ }
-    }
+      }
+    } catch (e) { /* the send will say */ }
     document.getElementById("askin").focus();
   }
   async function sendAsk() {
@@ -601,7 +620,7 @@
     const wait = askNote(`<p class="wait">Reading ${esc(label)} and asking…</p>`);
     try {
       const r = await fetch("/api/ask", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, page, query, history: askHistory.slice(-6) }) });
+        body: JSON.stringify({ question, page, query, history: askHistory.slice(-6), door: (document.getElementById("askvia") || {}).value || "" }) });
       const out = await r.json();
       if (!out.ok) {
         wait.className = "a err";

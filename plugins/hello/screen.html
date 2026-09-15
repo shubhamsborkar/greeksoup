@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hello — GreekSoup</title>
+<link rel="stylesheet" href="/assets/desk.css">
+<script src="/assets/desk.js" defer></script>
+<style>
+main{max-width:860px;margin:0 auto;padding:22px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:16px;font-size:13.5px;line-height:1.65;color:var(--ink2)}
+.panel h2{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2);margin:0 0 10px}
+.panel b{color:var(--ink)} code{font-family:Menlo,monospace;font-size:12px;background:var(--panel2);padding:1px 5px;border-radius:4px}
+pre{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:Menlo,monospace;font-size:12px;overflow:auto}
+</style>
+</head>
+<body>
+<header><div class="brand">RESEARCH <span>DESK</span></div><nav></nav><div class="right"></div></header>
+<main>
+  <div class="panel"><h2>Hello</h2>
+    <p>This screen is a plugin: one HTML file in <code>data/research/plugins/hello/</code>, in the sidebar because <code>plugin.json</code> says so. It reads the desk like any page. Right now the desk holds <b id="n">…</b> notes in your vault.</p>
+    <p>The folder holds three files: <code>plugin.json</code> (what it adds, what it talks to), <code>screen.html</code> (this page), <code>blocks.js</code> (a block a note can carry: three backticks, <code>desk</code>, then <code>hello AAPL</code>). Copy the folder, rename it in <code>plugin.json</code>, change what you like, and bring it in from Settings. Every address the desk answers is listed at <a href="/agent" style="color:var(--accent)">/agent</a>.</p>
+  </div>
+</main>
+<script>fetch("/api/notes").then(r=>r.json()).then(d=>{document.getElementById("n").textContent=(d.notes||[]).length;}).catch(()=>{});</script>
+</body>
+</html>

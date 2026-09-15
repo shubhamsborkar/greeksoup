@@ -37,6 +37,7 @@
       "pages": [
         "index",
         "your-ai",
+        "plugins",
         "data-providers",
         "data-sources"
       ]

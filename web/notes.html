@@ -522,7 +522,7 @@ symIn.addEventListener("input",()=>{ clearTimeout(sugT); const q=symIn.value.tri
 symIn.addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault(); if(hits.length) pick(0); else { const s=symIn.value.trim().toUpperCase(); if(s&&!EDIT.syms.includes(s)){EDIT.syms.push(s);drawSyms();} symIn.value=""; } } if(e.key==="Escape") showSugg([]); });
 symIn.addEventListener("blur",()=>setTimeout(()=>showSugg([]),150));
 
-(async()=>{ setMode(MODE); await load(); if(P.get("id")) open(P.get("id")); else if(P.has("new")) edit(null); else if(P.has("journal")) showJournal(); else if(P.has("tasks")) showTasks(); })();
+(async()=>{ try{ const pl=await (await fetch("/api/plugins")).json(); for(const src of (pl.blocks||[])){ const sc=document.createElement("script"); sc.src=src; document.head.appendChild(sc); } }catch(e){} setMode(MODE); await load(); if(P.get("id")) open(P.get("id")); else if(P.has("new")) edit(null); else if(P.has("journal")) showJournal(); else if(P.has("tasks")) showTasks(); })();
 </script>
 </body>
 </html>

@@ -33,6 +33,7 @@ Installed with one line on Mac, Windows or Linux. Six brokers connect read-only 
 
 - [Setup](https://greeksoup.ai/docs/setup/): The Settings screen inside GreekSoup: your broker, your data provider, your AI, how you invest, the always-on switch, your files and a backup, all in one place.
 - [Your AI](https://greeksoup.ai/docs/setup/your-ai/): How an AI reads GreekSoup: the page made for any AI app on your computer, and your own key with fourteen presets, models on your own computer among them.
+- [Plugins](https://greeksoup.ai/docs/setup/plugins/): A GreekSoup plugin is a folder that adds a screen to the sidebar, blocks a note can carry, or a door for the Ask box, such as the terminal door that answers through the coding agent already on your computer.
 - [Data providers](https://greeksoup.ai/docs/setup/data-providers/): What a data provider key adds to GreekSoup, the one that ships (Financial Modeling Prep), and how any other provider is one file to a written contract.
 - [Data sources](https://greeksoup.ai/docs/setup/data-sources/): Every source behind GreekSoup's fourteen screens, what each one feeds, and which need a key.
 

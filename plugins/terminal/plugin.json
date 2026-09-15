@@ -1,0 +1,16 @@
+{
+  "name": "terminal",
+  "label": "Terminal door",
+  "version": "1",
+  "author": "Shikshan Nivesh",
+  "what": "Lets the Ask box answer through the coding agent already installed on this computer (Claude Code or Codex), with the same screen data and your notes, so no separate AI key is needed.",
+  "talks_to": ["the coding agent on this computer, which reaches its own provider with its own login"],
+  "door": {
+    "label": "Terminal",
+    "commands": [
+      {"label": "Claude Code", "command": ["claude", "-p", "--output-format", "text"]},
+      {"label": "Codex", "command": ["codex", "exec", "--skip-git-repo-check", "-"]}
+    ]
+  },
+  "screen": {"href": "/plugins/terminal/screen.html", "label": "Terminal", "group": "Plugins"}
+}

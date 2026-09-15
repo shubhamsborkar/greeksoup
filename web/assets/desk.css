@@ -61,12 +61,13 @@ html[data-rail="min"] #siderail{width:var(--railc)}
 #siderail .rname b{color:var(--accent)}
 #siderail .rname small{display:block;font-size:8.5px;font-weight:600;letter-spacing:.09em;
   text-transform:uppercase;color:var(--muted);margin-top:2px}
-#siderail .rgroups{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 8px 10px;
-  scrollbar-width:none}
-#siderail .rgroups::-webkit-scrollbar{display:none}
+#siderail .rgroups{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 8px 8px;
+  scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+#siderail .rgroups::-webkit-scrollbar{width:5px}
+#siderail .rgroups::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
 #siderail .rgt{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--muted);padding:12px 8px 5px;white-space:nowrap}
-#siderail a.rlink{display:flex;align-items:center;gap:10px;padding:7px 9px;margin:1px 0;
+  color:var(--muted);padding:9px 8px 3px;white-space:nowrap}
+#siderail a.rlink{display:flex;align-items:center;gap:10px;padding:5px 9px;margin:1px 0;
   border-radius:8px;color:var(--ink2);text-decoration:none;font-size:12.5px;
   letter-spacing:.03em;white-space:nowrap;border:1px solid transparent}
 #siderail a.rlink svg{flex:0 0 auto;width:16px;height:16px;stroke:currentColor;fill:none;
@@ -106,7 +107,7 @@ html[data-rail="min"] #siderail button.rgone span,html[data-rail="min"] #siderai
 #siderail a.rlink.on svg{stroke:var(--accent)}
 #siderail .rfoot{flex:0 0 auto;border-top:1px solid var(--line);padding:8px}
 #siderail .rfoot button{display:flex;align-items:center;gap:10px;width:100%;
-  background:none;border:none;color:var(--muted);font-size:11px;padding:6px 9px;
+  background:none;border:none;color:var(--muted);font-size:11px;padding:5px 9px;
   border-radius:7px;cursor:pointer;white-space:nowrap;letter-spacing:.04em;text-align:left}
 #siderail .rfoot button:hover{color:var(--ink);background:var(--panel2)}
 #siderail .rfoot .rk{flex:0 0 auto;width:16px;text-align:center;font-size:12px}
@@ -235,6 +236,9 @@ html[data-rail="min"] #alertbar{left:var(--railc)}
 #askdock .ah{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
 #askdock .ah b{font-size:13px;color:var(--ink)}
 #askdock .ah small{display:block;font-size:11px;color:var(--ink2);margin-top:2px}
+#askdock #askvia{margin-left:auto;max-width:180px;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:4px 6px;font:inherit;font-size:11.5px}
+#askdock #askvia[hidden]{display:none}
+#askdock #askvia:not([hidden])~.ax{margin-left:6px}
 #askdock .ax{margin-left:auto;width:26px;height:26px;border-radius:6px;background:none;
   border:1px solid var(--line2);color:var(--ink2);cursor:pointer;font-size:16px;line-height:1}
 #askdock .ax:hover{color:var(--ink);border-color:var(--ink2)}

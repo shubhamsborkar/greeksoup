@@ -63,12 +63,17 @@
     },
   };
 
+  const F = {};   // fetchers a plugin registers: name -> async (args, spec) => data with a kind
   async function render(el, spec) {
     el.className = "bk";
     el.innerHTML = `<div class="bk-spec mono">${esc(spec)}</div><div class="bk-body muted">reading…</div>`;
     let d;
-    try { d = await (await fetch("/api/research/block?spec=" + encodeURIComponent(spec))).json(); }
-    catch (e) { d = { error: "the desk did not answer" }; }
+    const name = (spec.trim().split(/\s+/)[0] || "").toLowerCase();
+    try {
+      if (F[name]) d = await F[name](spec.trim().split(/\s+/).slice(1), spec);
+      else d = await (await fetch("/api/research/block?spec=" + encodeURIComponent(spec))).json();
+      if (d && !d.kind && !d.error) d.kind = name;
+    } catch (e) { d = { error: "the desk did not answer" }; }
     const body = el.querySelector(".bk-body");
     if (d.error) { body.className = "bk-body bk-err"; body.textContent = d.error + (d.known ? " · known: " + d.known.join(", ") : ""); return; }
     const fn = R[d.kind];
@@ -76,7 +81,10 @@
     try { body.className = "bk-body"; body.innerHTML = fn(d); } catch (e) { body.className = "bk-body bk-err"; body.textContent = "could not draw this block"; }
   }
   function hydrate(root) {
-    (root || document).querySelectorAll("[data-desk-block]").forEach(el => { if (!el.dataset.done) { el.dataset.done = "1"; render(el, el.dataset.deskBlock); } });
+    (root || document).querySelectorAll("[data-desk-block]").forEach(el => { if (!el.dataset.done) { el.dataset.done = "1"; window.deskBlocks.render(el, el.dataset.deskBlock); } });
   }
-  window.deskBlocks = { register(name, fn) { R[name] = fn; }, render, hydrate, kinds: () => Object.keys(R) };
+  /* the plugin surface: register(name, draw) gives a block its drawing, registerFetch(name, fn)
+     gives it its data (fn gets the arguments and must return an object; the desk's own
+     /api/research/block answers when no fetcher is registered) */
+  window.deskBlocks = { register(name, fn) { R[name] = fn; }, registerFetch(name, fn) { F[name] = fn; }, render, hydrate, kinds: () => Object.keys(R) };
 })();

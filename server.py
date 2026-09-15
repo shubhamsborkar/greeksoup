@@ -43,6 +43,7 @@ import freefeed          # keyless Yahoo fallbacks for the US pages
 import sec_form4         # keyless Form 4 from EDGAR
 import house_ptr         # keyless House trading disclosures
 import notes as desk_notes   # the research vault: notes and files in data/research, linked to names and projects
+import plugins as desk_plugins   # folders in data/research/plugins that add a screen, blocks or a door
 
 PORT = int(os.getenv("DESK_PORT", "8765"))
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -583,6 +584,41 @@ def resolve_block(spec):
     else:
         return {**out, "error": f"no block called {kind!r}", "known": sorted(BLOCKS)}
     return out
+
+
+PLUGIN_LIST_URL = os.getenv("PLUGIN_LIST_URL", "https://greeksoup.ai/plugins/index.json")
+_plugin_list_cache = {"at": 0.0, "data": None}
+
+
+def plugin_list():
+    """The public list of plugins, read from greeksoup.ai once an hour: name, what it adds, who
+    wrote it, what it talks to, and the zip that brings it in. Nothing installs on its own."""
+    now = time.time()
+    if _plugin_list_cache["data"] is not None and now - _plugin_list_cache["at"] < 3600:
+        return _plugin_list_cache["data"]
+    try:
+        r = requests.get(PLUGIN_LIST_URL, timeout=15)
+        data = r.json()
+        rows = [x for x in (data.get("plugins") or []) if isinstance(x, dict) and x.get("name") and x.get("zip")]
+        out = {"ok": True, "plugins": rows, "url": PLUGIN_LIST_URL, "checked": datetime.now().strftime("%Y-%m-%d %H:%M")}
+    except Exception as exc:  # noqa: BLE001
+        out = {"ok": False, "plugins": [], "url": PLUGIN_LIST_URL, "error": f"the list could not be read ({type(exc).__name__})"}
+    _plugin_list_cache.update(at=now, data=out)
+    return out
+
+
+def install_from_list(name):
+    lst = plugin_list()
+    row = next((x for x in lst.get("plugins", []) if x.get("name") == name), None)
+    if not row:
+        raise ValueError(f"{name!r} is not on the list")
+    url = str(row["zip"])
+    if not url.startswith("https://"):
+        raise ValueError("the list points at an address that is not https; refused")
+    r = requests.get(url, timeout=60)
+    if r.status_code != 200:
+        raise ValueError(f"the zip could not be fetched ({r.status_code})")
+    return desk_plugins.install_zip(r.content, name)
 
 
 def name_status(symbol):
@@ -2963,7 +2999,12 @@ def nav_state():
         journal_pending = len(desk_notes.journal_pending()) if desk_notes.journal_mode() == "ask" else 0
     except Exception:  # noqa: BLE001
         journal_pending = 0
+    try:
+        plugin_screens = desk_plugins.screens()
+    except Exception:  # noqa: BLE001
+        plugin_screens = []
     return {"hidden": hidden, "default_hidden": sorted(default_hidden), "choices": choices, "journal_pending": journal_pending,
+            "plugin_screens": plugin_screens,
             "home_market": hm_id,
             "screens": [{"key": k, "href": h, "label": l, "shown": k not in hidden, "fixed": k in ALWAYS_SHOWN} for k, h, l in SCREENS]}
 
@@ -3032,7 +3073,8 @@ def ask_ready():
     s = desk_ai.settings()
     why = desk_ai.not_ready(s)
     return {"ready": why is None, "why": why, "provider": s["provider"],
-            "label": desk_ai.PROVIDERS.get(s["provider"], {}).get("label", ""), "model": s["model"]}
+            "label": desk_ai.PROVIDERS.get(s["provider"], {}).get("label", ""), "model": s["model"],
+            "doors": desk_plugins.doors()}
 
 
 def ask_context(page, query):
@@ -3199,6 +3241,27 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(json.dumps(n or {"error": "no such note"}).encode(), "application/json")
             elif path == "/api/notes/graph":
                 return self._send(json.dumps(desk_notes.graph((qs.get("symbol", [""])[0] or "").strip())).encode(), "application/json")
+            elif path.startswith("/plugins/"):
+                # a file from one plugin's own folder: html, js, css, images; never anything else
+                import mimetypes
+                bits = path[len("/plugins/"):].split("/", 1)
+                full = desk_plugins.file_path(bits[0], bits[1] if len(bits) > 1 else "") if bits and bits[0] else None
+                if not full:
+                    return self.send_error(404)
+                with open(full, "rb") as fh:
+                    body = fh.read()
+                self.send_response(200)
+                self.send_header("Content-Type", (mimetypes.guess_type(full)[0] or "application/octet-stream") + ("; charset=utf-8" if full.endswith((".html", ".js", ".css", ".json", ".md", ".txt")) else ""))
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                return self.wfile.write(body)
+            elif path == "/api/plugins":
+                return self._send(json.dumps({"installed": desk_plugins.installed(force=True), "doors": desk_plugins.doors(),
+                                              "blocks": desk_plugins.block_files(), "folder": desk_plugins.plugins_dir(),
+                                              "list_url": PLUGIN_LIST_URL}).encode(), "application/json")
+            elif path == "/api/plugins/list":
+                return self._send(json.dumps(plugin_list()).encode(), "application/json")
             elif path == "/api/research/block":
                 spec = (qs.get("spec", [""])[0] or "")[:200]
                 try:
@@ -3574,15 +3637,21 @@ class Handler(BaseHTTPRequestHandler):
         question = str(body.get("question", "")).strip()[:4000]
         if not question:
             return self._send(b'{"ok":false,"error":"Type a question first."}', "application/json")
+        door = str(body.get("door", "") or "")
         rd = ask_ready()
-        if not rd["ready"]:
+        if not door and not rd["ready"]:
             return self._send(json.dumps({"ok": False, "error": rd["why"], "settings": True}).encode(), "application/json")
         page = str(body.get("page", "/"))
         label, context, used = ask_context(page, body.get("query") or {})
         history = body.get("history") if isinstance(body.get("history"), list) else []
-        out = desk_ai.ask(question, label, context, desk_settings.profile_text(), history)
+        if door:
+            # a door plugin: the same brief, handed to a command on this computer (the reader's coding agent)
+            out = desk_plugins.run_door(door, desk_ai.door_prompt(question, label, context, desk_settings.profile_text(), history))
+            out["model"] = out.pop("via", door)
+        else:
+            out = desk_ai.ask(question, label, context, desk_settings.profile_text(), history)
+            out["model"] = rd["model"]
         out["read"] = used
-        out["model"] = rd["model"]
         out["screen"] = label
         return self._send(json.dumps(out).encode(), "application/json")
 
@@ -3591,6 +3660,14 @@ class Handler(BaseHTTPRequestHandler):
         only edit which names the READ-ONLY watch grid quotes."""
         try:
             length = int(self.headers.get("Content-Length", 0))
+            if self.path.startswith("/api/plugins/install_zip"):
+                q = parse_qs(urlparse(self.path).query)
+                data = self.rfile.read(length)
+                try:
+                    p = desk_plugins.install_zip(data, (q.get("name", [""])[0] or "").strip())
+                    return self._send(json.dumps({"ok": True, "plugin": p}).encode(), "application/json")
+                except ValueError as exc:
+                    return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
             if self.path.startswith("/api/research/upload"):
                 # a file the reader is bringing into the vault, sent as its own bytes; it is
                 # stored under files/<subject>/ and nothing else happens until the note is saved
@@ -3618,6 +3695,17 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
             if self.path == "/api/notes/delete":
                 return self._send(json.dumps({"ok": desk_notes.delete(str(body.get("id", "")), bool(body.get("with_file")))}).encode(), "application/json")
+            if self.path == "/api/plugins/install":
+                try:
+                    if body.get("from_list"):
+                        p = install_from_list(str(body["from_list"]))
+                    else:
+                        p = desk_plugins.install_folder(str(body.get("folder", "")))
+                    return self._send(json.dumps({"ok": True, "plugin": p}).encode(), "application/json")
+                except (ValueError, OSError) as exc:
+                    return self._send(json.dumps({"ok": False, "error": str(exc)[:300]}).encode(), "application/json")
+            if self.path == "/api/plugins/remove":
+                return self._send(json.dumps({"ok": desk_plugins.remove(str(body.get("name", "")))}).encode(), "application/json")
             if self.path == "/api/research/tasks/add":
                 try:
                     t = desk_notes.add_task(str(body.get("text", "")), str(body.get("symbol", "")), str(body.get("due", "")),
