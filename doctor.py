@@ -137,8 +137,23 @@ def main():
     # the always-on entry
     # An entry exists for THIS folder only when it names this folder: a reader with
     # two copies of the desk must not be told the other copy's entry is theirs.
+    def spellings():
+        """This folder in every form Windows may have written it: as given, long
+        (C:\\Users\\runneradmin) and short (C:\\Users\\RUNNER~1)."""
+        out = {os.path.abspath(HERE)}
+        if os.name == "nt":
+            try:
+                import ctypes
+                for fn in (ctypes.windll.kernel32.GetLongPathNameW, ctypes.windll.kernel32.GetShortPathNameW):
+                    buf = ctypes.create_unicode_buffer(1024)
+                    if fn(os.path.abspath(HERE), buf, 1024):
+                        out.add(buf.value)
+            except Exception:  # noqa: BLE001
+                pass
+        return {x.rstrip("\\").lower() for x in out}
+
     def mine(text):
-        return bool(text) and os.path.abspath(HERE) in text
+        return bool(text) and any(sp in text.lower() for sp in spellings())
 
     def read(path):
         try:
@@ -170,8 +185,9 @@ def main():
         lnk_mine = False
         try:
             if os.path.isfile(lnk):
-                lnk_mine = os.path.abspath(HERE).encode("utf-16-le").lower() in open(lnk, "rb").read().lower()
-        except OSError:
+                raw = open(lnk, "rb").read().lower()
+                lnk_mine = any(sp.encode(enc) in raw for sp in spellings() for enc in ("utf-16-le", "mbcs"))
+        except (OSError, LookupError):
             pass
         try:
             p = subprocess.run(["schtasks", "/Query", "/TN", "Research Desk", "/XML"], capture_output=True, text=True, timeout=10)
