@@ -45,6 +45,10 @@ Drop an annual report on a note, or press **Attach a file** on a listing's page,
 
 The loop closes both ways. **Remove file** on a note asks whether the file stays in the vault or goes too. Deleting a note that has a file asks the same. A file that no note points at, dropped into the folder from Finder or left behind on purpose, is listed on the Notes screen under **In the vault, on no note yet**, with **give it a note** and **delete** beside it, so nothing brought in is ever hidden. A file you move away by hand shows as missing on its note rather than vanishing.
 
+## The desk reads what is inside
+
+When a file arrives the desk reads its text once, locally, into `data/research/index`: a PDF page by page, a spreadsheet sheet by sheet with its first rows, a Word file by paragraph, a presentation by slide. Nothing leaves your computer and the index is rebuilt from the files whenever it is missing, so it is never the record. From then on the search box on the Notes screen and Command K find a phrase that lives only inside an annual report, marked **in the file**, and the Ask box on that listing's page reads your notes and your documents about it along with the screen's numbers, so an answer can quote the filing you brought in. A scanned image has no text to read; the file is kept and opens as it is, and the note says so.
+
 ## Keeping an answer
 
 Every answer in the Ask box has a **Save as note** button under it. Press it and a small card opens, already filled from the screen you asked on: the name on a listing's page, commodity on the Commodities screen, macro on Macro. Set the period, change the title if you like, Save. The question and the answer land in the vault as a note of type AI answer, with the screen, the date and the model written at the foot, so you can see later where it came from. Nothing is saved unless you press the button; an answer you do not keep is gone when you close the box.
@@ -55,4 +59,4 @@ A fresh desk arrives with one example project and three example notes (a call, a
 
 ## Your AI reads them
 
-The Ask box on a listing's page sends your notes about that listing along with the screen's numbers, so the answer knows what you already think. On Commodities it sends your commodity notes, on Macro your macro notes, and on the Notes screen the notes themselves. Nothing leaves your computer except that one question to your own AI key.
+The Ask box on a listing's page sends your notes and the text of your documents about that listing along with the screen's numbers, so the answer knows what you already think and what you have already read. On Commodities it sends your commodity notes and files, on Macro your macro ones, and on the Notes screen the notes themselves. Nothing leaves your computer except that one question to your own AI key.

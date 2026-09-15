@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.11. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.12. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.12
+
+*15 September 2026, release 12.* The desk reads what is inside the files you bring in: a PDF page by page, a spreadsheet sheet by sheet, a Word file or a presentation by paragraph, read once and locally into data/research/index; the search box on the Notes screen and Command K find a phrase that lives only inside an annual report, and the Ask box on a listing's page reads your notes and your documents about it along with the screen's numbers; a note with a file says how many pages were read, or that the desk is still reading, or that the kind of file has no text to read
 
 ## 2026-09-15.11
 

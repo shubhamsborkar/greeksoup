@@ -189,7 +189,7 @@
     if (document.getElementById("cmdk")) return;
     const el = document.createElement("div");
     el.id = "cmdk";
-    el.innerHTML = '<div class="ck"><input placeholder="Jump to a page, or type a ticker…" ' +
+    el.innerHTML = '<div class="ck"><input placeholder="Jump to a page, type a ticker, or search your notes and files…" ' +
       'spellcheck="false" autocomplete="off"><div class="ckr"></div></div>';
     document.body.appendChild(el);
     el.addEventListener("mousedown", e => { if (e.target === el) openCmdk(false); });
@@ -232,18 +232,20 @@
     const pages = TABS.filter(([, label]) =>
       !q || label.toLowerCase().includes(q.toLowerCase()))
       .map(([href, label]) => ({ href, label }));
-    if (q.length < 2) { renderCk({ pages, us: [], in: [] }); return; }
-    let us = [], ind = [];
+    if (q.length < 2) { renderCk({ pages, us: [], in: [], notes: [] }); return; }
+    let us = [], ind = [], notes = [];
     try {
-      const [ru, ri] = await Promise.all([
+      const [ru, ri, rn] = await Promise.all([
         fetch("/api/search?q=" + encodeURIComponent(q) + "&list=us").then(r => r.json()),
         fetch("/api/search?q=" + encodeURIComponent(q) + "&list=home").then(r => r.json()),
+        fetch("/api/notes?q=" + encodeURIComponent(q)).then(r => r.json()),
       ]);
       us = (ru.results || []).slice(0, 5);
       ind = (ri.results || []).slice(0, 5);
+      notes = (rn.notes || []).slice(0, 6);
     } catch (e) { /* offline page search still works */ }
     if (seq !== ckSeq || !ckOpen) return;
-    renderCk({ pages, us, in: ind });
+    renderCk({ pages, us, in: ind, notes });
   }
   function renderCk(d) {
     const r = document.querySelector("#cmdk .ckr");
@@ -266,6 +268,9 @@
     section("Tickers · Home", d.in.map(t => ({
       nm: t.code, sub: t.name, ex: t.exch,
       href: "/t?symbol=" + encodeURIComponent(t.code) + "&region=home" })));
+    section("Your notes and files", (d.notes || []).map(n => ({
+      nm: esc(n.title), sub: esc((n.hit === "file" ? "in the file · " : "") + (n.snippet || "")).slice(0, 140),
+      ex: esc([n.type, n.period].filter(Boolean).join(" · ")), href: "/notes?id=" + encodeURIComponent(n.id) })));
     r.innerHTML = html || '<div class="ckempty">Nothing matches.</div>';
     r.querySelectorAll(".cki").forEach(n => {
       n.onclick = () => go(ckItems[+n.dataset.i]);

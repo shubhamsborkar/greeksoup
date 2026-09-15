@@ -52,6 +52,9 @@ select.chip{font-family:inherit;padding:3px 6px}
 .fcard a.op{font-size:12px;font-weight:700;color:#fff;background:var(--accent);border-radius:7px;padding:6px 12px;text-decoration:none}
 .fcard button{background:none;color:var(--ink2);border:1px solid var(--line2);border-radius:7px;padding:5px 10px;font-size:11.5px;cursor:pointer}
 .fcard.miss{border-color:var(--neg)} .fcard.miss .fi{background:var(--neg)}
+.ftext{font-size:11.5px;color:var(--muted);margin:-8px 0 14px;line-height:1.5}
+.ftext b{color:var(--ink2);font-weight:600}
+.ftext .op{margin-top:6px;padding:8px 10px;border-left:2px solid var(--line2);color:var(--ink2);font-size:12px;white-space:pre-wrap;max-height:120px;overflow:hidden}
 .fimg{max-width:100%;border-radius:10px;border:1px solid var(--line);margin:0 0 14px;display:block}
 .ask{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--ink2)}
 .ask button{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer}
@@ -111,7 +114,7 @@ select.chip{font-family:inherit;padding:3px 6px}
     <div class="panel">
       <div class="panel-h"><h2>Notes</h2><button class="chip on" id="newbtn">+ New note</button></div>
       <div class="tools">
-        <input id="q" placeholder="search notes…" autocomplete="off">
+        <input id="q" placeholder="search notes and inside their files…" autocomplete="off">
         <select id="period" class="chip" title="the quarter or year a note is researching"><option value="">any period</option></select>
       </div>
       <div class="tools"><span class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">About</span><span class="chips" id="kindchips"></span></div>
@@ -155,6 +158,14 @@ const TYPE_LABEL={general:"Note",news:"News",insight:"Insight",concall:"Call",me
 const fmtSize=b=>b>=1048576?(b/1048576).toFixed(1)+" MB":b>=1024?Math.round(b/1024)+" KB":b+" B";
 const fileUrl=rel=>"/api/research/file?path="+encodeURIComponent(rel);
 const fileExt=rel=>(rel.split(".").pop()||"").toUpperCase().slice(0,5);
+function textLine(t){
+  if(!t) return "";
+  if(t.state==="reading") return "Reading the file… search will find what is inside it, and the Ask box will read it, in a moment.";
+  if(t.state==="failed") return `The desk could not read the text in this file (${esc(t.error||"")}). It is kept and opens as it is; search and the Ask box do not see inside it.`;
+  if(t.state==="none") return "This kind of file has no text the desk can read. It is kept and opens as it is.";
+  if(t.state==="ready") return `<b>${t.pages?t.pages+" pages · ":""}${Math.round(t.chars/1000)}k characters read.</b> Search finds what is inside it, and the Ask box on this name reads it.`;
+  return "";
+}
 const KIND_LABEL={stock:"Stock",commodity:"Commodity",sector:"Sector",macro:"Macro",general:"General"};
 const ABOUT_HINT={commodity:"which commodity, e.g. rubber",sector:"which sector, e.g. Gulf delivery",macro:"which theme, e.g. US rates",general:"a subject, or leave empty"};
 const subj=n=>n.kind==="stock"?"":(n.about?`${KIND_LABEL[n.kind]||n.kind} · ${n.about}`:(KIND_LABEL[n.kind]||n.kind));
@@ -205,7 +216,7 @@ async function load(){
   else $("list").innerHTML=NOTES.map(n=>`<a class="nc${CUR&&CUR.id===n.id?" on":""}" href="/notes?id=${encodeURIComponent(n.id)}" data-id="${esc(n.id)}">
       <div class="t"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span><span>${esc(n.title)}</span>${n.file?`<span class="pin">${n.file_ok?fileExt(n.file):"file missing"}</span>`:""}${n.pinned?'<span class="pin">pinned</span>':""}${n.example?'<span class="pin">example</span>':""}</div>
       <div class="m"><span>${esc(n.updated)}</span>${n.period?`<span style="color:var(--ink2)">${esc(n.period)}</span>`:""}${subj(n)?`<span>${esc(subj(n))}</span>`:""}${n.symbols.slice(0,4).map(s=>`<span class="sy">$${esc(s)}</span>`).join("")}${n.project?`<span>in ${esc(n.project)}</span>`:""}</div>
-      <div class="sn">${esc(n.snippet||"")}</div></a>`).join("");
+      <div class="sn">${n.hit==="file"?'<span style="color:var(--accent)">in the file · </span>':""}${esc(n.snippet||"")}</div></a>`).join("");
   $("list").querySelectorAll(".nc").forEach(a=>a.onclick=e=>{e.preventDefault(); open(a.dataset.id);});
   const loose=d.loose||[];
   $("loose").innerHTML=loose.length?`<div class="loose"><div class="l">In the vault, on no note yet</div>${loose.map(f=>`<div class="f"><b title="${esc(f.file)}">${esc(f.name)}</b><span>${esc(f.subject)}</span><span>${fmtSize(f.size)}</span><a href="/notes?new&file=${encodeURIComponent(f.file)}${f.subject&&/^[A-Z0-9.\-]+$/.test(f.subject)?"&symbol="+encodeURIComponent(f.subject):""}">give it a note</a><button class="danger" data-f="${esc(f.file)}">delete</button></div>`).join("")}</div>`:"";
@@ -232,7 +243,7 @@ async function open(id){
   $("view").innerHTML=`<div class="view">
       <h1>${esc(n.title)}</h1>
       <div class="meta"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span>${subj(n)?`<span style="color:var(--ink2)">${esc(subj(n))}</span>`:""}${n.period?`<span style="color:var(--ink2)">${esc(n.period)}</span>`:""}<span>updated ${esc(n.updated)}</span><span>created ${esc(n.created)}</span>${n.pinned?"<span>pinned</span>":""}${(n.tags||[]).map(t=>`<span>#${esc(t)}</span>`).join("")}<span class="mono" style="opacity:.7">${esc(n.path)}</span></div>
-      ${n.file?(n.file_ok?`<div class="fcard"><div class="fi">${esc(fileExt(n.file))}</div><div class="fn"><b>${esc(n.file.split("/").pop())}</b><small>${fmtSize(n.file_size)} · ${esc(n.file)}</small></div><a class="op" href="${fileUrl(n.file)}" target="_blank" rel="noopener">Open</a><button id="v_detach">Remove file</button></div>${n.file_image?`<img class="fimg" src="${fileUrl(n.file)}" alt="">`:""}`:`<div class="fcard miss"><div class="fi">?</div><div class="fn"><b>${esc(n.file.split("/").pop())}</b><small>This file is not in the vault any more (${esc(n.file)}). Put it back in that folder, or take it off the note.</small></div><button id="v_detach">Take it off the note</button></div>`):""}
+      ${n.file?(n.file_ok?`<div class="fcard"><div class="fi">${esc(fileExt(n.file))}</div><div class="fn"><b>${esc(n.file.split("/").pop())}</b><small>${fmtSize(n.file_size)} · ${esc(n.file)}</small></div><a class="op" href="${fileUrl(n.file)}" target="_blank" rel="noopener">Open</a><button id="v_detach">Remove file</button></div><div class="ftext" id="v_text">${textLine(n.text)}</div>${n.file_image?`<img class="fimg" src="${fileUrl(n.file)}" alt="">`:""}`:`<div class="fcard miss"><div class="fi">?</div><div class="fn"><b>${esc(n.file.split("/").pop())}</b><small>This file is not in the vault any more (${esc(n.file)}). Put it back in that folder, or take it off the note.</small></div><button id="v_detach">Take it off the note</button></div>`):""}
       <div id="v_ask"></div>
       <div class="md">${md(n.body||"")}</div>
       <div class="btns"><button class="pri" id="v_edit">Edit</button>${n.type==="project"?`<button id="v_proj">Every note in this project</button>`:""}</div>
@@ -247,6 +258,7 @@ async function open(id){
       ${related.length?`<div class="g"><div class="l">Also connected, through your notes</div>${related.map(s=>`<a class="sy" href="/t?symbol=${encodeURIComponent(s)}">$${esc(s)}</a>`).join("")}</div>`:""}
     </div>`;
   $("v_edit").onclick=()=>edit(n);
+  if(n.text&&n.text.state==="reading"){ const poll=async()=>{ if(!CUR||CUR.id!==n.id) return; const t=await (await fetch("/api/research/text?path="+encodeURIComponent(n.file))).json(); if(t.state==="reading") return setTimeout(poll,2500); const el=$("v_text"); if(el) el.innerHTML=textLine(t); }; setTimeout(poll,2500); }
   const vd=$("v_detach"); if(vd) vd.onclick=()=>{
     const a=$("v_ask");
     a.innerHTML=n.file_ok?`<div class="ask" style="margin:0 0 14px">Take the file off this note: <button id="d_keep">keep the file in the vault</button><button id="d_del" class="danger">delete the file too</button><button id="d_no">leave it</button></div>`

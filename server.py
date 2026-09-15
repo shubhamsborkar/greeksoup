@@ -2791,10 +2791,10 @@ ASK_READS = {
     "/flow": ("Flow", ["/api/flow"]),
     "/short": ("Short", ["/api/short"]),
     "/capitol": ("Capitol", ["/api/capitol"]),
-    "/macro": ("Macro", ["/api/macro", "/api/econcal", "/api/notes?kind=macro"]),
-    "/commods": ("Commodities", ["/api/commods", "/api/notes?kind=commodity"]),
+    "/macro": ("Macro", ["/api/macro", "/api/econcal", "/api/research/context?kind=macro"]),
+    "/commods": ("Commodities", ["/api/commods", "/api/research/context?kind=commodity"]),
     "/chain": ("Chain", ["/api/chain"]),
-    "/t": ("Ticker", ["/api/ticker?symbol={symbol}&region={region}", "/api/notes?symbol={symbol}"]),
+    "/t": ("Ticker", ["/api/ticker?symbol={symbol}&region={region}", "/api/research/context?symbol={symbol}"]),
     "/notes": ("Notes", ["/api/notes", "/api/notes/graph"]),
     "/settings": ("Settings", []),
 }
@@ -2847,8 +2847,13 @@ def ask_context(page, query):
         except Exception as exc:  # noqa: BLE001
             parts.append(f"{url}: could not be read ({type(exc).__name__})")
             continue
-        text = json.dumps(_slim(data), separators=(",", ":"), default=str)
-        if len(text) > budget:
+        if url.startswith("/api/research/context"):
+            # the reader's own notes and documents are text by nature and already cut to a budget
+            # by the vault; the slimmer's 160-character cut must not touch them
+            text = json.dumps(data, separators=(",", ":"), default=str, ensure_ascii=False)
+        else:
+            text = json.dumps(_slim(data), separators=(",", ":"), default=str)
+        if len(text) > budget and not url.startswith("/api/research/context"):
             text = json.dumps(_slim(data, BULKY), separators=(",", ":"), default=str)
         if len(text) > budget:
             text = text[:max(budget, 0)] + " ...(cut here: the screen holds more than fits in one question)"
@@ -2886,6 +2891,8 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
                                             /api/notes/get?id=   one note with its body
                                             /api/notes/graph?symbol=   what connects to what
                                             /api/research/file?path=files/AAPL/x.pdf   a file the reader brought in
+                                            /api/research/text?path=files/AAPL/x.pdf   the text the desk read out of it
+                                            /api/research/context?symbol=AAPL   the reader's notes and files on a subject, as text
              The vault is data/research: notes/ holds one Markdown file per note, files/ holds
              what the reader brought in (annual reports, models, screenshots), one folder per
              subject. A note's front matter card: title, kind (stock, commodity, sector, macro,
@@ -2971,6 +2978,18 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(json.dumps(n or {"error": "no such note"}).encode(), "application/json")
             elif path == "/api/notes/graph":
                 return self._send(json.dumps(desk_notes.graph((qs.get("symbol", [""])[0] or "").strip())).encode(), "application/json")
+            elif path == "/api/research/context":
+                # the reader's notes and files about one subject, as text: what the Ask box reads
+                g = lambda k: (qs.get(k, [""])[0] or "").strip()[:120]  # noqa: E731
+                return self._send(json.dumps(desk_notes.context(g("symbol") or None, g("kind") or None, g("about") or None)).encode(), "application/json")
+            elif path == "/api/research/text":
+                # what the desk read out of one attached file: the status, and the opening of the text
+                rel = (qs.get("path", [""])[0] or "").strip()
+                st = desk_notes.text_status(rel)
+                if st.get("state") == "ready":
+                    d = desk_notes.text_of(rel)
+                    st["opening"] = (d or {}).get("text", "")[:1200]
+                return self._send(json.dumps(st).encode(), "application/json")
             elif path == "/api/research/file":
                 # a file the reader brought into the vault, served back to them: inline, so a
                 # PDF or an image opens in the browser; never anything outside data/research/files

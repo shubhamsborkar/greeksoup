@@ -296,3 +296,75 @@ def test_research_vault_files(tmp_path):
         desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR = keep
         desk_notes.index(force=True)
 
+
+def _tiny_pdf(text):
+    content = f"BT /F1 24 Tf 72 720 Td ({text}) Tj ET".encode()
+    objs = [b"<< /Type /Catalog /Pages 2 0 R >>", b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+            b"<< /Length %d >>\nstream\n" % len(content) + content + b"\nendstream",
+            b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]
+    out, offs = b"%PDF-1.4\n", []
+    for i, o in enumerate(objs, 1):
+        offs.append(len(out))
+        out += b"%d 0 obj\n" % i + o + b"\nendobj\n"
+    xref = len(out)
+    out += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objs) + 1) + b"".join(b"%010d 00000 n \n" % o for o in offs)
+    out += b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (len(objs) + 1, xref)
+    return out
+
+
+def _tiny_xlsx():
+    import io
+    import zipfile
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("xl/workbook.xml", '<workbook><sheets><sheet name="Revenue" sheetId="1"/></sheets></workbook>')
+        z.writestr("xl/sharedStrings.xml", "<sst><si><t>Segment</t></si><si><t>Services</t></si></sst>")
+        z.writestr("xl/worksheets/sheet1.xml", '<worksheet><sheetData><row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1"><v>2025</v></c></row>'
+                                               '<row r="2"><c r="A2" t="s"><v>1</v></c><c r="B2"><v>96169</v></c></row></sheetData></worksheet>')
+    return buf.getvalue()
+
+
+def test_research_text_search_and_context(tmp_path):
+    """Text is read out of attached files into the index: a PDF by page, a spreadsheet by
+    sheet and row, a Word file by paragraph. Search then finds a phrase that lives only inside
+    a file, and the Ask box's context carries the notes' bodies and the files' text under a budget."""
+    import io
+    import zipfile
+    import notes as desk_notes
+    keep = (desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR, desk_notes.INDEX_DIR)
+    desk_notes.RESEARCH_DIR = str(tmp_path / "research")
+    desk_notes.NOTES_DIR = str(tmp_path / "research" / "notes")
+    desk_notes.FILES_DIR = str(tmp_path / "research" / "files")
+    desk_notes.LEGACY_NOTES_DIR = str(tmp_path / "notes")
+    desk_notes.INDEX_DIR = str(tmp_path / "research" / "index" / "text")
+    try:
+        pdf = desk_notes.store_file("Apple 10-K.pdf", _tiny_pdf("Services revenue grew eleven percent"), symbol="AAPL")
+        xl = desk_notes.store_file("model.xlsx", _tiny_xlsx(), symbol="AAPL")
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as z:
+            z.writestr("word/document.xml", "<w:document><w:body><w:p><w:r><w:t>Call transcript: guidance held</w:t></w:r></w:p></w:body></w:document>")
+        dx = desk_notes.store_file("call.docx", buf.getvalue(), symbol="AAPL")
+        d = desk_notes.text_of(pdf, wait=True)
+        assert d["pages"] == 1 and "eleven percent" in d["text"]
+        assert desk_notes.text_of(pdf) is d or desk_notes.text_of(pdf)["chars"] == d["chars"]   # from the index the second time
+        x = desk_notes.text_of(xl, wait=True)
+        assert "## Revenue" in x["text"] and "Services | 96169" in x["text"] and x["pages"] == 1
+        assert "guidance held" in desk_notes.text_of(dx, wait=True)["text"]
+        assert desk_notes.text_status(pdf)["state"] == "ready" and desk_notes.text_status("files/AAPL/none.pdf")["state"] == "missing"
+        desk_notes.save({"title": "Apple annual report", "symbols": ["AAPL"], "period": "FY25", "file": pdf, "body": "the filing"})
+        desk_notes.save({"title": "Apple model", "symbols": ["AAPL"], "file": xl, "body": ""})
+        desk_notes.save({"title": "Apple thoughts", "symbols": ["AAPL"], "type": "insight", "body": "Services is the story now."})
+        hits = desk_notes.listing(q="eleven percent")
+        assert [h["title"] for h in hits] == ["Apple annual report"] and hits[0]["hit"] == "file" and "eleven percent" in hits[0]["snippet"]
+        assert [h["title"] for h in desk_notes.listing(q="Services")] and len(desk_notes.listing(q="Services")) == 3   # note body, sheet cell, pdf
+        c = desk_notes.context(symbol="AAPL")
+        assert {n["title"] for n in c["notes"]} == {"Apple annual report", "Apple thoughts"}   # the model has no body
+        assert {d["title"] for d in c["documents"]} == {"Apple annual report", "Apple model"}
+        assert any("eleven percent" in d["text"] for d in c["documents"])
+        small = desk_notes.context(symbol="AAPL", budget=40)
+        assert sum(len(n["text"]) for n in small["notes"]) <= 40 and all(d["text"] == "" or d["text"].startswith("(") or len(d["text"]) <= 41 for d in small["documents"])
+    finally:
+        desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR, desk_notes.INDEX_DIR = keep
+        desk_notes.index(force=True)
+

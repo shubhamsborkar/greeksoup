@@ -290,6 +290,9 @@ def _scan():
         if not n["created"]:
             n["created"] = n["updated"]
         notes[n["id"]] = n
+    for n in notes.values():             # files start being read in the background as soon as they are seen
+        if n["file"]:
+            text_of(n["file"])
     # backlinks and project membership, resolved by title
     by_title = {n["title"].lower(): n["id"] for n in notes.values()}
     for n in notes.values():
@@ -372,12 +375,21 @@ def listing(symbol=None, project=None, ntype=None, tag=None, q=None, kind=None, 
             continue
         if tag and tag.lower() not in n["tags"]:
             continue
+        hit = ""
         if q:
             hay = (n["title"] + " " + n["body"] + " " + n["about"] + " " + n["period"] + " "
                    + " ".join(n["tags"]) + " " + " ".join(n["symbols"])).lower()
             if q.lower() not in hay:
-                continue
-        rows.append(card(n))
+                d = _read_text_cache(n["file"]) if n["file"] else None
+                if not d or q.lower() not in d.get("text", "").lower():
+                    continue
+                hit = "file"
+        c = card(n)
+        if hit:
+            c["hit"] = hit
+            i = d["text"].lower().find(q.lower())
+            c["snippet"] = "…" + re.sub(r"\s+", " ", d["text"][max(0, i - 70):i + 110]).strip() + "…"
+        rows.append(c)
     rows.sort(key=lambda r: (not r["pinned"], r["updated"]), reverse=True)
     rows.sort(key=lambda r: not r["pinned"])   # pinned first; within each, newest first
     return rows
@@ -389,6 +401,8 @@ def get(note_id):
         return None
     out = card(n, snippet=False)
     out["body"] = n["body"]
+    if n["file"]:
+        out["text"] = text_status(n["file"])
     return out
 
 
@@ -451,6 +465,7 @@ def delete(note_id, with_file=False):
         full = file_path(n["file"])
         if not others and full and os.path.isfile(full):
             os.remove(full)
+            _forget_text(n["file"])
             _prune(os.path.dirname(full))
     index(force=True)
     return True
@@ -467,6 +482,7 @@ def detach(note_id, delete_file=False):
         others = [m for m in index().values() if m.get("file") == rel and m["id"] != n["id"]]
         if not others and full and os.path.isfile(full):
             os.remove(full)
+            _forget_text(rel)
             _prune(os.path.dirname(full))
     return save({**n, "file": ""})
 
@@ -501,8 +517,200 @@ def remove_file(rel):
     if any(n.get("file") == _clean_rel(rel) for n in index(force=True).values()):
         return False
     os.remove(full)
+    _forget_text(rel)
     _prune(os.path.dirname(full))
     return True
+
+
+# ---- text from files: read once, kept in index/, so search finds what is inside an annual
+# report and the Ask box can read it. Rebuildable from files/ at any time; never the record.
+INDEX_DIR = os.path.join(RESEARCH_DIR, "index", "text")
+TEXT_CAP = 1_500_000          # characters kept per file; a 300-page annual report is under this
+_extract_lock = threading.Lock()
+_extracting = set()
+
+
+def _text_cache_path(rel):
+    import hashlib
+    return os.path.join(INDEX_DIR, hashlib.sha1(rel.encode("utf-8")).hexdigest() + ".json")
+
+
+def _read_text_cache(rel):
+    try:
+        import json
+        with open(_text_cache_path(rel), encoding="utf-8") as fh:
+            d = json.load(fh)
+        full = file_path(rel)
+        if full and os.path.isfile(full) and d.get("mtime") == os.path.getmtime(full) and d.get("size") == os.path.getsize(full):
+            return d
+    except (OSError, ValueError):
+        pass
+    return None
+
+
+def _strip_tags(html):
+    html = re.sub(r"(?is)<(script|style).*?</\1>", " ", html)
+    html = re.sub(r"(?s)<[^>]+>", " ", html)
+    return re.sub(r"[ \t]+", " ", re.sub(r"\n\s*\n+", "\n\n", html)).strip()
+
+
+def _xml_text(xml):
+    return _strip_tags(xml.replace("</a:p>", "\n").replace("</w:p>", "\n").replace("</p>", "\n"))
+
+
+def _extract(full):
+    """The text inside one file, and how many pages it has. Each reader is small and local;
+    a kind of file the desk cannot read yields no text and says so."""
+    ext = os.path.splitext(full)[1].lower()
+    if ext == ".pdf":
+        from pypdf import PdfReader
+        r = PdfReader(full)
+        parts = []
+        for i, page in enumerate(r.pages):
+            try:
+                parts.append(page.extract_text() or "")
+            except Exception:  # noqa: BLE001 - one bad page never loses the rest
+                parts.append("")
+            if sum(len(x) for x in parts) > TEXT_CAP:
+                break
+        return "\n\n".join(parts), len(r.pages), "pdf"
+    if ext in (".txt", ".md", ".csv"):
+        with open(full, encoding="utf-8", errors="replace") as fh:
+            return fh.read(TEXT_CAP), 0, ext[1:]
+    if ext in (".html", ".htm"):
+        with open(full, encoding="utf-8", errors="replace") as fh:
+            return _strip_tags(fh.read(TEXT_CAP * 2))[:TEXT_CAP], 0, "html"
+    if ext in (".docx", ".pptx", ".xlsx", ".xlsm"):
+        import zipfile
+        with zipfile.ZipFile(full) as z:
+            names = z.namelist()
+            if ext == ".docx":
+                return _xml_text(z.read("word/document.xml").decode("utf-8", "replace"))[:TEXT_CAP], 0, "docx"
+            if ext == ".pptx":
+                slides = sorted(n for n in names if re.match(r"ppt/slides/slide\d+\.xml$", n))
+                return "\n\n".join(_xml_text(z.read(n).decode("utf-8", "replace")) for n in slides)[:TEXT_CAP], len(slides), "pptx"
+            # a spreadsheet: sheet names and the first rows of each, values through the shared strings
+            shared = []
+            if "xl/sharedStrings.xml" in names:
+                shared = [_strip_tags(x) for x in re.findall(r"(?s)<si>(.*?)</si>", z.read("xl/sharedStrings.xml").decode("utf-8", "replace"))]
+            wb = z.read("xl/workbook.xml").decode("utf-8", "replace") if "xl/workbook.xml" in names else ""
+            sheet_names = re.findall(r'<sheet[^>]*name="([^"]*)"', wb)
+            sheets = sorted(n for n in names if re.match(r"xl/worksheets/sheet\d+\.xml$", n))
+            out = []
+            for i, n in enumerate(sheets):
+                title = sheet_names[i] if i < len(sheet_names) else n
+                rows = re.findall(r"(?s)<row[^>]*>(.*?)</row>", z.read(n).decode("utf-8", "replace"))[:60]
+                lines = []
+                for row in rows:
+                    cells = []
+                    for attrs, inner in re.findall(r"(?s)<c([^>]*)>(.*?)</c>", row):
+                        v = re.search(r"<v>(.*?)</v>", inner)
+                        val = v.group(1) if v else _strip_tags(inner)
+                        if 't="s"' in attrs and val.isdigit() and int(val) < len(shared):
+                            val = shared[int(val)]
+                        cells.append(val)
+                    if any(c.strip() for c in cells):
+                        lines.append(" | ".join(cells))
+                out.append(f"## {title}\n" + "\n".join(lines))
+            return "\n\n".join(out)[:TEXT_CAP], len(sheets), "xlsx"
+    return "", 0, "none"
+
+
+def text_of(rel, wait=False):
+    """The text of an attached file from the index, or None while it is still being read.
+    With wait=True the file is read now; otherwise a background thread reads it once."""
+    rel = _clean_rel(rel)
+    full = file_path(rel) if rel else None
+    if not full or not os.path.isfile(full):
+        return None
+    d = _read_text_cache(rel)
+    if d:
+        return d
+    if wait:
+        return _extract_now(rel, full)
+    with _extract_lock:
+        if rel in _extracting:
+            return None
+        _extracting.add(rel)
+    threading.Thread(target=_extract_now, args=(rel, full), daemon=True).start()
+    return None
+
+
+def _extract_now(rel, full):
+    import json
+    try:
+        try:
+            text, pages, how = _extract(full)
+            err = ""
+        except Exception as exc:  # noqa: BLE001
+            text, pages, how, err = "", 0, "none", f"{type(exc).__name__}: {exc}"[:200]
+        try:
+            d = {"file": rel, "mtime": os.path.getmtime(full), "size": os.path.getsize(full),
+                 "text": text, "chars": len(text), "pages": pages, "how": how, "error": err,
+                 "read_at": datetime.now().strftime("%Y-%m-%d %H:%M")}
+            os.makedirs(INDEX_DIR, exist_ok=True)
+            tmp = _text_cache_path(rel) + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as fh:
+                json.dump(d, fh)
+            os.replace(tmp, _text_cache_path(rel))
+        except OSError:
+            return None                 # the file went away while it was being read: nothing to keep
+        return d
+    finally:
+        with _extract_lock:
+            _extracting.discard(rel)
+
+
+def text_status(rel):
+    """What the reader sees under a file: how many pages and characters were read, or that
+    the desk is still reading it, or that this kind of file has no text to read."""
+    full = file_path(rel)
+    if not full or not os.path.isfile(full):
+        return {"state": "missing"}
+    d = text_of(rel)
+    if d is None:
+        return {"state": "reading"}
+    if d.get("error"):
+        return {"state": "failed", "error": d["error"]}
+    if not d.get("chars"):
+        return {"state": "none", "how": d.get("how")}
+    return {"state": "ready", "chars": d["chars"], "pages": d.get("pages", 0), "how": d.get("how")}
+
+
+def context(symbol=None, kind=None, about=None, budget=50000):
+    """What the reader has written and brought in about one subject, as text for the Ask box:
+    the notes' full bodies (newest first) and the text of attached files, cut to a budget."""
+    rows = listing(symbol=symbol, kind=kind, about=about)
+    notes_out, docs_out, left = [], [], budget
+    for r in rows:
+        n = index().get(r["id"])
+        body = (n["body"] or "").strip()
+        if body and left > 0:
+            cut = body[:min(len(body), 6000, left)]
+            notes_out.append({"title": n["title"], "type": n["type"], "kind": n["kind"], "period": n["period"],
+                              "updated": n["updated"], "text": cut + ("…" if len(cut) < len(body) else "")})
+            left -= len(cut)
+    for r in rows:
+        if not r["file"] or left <= 0:
+            continue
+        d = text_of(r["file"])
+        if not d or not d.get("chars"):
+            docs_out.append({"title": r["title"], "file": r["file"], "period": r["period"],
+                             "text": "" if d else "(the desk is still reading this file; ask again in a moment)"})
+            continue
+        cut = d["text"][:min(d["chars"], 24000, left)]
+        docs_out.append({"title": r["title"], "file": r["file"], "period": r["period"], "pages": d.get("pages", 0),
+                         "text": cut + ("…" if len(cut) < d["chars"] else "")})
+        left -= len(cut)
+    return {"subject": symbol or about or kind or "", "notes": notes_out, "documents": docs_out,
+            "note": "the reader's own notes and files about this subject, from their research vault; quote the note or file by title"}
+
+
+def _forget_text(rel):
+    try:
+        os.remove(_text_cache_path(rel))
+    except OSError:
+        pass
 
 
 def _prune(folder):
