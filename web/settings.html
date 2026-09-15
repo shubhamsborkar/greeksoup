@@ -493,9 +493,9 @@ async function loadApps(){
   $("a_apps").innerHTML=d.apps.map(a=>`<div class="app ${a.found&&d.default_door===a.door?"on":""}" data-app="${esc(a.app)}">
     <b>${esc(a.label)}</b><div class="pays">on ${esc(a.pays)}</div>
     <div class="found ${a.found?"yes":""}">${a.found?(d.default_door===a.door?"answers the Ask box":"on this computer"):"not on this computer"}</div>
-    <div class="ab">${a.found?(d.default_door===a.door?`<button class="ghost" data-use="">Stop using it</button>`:`<button class="primary" data-use="${esc(a.door)}">Use it for Ask</button>`)+`<button data-signin="${esc(a.app)}">Sign in</button>`:`<a href="${esc(a.site)}" target="_blank" rel="noopener">Get ${esc(a.label)}</a>`}</div>
+    <div class="ab">${a.found?(a.door&&d.default_door===a.door?`<button class="ghost" data-use="" data-app="${esc(a.app)}">Stop using it</button>`:`<button class="primary" data-use="${esc(a.door)}" data-app="${esc(a.app)}">Use it for Ask</button>`)+`<button data-signin="${esc(a.app)}">Sign in</button>`:`<a href="${esc(a.site)}" target="_blank" rel="noopener">Get ${esc(a.label)}</a>`}</div>
     <div class="msg"></div></div>`).join("");
-  $("a_apps").querySelectorAll("[data-use]").forEach(b=>b.onclick=async()=>{ const r=await post("/api/ai/app/use",{door:b.dataset.use}); if(!r.ok){ alert(r.error||"That did not save."); return; } loadApps(); });
+  $("a_apps").querySelectorAll("[data-use]").forEach(b=>b.onclick=async()=>{ const r=await post("/api/ai/app/use",{door:b.dataset.use,app:b.dataset.use?"":(b.textContent.startsWith("Stop")?"":b.dataset.app)}); if(!r.ok){ alert(r.error||"That did not save."); return; } loadApps(); loadPlugins(); if(window.deskRefreshNav) window.deskRefreshNav(); });
   $("a_apps").querySelectorAll("[data-signin]").forEach(b=>b.onclick=async()=>{ const r=await post("/api/ai/app/signin",{app:b.dataset.signin}); b.closest(".app").querySelector(".msg").textContent=r.ok?r.text:(r.error||"That did not work."); });
 }
 loadApps();

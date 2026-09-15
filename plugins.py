@@ -158,14 +158,28 @@ def doors():
 
 
 def apps_known():
-    """Every app the desk knows how to talk to, found or not, for the Your AI card."""
+    """Every app the desk knows how to talk to, found on this computer or not, for the Your AI
+    card. Found is read from the computer itself, so it is right before any door plugin is in;
+    `door` names the door that reaches it once the Terminal plugin is installed."""
     seen = {d["app"]: d for d in doors()}
     rows = []
     for key, a in APPS.items():
         d = seen.get(key)
         rows.append({"app": key, "label": a["label"], "pays": a["pays"], "site": a["site"], "signin": a["signin"],
-                     "found": bool(d and d["ready"]), "door": d["name"] if d else ""})
+                     "found": bool(_which(key)), "door": d["name"] if d else "", "installed": bool(d)})
     return rows
+
+
+SHIPPED_DIR = os.path.join(HERE, "plugins")
+
+
+def install_shipped(name):
+    """Bring a plugin that ships beside the code into the vault (the Terminal door, when the
+    reader picks an app before installing it by hand). Returns the plugin as installed."""
+    src = os.path.join(SHIPPED_DIR, _safe_name(name))
+    if not os.path.isfile(os.path.join(src, "plugin.json")):
+        raise ValueError("no such shipped plugin")
+    return install_folder(src)
 
 
 def file_path(name, rel):

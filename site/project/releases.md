@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.30. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.31. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.31
+
+*15 September 2026, release 31.* The apps card under Your AI reads the computer itself, so Claude Code, Codex or Gemini CLI show as found before any plugin is in, and Use it for Ask brings the Terminal door in on its own when it is not there yet
 
 ## 2026-09-15.30
 

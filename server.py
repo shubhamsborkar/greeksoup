@@ -3915,7 +3915,16 @@ class Handler(BaseHTTPRequestHandler):
             if self.path.startswith("/api/lists/"):
                 return _lists_post(self, body)
             if self.path == "/api/ai/app/use":
-                door = str(body.get("door", "") or "")
+                door, app = str(body.get("door", "") or ""), str(body.get("app", "") or "")
+                if not door and app:
+                    # the app is on this computer but no door reaches it yet: the shipped Terminal door goes in
+                    try:
+                        desk_plugins.install_shipped("terminal")
+                    except (ValueError, OSError) as exc:
+                        return self._send(json.dumps({"ok": False, "error": f"The Terminal door could not be installed ({exc})."}).encode(), "application/json")
+                    door = next((d["name"] for d in desk_plugins.doors() if d["app"] == app and d["ready"]), "")
+                    if not door:
+                        return self._send(b'{"ok":false,"error":"the app was not found from the desk"}', "application/json")
                 if door and not any(d["name"] == door for d in desk_plugins.doors()):
                     return self._send(b'{"ok":false,"error":"no such app on this computer"}', "application/json")
                 desk_settings.write_env({"AI_DOOR": door})
