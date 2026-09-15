@@ -149,11 +149,50 @@
     document.body.appendChild(t);
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 8000);
   }
+  /* ---- the journal's question: a moment the desk saw, held until the reader says.
+     This time writes it; Always writes it and every one after without asking; Not now
+     lets it go; Never switches the journal off. A decision (a status, a book change)
+     gets a why box. Nothing is written until one of the four is pressed. ------- */
+  let jtoastTimer = null;
+  window.deskJournal = function (j) {
+    if (!j || !j.pending) return;
+    const e = j.pending;
+    const old = document.getElementById("jtoast"); if (old) old.remove();
+    const t = document.createElement("div");
+    t.id = "jtoast";
+    t.innerHTML = `<div class="jt"><b>Journal</b> ${esc((e.symbol ? "$" + e.symbol + " · " : "") + e.text)}</div>` +
+      (e.decision ? `<input class="jw" placeholder="why? one line, or leave it" maxlength="500">` : "") +
+      `<div class="jb"><button data-a="once">This time</button><button data-a="always">Always</button><button data-a="skip" class="ghost">Not now</button><button data-a="never" class="ghost">Never</button></div>`;
+    document.body.appendChild(t);
+    const done = () => t.remove();
+    t.querySelectorAll("button").forEach(b => b.onclick = async () => {
+      const a = b.dataset.a, why = (t.querySelector(".jw") || {}).value || "";
+      t.querySelectorAll("button").forEach(x => x.disabled = true);
+      try {
+        if (a === "always" || a === "never") {
+          await fetch("/api/settings/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ JOURNAL: a }) });
+        }
+        await fetch("/api/research/journal/decide", { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: e.id, write: a === "once" || a === "always", why }) });
+      } catch (err) { /* the moment stays held; the Notes screen lists it */ }
+      done();
+      if (a === "always") railToast("The journal now writes every moment on its own. Change it on Settings. ", "OK", () => {});
+      if (a === "never") railToast("The journal is off. Switch it back on under Settings. ", "OK", () => {});
+    });
+    const w = t.querySelector(".jw");
+    if (w) w.addEventListener("keydown", ev => { if (ev.key === "Enter") { ev.preventDefault(); t.querySelector('[data-a="once"]').click(); } });
+    clearTimeout(jtoastTimer);
+    jtoastTimer = setTimeout(() => { if (document.body.contains(t)) t.remove(); }, 60000);   // held, never dropped: the Notes screen still lists it
+  };
   function applyNav(nav) {
     const next = new Set(nav.hidden || []);
     const same = next.size === hidden.size && [...next].every(k => hidden.has(k));
     hidden = next; store.setItem("desk_hidden", JSON.stringify([...hidden]));
     if (!same) buildRail();
+    if (nav.journal_pending && !document.getElementById("jtoast") && location.pathname !== "/notes" && !sessionStorage.getItem("jseen")) {
+      try { sessionStorage.setItem("jseen", "1"); } catch (e) { /* fine */ }
+      railToast(`${nav.journal_pending} moment${nav.journal_pending === 1 ? "" : "s"} waiting for your journal. `, "Review", () => { location.href = "/notes?journal"; });
+    }
     window.deskNav = nav;
     window.dispatchEvent(new CustomEvent("desk:nav", { detail: nav }));
   }
@@ -631,6 +670,7 @@
         if (!d.ok) throw new Error(d.error || "could not save");
         try { if (d.note.period) localStorage.setItem("gs.period", d.note.period); } catch (e) { /* fine */ }
         sv.innerHTML = `<small class="svm">Saved. <a href="/notes?id=${encodeURIComponent(d.note.id)}">Open the note</a> · <span class="mono">${esc(d.note.path)}</span></small>`;
+        window.deskJournal(d.journal);
       } catch (e) {
         sv.querySelector(".svgo").disabled = false; msg.textContent = "Not saved: " + (e.message || "the desk did not answer.");
       }

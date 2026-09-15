@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.13. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.14. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.14
+
+*15 September 2026, release 14.* The journal that fills itself: the moments the desk sees (a name entering or leaving Desk · Book or a watch grid, a status change, a note or a file saved, an answer kept) become lines in one plain file per day in data/research/journal, with room for your one-line why; you choose on Settings whether the desk asks each time (This time, Always, Not now, Never, right where you are, with a why box on a decision), always writes, or never does; held moments wait in the Journal on the Notes screen rather than disappear, and your own lines go in from the same place
 
 ## 2026-09-15.13
 

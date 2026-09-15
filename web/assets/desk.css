@@ -92,6 +92,14 @@ html[data-rail="min"] #siderail .rhiddenbox{padding:6px 0}
 html[data-rail="min"] #siderail button.rgone span,html[data-rail="min"] #siderail button.rgone em{display:none}
 #railtoast{position:fixed;left:16px;bottom:16px;z-index:80;display:flex;align-items:center;gap:10px;padding:10px 14px;
   background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);font-size:12.5px}
+#jtoast{position:fixed;right:16px;bottom:16px;z-index:80;width:min(420px,92vw);padding:12px 14px;background:var(--panel);color:var(--ink);
+  border:1px solid var(--line2);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.35);font-size:12.5px;display:flex;flex-direction:column;gap:8px}
+#jtoast .jt b{color:var(--accent);margin-right:6px;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+#jtoast .jw{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:6px 9px;font:inherit;font-size:12.5px}
+#jtoast .jb{display:flex;gap:6px;flex-wrap:wrap}
+#jtoast .jb button{background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:7px;padding:5px 11px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+#jtoast .jb button.ghost{background:none;color:var(--ink2);border-color:var(--line2);font-weight:500}
+#jtoast .jb button:disabled{opacity:.5}
 #railtoast button{background:var(--accent);color:#fff;border:0;border-radius:7px;padding:5px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 #siderail a.rlink.on{color:var(--ink);background:var(--panel2);border-color:var(--line2);
   box-shadow:inset 2px 0 0 var(--accent)}

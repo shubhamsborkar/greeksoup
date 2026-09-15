@@ -451,7 +451,9 @@ def save(data):
         with open(os.path.join(NOTES_DIR, nid + ".md"), "w", encoding="utf-8") as fh:
             fh.write(render(note))
     index(force=True)
-    return get(nid)
+    out = get(nid)
+    out["new"] = not existing
+    return out
 
 
 def delete(note_id, with_file=False):
@@ -791,6 +793,165 @@ def timeline(symbol):
     # undated-period items (status changes, notes with no period) come last, by date
     out.sort(key=lambda g: g["period"] == "")
     return {"symbol": sym, "groups": out, "count": len(items)}
+
+
+# ---- the journal that fills itself. The desk sees the moments that matter (a name enters or
+# leaves a book, a status changes, a note or a file is saved, an answer is kept) and writes
+# each as a line in one plain file per day, data/research/journal/YYYY-MM-DD.md, with room for
+# the reader's one-line why. The reader chooses how: JOURNAL=always writes without asking,
+# JOURNAL=ask (the default) holds each moment until the reader says this time or not now,
+# JOURNAL=never writes nothing. What the reader did writes itself; what they thought sits
+# next to it. It only ever records what happened on the desk, never a view of its own.
+DECISIONS = {"status", "book"}
+
+
+def _journal_dir():
+    return os.path.join(RESEARCH_DIR, "journal")
+
+
+def _pending_path():
+    return os.path.join(_journal_dir(), "pending.json")
+
+
+def journal_mode():
+    m = (os.getenv("JOURNAL", "") or "ask").strip().lower()
+    return m if m in ("ask", "always", "never") else "ask"
+
+
+def _read_pending():
+    try:
+        import json
+        with open(_pending_path(), encoding="utf-8") as fh:
+            d = json.load(fh)
+        return d if isinstance(d, list) else []
+    except (OSError, ValueError):
+        return []
+
+
+def _write_pending(rows):
+    import json
+    os.makedirs(_journal_dir(), exist_ok=True)
+    tmp = _pending_path() + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(rows, fh, indent=1)
+    os.replace(tmp, _pending_path())
+
+
+def journal_event(what, symbol="", text=""):
+    """One moment on the desk. Returns what happened to it: written, held for the reader
+    (pending), or dropped because the reader said never."""
+    import uuid
+    entry = {"id": uuid.uuid4().hex[:10], "at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+             "what": what, "symbol": (symbol or "").upper()[:24], "text": (text or "").strip()[:300],
+             "decision": what in DECISIONS}
+    mode = journal_mode()
+    if mode == "never" or not entry["text"]:
+        return {"mode": mode, "written": False, "pending": None}
+    if mode == "always":
+        journal_write(entry)
+        return {"mode": mode, "written": True, "pending": None, "entry": entry}
+    with _lock:
+        rows = _read_pending()
+        rows.append(entry)
+        _write_pending(rows[-200:])
+    return {"mode": mode, "written": False, "pending": entry}
+
+
+def journal_pending():
+    return _read_pending()
+
+
+def journal_decide(entry_id, write, why=""):
+    """The reader's answer to a held moment: write it (with a why, if they gave one) or let it go."""
+    with _lock:
+        rows = _read_pending()
+        hit = next((r for r in rows if r.get("id") == entry_id), None)
+        if not hit:
+            return False
+        _write_pending([r for r in rows if r.get("id") != entry_id])
+    if write:
+        journal_write(hit, why)
+    return True
+
+
+def _day_path(date):
+    return os.path.join(_journal_dir(), date + ".md")
+
+
+def _day_title(date):
+    try:
+        d = datetime.strptime(date, "%Y-%m-%d")
+        return f"Journal, {d.day} {d.strftime('%B %Y')}"
+    except ValueError:
+        return "Journal, " + date
+
+
+def journal_write(entry, why=""):
+    """Append one line to the day's file, making the file if the day is new."""
+    date, time_ = entry["at"][:10], entry["at"][11:16]
+    line = f"- {time_} · " + (f"${entry['symbol']} · " if entry.get("symbol") else "") + entry["text"]
+    why = re.sub(r"\s+", " ", (why or "").strip())[:500]
+    os.makedirs(_journal_dir(), exist_ok=True)
+    path = _day_path(date)
+    with _lock:
+        new = not os.path.exists(path)
+        with open(path, "a", encoding="utf-8") as fh:
+            if new:
+                fh.write(f'---\ntitle: "{_day_title(date)}"\ntype: journal\ndate: {date}\n---\n')
+            fh.write(line + "\n")
+            if why:
+                fh.write(f"  why: {why}\n")
+    return {"date": date, "line": line}
+
+
+_ENTRY = re.compile(r"^- (\d{2}:\d{2}) · (?:\$([A-Z0-9.\-^=]+) · )?(.*)$")
+
+
+def journal_days(limit=90):
+    """The journal as the reader reads it: days newest first, each with its entries and their whys."""
+    d = _journal_dir()
+    if not os.path.isdir(d):
+        return []
+    out = []
+    for name in sorted(os.listdir(d), reverse=True):
+        if not re.match(r"^\d{4}-\d{2}-\d{2}\.md$", name):
+            continue
+        date = name[:-3]
+        entries = []
+        with open(os.path.join(d, name), encoding="utf-8", errors="replace") as fh:
+            for i, raw in enumerate(fh):
+                line = raw.rstrip("\n")
+                m = _ENTRY.match(line)
+                if m:
+                    entries.append({"line": i, "time": m.group(1), "symbol": m.group(2) or "", "text": m.group(3), "why": ""})
+                elif line.startswith("  why: ") and entries:
+                    entries[-1]["why"] = line[7:]
+                elif line.startswith("  ") and entries and entries[-1]["why"]:
+                    entries[-1]["why"] += " " + line.strip()
+        out.append({"date": date, "title": _day_title(date), "path": "/".join(("data", "research", "journal", name)), "entries": entries})
+        if len(out) >= limit:
+            break
+    return out
+
+
+def journal_why(date, line_no, why):
+    """Add or replace the why under one entry, by the entry's line in the day's file."""
+    path = _day_path(re.sub(r"[^0-9-]", "", date or ""))
+    if not os.path.isfile(path):
+        return False
+    why = re.sub(r"\s+", " ", (why or "").strip())[:500]
+    with _lock:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            lines = fh.read().split("\n")
+        if not (0 <= line_no < len(lines)) or not _ENTRY.match(lines[line_no]):
+            return False
+        j = line_no + 1
+        while j < len(lines) and lines[j].startswith("  "):
+            j += 1
+        lines[line_no + 1:j] = [f"  why: {why}"] if why else []
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("\n".join(lines))
+    return True
 
 
 def _forget_text(rel):

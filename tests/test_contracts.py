@@ -409,3 +409,45 @@ def test_research_status_and_timeline(tmp_path):
         desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR, desk_notes.INDEX_DIR = keep
         desk_notes.index(force=True)
 
+
+def test_research_journal(tmp_path, monkeypatch):
+    """The journal that fills itself: in ask mode a moment is held until the reader decides,
+    in always mode it is written at once with the reader's why beside it, in never mode
+    nothing is written; the day's file is plain Markdown the desk reads back, and a why can
+    be added or changed under any entry afterwards."""
+    import notes as desk_notes
+    keep = (desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR, desk_notes.INDEX_DIR)
+    desk_notes.RESEARCH_DIR = str(tmp_path / "research")
+    desk_notes.NOTES_DIR = str(tmp_path / "research" / "notes")
+    desk_notes.FILES_DIR = str(tmp_path / "research" / "files")
+    desk_notes.LEGACY_NOTES_DIR = str(tmp_path / "notes")
+    desk_notes.INDEX_DIR = str(tmp_path / "research" / "index" / "text")
+    try:
+        monkeypatch.setenv("JOURNAL", "ask")
+        r = desk_notes.journal_event("status", "aapl", "status set to researching")
+        assert r["pending"] and r["pending"]["decision"] and not r["written"]
+        assert [p["id"] for p in desk_notes.journal_pending()] == [r["pending"]["id"]]
+        assert desk_notes.journal_days() == []                               # held, not written
+        assert desk_notes.journal_decide(r["pending"]["id"], True, "the quarter changed my mind")
+        assert desk_notes.journal_pending() == []
+        days = desk_notes.journal_days()
+        assert len(days) == 1 and days[0]["entries"][0]["symbol"] == "AAPL" and days[0]["entries"][0]["why"] == "the quarter changed my mind"
+        monkeypatch.setenv("JOURNAL", "always")
+        r2 = desk_notes.journal_event("note", "AAPL", 'call note saved: "Q2 call"')
+        assert r2["written"] and r2["pending"] is None
+        monkeypatch.setenv("JOURNAL", "never")
+        assert desk_notes.journal_event("book", "AAPL", "added to Desk · Book")["written"] is False and desk_notes.journal_pending() == []
+        days = desk_notes.journal_days()
+        assert [e["text"] for e in days[0]["entries"]] == ["status set to researching", 'call note saved: "Q2 call"']
+        text = open(tmp_path / "research" / "journal" / (days[0]["date"] + ".md"), encoding="utf-8").read()
+        assert text.startswith("---\ntitle: \"Journal, ") and "\n  why: the quarter changed my mind\n" in text
+        second = days[0]["entries"][1]
+        assert desk_notes.journal_why(days[0]["date"], second["line"], "wrote it up the same evening")
+        assert desk_notes.journal_days()[0]["entries"][1]["why"] == "wrote it up the same evening"
+        assert desk_notes.journal_why(days[0]["date"], second["line"], "")            # a why can be taken away
+        assert desk_notes.journal_days()[0]["entries"][1]["why"] == ""
+        assert desk_notes.journal_days()[0]["entries"][0]["why"] == "the quarter changed my mind"   # the other entry untouched
+    finally:
+        desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR, desk_notes.INDEX_DIR = keep
+        desk_notes.index(force=True)
+

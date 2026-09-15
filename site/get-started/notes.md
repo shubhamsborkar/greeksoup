@@ -57,6 +57,12 @@ Every listing's page carries a status: **watchlist**, **researching**, **thesis 
 
 Under your notes on a listing's page, and on the Notes screen when you are looking at one name, the **Timeline** lays out everything about that name by the period it belongs to, newest first, and by date inside each: the Q1 call note, the model built after it, the annual report, the day the status changed. It is the folder drawn on a time axis, and it is how the note from twelve months back is one glance away rather than lost.
 
+## The journal that fills itself
+
+The desk sees the moments that matter: a name enters or leaves Desk · Book or a watch grid, a status changes, a note or a file is saved, an answer is kept. Each can become a line in your journal, one plain file per day in `data/research/journal`, with the time, the name and what happened, and room under it for your one-line why. You choose how, on Settings: **Ask** holds each moment and asks you, right where you are, whether to write it (This time, Always, Not now, Never; a decision such as a status or a book change gets a why box); **Always** writes them without asking; **Never** writes nothing. Held moments are never dropped on their own: the sidebar tells you how many are waiting and the Journal on the Notes screen lists them until you decide.
+
+The Journal itself is a button on the Notes screen: the days newest first, every entry with its why, **add a why** under any line later, and a box for your own line whatever the setting says. So what you did writes itself and what you thought sits next to it, and the exit review six months on reads both. The desk records only what happened on the desk, never a view of its own.
+
 ## Keeping an answer
 
 Every answer in the Ask box has a **Save as note** button under it. Press it and a small card opens, already filled from the screen you asked on: the name on a listing's page, commodity on the Commodities screen, macro on Macro. Set the period, change the title if you like, Save. The question and the answer land in the vault as a note of type AI answer, with the screen, the date and the model written at the foot, so you can see later where it came from. Nothing is saved unless you press the button; an answer you do not keep is gone when you close the box.

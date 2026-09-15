@@ -167,6 +167,16 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
     </div>
   </div>
 
+  <!-- Journal -->
+  <div class="panel">
+    <div class="panel-h"><h2>Journal</h2><span class="st" id="j_status"></span></div>
+    <div class="body">
+      <div class="row"><label>The moments the desk sees</label><div class="chips" id="j_chips"></div></div>
+      <div class="row"><span></span><div class="hint">A name entering or leaving Desk · Book or a watch grid, a status changing, a note or a file saved, an answer kept: the desk can write each as a line in your journal, one plain file per day in data/research/journal, with room for your one-line why. <b>Ask</b> holds each moment until you say this time or not now; <b>Always</b> writes them without asking; <b>Never</b> writes nothing. Your own lines go in from the Journal on the Notes screen whatever you choose here.</div></div>
+      <div class="msg" id="j_msg"></div>
+    </div>
+  </div>
+
   <!-- Desk -->
   <div class="panel">
     <div class="panel-h"><h2>This desk</h2><span class="st" id="v_status"></span></div>
@@ -399,6 +409,10 @@ function render(s){
   $("s_auto").checked=a.state==="on"; $("s_auto").disabled=a.state==="other"||a.state==="unknown";
   $("s_auto_txt").textContent=a.text||"";
   $("s_upd").checked=!!s.auto_update;
+  const JL={ask:"Ask me each time",always:"Always write them",never:"Never"};
+  $("j_chips").innerHTML=["ask","always","never"].map(m=>`<button class="chip${(s.journal||"ask")===m?" on":""}" data-m="${m}">${JL[m]}</button>`).join("");
+  $("j_chips").querySelectorAll(".chip").forEach(b=>b.onclick=async()=>{ const r=await post("/api/settings/save",{JOURNAL:b.dataset.m}); if(r.ok){ render(r.state); say("j_msg","Saved.","ok"); } else say("j_msg",r.error||"could not save","err"); });
+  st("j_status",{ask:"asks each time",always:"writes every moment",never:"off"}[s.journal||"ask"],"");
   $("s_upd_txt").textContent=s.auto_update?"A newer version is brought in the day it appears, and the strip tells you what changed.":"The desk tells you on every screen when a newer version exists; you click to bring it in.";
   $("e_mail").placeholder=s.edgar_contact||"you@example.com";
   st("v_status", s.env_exists?"":"no settings file yet; the first save creates it");

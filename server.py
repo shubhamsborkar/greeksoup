@@ -414,6 +414,32 @@ def held_sets():
     return {"book": book, "watch": watch}
 
 
+WATCH_LABEL = {"us": "Watch · US", "global": "Global", "home": "Watch · Home"}
+
+
+def journal(what, symbol="", text=""):
+    """One moment for the journal; never raises, because the journal must never stop the desk."""
+    try:
+        return desk_notes.journal_event(what, symbol, text)
+    except Exception as exc:  # noqa: BLE001
+        return {"mode": "error", "written": False, "pending": None, "error": str(exc)[:120]}
+
+
+def note_moment(note):
+    """The journal line for a note just saved: what sort, its title, its period."""
+    t, title, per = note.get("type", "general"), note.get("title", ""), note.get("period", "")
+    tail = (f", {per}" if per else "") + (" (with a file)" if note.get("file") and t not in ("document", "model", "clipping") else "")
+    if t == "answer":
+        text = f'answer kept: "{title}"'
+    elif t in ("document", "model", "clipping"):
+        text = f'{t} brought in: "{title}"'
+    elif t == "project":
+        text = f'project started: "{title}"'
+    else:
+        text = f'{ {"concall": "call", "general": ""}.get(t, t) } note saved: "{title}"'.replace("  ", " ").strip()
+    return text + tail
+
+
 def name_status(symbol):
     sets = held_sets()
     sym = (symbol or "").upper()
@@ -2788,7 +2814,11 @@ def nav_state():
     choices = screen_choices()
     hidden = [k for k, _, _ in SCREENS
               if k not in ALWAYS_SHOWN and not choices.get(k, k not in default_hidden)]
-    return {"hidden": hidden, "default_hidden": sorted(default_hidden), "choices": choices,
+    try:
+        journal_pending = len(desk_notes.journal_pending()) if desk_notes.journal_mode() == "ask" else 0
+    except Exception:  # noqa: BLE001
+        journal_pending = 0
+    return {"hidden": hidden, "default_hidden": sorted(default_hidden), "choices": choices, "journal_pending": journal_pending,
             "home_market": hm_id,
             "screens": [{"key": k, "href": h, "label": l, "shown": k not in hidden, "fixed": k in ALWAYS_SHOWN} for k, h, l in SCREENS]}
 
@@ -3015,6 +3045,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(json.dumps(n or {"error": "no such note"}).encode(), "application/json")
             elif path == "/api/notes/graph":
                 return self._send(json.dumps(desk_notes.graph((qs.get("symbol", [""])[0] or "").strip())).encode(), "application/json")
+            elif path == "/api/research/journal":
+                return self._send(json.dumps({"mode": desk_notes.journal_mode(), "pending": desk_notes.journal_pending(),
+                                              "days": desk_notes.journal_days()}).encode(), "application/json")
             elif path == "/api/research/status":
                 sym = (qs.get("symbol", [""])[0] or "").strip()
                 if sym:
@@ -3221,16 +3254,21 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(json.dumps({"ok": False, "error": f"Yahoo has no quote for {sym}; use Yahoo's symbol (RELIANCE.NS, MC.PA, 0700.HK)"}).encode(), "application/json")
             upsert(sym, shares, avg, q.get("name"))
             save_book(book); _cache["book"] = (0.0, None)
-            return self._send(json.dumps({"ok": True, "name": q.get("name"), "currency": q.get("currency")}).encode(), "application/json")
+            j = journal("book", sym, f"added to Desk · Book: {shares:g} units at {avg:g}")
+            return self._send(json.dumps({"ok": True, "name": q.get("name"), "currency": q.get("currency"), "journal": j}).encode(), "application/json")
         if self.path == "/api/book/clear":
+            had = len(book["positions"])
             book["positions"] = []
             save_book(book); _cache["book"] = (0.0, None)
-            return self._send(b'{"ok":true}', "application/json")
+            j = journal("book", "", f"Desk · Book cleared ({had} lines)") if had else None
+            return self._send(json.dumps({"ok": True, "journal": j}).encode(), "application/json")
         if self.path == "/api/book/remove":
             sym = str(body.get("symbol", "")).strip().upper()
+            had = any((p.get("symbol") or "").upper() == sym for p in book["positions"])
             book["positions"] = [p for p in book["positions"] if (p.get("symbol") or "").upper() != sym]
             save_book(book); _cache["book"] = (0.0, None)
-            return self._send(b'{"ok":true}', "application/json")
+            j = journal("book", sym, "removed from Desk · Book") if had else None
+            return self._send(json.dumps({"ok": True, "journal": j}).encode(), "application/json")
         if self.path == "/api/book/import":
             lines, errors = _parse_book_lines(str(body.get("csv", "")))
             added = 0
@@ -3265,6 +3303,8 @@ class Handler(BaseHTTPRequestHandler):
             fields = {k: v for k, v in body.items() if isinstance(v, str) and k in desk_settings.ALLOWED}
             if "DESK_AUTO_UPDATE" in fields:
                 fields["DESK_AUTO_UPDATE"] = "on" if fields["DESK_AUTO_UPDATE"].lower() in ("on", "1", "true") else "off"
+            if "JOURNAL" in fields and fields["JOURNAL"].lower() not in ("ask", "always", "never"):
+                return self._send(b'{"ok":false,"error":"the journal takes ask, always or never"}', "application/json")
             if "AI_PROVIDER" in fields and fields["AI_PROVIDER"] and fields["AI_PROVIDER"] not in desk_ai.PROVIDERS:
                 return self._send(b'{"ok":false,"error":"unknown provider"}', "application/json")
             if "AI_FORMAT" in fields and fields["AI_FORMAT"] and fields["AI_FORMAT"] not in desk_ai.FORMATS:
@@ -3406,15 +3446,34 @@ class Handler(BaseHTTPRequestHandler):
                 return self._book_post(body)
             if self.path == "/api/notes/save":
                 try:
-                    return self._send(json.dumps({"ok": True, "note": desk_notes.save(body)}).encode(), "application/json")
+                    note = desk_notes.save(body)
+                    j = journal("note", (note.get("symbols") or [""])[0] or "", note_moment(note)) if note.get("new") else None
+                    return self._send(json.dumps({"ok": True, "note": note, "journal": j}).encode(), "application/json")
                 except ValueError as exc:
                     return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
             if self.path == "/api/notes/delete":
                 return self._send(json.dumps({"ok": desk_notes.delete(str(body.get("id", "")), bool(body.get("with_file")))}).encode(), "application/json")
+            if self.path == "/api/research/journal/decide":
+                ok = desk_notes.journal_decide(str(body.get("id", "")), bool(body.get("write")), str(body.get("why", "")))
+                return self._send(json.dumps({"ok": ok, "pending": len(desk_notes.journal_pending())}).encode(), "application/json")
+            if self.path == "/api/research/journal/why":
+                ok = desk_notes.journal_why(str(body.get("date", "")), int(body.get("line", -1)), str(body.get("why", "")))
+                return self._send(json.dumps({"ok": ok}).encode(), "application/json")
+            if self.path == "/api/research/journal/add":
+                # the reader's own line, written straight in
+                text = str(body.get("text", "")).strip()[:300]
+                if not text:
+                    return self._send(b'{"ok":false,"error":"Write a line first."}', "application/json")
+                e = {"id": "", "at": datetime.now().strftime("%Y-%m-%d %H:%M"), "what": "you", "symbol": str(body.get("symbol", "")).upper()[:24], "text": text}
+                return self._send(json.dumps({"ok": True, **desk_notes.journal_write(e, str(body.get("why", "")))}).encode(), "application/json")
             if self.path == "/api/research/status":
                 try:
+                    before = desk_notes.status_all().get(str(body.get("symbol", "")).upper(), {}).get("status", "")
                     st = desk_notes.set_status(str(body.get("symbol", "")), str(body.get("status", "")))
-                    return self._send(json.dumps({"ok": True, "status": name_status(st["symbol"])}).encode(), "application/json")
+                    j = None
+                    if st["status"] != before:
+                        j = journal("status", st["symbol"], f"status set to {st['status']}" if st["status"] else "status cleared")
+                    return self._send(json.dumps({"ok": True, "status": name_status(st["symbol"]), "journal": j}).encode(), "application/json")
                 except ValueError as exc:
                     return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
             if self.path == "/api/research/remove_file":
@@ -3451,7 +3510,7 @@ class Handler(BaseHTTPRequestHandler):
                     save_watchlist_us(names)
                     with _watch_lock:
                         WATCH_US[code] = q
-                    return self._send(b'{"ok":true}', "application/json")
+                    return self._send(json.dumps({"ok": True, "journal": journal("watch", code, f"added to {WATCH_LABEL.get(region, 'Watch')}")}).encode(), "application/json")
                 if region == "global":
                     names = load_watchlist_global()
                     if any(n["code"] == code for n in names):
@@ -3465,7 +3524,7 @@ class Handler(BaseHTTPRequestHandler):
                     save_watchlist_global(names)
                     with _watch_lock:
                         WATCH_GLOBAL[code] = q
-                    return self._send(b'{"ok":true}', "application/json")
+                    return self._send(json.dumps({"ok": True, "journal": journal("watch", code, f"added to {WATCH_LABEL.get(region, 'Watch')}")}).encode(), "application/json")
                 names = load_watchlist()
                 m = _market()
                 exch = str(body.get("exch", "")).strip().upper() or (m.META["exchanges"][0] if m else "")
@@ -3487,7 +3546,7 @@ class Handler(BaseHTTPRequestHandler):
                 save_watchlist(names)
                 with _watch_lock:
                     WATCH[code] = q
-                return self._send(b'{"ok":true}', "application/json")
+                return self._send(json.dumps({"ok": True, "journal": journal("watch", code, f"added to {WATCH_LABEL.get(region, 'Watch')}")}).encode(), "application/json")
             if self.path == "/api/watch/remove":
                 if region == "us":
                     save_watchlist_us([n for n in load_watchlist_us() if n["code"] != code])
@@ -3501,7 +3560,7 @@ class Handler(BaseHTTPRequestHandler):
                     save_watchlist([n for n in load_watchlist() if n["code"] != code])
                     with _watch_lock:
                         WATCH.pop(code, None)
-                return self._send(b'{"ok":true}', "application/json")
+                return self._send(json.dumps({"ok": True, "journal": journal("watch", code, f"removed from {WATCH_LABEL.get(region, 'Watch')}")}).encode(), "application/json")
             self.send_error(404)
         except Exception as exc:  # noqa: BLE001
             self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")

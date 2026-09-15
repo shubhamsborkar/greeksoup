@@ -37,6 +37,7 @@ ALLOWED = {
     "EDGAR_CONTACT": (False, "the e-mail the SEC asks for on every request"),
     "DESK_AUTO_UPDATE": (False, "on: bring a newer version in without the click"),
     "SCREENS": (False, "screens you chose to show or hide in the sidebar (key:on or key:off); the rest follow the home market"),
+    "JOURNAL": (False, "ask (the default), always or never: how the journal takes the moments the desk sees"),
 }
 try:
     import brokers as _brokers
@@ -133,6 +134,7 @@ def current():
         "edgar_contact": g("EDGAR_CONTACT"),
         "home_market": (g("HOME_MARKET") or "").lower(),
         "auto_update": (env.get("DESK_AUTO_UPDATE") or os.getenv("DESK_AUTO_UPDATE", "off")).strip().lower() == "on",
+        "journal": ((env.get("JOURNAL") or os.getenv("JOURNAL", "ask")).strip().lower() or "ask"),
         "env_exists": os.path.exists(ENV_PATH),
     }
 

@@ -59,6 +59,17 @@ select.chip{font-family:inherit;padding:3px 6px}
 .ask{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--ink2)}
 .ask button{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer}
 .ask button.danger{color:var(--neg)}
+.jday{margin:0 0 18px} .jday h3{font-size:12px;color:var(--ink2);margin:0 0 6px;display:flex;justify-content:space-between;align-items:baseline} .jday h3 small{font-family:Menlo,monospace;color:var(--muted);font-weight:400;font-size:10.5px}
+.je{display:grid;grid-template-columns:44px 1fr;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:12.5px;align-items:baseline}
+.je .t{font-family:Menlo,monospace;color:var(--muted);font-size:11px}
+.je .sy{font-family:Menlo,monospace;font-weight:700;color:var(--ink2);margin-right:6px}
+.je .why{display:block;color:var(--ink2);font-size:12px;margin-top:3px;padding-left:10px;border-left:2px solid var(--line2)}
+.je .addwhy{display:inline-block;color:var(--muted);font-size:11px;cursor:pointer;margin:3px 0 0 8px} .je .addwhy:hover{color:var(--accent)}
+.je input{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:5px 9px;font:inherit;font-size:12px;margin-top:4px}
+.jpend{border:1px solid var(--accent);border-radius:10px;padding:10px 12px;margin:0 0 14px}
+.jpend .l{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:6px}
+.jown{display:flex;gap:8px;margin:0 0 16px} .jown input{flex:1;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font:inherit;font-size:12.5px}
+.jown button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer}
 .ed .msg.ok{color:var(--pos)} .ed .msg.err{color:var(--neg)}
 .symwrap{position:relative;display:inline-block}
 .sugg{position:absolute;left:0;top:calc(100% + 4px);z-index:20;min-width:340px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);overflow:hidden;display:none}
@@ -112,7 +123,7 @@ select.chip{font-family:inherit;padding:3px 6px}
   <div class="sub">Your research vault: the notes you write and the files you bring in, kept as plain files in the desk's own <b>data/research</b> folder. A note says what it is about (a listing, a commodity, a sector, the macro picture, or nothing in particular), the quarter it is researching, the project it belongs to, and links to other notes with <b>[[double brackets]]</b>, so a company page shows every note about it, a project shows every name and note inside it, and one note leads to the next. An annual report, a model or a screenshot attaches to a note and lives in the vault with it. Open the folder in Obsidian or any editor and the same files are there; your AI agent reads and writes them too. Nothing is saved here unless you save it.</div>
   <div class="lay">
     <div class="panel">
-      <div class="panel-h"><h2>Notes</h2><button class="chip on" id="newbtn">+ New note</button></div>
+      <div class="panel-h"><h2>Notes</h2><span><button class="chip" id="jbtn" title="the moments the desk saw, and your one-line whys">Journal</button> <button class="chip on" id="newbtn">+ New note</button></span></div>
       <div class="tools">
         <input id="q" placeholder="search notes and inside their files…" autocomplete="off">
         <select id="period" class="chip" title="the quarter or year a note is researching"><option value="">any period</option></select>
@@ -276,6 +287,29 @@ async function open(id){
   $("view").querySelectorAll("a.nl, a.wl[data-id]").forEach(a=>a.onclick=e=>{e.preventDefault();open(a.dataset.id);});
 }
 
+/* the Journal: the moments the desk saw (held, or written), the reader's own lines, and the whys */
+async function showJournal(){
+  CUR=null; $("blank").style.display="none"; $("ed").style.display="none"; $("view").style.display="block"; history.replaceState(null,"","/notes?journal");
+  document.querySelectorAll(".nc").forEach(a=>a.classList.remove("on"));
+  let j; try{ j=await (await fetch("/api/research/journal")).json(); }catch(e){ return; }
+  const MODE={ask:"asks you about each moment",always:"writes every moment on its own",never:"is off; your own lines still go in"};
+  const pend=j.pending||[], days=j.days||[];
+  $("view").innerHTML=`<div class="view"><h1>Journal</h1>
+    <div class="meta"><span>The journal ${MODE[j.mode]||""}. <a href="/settings" style="color:var(--accent);text-decoration:none">Change that on Settings</a>.</span></div>
+    <div class="jown"><input id="j_own" placeholder="Your own line for today: what you did, what you thought. Enter writes it." maxlength="300"><button id="j_add">Write</button></div>
+    ${pend.length?`<div class="jpend"><div class="l">Held for you · ${pend.length}</div>${pend.map(e=>`<div class="je" data-id="${esc(e.id)}"><span class="t">${esc(e.at.slice(5))}</span><span><span class="sy">${e.symbol?"$"+esc(e.symbol):""}</span>${esc(e.text)}${e.decision?`<input class="pw" placeholder="why? one line, or leave it">`:""}<div class="ask" style="margin-top:6px"><button class="pw1">write it</button><button class="pw0 danger">let it go</button></div></span></div>`).join("")}</div>`:""}
+    ${days.length?days.map(d=>`<div class="jday"><h3><span>${esc(d.title)}</span><small>${esc(d.path)}</small></h3>${d.entries.map(e=>`<div class="je" data-date="${esc(d.date)}" data-line="${e.line}"><span class="t">${esc(e.time)}</span><span><span class="sy">${e.symbol?"$"+esc(e.symbol):""}</span>${esc(e.text)}${e.why?`<span class="why">${esc(e.why)}</span>`:""}<span class="addwhy">${e.why?"change the why":"add a why"}</span></span></div>`).join("")}</div>`).join(""):`<div style="font-size:12.5px;color:var(--muted);line-height:1.6">Nothing written yet. ${j.mode==="never"?"The journal is off; your own lines above still go in.":"The first moment the desk sees (a name added to the book, a status set, a note saved) lands here"+(j.mode==="ask"?" once you say so":"")+"."}</div>`}
+  </div>`;
+  $("j_add").onclick=async()=>{ const t=$("j_own").value.trim(); if(!t) return; const r=await post("/api/research/journal/add",{text:t,symbol:F.symbol||""}); if(r.ok) showJournal(); };
+  $("j_own").addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault();$("j_add").click();} });
+  $("view").querySelectorAll(".jpend .je").forEach(el=>{ const id=el.dataset.id; const w=el.querySelector(".pw");
+    el.querySelector(".pw1").onclick=async()=>{ await post("/api/research/journal/decide",{id,write:true,why:w?w.value:""}); showJournal(); };
+    el.querySelector(".pw0").onclick=async()=>{ await post("/api/research/journal/decide",{id,write:false}); showJournal(); }; });
+  $("view").querySelectorAll(".jday .je").forEach(el=>{ const a=el.querySelector(".addwhy"); a.onclick=()=>{ if(el.querySelector("input")) return; const cur=el.querySelector(".why"); const inp=document.createElement("input"); inp.value=cur?cur.textContent:""; inp.placeholder="why? one line"; inp.maxLength=500; a.replaceWith(inp); inp.focus();
+    const done=async(save)=>{ if(save){ await post("/api/research/journal/why",{date:el.dataset.date,line:+el.dataset.line,why:inp.value}); } showJournal(); };
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault();done(true);} if(e.key==="Escape") done(false); }); inp.addEventListener("blur",()=>done(true)); }; });
+}
+$("jbtn").onclick=showJournal;
 /* the Timeline: everything about one name by period and date, in the right panel while a name is being looked at */
 async function showTimeline(sym){
   let tl; try{ tl=await (await fetch("/api/research/timeline?symbol="+encodeURIComponent(sym))).json(); }catch(e){ return; }
@@ -338,6 +372,7 @@ $("e_save").onclick=async()=>{
   const r=await post("/api/notes/save",body);
   if(!r.ok) return say(r.error||"could not save","err");
   say("Saved.","ok"); await load(); open(r.note.id);
+  if(window.deskJournal) deskJournal(r.journal);
 };
 $("e_del").onclick=()=>{
   if(!CUR) return;
@@ -361,7 +396,7 @@ symIn.addEventListener("input",()=>{ clearTimeout(sugT); const q=symIn.value.tri
 symIn.addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault(); if(hits.length) pick(0); else { const s=symIn.value.trim().toUpperCase(); if(s&&!EDIT.syms.includes(s)){EDIT.syms.push(s);drawSyms();} symIn.value=""; } } if(e.key==="Escape") showSugg([]); });
 symIn.addEventListener("blur",()=>setTimeout(()=>showSugg([]),150));
 
-(async()=>{ await load(); if(P.get("id")) open(P.get("id")); else if(P.get("new")!==null&&P.has("new")) edit(null); })();
+(async()=>{ await load(); if(P.get("id")) open(P.get("id")); else if(P.has("new")) edit(null); else if(P.has("journal")) showJournal(); })();
 </script>
 </body>
 </html>

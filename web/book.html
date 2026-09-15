@@ -148,7 +148,7 @@ async function load(){
         <td><button class="x" data-sym="${esc(p.symbol)}" title="remove this line">✕</button></td></tr>`;
     }
     document.getElementById("table").innerHTML=h+"</tbody></table>";
-    document.querySelectorAll("button.x").forEach(b=>b.onclick=async()=>{ if(!confirm(`Remove ${b.dataset.sym} from the book?`)) return; await post("/api/book/remove",{symbol:b.dataset.sym}); load(); });
+    document.querySelectorAll("button.x").forEach(b=>b.onclick=async()=>{ if(!confirm(`Remove ${b.dataset.sym} from the book?`)) return; const d=await post("/api/book/remove",{symbol:b.dataset.sym}); load(); if(window.deskJournal) deskJournal(d.journal); });
   }
   document.getElementById("cashlist").textContent=(D.cash||[]).filter(c=>c.amount).map(c=>`${c.currency} ${num(c.amount,0)}`).join(" · ")||"no cash recorded";
 }
@@ -159,7 +159,7 @@ document.getElementById("f_add").onclick=async()=>{
   if(!symbol||isNaN(shares)||isNaN(avg_cost)) return say("addmsg","A symbol, the shares and your average cost are all needed. Type the company's name and pick the listing from the list.","err");
   say("addmsg","Checking "+symbol+" on Yahoo…");
   const r=await post("/api/book/add",{symbol,shares,avg_cost});
-  if(r.ok){ say("addmsg",`${symbol} saved${r.name?" · "+r.name:""}${r.currency?" · "+r.currency:""}`,"ok"); document.getElementById("f_sym").value="";document.getElementById("f_sh").value="";document.getElementById("f_ac").value=""; load(); }
+  if(r.ok){ say("addmsg",`${symbol} saved${r.name?" · "+r.name:""}${r.currency?" · "+r.currency:""}`,"ok"); document.getElementById("f_sym").value="";document.getElementById("f_sh").value="";document.getElementById("f_ac").value=""; load(); if(window.deskJournal) deskJournal(r.journal); }
   else say("addmsg",r.error||"could not save","err");
 };
 // type a name, pick the listing: Yahoo's search, through the desk
@@ -183,7 +183,7 @@ symIn.addEventListener("keydown",e=>{
   if(e.key==="Enter") document.getElementById("f_add").click();
 });
 symIn.addEventListener("blur",()=>setTimeout(()=>showSugg([]),150));
-document.getElementById("clearall").onclick=async()=>{ if(!confirm("Remove every line from the book? Cash stays as it is.")) return; await post("/api/book/clear",{}); load(); };
+document.getElementById("clearall").onclick=async()=>{ if(!confirm("Remove every line from the book? Cash stays as it is.")) return; const d=await post("/api/book/clear",{}); load(); if(window.deskJournal) deskJournal(d.journal); };
 document.getElementById("f_ac").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("f_add").click();});
 document.getElementById("imp").onclick=async()=>{
   const csv=document.getElementById("csv").value.trim(); if(!csv) return say("impmsg","Nothing to import.","err");
