@@ -42,6 +42,7 @@ import fred                        # FRED, keyless
 import freefeed          # keyless Yahoo fallbacks for the US pages
 import sec_form4         # keyless Form 4 from EDGAR
 import house_ptr         # keyless House trading disclosures
+import notes as desk_notes   # the research you write: Markdown files in data/notes, linked to names and projects
 
 PORT = int(os.getenv("DESK_PORT", "8765"))
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -2736,7 +2737,8 @@ SCREENS = [
     ("risk", "/risk", "Risk"), ("watch", "/watch", "Watch · Home"), ("watchus", "/watch?list=us", "Watch · US"),
     ("global", "/watch?list=global", "Global"), ("funds", "/funds", "Funds"), ("flow", "/flow", "Flow"),
     ("short", "/short", "Short"), ("capitol", "/capitol", "Capitol"), ("macro", "/macro", "Macro"),
-    ("commods", "/commods", "Commodities"), ("chain", "/chain", "Chain"), ("settings", "/settings", "Settings"),
+    ("commods", "/commods", "Commodities"), ("chain", "/chain", "Chain"), ("notes", "/notes", "Notes"),
+    ("settings", "/settings", "Settings"),
 ]
 ALWAYS_SHOWN = {"home", "settings"}
 
@@ -2798,7 +2800,8 @@ ASK_READS = {
     "/macro": ("Macro", ["/api/macro", "/api/econcal"]),
     "/commods": ("Commodities", ["/api/commods"]),
     "/chain": ("Chain", ["/api/chain"]),
-    "/t": ("Ticker", ["/api/ticker?symbol={symbol}&region={region}"]),
+    "/t": ("Ticker", ["/api/ticker?symbol={symbol}&region={region}", "/api/notes?symbol={symbol}"]),
+    "/notes": ("Notes", ["/api/notes", "/api/notes/graph"]),
     "/settings": ("Settings", []),
 }
 ASK_CAP = 90000   # characters of screen data sent with a question, at most
@@ -2885,6 +2888,13 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
 /macro       Macro                          /api/macro      the macro cards;  /api/econcal  the calendar
 /commods     Commodities                    /api/commods    the commodity board and its exposure map
 /chain       Chain                          /api/chain      the value-chain maps, priced
+/notes       Notes, the research you write  /api/notes?symbol=&project=&type=&q=   the notes, filtered
+                                            /api/notes/get?id=   one note with its body
+                                            /api/notes/graph?symbol=   what connects to what
+             The notes are Markdown files in data/notes, one per note, with a front matter card
+             (title, type, symbols, project, tags). You may read and write those files directly;
+             the desk re-reads the folder within seconds. $AAPL in a body names a listing,
+             [[Title]] links to another note, a note of type project groups names and notes.
 /t?symbol=AAPL   a ticker page              /api/ticker?symbol=AAPL   chart, quote, ratios, insiders
 /t?symbol=X&region=home  a home-market name /api/ticker?symbol=X&region=home  (broker code or exchange symbol)
                                             /api/fin?symbol=AAPL      statements, estimates, peers (needs the data key)
@@ -2943,6 +2953,18 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(b'{"ok":true}', "application/json")
             elif path == "/api/nav":
                 return self._send(json.dumps(nav_state()).encode(), "application/json")
+            elif path == "/notes":
+                with open(os.path.join(HERE, "web", "notes.html"), "rb") as fh:
+                    self._send(fh.read(), "text/html; charset=utf-8")
+            elif path == "/api/notes":
+                g = lambda k: (qs.get(k, [""])[0] or "").strip()[:120]  # noqa: E731
+                return self._send(json.dumps({"notes": desk_notes.listing(g("symbol"), g("project"), g("type"), g("tag"), g("q")),
+                                              "types": desk_notes.TYPES, "folder": desk_notes.NOTES_DIR}).encode(), "application/json")
+            elif path == "/api/notes/get":
+                n = desk_notes.get((qs.get("id", [""])[0] or "").strip())
+                return self._send(json.dumps(n or {"error": "no such note"}).encode(), "application/json")
+            elif path == "/api/notes/graph":
+                return self._send(json.dumps(desk_notes.graph((qs.get("symbol", [""])[0] or "").strip())).encode(), "application/json")
             elif path == "/settings":
                 with open(os.path.join(HERE, "web", "settings.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
@@ -3279,6 +3301,13 @@ class Handler(BaseHTTPRequestHandler):
             code = str(body.get("code", "")).strip().upper()
             if self.path.startswith("/api/book/"):
                 return self._book_post(body)
+            if self.path == "/api/notes/save":
+                try:
+                    return self._send(json.dumps({"ok": True, "note": desk_notes.save(body)}).encode(), "application/json")
+                except ValueError as exc:
+                    return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
+            if self.path == "/api/notes/delete":
+                return self._send(json.dumps({"ok": desk_notes.delete(str(body.get("id", "")))}).encode(), "application/json")
             if self.path.startswith("/api/settings/"):
                 return self._settings_post(body)
             if self.path == "/api/ask":

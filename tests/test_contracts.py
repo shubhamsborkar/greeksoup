@@ -182,3 +182,26 @@ def test_docs_nav_points_at_real_pages():
         for page in sec["pages"]:
             path = os.path.join(HERE, "site", sec["dir"], page + ".md")
             assert os.path.isfile(path), f"docs page missing: {path}"
+
+
+def test_notes_parse_render_and_links(tmp_path):
+    """A note round-trips through its file, names a listing from the body, and the
+    folder's links, backlinks and project membership resolve by title."""
+    import notes as desk_notes
+    n = desk_notes.parse("---\ntitle: One\ntype: concall\nsymbols: [AAPL]\nproject: P\ntags: [x]\n---\nSee [[Two]] and $MSFT.")
+    assert n["symbols"] == ["AAPL", "MSFT"] and n["links"] == ["Two"] and n["type"] == "concall"
+    again = desk_notes.parse(desk_notes.render({**n, "created": "c", "updated": "u"}))
+    assert again["title"] == "One" and again["symbols"] == ["AAPL", "MSFT"] and again["project"] == "P"
+    old_dir = desk_notes.NOTES_DIR
+    desk_notes.NOTES_DIR = str(tmp_path)
+    try:
+        (tmp_path / "p.md").write_text("---\ntitle: P\ntype: project\nsymbols: [AAPL]\n---\nproject", encoding="utf-8")
+        (tmp_path / "one.md").write_text("---\ntitle: One\ntype: risk\nsymbols: [MSFT]\nproject: P\n---\nlinks [[P]]", encoding="utf-8")
+        idx = desk_notes.index(force=True)
+        assert idx["one"]["project_id"] == "p" and "one" in idx["p"]["backlinks"]
+        g = desk_notes.graph("AAPL")
+        assert "MSFT" in g["related_symbols"]          # connected through the project
+        assert {r["id"] for r in desk_notes.listing(symbol="MSFT")} == {"one", "p"}   # the note, and the project it joins
+    finally:
+        desk_notes.NOTES_DIR = old_dir
+        desk_notes.index(force=True)

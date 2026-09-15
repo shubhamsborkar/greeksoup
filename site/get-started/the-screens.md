@@ -1,5 +1,5 @@
 ---
-title: The fourteen screens
+title: The fifteen screens
 nav: The screens
 description: Every screen on the GreekSoup desk in one line each, grouped the way the sidebar groups them, with what each one reads.
 lead: One line per screen, in the order the sidebar lists them. Every number on every screen names its source on the screen itself.
@@ -40,3 +40,7 @@ lead: One line per screen, in the order the sidebar lists them. Every number on 
 ## Hiding a screen
 
 Every screen except Desk · Home and Settings can be hidden: hover it in the sidebar and click the cross, or use the Screens panel in Settings, which also brings one back. Screens you have not touched follow your home market. The choice is kept in your own settings file and survives every update.
+
+## Research
+
+- **Notes**: the research you write, kept as plain Markdown files in the desk folder and connected to the listings they name, the projects they belong to and the notes they link to. [How notes connect](/docs/get-started/notes/).

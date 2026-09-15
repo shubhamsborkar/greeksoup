@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Notes — GreekSoup</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23ED5A24'/><text x='16' y='22' font-size='15' font-weight='800' font-family='Arial' fill='white' text-anchor='middle'>GS</text></svg>">
+<link rel="stylesheet" href="/assets/desk.css">
+<script src="/assets/desk.js" defer></script>
+<style>
+main{max-width:1420px;margin:0 auto;padding:18px 22px}
+.sub{color:var(--muted);font-size:12px;margin-bottom:14px;line-height:1.5}
+.sub b{color:var(--ink2)}
+.lay{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:16px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.panel-h{padding:11px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.panel-h h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2)}
+.panel-h .s{font-size:11px;color:var(--muted)}
+.tools{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tools input{flex:1 1 140px;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:6px 10px;font-size:12px;font-family:inherit;min-width:0}
+.chip{font-size:10.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink2);cursor:pointer;user-select:none;white-space:nowrap}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip.sym{font-family:Menlo,monospace;font-weight:700}
+.list{max-height:calc(100vh - 290px);overflow:auto}
+.nc{display:block;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;color:inherit;text-decoration:none}
+.nc:hover,.nc.on{background:var(--panel2)}
+.nc .t{font-size:13px;font-weight:600;display:flex;gap:8px;align-items:baseline}
+.nc .t .ty{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700}
+.nc .t .pin{color:var(--muted);font-size:10px}
+.nc .m{font-size:10.5px;color:var(--muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.nc .m .sy{font-family:Menlo,monospace;color:var(--ink2)}
+.nc .sn{font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{padding:26px 15px;color:var(--muted);font-size:12.5px;line-height:1.6}
+.ed{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.ed .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ed input,.ed select,.ed textarea{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:inherit}
+.ed input.title{flex:1 1 320px;font-size:16px;font-weight:600;padding:9px 12px}
+.ed select{min-width:120px}
+.ed textarea{width:100%;min-height:320px;font-family:Menlo,monospace;font-size:12.5px;line-height:1.55;resize:vertical}
+.ed .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);min-width:70px}
+.ed button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:12.5px}
+.ed button.ghost{background:var(--panel2);color:var(--ink2);border:1px solid var(--line2)}
+.ed button.danger{background:none;color:var(--neg);border:1px solid var(--line2)}
+.ed .msg{font-size:11.5px;color:var(--muted)}
+.ed .msg.ok{color:var(--pos)} .ed .msg.err{color:var(--neg)}
+.symwrap{position:relative;display:inline-block}
+.sugg{position:absolute;left:0;top:calc(100% + 4px);z-index:20;min-width:340px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);overflow:hidden;display:none}
+.sugg.on{display:block}
+.sugg button{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:10px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:8px 12px;color:var(--ink);font:inherit;font-size:12.5px;cursor:pointer;border-radius:0;font-weight:400}
+.sugg button:first-child{border-top:0}
+.sugg button:hover{background:var(--panel2)}
+.sugg .sy{font-family:Menlo,monospace;font-weight:700}
+.sugg .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink2)}
+.sugg .e{color:var(--muted);font-size:10.5px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chips .chip .x{margin-left:6px;opacity:.7}
+.view{padding:16px 18px}
+.view h1{font-size:22px;margin:0 0 6px}
+.view .meta{font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.view .meta .ty{color:var(--accent);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.md{font-size:13.5px;line-height:1.65;color:var(--ink)}
+.md h1,.md h2,.md h3{margin:16px 0 6px;font-size:15px}
+.md h2{font-size:14px} .md h3{font-size:13px}
+.md p{margin:0 0 10px} .md ul,.md ol{margin:0 0 10px 20px}
+.md code{font-family:Menlo,monospace;font-size:12px;background:var(--panel2);padding:1px 5px;border-radius:4px}
+.md a{color:var(--accent);text-decoration:none} .md a.wl{border-bottom:1px dashed var(--accent)}
+.md a.sy{font-family:Menlo,monospace;font-weight:700}
+.md blockquote{margin:0 0 10px;padding:4px 12px;border-left:2px solid var(--line2);color:var(--ink2)}
+.conn{padding:12px 16px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.conn .g .l{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+.conn a{display:inline-block;font-size:11.5px;color:var(--ink2);margin:0 8px 6px 0;text-decoration:none}
+.conn a:hover{color:var(--accent)}
+.conn a.sy{font-family:Menlo,monospace;font-weight:700}
+.stats{display:flex;gap:14px;font-size:11px;color:var(--muted);padding:0 15px 10px}
+.stats b{color:var(--ink2)}
+.view .btns{display:flex;gap:8px;margin-top:14px}
+.view .btns button{background:var(--panel2);color:var(--ink2);border:1px solid var(--line2);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer}
+.view .btns button.pri{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
+@media (max-width:900px){.lay{grid-template-columns:1fr}.list{max-height:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">RESEARCH <span>DESK</span></div>
+  <nav></nav>
+  <div class="right"><span id="asof"></span></div>
+</header>
+<main>
+  <div class="sub">The research you write, kept as plain text files in the desk's own <b>data/notes</b> folder, one file per note. A note names the listings it is about and the project it belongs to, and links to other notes with <b>[[double brackets]]</b>, so a company page shows every note about it, a project shows every name and note inside it, and one note leads to the next. Open the folder in Obsidian or any editor and the same notes are there; your AI agent reads and writes them too.</div>
+  <div class="lay">
+    <div class="panel">
+      <div class="panel-h"><h2>Notes</h2><button class="chip on" id="newbtn">+ New note</button></div>
+      <div class="tools">
+        <input id="q" placeholder="search notes…" autocomplete="off">
+        <span class="chips" id="typechips"></span>
+      </div>
+      <div class="tools" id="ctx" style="display:none"></div>
+      <div class="list" id="list"><div class="empty">Loading…</div></div>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="panel" id="right">
+      <div class="empty" id="blank">Pick a note on the left, or start a new one.</div>
+      <div id="view" style="display:none"></div>
+      <div class="ed" id="ed" style="display:none">
+        <div class="row"><input class="title" id="e_title" placeholder="Title" autocomplete="off">
+          <select id="e_type"></select>
+          <label class="chip" style="cursor:pointer"><input type="checkbox" id="e_pin" style="vertical-align:-2px;margin-right:5px">pinned</label></div>
+        <div class="row"><span class="lbl">Names</span><span class="chips" id="e_syms"></span>
+          <span class="symwrap"><input id="e_symin" placeholder="company name or symbol" autocomplete="off" style="width:220px"><div class="sugg" id="sugg"></div></span></div>
+        <div class="row"><span class="lbl">Project</span><input id="e_project" list="projlist" placeholder="a project note's title, or leave empty" style="width:280px" autocomplete="off"><datalist id="projlist"></datalist>
+          <span class="lbl" style="margin-left:8px">Tags</span><input id="e_tags" placeholder="comma, separated" style="width:200px" autocomplete="off"></div>
+        <textarea id="e_body" placeholder="The note, in Markdown. [[Another note]] links by title. $AAPL names a listing anywhere in the text."></textarea>
+        <div class="row"><button id="e_save">Save</button><button class="ghost" id="e_cancel">Cancel</button><span style="flex:1"></span><button class="danger" id="e_del" style="display:none">Delete this note</button></div>
+        <div class="msg" id="e_msg"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+"use strict";
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $=id=>document.getElementById(id);
+const P=new URLSearchParams(location.search);
+let TYPES=[], NOTES=[], CUR=null, F={type:"", symbol:P.get("symbol")||"", project:P.get("project")||"", q:""}, EDIT={syms:[]};
+const TYPE_LABEL={general:"Note",news:"News",insight:"Insight",concall:"Call",meeting:"Meeting",risk:"Risk",project:"Project"};
+
+/* ---- a small Markdown renderer: headings, lists, bold, italics, code, links, [[notes]], $SYMBOLS ---- */
+function md(src){
+  const lines=src.split("\n"); let out="", inList=null, para=[];
+  const inline=t=>esc(t)
+    .replace(/\[\[([^\]|#]+)(?:[|#]([^\]]*))?\]\]/g,(m,a,b)=>{ const n=NOTES.find(x=>x.title.toLowerCase()===a.trim().toLowerCase()); return n?`<a class="wl" href="/notes?id=${encodeURIComponent(n.id)}" data-id="${esc(n.id)}">${esc(b||a)}</a>`:`<span class="wl" style="color:var(--muted)">${esc(b||a)}</span>`; })
+    .replace(/(^|[^\w$])\$([A-Z][A-Z0-9]{0,9}(?:[.\-][A-Z0-9]{1,6})?)\b/g,(m,pre,s)=>`${pre}<a class="sy" href="/t?symbol=${encodeURIComponent(s)}">$${s}</a>`)
+    .replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>").replace(/(^|\W)\*([^*]+)\*(?=\W|$)/g,"$1<i>$2</i>")
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  const flush=()=>{ if(para.length){out+=`<p>${inline(para.join(" "))}</p>`;para=[];} if(inList){out+=`</${inList}>`;inList=null;} };
+  for(const raw of lines){
+    const l=raw.replace(/\s+$/,"");
+    let m;
+    if(!l.trim()){flush();continue;}
+    if((m=l.match(/^(#{1,3})\s+(.*)/))){flush();out+=`<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`;continue;}
+    if((m=l.match(/^\s*[-*]\s+(.*)/))){ if(para.length){out+=`<p>${inline(para.join(" "))}</p>`;para=[];} if(inList!=="ul"){if(inList)out+=`</${inList}>`;out+="<ul>";inList="ul";} out+=`<li>${inline(m[1])}</li>`;continue;}
+    if((m=l.match(/^\s*\d+[.)]\s+(.*)/))){ if(para.length){out+=`<p>${inline(para.join(" "))}</p>`;para=[];} if(inList!=="ol"){if(inList)out+=`</${inList}>`;out+="<ol>";inList="ol";} out+=`<li>${inline(m[1])}</li>`;continue;}
+    if((m=l.match(/^>\s?(.*)/))){flush();out+=`<blockquote>${inline(m[1])}</blockquote>`;continue;}
+    if(inList){out+=`</${inList}>`;inList=null;}
+    para.push(l);
+  }
+  flush(); return out;
+}
+
+async function post(url,body){ const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})}); return r.json(); }
+function say(t,k){ const e=$("e_msg"); e.textContent=t; e.className="msg "+(k||""); }
+
+async function load(){
+  const qs=new URLSearchParams(); if(F.type)qs.set("type",F.type); if(F.symbol)qs.set("symbol",F.symbol); if(F.project)qs.set("project",F.project); if(F.q)qs.set("q",F.q);
+  const r=await fetch("/api/notes?"+qs); const d=await r.json();
+  TYPES=d.types||[]; NOTES=d.notes||[];
+  $("asof").textContent="data/notes";
+  $("typechips").innerHTML=`<button class="chip${F.type?"":" on"}" data-t="">all</button>`+TYPES.map(t=>`<button class="chip${F.type===t?" on":""}" data-t="${t}">${TYPE_LABEL[t]||t}</button>`).join("");
+  $("typechips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F.type=b.dataset.t;load();});
+  const ctx=[]; if(F.symbol)ctx.push(`<span class="chip on sym" data-k="symbol">$${esc(F.symbol)} <span class="x">✕</span></span>`); if(F.project)ctx.push(`<span class="chip on" data-k="project">${esc(F.project)} <span class="x">✕</span></span>`);
+  $("ctx").style.display=ctx.length?"flex":"none"; $("ctx").innerHTML=ctx.length?`<span class="lbl" style="font-size:10.5px;color:var(--muted)">showing</span>`+ctx.join(""):"";
+  $("ctx").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F[b.dataset.k]="";load();});
+  if(!NOTES.length){ $("list").innerHTML=`<div class="empty">${F.symbol||F.project||F.q||F.type?"No notes match.":"No notes yet. The first one is one click away: <b>+ New note</b>."}</div>`; }
+  else $("list").innerHTML=NOTES.map(n=>`<a class="nc${CUR&&CUR.id===n.id?" on":""}" href="/notes?id=${encodeURIComponent(n.id)}" data-id="${esc(n.id)}">
+      <div class="t"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span><span>${esc(n.title)}</span>${n.pinned?'<span class="pin">pinned</span>':""}${n.example?'<span class="pin">example</span>':""}</div>
+      <div class="m"><span>${esc(n.updated)}</span>${n.symbols.slice(0,4).map(s=>`<span class="sy">$${esc(s)}</span>`).join("")}${n.project?`<span>in ${esc(n.project)}</span>`:""}</div>
+      <div class="sn">${esc(n.snippet||"")}</div></a>`).join("");
+  $("list").querySelectorAll(".nc").forEach(a=>a.onclick=e=>{e.preventDefault(); open(a.dataset.id);});
+  try{ const g=await (await fetch("/api/notes/graph")).json(); const c=g.counts||{};
+    $("stats").innerHTML=`<span><b>${c.notes||0}</b> notes</span><span><b>${c.projects||0}</b> projects</span><span><b>${c.symbols||0}</b> names</span>`;
+    $("projlist").innerHTML=(g.nodes||[]).filter(n=>n.kind==="project").map(n=>`<option value="${esc(n.label)}">`).join("");
+  }catch(e){}
+}
+$("q").addEventListener("input",()=>{clearTimeout(window._qt);window._qt=setTimeout(()=>{F.q=$("q").value.trim();load();},200);});
+
+async function open(id){
+  const r=await fetch("/api/notes/get?id="+encodeURIComponent(id)); const n=await r.json();
+  if(n.error){return;}
+  CUR=n; history.replaceState(null,"","/notes?id="+encodeURIComponent(id));
+  $("blank").style.display="none"; $("ed").style.display="none"; $("view").style.display="block";
+  document.querySelectorAll(".nc").forEach(a=>a.classList.toggle("on",a.dataset.id===id));
+  const links=(n.link_ids||[]).map(i=>NOTES.find(x=>x.id===i)).filter(Boolean), backs=(n.backlinks||[]).map(i=>NOTES.find(x=>x.id===i)).filter(Boolean);
+  const syms=[...new Set([...(n.symbols||[]),...(n.implied_symbols||[])])];
+  let g=null; try{ if(syms.length===1) g=await (await fetch("/api/notes/graph?symbol="+encodeURIComponent(syms[0]))).json(); }catch(e){}
+  const related=g?(g.related_symbols||[]).filter(s=>!syms.includes(s)).slice(0,12):[];
+  $("view").innerHTML=`<div class="view">
+      <h1>${esc(n.title)}</h1>
+      <div class="meta"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span><span>updated ${esc(n.updated)}</span><span>created ${esc(n.created)}</span>${n.pinned?"<span>pinned</span>":""}${(n.tags||[]).map(t=>`<span>#${esc(t)}</span>`).join("")}<span class="mono" style="opacity:.7">${esc(n.file)}</span></div>
+      <div class="md">${md(n.body||"")}</div>
+      <div class="btns"><button class="pri" id="v_edit">Edit</button>${n.type==="project"?`<button id="v_proj">Every note in this project</button>`:""}</div>
+    </div>
+    <div class="conn">
+      <div class="g"><div class="l">Names in this note</div>${syms.length?syms.map(s=>`<a class="sy" href="/t?symbol=${encodeURIComponent(s)}">$${esc(s)}</a>`).join(""):'<span style="font-size:11.5px;color:var(--muted)">none named</span>'}</div>
+      <div class="g"><div class="l">Project</div>${n.project?`<a href="/notes?project=${encodeURIComponent(n.project)}">${esc(n.project)}</a>`:'<span style="font-size:11.5px;color:var(--muted)">none</span>'}</div>
+      <div class="g"><div class="l">Links out</div>${links.length?links.map(x=>`<a href="/notes?id=${encodeURIComponent(x.id)}" data-id="${esc(x.id)}" class="nl">${esc(x.title)}</a>`).join(""):'<span style="font-size:11.5px;color:var(--muted)">none</span>'}</div>
+      <div class="g"><div class="l">Linked from</div>${backs.length?backs.map(x=>`<a href="/notes?id=${encodeURIComponent(x.id)}" data-id="${esc(x.id)}" class="nl">${esc(x.title)}</a>`).join(""):'<span style="font-size:11.5px;color:var(--muted)">none yet</span>'}</div>
+      ${related.length?`<div class="g"><div class="l">Also connected, through your notes</div>${related.map(s=>`<a class="sy" href="/t?symbol=${encodeURIComponent(s)}">$${esc(s)}</a>`).join("")}</div>`:""}
+    </div>`;
+  $("v_edit").onclick=()=>edit(n);
+  const vp=$("v_proj"); if(vp) vp.onclick=()=>{F.project=n.title;load();};
+  $("view").querySelectorAll("a.nl, a.wl[data-id]").forEach(a=>a.onclick=e=>{e.preventDefault();open(a.dataset.id);});
+}
+
+function edit(n){
+  CUR=n||null; $("blank").style.display="none"; $("view").style.display="none"; $("ed").style.display="flex";
+  $("e_type").innerHTML=TYPES.map(t=>`<option value="${t}">${TYPE_LABEL[t]||t}</option>`).join("");
+  $("e_title").value=n?n.title:""; $("e_type").value=n?n.type:(P.get("type")||"general"); $("e_pin").checked=!!(n&&n.pinned);
+  EDIT.syms=n?[...n.symbols]:(P.get("symbol")?[P.get("symbol").toUpperCase()]:[]); drawSyms();
+  $("e_project").value=n?(n.project||""):(P.get("project")||""); $("e_tags").value=n?(n.tags||[]).join(", "):""; $("e_body").value=n?n.body:"";
+  $("e_del").style.display=n?"inline-block":"none"; say("");
+  ($("e_title").value?$("e_body"):$("e_title")).focus();
+}
+function drawSyms(){ $("e_syms").innerHTML=EDIT.syms.map(s=>`<span class="chip sym" data-s="${esc(s)}">$${esc(s)}<span class="x">✕</span></span>`).join(""); $("e_syms").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{EDIT.syms=EDIT.syms.filter(x=>x!==c.dataset.s);drawSyms();}); }
+$("newbtn").onclick=()=>edit(null);
+$("e_cancel").onclick=()=>{ if(CUR&&CUR.body!==undefined) open(CUR.id); else {$("ed").style.display="none";$("blank").style.display="block";} };
+$("e_save").onclick=async()=>{
+  const body={id:CUR?CUR.id:"", title:$("e_title").value.trim(), type:$("e_type").value, pinned:$("e_pin").checked, symbols:EDIT.syms, project:$("e_project").value.trim(), tags:$("e_tags").value.split(",").map(s=>s.trim()).filter(Boolean), body:$("e_body").value};
+  if(!body.title) return say("A title first.","err");
+  const r=await post("/api/notes/save",body);
+  if(!r.ok) return say(r.error||"could not save","err");
+  say("Saved.","ok"); await load(); open(r.note.id);
+};
+$("e_del").onclick=async()=>{ if(!CUR||!confirm(`Delete "${CUR.title}"? The file is removed from data/notes.`)) return; await post("/api/notes/delete",{id:CUR.id}); CUR=null; $("ed").style.display="none"; $("blank").style.display="block"; history.replaceState(null,"","/notes"); load(); };
+document.addEventListener("keydown",e=>{ if((e.metaKey||e.ctrlKey)&&e.key==="s"&&$("ed").style.display!=="none"){e.preventDefault();$("e_save").click();} });
+
+/* symbol search for the names chips */
+const symIn=$("e_symin"), sugg=$("sugg"); let sugT=null, hits=[];
+function showSugg(h){ hits=h; if(!h.length){sugg.className="sugg";sugg.innerHTML="";return;}
+  sugg.innerHTML=h.map((x,i)=>`<button type="button" data-i="${i}"><span class="sy">${esc(x.symbol)}</span><span class="n">${esc(x.name)}</span><span class="e">${esc(x.exch)}</span></button>`).join(""); sugg.className="sugg on";
+  sugg.querySelectorAll("button").forEach(b=>b.onmousedown=e=>{e.preventDefault();pick(+b.dataset.i);}); }
+function pick(i){ const h=hits[i]; if(!h) return; if(!EDIT.syms.includes(h.symbol)) EDIT.syms.push(h.symbol); drawSyms(); symIn.value=""; showSugg([]); }
+symIn.addEventListener("input",()=>{ clearTimeout(sugT); const q=symIn.value.trim(); if(q.length<2){showSugg([]);return;} sugT=setTimeout(async()=>{ try{ const d=await (await fetch("/api/symbols?q="+encodeURIComponent(q))).json(); if(symIn.value.trim()===q) showSugg(d.hits||[]); }catch(e){} },220); });
+symIn.addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault(); if(hits.length) pick(0); else { const s=symIn.value.trim().toUpperCase(); if(s&&!EDIT.syms.includes(s)){EDIT.syms.push(s);drawSyms();} symIn.value=""; } } if(e.key==="Escape") showSugg([]); });
+symIn.addEventListener("blur",()=>setTimeout(()=>showSugg([]),150));
+
+(async()=>{ await load(); if(P.get("id")) open(P.get("id")); else if(P.get("new")!==null&&P.has("new")) edit(null); })();
+</script>
+</body>
+</html>

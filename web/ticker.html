@@ -124,6 +124,7 @@ tbody tr:last-child td{border-bottom:none}
     <input id="go" placeholder="Ticker… ⏎">
   </div>
 </header>
+<div id="notesdock"></div>
 <main id="app"><div class="loading">Loading research view…</div></main>
 
 <script>
@@ -432,12 +433,35 @@ async function load(){
   const r=await fetch("/api/ticker?symbol="+SYM+"&region="+REG);
   const d=await r.json();
   const app=document.getElementById("app");
+  loadNotes();   // your notes on the name show even when the quote does not
   if(d.error){app.innerHTML=`<div class="loading">${d.error}</div>`;return;}
   document.title=SYM+" — GreekSoup";
   HIST=[...(d.history||[])].reverse();
   INTRA=d.intraday||{};
   if(HOME) renderHome(d,app); else renderUS(d,app);
   bindChart();
+}
+
+/* Your own notes about this name, from data/notes, and the other names they connect it to. */
+async function loadNotes(){
+  const dock=document.getElementById("notesdock"); if(!dock) return;
+  try{
+    const [nr,gr]=await Promise.all([fetch("/api/notes?symbol="+encodeURIComponent(SYM)),fetch("/api/notes/graph?symbol="+encodeURIComponent(SYM))]);
+    const n=await nr.json(), g=await gr.json();
+    const notes=n.notes||[], related=(g.related_symbols||[]).slice(0,10);
+    const esc2=x=>String(x??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    const TL={general:"Note",news:"News",insight:"Insight",concall:"Call",meeting:"Meeting",risk:"Risk",project:"Project"};
+    dock.innerHTML=`<section class="panel" style="max-width:1420px;margin:18px auto 0;padding:0 22px;background:none;border:0"><div class="panel" style="background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+      <div class="panel-h" style="padding:11px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h2 style="font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2)">Your notes on ${esc2(SYM)}</h2>
+        <span><a href="/notes?symbol=${encodeURIComponent(SYM)}" style="font-size:11px;color:var(--muted);margin-right:12px">${notes.length?"all "+notes.length:"none yet"}</a><a href="/notes?new&symbol=${encodeURIComponent(SYM)}" style="font-size:11.5px;font-weight:700;color:#fff;background:var(--accent);border-radius:7px;padding:5px 11px;text-decoration:none">+ Note on ${esc2(SYM)}</a></span></div>
+      ${notes.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0">${notes.slice(0,6).map(x=>`<a href="/notes?id=${encodeURIComponent(x.id)}" style="display:block;padding:11px 15px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);text-decoration:none;color:inherit">
+          <div style="font-size:12.5px;font-weight:600"><span style="font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-right:8px">${TL[x.type]||x.type}</span>${esc2(x.title)}</div>
+          <div style="font-size:10.5px;color:var(--muted);margin-top:3px">${esc2(x.updated)}${x.project?" · in "+esc2(x.project):""}</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc2(x.snippet||"")}</div></a>`).join("")}</div>`:
+        `<div style="padding:12px 15px;font-size:12px;color:var(--muted);line-height:1.5">Nothing written about ${esc2(SYM)} yet. A note here names this listing, joins a project if you give it one, and shows up on this page and on every page it links to.</div>`}
+      ${related.length?`<div style="padding:10px 15px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)">Also connected through your notes: ${related.map(s=>`<a href="/t?symbol=${encodeURIComponent(s)}" style="font-family:Menlo,monospace;font-weight:700;color:var(--ink2);margin-right:10px;text-decoration:none">$${esc2(s)}</a>`).join("")}</div>`:""}
+    </div></section>`;
+  }catch(e){ dock.innerHTML=""; }
 }
 
 function renderHome(d,app){

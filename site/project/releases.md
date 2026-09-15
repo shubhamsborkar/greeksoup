@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.7. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.8. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.8
+
+*15 September 2026, release 8.* Notes: the research you write, kept as plain Markdown files in data/notes, one per note, each linked to the listings it names, the project it belongs to and the notes it links to; a listing's page shows your notes on it and the other names connected through them, the Ask box reads them, and an AI agent or Obsidian works on the same files; a note takes a company's name and finds the listing for you
 
 ## 2026-09-15.7
 

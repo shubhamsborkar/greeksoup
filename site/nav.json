@@ -1,16 +1,79 @@
 {
   "sections": [
-    {"title": "Get started", "dir": "get-started",
-     "pages": ["index", "first-ten-minutes", "the-screens", "no-key-needed", "faq"]},
-    {"title": "Install", "dir": "install",
-     "pages": ["index", "mac", "windows", "linux", "with-an-agent", "from-source", "keep-it-running", "updates", "back-up", "uninstall", "what-it-talks-to", "if-something-is-wrong", "the-page-is-blank"]},
-    {"title": "Setup", "dir": "setup",
-     "pages": ["index", "your-ai", "data-providers", "data-sources"]},
-    {"title": "Brokers", "dir": "brokers",
-     "pages": ["index", "alpaca", "icici-direct", "interactive-brokers", "tradier", "trading-212", "zerodha", "another-broker"]},
-    {"title": "Markets", "dir": "markets",
-     "pages": ["index", "india", "united-states", "your-own-market"]},
-    {"title": "Project", "dir": "project",
-     "pages": ["index", "releases", "contributing", "security"]}
+    {
+      "title": "Get started",
+      "dir": "get-started",
+      "pages": [
+        "index",
+        "first-ten-minutes",
+        "the-screens",
+        "notes",
+        "no-key-needed",
+        "faq"
+      ]
+    },
+    {
+      "title": "Install",
+      "dir": "install",
+      "pages": [
+        "index",
+        "mac",
+        "windows",
+        "linux",
+        "with-an-agent",
+        "from-source",
+        "keep-it-running",
+        "updates",
+        "back-up",
+        "uninstall",
+        "what-it-talks-to",
+        "if-something-is-wrong",
+        "the-page-is-blank"
+      ]
+    },
+    {
+      "title": "Setup",
+      "dir": "setup",
+      "pages": [
+        "index",
+        "your-ai",
+        "data-providers",
+        "data-sources"
+      ]
+    },
+    {
+      "title": "Brokers",
+      "dir": "brokers",
+      "pages": [
+        "index",
+        "alpaca",
+        "icici-direct",
+        "interactive-brokers",
+        "tradier",
+        "trading-212",
+        "zerodha",
+        "another-broker"
+      ]
+    },
+    {
+      "title": "Markets",
+      "dir": "markets",
+      "pages": [
+        "index",
+        "india",
+        "united-states",
+        "your-own-market"
+      ]
+    },
+    {
+      "title": "Project",
+      "dir": "project",
+      "pages": [
+        "index",
+        "releases",
+        "contributing",
+        "security"
+      ]
+    }
   ]
 }
