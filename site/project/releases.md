@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.21. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.22. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.22
+
+*15 September 2026, release 22.* The Chain screen is yours: press + New chain, describe the industry, the product or the company at its centre, and your AI drafts the first map, upstream to downstream, every layer saying what it buys and what it sells, the listed names under each with a receipt (in a filing, on the record, or reported) and the named supplier to customer links; every line lands in a form you keep, change or drop, and nothing is saved until you press Save; chains live in your research vault beside your notes, so they sync, back up and restore with them; the chains that ship are starters, put one away or make it yours, and Bring the starters back is the way back; Delete keeps a copy and Undo brings it back; and the top bar and the group rows on Funds, Macro and Watch now follow the light theme instead of staying dark
 
 ## 2026-09-15.21
 

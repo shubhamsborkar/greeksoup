@@ -103,7 +103,7 @@ So a reader in the US picks Alpaca, Interactive Brokers or Tradier and has both 
 - **Flow**: the options tape on every US name from CBOE's free delayed chains: put/call, open-interest walls, expected move, unusual strikes, day-over-day builds.
 - **Short**: FINRA short interest and the daily short-volume ratio, kept apart.
 - **Capitol**: Senate and House trading disclosures on your names, plus members you track.
-- **Chain**: a value-chain map, receipt-graded and priced live.
+- **Chain**: your own value-chain maps, receipt-graded and priced live. Describe an industry, a product or a company and your AI drafts the first map, upstream to downstream, for you to keep, change or drop line by line; the maps live in your research vault.
 - **Commodities**: 51 commodities in seven groups, from crude and copper to rubber, coking coal, palm oil, tea and the dollar against the rupee and the yuan, each with the level, five change windows and the distance from its five-year high. Click one and it shows the industries a rise squeezes and the industries it helps, the same in any country, and under each industry the listed names you have mapped to it, priced live, with the raw-material share from their own filings. A names-under-pressure panel adds up every commodity a name sits on and ranks who is squeezed and who is helped this month. It ships with the US names; you add your own market in one file (below).
 - **Any ticker**: Cmd+K, type a symbol: chart, valuation, quality, estimates, insiders, dividends, news, and with a feed key six years of statements, ratios, segments, peers and a DCF sandbox.
 
@@ -127,7 +127,7 @@ The desk reads every `data/exposure_*.json` on the next rebuild. The figures in 
 
 Everything is a plain sentence to the agent. *Add Nvidia to my US watchlist. Follow Pershing Square on the Funds tab. Alert me when any holding moves 5 percent in a day. Add a tab that shows my dividend calendar.*
 
-Your lists also sit as plain text files in the `data/` folder if you prefer to edit them yourself: your US positions (`us_book.json`), the three watch grids, the names for the options tape, the funds you follow, the Congress members you track, your value-chain maps, the alert rules, and optional price levels per holding. Each file has a comment at the top saying what goes in it.
+Your lists also sit as plain text files in the `data/` folder if you prefer to edit them yourself: your US positions (`us_book.json`), the three watch grids, the names for the options tape, the funds you follow, the Congress members you track, the alert rules, and optional price levels per holding. Each file has a comment at the top saying what goes in it.
 
 The desk can hold several accounts at the same broker, and a US book next to a home account; the agent adds an account when you ask.
 

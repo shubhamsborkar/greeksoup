@@ -692,3 +692,66 @@ def test_vault_relocates_and_adopts(tmp_path):
         desk_notes.HERE = keep[4]
         desk_notes._point_at(keep[0])
 
+
+
+def test_chains_are_the_readers_own(tmp_path):
+    """The Chain screen: the starters show until the reader puts one away or makes it theirs;
+    a reader's chain is a file in the vault; delete keeps a copy and undo brings it back;
+    the starters come back on request; the AI draft is parsed from whatever wraps the JSON."""
+    import notes as desk_notes
+    import chains as desk_chains
+    keep = desk_notes.RESEARCH_DIR
+    desk_notes._point_at(str(tmp_path / "research"))
+    try:
+        first = desk_chains.list_all()
+        starters = [c for c in first["chains"] if c.get("starter")]
+        assert starters and first["hidden_starters"] == 0 and all(not c["own"] for c in starters)
+        sid = starters[0]["id"]
+        # put a starter away, then bring it back
+        assert desk_chains.delete(sid)["kind"] == "starter"
+        after = desk_chains.list_all()
+        assert sid not in {c["id"] for c in after["chains"]} and after["hidden_starters"] == 1
+        desk_chains.show_starters()
+        assert sid in {c["id"] for c in desk_chains.list_all()["chains"]}
+        # the reader's own chain: a file in the vault, in the desk's shape whatever came in
+        c = desk_chains.save({"title": "Lithium to the car", "region": "IN", "layers": [
+            {"name": "Mining", "sells": "spodumene", "names": [{"code": "pls", "label": "Pilbara", "region": "global", "status": "nope", "receipt": "whatever"}]},
+            "not a layer", {"name": "Cells", "names": [{"label": "A private cell maker"}]}],
+            "edges": [{"from": "Pilbara", "to": "A private cell maker", "what": "offtake"}, {"from": "", "to": "x"}]})
+        assert c["id"] == "lithium-to-the-car" and c["region"] == "home" and c["format"] == desk_chains.FORMAT
+        assert (tmp_path / "research" / "chains" / "lithium-to-the-car.json").exists()
+        assert [l["name"] for l in c["layers"]] == ["Mining", "Cells"] and c["layers"][0]["n"] == 1 and c["layers"][1]["n"] == 2
+        nm = c["layers"][0]["names"][0]
+        assert nm["code"] == "PLS" and nm["region"] == "global" and nm["status"] == "CONTEXT" and nm["receipt"] == "REPORTED"
+        assert c["layers"][1]["names"][0]["code"] == "" and len(c["edges"]) == 1
+        rows = desk_chains.list_all()["chains"]
+        assert rows[0]["id"] == "lithium-to-the-car" and rows[0]["own"]                     # the reader's own first
+        # making a starter theirs: the copy is the reader's, the starter steps aside
+        mine = dict(starters[0]); mine["title"] = "My " + mine["title"]
+        desk_chains.save(mine)
+        rows = desk_chains.list_all()["chains"]
+        assert [r for r in rows if r["id"] == sid][0]["own"] and not any(r.get("starter") and r["id"] == sid for r in rows)
+        # delete keeps a copy; undo brings it back
+        out = desk_chains.delete("lithium-to-the-car")
+        assert out["kind"] == "own" and not (tmp_path / "research" / "chains" / "lithium-to-the-car.json").exists()
+        assert "lithium-to-the-car" not in {r["id"] for r in desk_chains.list_all()["chains"]}
+        assert desk_chains.undo_delete(out["undo"])["ok"] and (tmp_path / "research" / "chains" / "lithium-to-the-car.json").exists()
+        assert not desk_chains.undo_delete("../../etc/passwd")["ok"]
+        try:
+            desk_chains.save({"title": "Empty"})
+            assert False, "a chain needs a layer"
+        except ValueError:
+            pass
+        # the draft: JSON out of prose or a fence, held and watched names marked, nothing saved
+        reply = 'Here you go:\n```json\n{"title":"Copper","region":"us","layers":[{"name":"Mines","names":[{"code":"FCX","label":"Freeport","status":"OWNED","receipt":"DISCLOSED","source":"10-K"}]}],"edges":[]}\n```'
+        seen = {}
+        d = desk_chains.draft("the copper chain from mine to wire", "US", held={"FCX"}, watched=set(),
+                              ask=lambda messages, system: seen.update(m=messages, s=system) or {"ok": True, "text": reply})
+        assert d["ok"] and d["chain"]["title"] == "Copper" and d["chain"]["layers"][0]["names"][0]["status"] == "OWNED"
+        assert "FCX" in seen["m"][0]["content"] and "DISCLOSED only when" in seen["s"]
+        assert not (tmp_path / "research" / "chains" / "copper.json").exists()
+        bad = desk_chains.draft("the copper chain from mine to wire", "US", ask=lambda m, s: {"ok": True, "text": "no map today"})
+        assert not bad["ok"] and "shape" in bad["error"]
+        assert not desk_chains.draft("hi", "US", ask=lambda m, s: {"ok": True, "text": ""})["ok"]
+    finally:
+        desk_notes._point_at(keep)

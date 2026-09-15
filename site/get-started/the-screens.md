@@ -29,7 +29,7 @@ lead: One line per screen, in the order the sidebar lists them. Every number on 
 
 - **Macro**: twenty-two FRED series in groups, the home market's own cards (for India: the ten-year, the repo rate and CPI), and an economic calendar for the US and the home market.
 - **Commodities**: fifty-one commodities, the industries each move squeezes and helps, the listed names mapped to them from their own filings, priced live, and a names-under-pressure panel.
-- **Chain**: a value-chain map you keep in one file, priced live.
+- **Chain**: your own value-chain maps, priced live. Describe an industry, a product or a company and your AI drafts the first map, upstream to downstream; you keep, change or drop every line. Chains live in your research vault.
 
 ## And one more
 

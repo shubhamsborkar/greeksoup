@@ -10,13 +10,27 @@
 <style>
 body{padding-bottom:50px}
 main{max-width:1180px;margin:0 auto;padding:20px 22px}
-.chaintabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.chaintabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
 .chaintabs button{background:var(--panel);color:var(--ink2);border:1px solid var(--line2);
   border-radius:9px;padding:8px 16px;font-size:12.5px;font-weight:700;cursor:pointer}
 .chaintabs button.on{color:var(--ink);border-color:var(--accent);background:var(--panel2)}
 .chaintabs button:hover{color:var(--accent)}
-h1{font-size:17px;margin-bottom:4px}
+.chaintabs button.new{border-style:dashed;color:var(--accent)}
+.chaintabs .starter{font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-left:6px}
+.chaintabs .back{margin-left:auto;font-size:11.5px;color:var(--muted);background:none;border:0;padding:4px 0;cursor:pointer}
+.chaintabs .back:hover{color:var(--accent)}
+.titlerow{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+h1{font-size:17px}
+.tools{margin-left:auto;display:flex;gap:8px}
+.tools button,.ed button,.draft button{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;
+  padding:5px 12px;font-size:12px;cursor:pointer;font:inherit;font-size:12px}
+.tools button:hover,.ed button:hover,.draft button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important}
+button.primary:hover{opacity:.9}
+button.ghost{background:transparent!important}
 .sub{color:var(--muted);font-size:12px;margin-bottom:18px;line-height:1.6;max-width:900px}
+.starternote{background:rgba(237,90,36,.08);border:1px solid rgba(237,90,36,.35);border-radius:10px;padding:10px 14px;
+  font-size:12px;color:var(--ink2);margin-bottom:16px;line-height:1.6}
 .notes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}
 @media(max-width:900px){.notes{grid-template-columns:1fr}}
 .notebox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 16px}
@@ -41,7 +55,7 @@ h1{font-size:17px;margin-bottom:4px}
 .co{border-radius:9px;border:1px solid var(--line2);background:var(--panel2);
   padding:7px 11px;max-width:520px}
 .co .top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.co a{color:var(--ink);font-weight:800;font-size:12.5px;text-decoration:none}
+.co a,.co .plain{color:var(--ink);font-weight:800;font-size:12.5px;text-decoration:none}
 .co a:hover{color:var(--accent)}
 .st{font-size:8.5px;font-weight:800;letter-spacing:.08em;border-radius:4px;padding:1.5px 6px}
 .st.OWNED{background:rgba(237,90,36,.15);color:var(--accent);border:1px solid rgba(237,90,36,.5)}
@@ -50,12 +64,12 @@ h1{font-size:17px;margin-bottom:4px}
 .st.CHECK{background:rgba(62,207,142,.12);color:var(--pos)}
 .st.OUT{background:var(--panel);color:var(--muted);text-decoration:line-through}
 .st.CONTEXT{background:var(--panel);color:var(--muted)}
-.rc.SEED{color:var(--amber);font-weight:700}
-.rc.BOOK{color:var(--cyan);font-weight:700}
 .rc{font-size:9px;color:var(--muted);letter-spacing:.05em}
+.rc.DISCLOSED{color:var(--pos);font-weight:700}
 .px{font-size:11px;margin-left:auto}
 .pos{color:var(--pos)} .neg{color:var(--neg)} .dim{color:var(--muted)}
 .co .note{font-size:11px;color:var(--ink2);line-height:1.55;margin-top:5px}
+.co .src{font-size:10px;color:var(--muted);margin-top:3px}
 .emptyl{font-size:11.5px;color:var(--muted);margin-top:8px;font-style:italic}
 .flow{display:flex;flex-direction:column;gap:2px;margin-top:7px}
 .flow div{font-size:10.5px;color:var(--muted);line-height:1.5}
@@ -74,6 +88,43 @@ h1{font-size:17px;margin-bottom:4px}
 footer{max-width:1180px;margin:26px auto 0;padding:14px 22px;border-top:1px solid var(--line);
   color:var(--muted);font-size:11px;line-height:1.6}
 .loading{padding:60px;text-align:center;color:var(--muted)}
+.empty{background:var(--panel);border:1px dashed var(--line2);border-radius:12px;padding:28px;text-align:center;color:var(--ink2);font-size:13px;line-height:1.7}
+
+/* ---- the editor ---- */
+.ed{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.ed h3{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2);margin-bottom:10px}
+.ed .row{display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;margin-bottom:8px}
+.ed label{font-size:11.5px;color:var(--ink2)}
+.ed input,.ed select,.ed textarea,.draft textarea,.draft input,.draft select{background:var(--bg);color:var(--ink);border:1px solid var(--line2);
+  border-radius:7px;padding:6px 9px;font:inherit;font-size:12.5px;width:100%}
+.ed textarea,.draft textarea{min-height:58px;line-height:1.5;resize:vertical}
+.ed .hint{font-size:11px;color:var(--muted);line-height:1.5}
+.draft{background:rgba(237,90,36,.06);border:1px solid rgba(237,90,36,.3);border-radius:12px;padding:14px 18px;margin-bottom:14px}
+.draft h3{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);margin-bottom:8px}
+.draft .line{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.draft .line input{width:140px}
+.draft .line select{width:auto}
+.draft .msg{font-size:11.5px;color:var(--ink2);margin-top:8px;line-height:1.5}
+.draft .msg.err{color:var(--neg)}
+.elayer{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--bg)}
+.elayer .lh{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.elayer .lh .n{font-weight:800;color:var(--muted);font-size:15px;width:26px}
+.elayer .lh input{flex:1}
+.elayer .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+@media(max-width:900px){.elayer .grid{grid-template-columns:1fr}}
+.elayer table{width:100%;border-collapse:collapse;font-size:12px}
+.elayer th{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:4px 4px}
+.elayer td{padding:3px 4px;vertical-align:top}
+.elayer td input,.elayer td select{padding:4px 7px;font-size:12px}
+.elayer td.c{width:92px} .elayer td.r{width:96px} .elayer td.s{width:118px} .elayer td.x{width:28px}
+.elayer .rm{background:none;border:0;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px}
+.elayer .rm:hover{color:var(--neg)}
+.small{font-size:11.5px;padding:4px 10px}
+.eedge{display:grid;grid-template-columns:1fr 1fr 2fr 110px 1fr 28px;gap:6px;margin-bottom:6px;align-items:center}
+@media(max-width:900px){.eedge{grid-template-columns:1fr 1fr}}
+.btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.msg{font-size:12px;color:var(--ink2);margin-top:8px}
+.msg.err{color:var(--neg)}
 </style>
 </head>
 <body>
@@ -82,80 +133,275 @@ footer{max-width:1180px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
   <nav></nav>
   <div class="right"><span id="asof"></span></div>
 </header>
-<main id="main"><div class="loading">Loading chain…</div></main>
-<footer>Rendered from data/supply_chain.json, which is compiled by hand from the vault research
-(2026-08-25 AI value-chain map). Receipts: DISCLOSED = in a filing · ON RECORD = company said it
-anywhere · REPORTED = press only. Home-market names are priced from the connected broker when it serves quotes. Research
-opinion lives in the vault; this page just keeps it priced and in view.</footer>
+<main id="main"><div class="loading">Loading chains…</div></main>
+<footer>A chain is yours: build it from your own research, or describe it and let your AI draft the first fill, then keep, change or drop every line. Receipts: DISCLOSED = in a filing · ON RECORD = the company said it · REPORTED = press only. Home-market names are priced from the connected broker when it serves quotes. Chains live in your research vault beside your notes, so they sync, back up and restore with them.</footer>
 <script>
 "use strict";
-let CHAINS=[], CUR=null, TS="", DEAD=false;
+let CHAINS=[], CUR=null, TS="", DEAD=false, HIDDEN=0, HOME={id:"home",label:"Home",symbol:"",locale:"en-US"};
+let EDIT=null;           // the chain being edited (a working copy), or null when viewing
+const STATUSES=["OWNED","HOLD","WATCH","CHECK","CONTEXT","OUT"];
+const RECEIPTS=["DISCLOSED","ON RECORD","REPORTED"];
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function presCls(p){
+  p=(p||"").toLowerCase();
   if(p.includes("strong")||p.includes("held")) return "p-strong";
   if(p.includes("real")||p.includes("watchlist")) return "p-real";
   if(p.includes("thin")||p.includes("emerging")) return "p-thin";
   return "p-none";
 }
 function pct(x){ return x==null?"":(x>=0?"+":"−")+Math.abs(x).toFixed(2)+"%"; }
-function render(){
+function regionLabel(r){ return r==="us"?"US":r==="global"?"Global":HOME.label; }
+function tickerHref(region,code){
+  if(!code) return "";
+  if(region==="us") return `/t?symbol=${encodeURIComponent(code)}`;
+  if(region==="global") return `/t?symbol=${encodeURIComponent(code)}&region=global`;
+  return `/t?symbol=${encodeURIComponent(code)}&region=home`;
+}
+function post(url,body){ return fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})}).then(r=>r.json()); }
+function blank(){
+  return {id:"",title:"",region:HOME.id==="us"?"us":"home",about:"",frame:[],hunt:[],layers:[blankLayer(1)],edges:[],own:true};
+}
+function blankLayer(n){ return {n,name:"",sells:"",buys_from:"",sells_to:"",presence:"",names:[]}; }
+function blankName(){ return {code:"",label:"",region:"",status:"CONTEXT",receipt:"REPORTED",note:"",source:""}; }
+
+/* ---------- tabs ---------- */
+function tabs(){
+  let h=`<div class="chaintabs">`;
+  h+=CHAINS.map(c=>`<button class="${(!EDIT&&c.id===CUR)?"on":""}" data-c="${esc(c.id)}">${esc(c.title)}${c.starter?`<span class="starter">starter</span>`:""}</button>`).join("");
+  h+=`<button class="new ${EDIT&&!EDIT.id?"on":""}" data-new="1">+ New chain</button>`;
+  if(HIDDEN) h+=`<button class="back" data-back="1">Bring the starters back (${HIDDEN})</button>`;
+  h+=`</div>`;
+  return h;
+}
+function wireTabs(){
+  document.querySelectorAll(".chaintabs button[data-c]").forEach(b=>b.onclick=()=>{
+    if(EDIT&&!confirm("Leave this chain without saving?")) return;
+    EDIT=null; CUR=b.dataset.c; history.replaceState(null,"","/chain?c="+encodeURIComponent(CUR)); render();
+  });
+  const nb=document.querySelector(".chaintabs button[data-new]");
+  if(nb) nb.onclick=()=>{ if(EDIT&&!confirm("Leave this chain without saving?")) return; EDIT=blank(); render(); };
+  const bb=document.querySelector(".chaintabs button[data-back]");
+  if(bb) bb.onclick=async()=>{ await post("/api/chain/starters"); await load(true); };
+}
+
+/* ---------- view ---------- */
+function renderView(){
   const d=CHAINS.find(c=>c.id===CUR)||CHAINS[0];
-  if(!d) return;
-  const locale = d.region==="us"?"en-US":"en-IN";
-  const tabs=`<div class="chaintabs">${CHAINS.map(c=>
-    `<button class="${c.id===d.id?"on":""}" data-c="${c.id}">${c.title}</button>`).join("")}</div>`;
-  let html=tabs+`<h1>${d.title}</h1>
-    <div class="sub">${d.source_note||""} Compiled ${d.as_of}; prices live.</div>
-    <div class="notes">
-      <div class="notebox"><h3>The frame</h3><ul>${(d.capex_notes||[]).map(n=>`<li>${n}</li>`).join("")}</ul></div>
-      <div class="notebox"><h3>The hunt (next passes)</h3><ul>${(d.hunt||[]).map(n=>`<li>${n}</li>`).join("")}</ul></div>
+  if(!d){
+    document.getElementById("main").innerHTML=tabs()+`<div class="empty">No chain yet. Press <b>+ New chain</b>, describe the industry, the product or the company at its centre, and let your AI draft the first map; or build it layer by layer yourself.</div>`;
+    wireTabs(); return;
+  }
+  CUR=d.id;
+  let html=tabs()+`<div class="titlerow"><h1>${esc(d.title)}</h1>
+    <div class="tools">
+      <button data-a="edit">${d.starter?"Make it yours":"Edit"}</button>
+      <button data-a="del" class="ghost">${d.starter?"Put this starter away":"Delete"}</button>
+    </div></div>
+    <div class="sub">${[d.about,d.source_note,d.as_of?"Compiled "+d.as_of:"","Prices live."].filter(Boolean).map(x=>esc(x.replace(/[.;]\s*$/,"")+".")).join(" ")}</div>`;
+  if(d.starter) html+=`<div class="starternote">This is a starter that ships with the desk, one example of the shape. Make it yours to edit it, put it away if it is not your market or your theme, or press + New chain and build your own.</div>`;
+  if((d.frame||[]).length||(d.hunt||[]).length) html+=`<div class="notes">
+      <div class="notebox"><h3>The frame</h3><ul>${(d.frame||[]).map(n=>`<li>${esc(n)}</li>`).join("")||"<li class=dim>nothing yet</li>"}</ul></div>
+      <div class="notebox"><h3>The hunt (next passes)</h3><ul>${(d.hunt||[]).map(n=>`<li>${esc(n)}</li>`).join("")||"<li class=dim>nothing yet</li>"}</ul></div>
     </div>`;
   for(const l of d.layers){
-    const chips = l.names.map(n=>{
-      const href = d.region==="us" ? `/t?symbol=${n.code}` : `/t?symbol=${n.code}&region=in`;
-      const px = n.ltp!=null
-        ? `<span class="px mono"><span style="color:var(--ink)">${d.region==="us"?"$":""}${n.ltp.toLocaleString(locale)}</span>
-           <span class="${n.day_pct>=0?"pos":"neg"}">${pct(n.day_pct)}</span></span>` : "";
-      return `<div class="co"><div class="top">
-          <a href="${href}">${n.label}</a>
-          <span class="st ${n.status}">${n.status}</span>
-          <span class="rc ${n.receipt}">${n.receipt}</span>${px}</div>
-        <div class="note">${n.note||""}</div></div>`;
+    const chips=l.names.map(n=>{
+      const region=n.region||d.region; const href=tickerHref(region,n.code);
+      const loc=region==="us"?"en-US":region==="global"?"en-US":HOME.locale; const cur=region==="us"?"$":region==="global"?"":HOME.symbol;
+      const px=n.ltp!=null?`<span class="px mono"><span style="color:var(--ink)">${cur}${Number(n.ltp).toLocaleString(loc)}</span>
+           <span class="${n.day_pct>=0?"pos":"neg"}">${pct(n.day_pct)}</span></span>`:"";
+      const who=href?`<a href="${href}">${esc(n.label)}</a>`:`<span class="plain">${esc(n.label)}</span>`;
+      return `<div class="co"><div class="top">${who}
+          ${n.code?`<span class="dim mono" style="font-size:10px">${esc(n.code)}</span>`:""}
+          <span class="st ${esc(n.status)}">${esc(n.status)}</span>
+          <span class="rc ${esc(n.receipt.replace(" ",""))}">${esc(n.receipt)}</span>${px}</div>
+        ${n.note?`<div class="note">${esc(n.note)}</div>`:""}${n.source?`<div class="src">${esc(n.source)}</div>`:""}</div>`;
     }).join("");
     const flow=(l.buys_from||l.sells_to)?`<div class="flow">
-        ${l.buys_from?`<div class="up"><b>▲ BUYS</b>${l.buys_from}</div>`:""}
-        ${l.sells_to?`<div class="dn"><b>▼ SELLS</b>${l.sells_to}</div>`:""}
+        ${l.buys_from?`<div class="up"><b>▲ BUYS</b>${esc(l.buys_from)}</div>`:""}
+        ${l.sells_to?`<div class="dn"><b>▼ SELLS</b>${esc(l.sells_to)}</div>`:""}
       </div>`:"";
     html+=`<div class="layer"><div class="lnum mono">${l.n}</div><div class="lbody">
-      <div class="lhead"><span class="lname">${l.name}</span>
-        <span class="lsells">${l.sells}</span>
-        <span class="lpres ${presCls(l.presence)}">${l.presence}</span></div>
+      <div class="lhead"><span class="lname">${esc(l.name)}</span>
+        <span class="lsells">${esc(l.sells)}</span>
+        ${l.presence?`<span class="lpres ${presCls(l.presence)}">${esc(l.presence)}</span>`:""}</div>
       ${flow}
-      ${l.names.length?`<div class="chips">${chips}</div>`
-        :`<div class="emptyl">No listed exposure mapped${l.n<=4&&d.region==="in"?" — the deepest layers live in the US book's mandate":""}.</div>`}
+      ${l.names.length?`<div class="chips">${chips}</div>`:`<div class="emptyl">No listed name mapped in this layer yet.</div>`}
     </div></div>`;
   }
   if((d.edges||[]).length){
-    html+=`<div class="edges"><h3>Named edges — sourced supplier → customer links</h3>
+    html+=`<div class="edges"><h3>Named links: who supplies whom</h3>
       ${d.edges.map(e=>`<div class="edge">
-        <span class="who">${e.from}</span><span class="arrow">→</span><span class="who">${e.to}</span>
-        <span class="what">${e.what}</span>
-        <span class="rc ${e.receipt}">${e.receipt}</span>
-        <span class="src">${e.source||""}</span>
+        <span class="who">${esc(e.from)}</span><span class="arrow">→</span><span class="who">${esc(e.to)}</span>
+        <span class="what">${esc(e.what)}</span>
+        <span class="rc ${esc(e.receipt.replace(" ",""))}">${esc(e.receipt)}</span>
+        <span class="src">${esc(e.source||"")}</span>
       </div>`).join("")}</div>`;
   }
   document.getElementById("main").innerHTML=html;
-  document.querySelectorAll(".chaintabs button").forEach(b=>b.onclick=()=>{
-    CUR=b.dataset.c;
-    history.replaceState(null,"","/chain?c="+CUR);
-    render();
-  });
-  document.getElementById("asof").textContent="prices as of "+TS+
-    (DEAD&&d.region==="in"?" · Home session offline":"");
+  wireTabs();
+  document.querySelector('.tools [data-a="edit"]').onclick=()=>{ EDIT=JSON.parse(JSON.stringify(d)); EDIT.starter=false; render(); };
+  document.querySelector('.tools [data-a="del"]').onclick=()=>removeChain(d);
+  document.getElementById("asof").textContent="prices as of "+TS+(DEAD&&d.region==="home"?" · Home session offline":"");
 }
-async function load(){
-  const r=await fetch("/api/chain"); const d=await r.json();
-  CHAINS=d.chains||[]; TS=d.ts; DEAD=d.session_dead;
-  CUR=new URLSearchParams(location.search).get("c")||(CHAINS[0]&&CHAINS[0].id);
+async function removeChain(d){
+  const q=d.starter?`Put away the starter "${d.title}"? You can bring it back from the tab strip.`:`Delete "${d.title}"? You can undo it for a moment after.`;
+  if(!confirm(q)) return;
+  const out=await post("/api/chain/delete",{id:d.id});
+  if(!out.ok){ alert(out.error||"That did not work."); return; }
+  CUR=null; await load(true);
+  if(out.kind==="own"&&window.deskToast) window.deskToast(`"${d.title}" deleted.`,"Undo",async()=>{ const u=await post("/api/chain/undo",{undo:out.undo}); if(u.ok){ CUR=u.id; await load(true); } });
+  else if(window.deskToast) window.deskToast(`"${d.title}" put away.`,"Bring it back",async()=>{ await post("/api/chain/starters"); CUR=d.id; await load(true); });
+}
+
+/* ---------- editor ---------- */
+function renderEdit(){
+  const c=EDIT;
+  const regOpts=[["home",HOME.label],["us","US"],["global","Global (any other exchange)"]];
+  let html=tabs()+`<div class="titlerow"><h1>${c.id?"Edit chain":"New chain"}</h1></div>`;
+  html+=`<div class="draft"><h3>Draft it with your AI</h3>
+    <div class="hint" style="font-size:11.5px;color:var(--ink2);line-height:1.5">Describe the chain in a line or two: the product, the industry or the company at its centre, and what you want mapped. Your AI returns a first fill, upstream to downstream, with the names it knows under each layer; every line lands in the form below for you to keep, change or drop. Nothing is saved until you press Save.</div>
+    <textarea id="d_text" placeholder="e.g. The lithium-ion battery chain from mined lithium to the electric car, with the listed names at each step">${esc(c.about||"")}</textarea>
+    <div class="line"><input id="d_sym" placeholder="centre ticker (optional)" title="a name whose notes and files in your vault should feed the draft">
+      <select id="d_via" hidden></select>
+      <button id="d_go" class="primary">Draft it</button><span class="msg" id="d_msg"></span></div></div>`;
+  html+=`<div class="ed"><h3>The chain</h3>
+    <div class="row"><label for="e_title">Title</label><input id="e_title" value="${esc(c.title)}" placeholder="what this chain maps"></div>
+    <div class="row"><label for="e_region">Market</label><select id="e_region">${regOpts.map(([v,l])=>`<option value="${v}" ${c.region===v?"selected":""}>${esc(l)}</option>`).join("")}</select></div>
+    <div class="row"><span></span><div class="hint">The market names are priced in unless a name says otherwise. A US name in a home-market chain simply gets its own market on its row.</div></div>
+    <div class="row"><label for="e_about">One line</label><input id="e_about" value="${esc(c.about||"")}" placeholder="what this chain is"></div>
+    <div class="row"><label for="e_frame">The frame</label><textarea id="e_frame" placeholder="one line per point: what drives the chain, where the money is made">${esc((c.frame||[]).join("\n"))}</textarea></div>
+    <div class="row"><label for="e_hunt">The hunt</label><textarea id="e_hunt" placeholder="one line per point: what to look for next">${esc((c.hunt||[]).join("\n"))}</textarea></div>
+  </div>`;
+  html+=`<div class="ed"><h3>Layers, upstream to downstream</h3><div id="e_layers"></div>
+    <div class="btns"><button id="e_addlayer" class="small">+ Add a layer</button></div></div>`;
+  html+=`<div class="ed"><h3>Named links: who supplies whom</h3><div id="e_edges"></div>
+    <div class="btns"><button id="e_addedge" class="small">+ Add a link</button></div></div>`;
+  html+=`<div class="btns"><button id="e_save" class="primary">Save</button><button id="e_cancel" class="ghost">Cancel</button>
+    ${c.id?`<button id="e_del" class="ghost">Delete</button>`:""}<span class="msg" id="e_msg"></span></div>`;
+  document.getElementById("main").innerHTML=html;
+  wireTabs();
+  renderLayers(); renderEdges();
+  document.getElementById("e_addlayer").onclick=()=>{ pullForm(); EDIT.layers.push(blankLayer(EDIT.layers.length+1)); renderLayers(); };
+  document.getElementById("e_addedge").onclick=()=>{ pullForm(); EDIT.edges.push({from:"",to:"",what:"",receipt:"REPORTED",source:""}); renderEdges(); };
+  document.getElementById("e_save").onclick=saveChain;
+  document.getElementById("e_cancel").onclick=()=>{ if(!confirm("Leave this chain without saving?")) return; EDIT=null; render(); };
+  const del=document.getElementById("e_del"); if(del) del.onclick=()=>removeChain(CHAINS.find(x=>x.id===EDIT.id)||EDIT);
+  wireDraft();
+  document.getElementById("asof").textContent="";
+}
+function renderLayers(){
+  const box=document.getElementById("e_layers");
+  box.innerHTML=EDIT.layers.map((l,i)=>`<div class="elayer" data-i="${i}">
+    <div class="lh"><span class="n mono">${i+1}</span><input class="l_name" value="${esc(l.name)}" placeholder="the layer: what these companies are (e.g. Lithium mining)">
+      <button class="small l_up" title="move up">↑</button><button class="small l_dn" title="move down">↓</button><button class="rm l_rm" title="remove this layer">×</button></div>
+    <div class="grid"><input class="l_sells" value="${esc(l.sells)}" placeholder="sells: what this layer sells">
+      <input class="l_buys" value="${esc(l.buys_from)}" placeholder="buys from: what it buys, from which layer">
+      <input class="l_to" value="${esc(l.sells_to)}" placeholder="sells to: who buys it, which layer"></div>
+    <table><thead><tr><th>Ticker</th><th>Company</th><th>Market</th><th>Status</th><th>Receipt</th><th>Note</th><th>Source</th><th></th></tr></thead><tbody>
+    ${l.names.map((n,j)=>`<tr data-j="${j}">
+      <td class="c"><input class="n_code mono" value="${esc(n.code)}" placeholder="ticker"></td>
+      <td><input class="n_label" value="${esc(n.label)}" placeholder="company (a private one has no ticker)"></td>
+      <td class="r"><select class="n_region"><option value="">as the chain</option><option value="home" ${n.region==="home"?"selected":""}>${esc(HOME.label)}</option><option value="us" ${n.region==="us"?"selected":""}>US</option><option value="global" ${n.region==="global"?"selected":""}>Global</option></select></td>
+      <td class="s"><select class="n_status">${STATUSES.map(s=>`<option ${n.status===s?"selected":""}>${s}</option>`).join("")}</select></td>
+      <td class="s"><select class="n_receipt">${RECEIPTS.map(s=>`<option ${n.receipt===s?"selected":""}>${s}</option>`).join("")}</select></td>
+      <td><input class="n_note" value="${esc(n.note)}" placeholder="what it does here, with a figure if you have one"></td>
+      <td><input class="n_source" value="${esc(n.source)}" placeholder="where the figure came from"></td>
+      <td class="x"><button class="rm n_rm" title="remove">×</button></td></tr>`).join("")}
+    </tbody></table>
+    <div class="btns"><button class="small l_addname">+ Add a name</button></div>
+  </div>`).join("");
+  box.querySelectorAll(".elayer").forEach(el=>{
+    const i=+el.dataset.i;
+    el.querySelector(".l_addname").onclick=()=>{ pullForm(); EDIT.layers[i].names.push(blankName()); renderLayers(); };
+    el.querySelector(".l_rm").onclick=()=>{ pullForm(); if(EDIT.layers[i].names.length&&!confirm("Remove this layer and its names?")) return; EDIT.layers.splice(i,1); renderLayers(); };
+    el.querySelector(".l_up").onclick=()=>{ pullForm(); if(i>0){ [EDIT.layers[i-1],EDIT.layers[i]]=[EDIT.layers[i],EDIT.layers[i-1]]; renderLayers(); } };
+    el.querySelector(".l_dn").onclick=()=>{ pullForm(); if(i<EDIT.layers.length-1){ [EDIT.layers[i+1],EDIT.layers[i]]=[EDIT.layers[i],EDIT.layers[i+1]]; renderLayers(); } };
+    el.querySelectorAll(".n_rm").forEach(b=>b.onclick=()=>{ pullForm(); const j=+b.closest("tr").dataset.j; EDIT.layers[i].names.splice(j,1); renderLayers(); });
+  });
+}
+function renderEdges(){
+  const box=document.getElementById("e_edges");
+  box.innerHTML=EDIT.edges.map((e,i)=>`<div class="eedge" data-i="${i}">
+    <input class="g_from" value="${esc(e.from)}" placeholder="supplier"><input class="g_to" value="${esc(e.to)}" placeholder="customer">
+    <input class="g_what" value="${esc(e.what)}" placeholder="what flows between them">
+    <select class="g_receipt">${RECEIPTS.map(s=>`<option ${e.receipt===s?"selected":""}>${s}</option>`).join("")}</select>
+    <input class="g_source" value="${esc(e.source)}" placeholder="source"><button class="rm g_rm" title="remove">×</button></div>`).join("")||`<div class="hint" style="font-size:11.5px;color:var(--muted)">None yet. A link is a named supplier to customer relationship with its receipt: a filing, the company's word, or the press.</div>`;
+  box.querySelectorAll(".g_rm").forEach(b=>b.onclick=()=>{ pullForm(); EDIT.edges.splice(+b.closest(".eedge").dataset.i,1); renderEdges(); });
+}
+function pullForm(){
+  /* the form into EDIT, so a re-render never loses a keystroke */
+  const g=id=>(document.getElementById(id)||{}).value||"";
+  EDIT.title=g("e_title"); EDIT.region=g("e_region")||EDIT.region; EDIT.about=g("e_about");
+  EDIT.frame=g("e_frame").split("\n").map(s=>s.trim()).filter(Boolean);
+  EDIT.hunt=g("e_hunt").split("\n").map(s=>s.trim()).filter(Boolean);
+  document.querySelectorAll("#e_layers .elayer").forEach(el=>{
+    const l=EDIT.layers[+el.dataset.i]; if(!l) return;
+    const v=cls=>(el.querySelector("."+cls)||{}).value||"";
+    l.name=v("l_name"); l.sells=v("l_sells"); l.buys_from=v("l_buys"); l.sells_to=v("l_to");
+    el.querySelectorAll("tbody tr").forEach(tr=>{
+      const n=l.names[+tr.dataset.j]; if(!n) return;
+      const w=cls=>(tr.querySelector("."+cls)||{}).value||"";
+      n.code=w("n_code").toUpperCase(); n.label=w("n_label"); n.region=w("n_region"); n.status=w("n_status"); n.receipt=w("n_receipt"); n.note=w("n_note"); n.source=w("n_source");
+    });
+  });
+  document.querySelectorAll("#e_edges .eedge").forEach(el=>{
+    const e=EDIT.edges[+el.dataset.i]; if(!e) return;
+    const v=cls=>(el.querySelector("."+cls)||{}).value||"";
+    e.from=v("g_from"); e.to=v("g_to"); e.what=v("g_what"); e.receipt=v("g_receipt"); e.source=v("g_source");
+  });
+}
+async function saveChain(){
+  pullForm();
+  const msg=document.getElementById("e_msg"); msg.className="msg";
+  if(!EDIT.title.trim()){ msg.className="msg err"; msg.textContent="Give the chain a title first."; return; }
+  const layers=EDIT.layers.filter(l=>l.name.trim()||l.names.some(n=>n.label.trim()||n.code.trim()));
+  if(!layers.length){ msg.className="msg err"; msg.textContent="A chain needs at least one layer with a name."; return; }
+  const body={...EDIT,layers:layers.map(l=>({...l,names:l.names.filter(n=>n.label.trim()||n.code.trim())})),edges:EDIT.edges.filter(e=>e.from.trim()&&e.to.trim())};
+  msg.textContent="Saving…";
+  const out=await post("/api/chain/save",{chain:body});
+  if(!out.ok){ msg.className="msg err"; msg.textContent=out.error||"That did not save."; return; }
+  if(out.journal&&window.deskJournal) window.deskJournal(out.journal);
+  EDIT=null; CUR=out.chain.id; await load(true);
+}
+function wireDraft(){
+  const via=document.getElementById("d_via"), go=document.getElementById("d_go"), msg=document.getElementById("d_msg");
+  fetch("/api/ask",{cache:"no-store"}).then(r=>r.json()).then(st=>{
+    const doors=st.doors||[];
+    if(doors.length){
+      via.hidden=false;
+      via.innerHTML=`<option value="">${st.ready?esc(st.label||st.provider)+(st.model?" · "+esc(st.model):""):"the AI on Settings (none yet)"}</option>`+doors.map(d=>`<option value="${esc(d.name)}">${esc(d.label)}</option>`).join("");
+      let saved=""; try{ saved=localStorage.getItem("gs.door")||""; }catch(e){}
+      if(doors.some(d=>d.name===saved)) via.value=saved;
+    } else if(!st.ready){
+      msg.innerHTML=`No AI is set yet. ${esc(st.why||"")} Pick one on <a href="/settings">Settings</a>, under Your AI; or build the chain by hand below.`;
+    }
+  }).catch(()=>{});
+  go.onclick=async()=>{
+    const text=document.getElementById("d_text").value.trim();
+    if(text.length<12){ msg.className="msg err"; msg.textContent="Describe the chain in a line or two first."; return; }
+    msg.className="msg"; msg.textContent="Drafting… a full chain takes a minute or two."; go.disabled=true;
+    try{
+      const out=await post("/api/chain/draft",{description:text,symbol:document.getElementById("d_sym").value.trim(),door:via.value||""});
+      if(!out.ok){ msg.className="msg err"; msg.innerHTML=esc(out.error||"That did not work.")+(out.settings?` <a href="/settings">Settings</a>`:""); return; }
+      pullForm();
+      const keepId=EDIT.id, c=out.chain;
+      EDIT={...EDIT,title:EDIT.title||c.title,region:keepId?EDIT.region:(c.region||EDIT.region),about:c.about||EDIT.about,frame:c.frame,hunt:c.hunt,layers:c.layers,edges:c.edges,source_note:c.source_note,as_of:c.as_of,id:keepId};
+      if(!EDIT.title) EDIT.title=c.title;
+      renderEdit();
+      document.getElementById("d_text").value=text;
+      document.getElementById("d_msg").textContent=`Drafted: ${c.layers.length} layers, ${c.layers.reduce((a,l)=>a+l.names.length,0)} names, ${c.edges.length} links. Every line below is yours to keep, change or drop; press Save when it reads right.`;
+      document.getElementById("e_layers").scrollIntoView({behavior:"smooth",block:"start"});
+    } finally { go.disabled=false; }
+  };
+}
+
+/* ---------- load ---------- */
+function render(){ if(EDIT) renderEdit(); else renderView(); }
+async function load(fresh){
+  const r=await fetch("/api/chain"+(fresh?"?fresh=1":"")); const d=await r.json();
+  CHAINS=d.chains||[]; TS=d.ts; DEAD=d.session_dead; HIDDEN=d.hidden_starters||0; HOME=d.home||HOME;
+  if(!CUR) CUR=new URLSearchParams(location.search).get("c")||(CHAINS[0]&&CHAINS[0].id);
+  if(CUR&&!CHAINS.some(c=>c.id===CUR)) CUR=CHAINS[0]&&CHAINS[0].id;
   render();
 }
 load();

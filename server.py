@@ -44,6 +44,7 @@ import sec_form4         # keyless Form 4 from EDGAR
 import house_ptr         # keyless House trading disclosures
 import notes as desk_notes   # the research vault: notes and files in data/research, linked to names and projects
 import plugins as desk_plugins   # folders in data/research/plugins that add a screen, blocks or a door
+import chains as desk_chains     # the reader's own value chains in data/research/chains, starters beside the code
 
 PORT = int(os.getenv("DESK_PORT", "8765"))
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -2162,39 +2163,104 @@ def alerts_loop():
 CHAIN_TTL = 180
 
 
+def _chain_quote(region, code, exch=None):
+    """One quote for a name on a chain, by the region's own path; None when nothing answers."""
+    if region == "us":
+        with _watch_lock:
+            q = WATCH_US.get(code)
+        return q or fetch_us_quote(code) or freefeed.quote(code)     # the keyless feed when no data key is set
+    if region == "global":
+        with _watch_lock:
+            q = WATCH_GLOBAL.get(code)
+        return q or fetch_yahoo_quote(code)
+    with _watch_lock:
+        q = WATCH.get(code)
+    return q or _home_quote(code, exch or None)
+
+
 def build_chain():
-    """data/supply_chain.json (one or more chains) + a live quote per name: the
-    US feed or watch cache for US chains, the home quote path (broker or Yahoo)
-    for home ones. Research content lives in the JSON; this only prices it."""
-    with open(os.path.join(DATA_DIR, "supply_chain.json")) as fh:
-        blob = json.load(fh)
-    chains = blob.get("chains", [])
+    """The reader's own chains from the vault, then the starters they have not put away, each
+    name priced by its region's path. The research lives in the files; this only prices them."""
+    listing = desk_chains.list_all()
     quoted = {}
-    for chain in chains:
-        region = chain.get("region", "home")
+    for chain in listing["chains"]:
         for layer in chain.get("layers", []):
             for nm in layer.get("names", []):
                 code = nm.get("code")
+                region = nm.get("region") or chain.get("region") or "home"
+                if not code:
+                    continue
                 key = f"{region}:{code}"
-                if not code or key in quoted:
-                    q = quoted.get(key)
-                elif region == "us":
-                    with _watch_lock:
-                        q = WATCH_US.get(code)
-                    if not q:
-                        q = fetch_us_quote(code)
-                    quoted[key] = q
-                else:
-                    with _watch_lock:
-                        q = WATCH.get(code)
-                    if not q:
-                        q = _home_quote(code, nm.get("exch") or None)
-                    quoted[key] = q
+                if key not in quoted:
+                    try:
+                        quoted[key] = _chain_quote(region, code, nm.get("exch"))
+                    except Exception:  # noqa: BLE001
+                        quoted[key] = None
+                q = quoted[key]
                 if q:
                     nm["ltp"], nm["day_pct"] = q.get("ltp"), q.get("day_pct")
-    data = {"chains": chains, "ts": datetime.now().strftime("%H:%M"),
-            "session_dead": broker_health["dead"]}
-    return data
+    m = _market()
+    return {"chains": listing["chains"], "hidden_starters": listing["hidden_starters"],
+            "home": {"id": m.META["id"] if m else "home", "label": m.META["label"] if m else "Home",
+                     "symbol": m.META["symbol"] if m else "", "locale": m.META.get("locale", "en-US") if m else "en-US"},
+            "ts": datetime.now().strftime("%H:%M"), "session_dead": broker_health["dead"]}
+
+
+def _chain_changed():
+    """After an edit the next read must show the reader's file, not a cached copy: build now,
+    store it (memory and disk) and let the page fetch."""
+    try:
+        _store("chain", build_chain())
+    except Exception:  # noqa: BLE001
+        _cache["chain"] = (0.0, None)
+
+
+def _chain_post(self, body):
+    """The Chain screen's edits: save (the reader's own file in the vault), delete (kept aside,
+    undo brings it back; a starter is put away), the starters back, and the AI draft."""
+    path = self.path
+    if path == "/api/chain/save":
+        try:
+            c = desk_chains.save(body.get("chain") or {})
+        except ValueError as exc:
+            return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
+        _chain_changed()
+        return self._send(json.dumps({"ok": True, "chain": c, "journal": journal("chain", "", f"saved the chain {c['title']}")}).encode(), "application/json")
+    if path == "/api/chain/delete":
+        out = desk_chains.delete(str(body.get("id", "")))
+        _chain_changed()
+        return self._send(json.dumps(out).encode(), "application/json")
+    if path == "/api/chain/undo":
+        out = desk_chains.undo_delete(str(body.get("undo", "")))
+        _chain_changed()
+        return self._send(json.dumps(out).encode(), "application/json")
+    if path == "/api/chain/starters":
+        out = desk_chains.show_starters()
+        _chain_changed()
+        return self._send(json.dumps(out).encode(), "application/json")
+    if path == "/api/chain/draft":
+        door = str(body.get("door", "") or "")
+        rd = ask_ready()
+        if not door and not rd["ready"]:
+            return self._send(json.dumps({"ok": False, "error": rd["why"], "settings": True}).encode(), "application/json")
+        held = set()
+        try:
+            held = {(p.get("symbol") or "").upper() for p in load_book().get("positions", [])}
+        except Exception:  # noqa: BLE001
+            pass
+        watched = set()
+        try:
+            watched = {n["code"] for n in load_watchlist()} | {n["code"] for n in load_watchlist_us()} | {n["code"] for n in load_watchlist_global()}
+        except Exception:  # noqa: BLE001
+            pass
+        m = _market()
+        out = desk_chains.draft(str(body.get("description", "")), (m.META["label"] if m else "home"),
+                                held - {""}, watched, symbol=str(body.get("symbol", ""))[:24].upper(),
+                                about=str(body.get("about", ""))[:80], door=door,
+                                ask=lambda messages, system: desk_ai.complete(messages, system=system, max_tokens=6000, timeout=240),
+                                run_door=desk_plugins.run_door)
+        return self._send(json.dumps(out).encode(), "application/json")
+    return self.send_error(404)
 
 
 # ---- commodities (board + the priced names layer + the broker's local reads) --
@@ -3136,7 +3202,12 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
 /capitol     Capitol                        /api/capitol    congressional trading disclosures
 /macro       Macro                          /api/macro      the macro cards;  /api/econcal  the calendar
 /commods     Commodities                    /api/commods    the commodity board and its exposure map
-/chain       Chain                          /api/chain      the value-chain maps, priced
+/chain       Chain                          /api/chain      the reader's value chains, priced; starters they have not put away
+             A chain is a file in data/research/chains/<id>.json: title, region (us, home, global),
+             layers upstream to downstream (name, sells, buys_from, sells_to, names with code,
+             label, region, status, receipt, note, source) and edges (from, to, what, receipt,
+             source). Receipts: DISCLOSED in a filing, ON RECORD, REPORTED. Write one only when
+             the reader asks; the desk reads the folder on the next visit.
 /notes       Notes, the research vault      /api/notes?symbol=&project=&kind=&period=&about=&type=&q=   the notes, filtered
                                             /api/notes/get?id=   one note with its body
                                             /api/notes/graph?symbol=   what connects to what
@@ -3385,7 +3456,11 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/short":
                 self._send(json.dumps(_cached("short", SHORT_TTL, build_short)).encode(), "application/json")
             elif path == "/api/chain":
-                self._send(json.dumps(_cached("chain", CHAIN_TTL, build_chain)).encode(), "application/json")
+                d = _cached("chain", CHAIN_TTL, build_chain)
+                if "hidden_starters" not in (d or {}):     # a copy from before chains were the reader's own
+                    _chain_changed()
+                    d = _cache["chain"][1] or d
+                self._send(json.dumps(d).encode(), "application/json")
             elif path == "/api/insiders":
                 data = _cached("insiders", INSIDERS_TTL, build_insiders)
                 self._send(json.dumps(data or {"error": "insider feed unreachable"}).encode(),
@@ -3702,6 +3777,8 @@ class Handler(BaseHTTPRequestHandler):
             code = str(body.get("code", "")).strip().upper()
             if self.path.startswith("/api/book/"):
                 return self._book_post(body)
+            if self.path.startswith("/api/chain/"):
+                return _chain_post(self, body)
             if self.path == "/api/notes/save":
                 try:
                     note = desk_notes.save(body)
