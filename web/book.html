@@ -44,6 +44,19 @@ td.name .co{color:var(--muted);font-size:10.5px;font-weight:400;display:block}
 .note b{color:var(--ink2)}
 .empty{padding:26px 15px;color:var(--muted);font-size:12.5px;line-height:1.6}
 .cc{font-size:9.5px;font-weight:800;border-radius:4px;padding:1.5px 6px;letter-spacing:.05em;background:var(--panel2);color:var(--ink2);margin-left:6px}
+.symwrap{position:relative}
+.form input.sym{width:260px;text-transform:none}
+.sugg{position:absolute;left:0;top:calc(100% + 4px);z-index:20;min-width:360px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);overflow:hidden;display:none}
+.sugg.on{display:block}
+.sugg button{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:10px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:8px 12px;color:var(--ink);font:inherit;font-size:12.5px;cursor:pointer;border-radius:0;font-weight:400}
+.sugg button:first-child{border-top:0}
+.sugg button:hover,.sugg button.sel{background:var(--panel2)}
+.sugg .s{font-family:Menlo,monospace;font-weight:700}
+.sugg .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink2)}
+.sugg .e{color:var(--muted);font-size:10.5px}
+.x.clear{margin-left:auto}
+.panel.pos-panel{overflow:visible}
+.panel.pos-panel table{border-radius:0}
 </style>
 </head>
 <body>
@@ -55,13 +68,14 @@ td.name .co{color:var(--muted);font-size:10.5px;font-weight:400;display:block}
 <main>
   <div class="sub">A portfolio you keep by hand, with no broker and no feed key: any symbol Yahoo Finance knows, in any market, priced from Yahoo's free feed. US listings are close to live; most other exchanges run 15 to 20 minutes behind. Add a line, or paste your whole holdings list below.</div>
 
+  <div class="msg" id="example" style="display:none;padding:12px 15px;margin-bottom:14px;background:var(--panel);border:1px solid var(--line2);border-radius:12px;color:var(--ink2);font-size:12.5px">These lines are examples, so the screen is not empty before you have added anything. They carry no view; their cost is the price on the day this version shipped. <b>Clear the book</b> removes them in one click, then add your own lines below, one at a time or by pasting your holdings.</div>
   <div class="tiles" id="tiles"></div>
 
-  <div class="panel">
-    <div class="panel-h"><h2>Positions</h2><span class="sub" id="cnt"></span></div>
+  <div class="panel pos-panel">
+    <div class="panel-h"><h2>Positions</h2><span class="sub" id="cnt"></span><button class="x clear" id="clearall" title="remove every line">Clear the book</button></div>
     <div id="table"><div class="empty">Loading…</div></div>
     <div class="form" id="addform">
-      <input class="sym" id="f_sym" placeholder="symbol (AAPL, RELIANCE.NS, MC.PA)" autocomplete="off">
+      <span class="symwrap"><input class="sym" id="f_sym" placeholder="company name or symbol (Apple, Reliance, 0700.HK)" autocomplete="off"><div class="sugg" id="sugg"></div></span>
       <input class="num" id="f_sh" placeholder="shares" inputmode="decimal">
       <input class="num" id="f_ac" placeholder="avg cost" inputmode="decimal">
       <button id="f_add">Add</button>
@@ -93,7 +107,7 @@ td.name .co{color:var(--muted);font-size:10.5px;font-weight:400;display:block}
     </div>
   </div>
 
-  <div class="note"><b>What this is:</b> the desk reads <span class="mono">data/book.json</span>, which these forms edit. Nothing here places orders and nothing leaves your computer except the price lookups. Each currency is totalled on its own; the desk does not convert between them, because a converted total hides which market moved. <b>Symbols:</b> Yahoo's, so <span class="mono">RELIANCE.NS</span> not RELIANCE, <span class="mono">0700.HK</span>, <span class="mono">MC.PA</span>, <span class="mono">BHP.AX</span>. Type a company name into Yahoo Finance to find the symbol.</div>
+  <div class="note"><b>What this is:</b> the desk reads <span class="mono">data/book.json</span>, which these forms edit. Nothing here places orders and nothing leaves your computer except the price lookups. Each currency is totalled on its own; the desk does not convert between them, because a converted total hides which market moved. <b>Symbols:</b> type the company's name in the box above and pick the listing you hold from the list; the desk fills in Yahoo's symbol (<span class="mono">RELIANCE.NS</span>, <span class="mono">0700.HK</span>, <span class="mono">MC.PA</span>). Pasted lists need Yahoo's symbols already.</div>
 </main>
 
 <script>
@@ -116,13 +130,14 @@ async function load(){
     t+=tile(`${g.currency} · since cost`,fmt(g.pnl,g.currency,0),cls(g.pnl),pct(g.pnl_pct));
   }
   document.getElementById("tiles").innerHTML=t;
+  document.getElementById("example").style.display=D.all_example?"block":"none";
   const ps=D.positions||[];
   document.getElementById("cnt").textContent=ps.length?`${ps.length} lines · prices ${D.market_note||""}`:"";
   if(!ps.length){document.getElementById("table").innerHTML=`<div class="empty">No positions yet. Add one below, or paste your holdings. The example line in <span class="mono">data/book.json</span> has zero shares and is ignored.</div>`;}
   else{
     let h=`<table><thead><tr><th>Name</th><th>Shares</th><th>Avg cost</th><th>Last</th><th>Day</th><th>Value</th><th>P&amp;L</th><th>P&amp;L %</th><th>Weight</th><th></th></tr></thead><tbody>`;
     for(const p of ps){
-      h+=`<tr><td class="name"><b>${esc(p.symbol)}</b><span class="cc">${esc(p.currency||"")}</span><span class="co">${esc(p.name||"")}${p.exch?" · "+esc(p.exch):""}</span></td>
+      h+=`<tr><td class="name"><b>${esc(p.symbol)}</b><span class="cc">${esc(p.currency||"")}</span>${p.example?'<span class="cc" title="an example line; Clear the book removes it">EXAMPLE</span>':""}<span class="co">${esc(p.name||"")}${p.exch?" · "+esc(p.exch):""}</span></td>
         <td class="mono">${num(p.shares,p.shares%1?2:0)}</td><td class="mono">${num(p.avg_cost)}</td>
         <td class="mono">${p.ltp==null?'<span class="dim">no quote</span>':num(p.ltp)}</td>
         <td class="mono ${cls(p.day_pct)}">${pct(p.day_pct)}</td>
@@ -141,13 +156,34 @@ async function post(url,body){ const r=await fetch(url,{method:"POST",headers:{"
 function say(id,text,k){ const el=document.getElementById(id); el.textContent=text; el.className="msg "+(k||""); }
 document.getElementById("f_add").onclick=async()=>{
   const symbol=document.getElementById("f_sym").value.trim().toUpperCase(), shares=parseFloat(document.getElementById("f_sh").value), avg_cost=parseFloat(document.getElementById("f_ac").value);
-  if(!symbol||isNaN(shares)||isNaN(avg_cost)) return say("addmsg","Symbol, shares and average cost are all needed.","err");
+  if(!symbol||isNaN(shares)||isNaN(avg_cost)) return say("addmsg","A symbol, the shares and your average cost are all needed. Type the company's name and pick the listing from the list.","err");
   say("addmsg","Checking "+symbol+" on Yahoo…");
   const r=await post("/api/book/add",{symbol,shares,avg_cost});
   if(r.ok){ say("addmsg",`${symbol} saved${r.name?" · "+r.name:""}${r.currency?" · "+r.currency:""}`,"ok"); document.getElementById("f_sym").value="";document.getElementById("f_sh").value="";document.getElementById("f_ac").value=""; load(); }
   else say("addmsg",r.error||"could not save","err");
 };
-document.getElementById("f_sym").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("f_add").click();});
+// type a name, pick the listing: Yahoo's search, through the desk
+const symIn=document.getElementById("f_sym"), sugg=document.getElementById("sugg");
+let sugT=null, sugHits=[], sugSel=-1;
+function showSugg(hits){ sugHits=hits; sugSel=-1; if(!hits.length){sugg.className="sugg";sugg.innerHTML="";return;}
+  sugg.innerHTML=hits.map((h,i)=>`<button type="button" data-i="${i}"><span class="s">${esc(h.symbol)}</span><span class="n">${esc(h.name)}</span><span class="e">${esc(h.exch)}</span></button>`).join("");
+  sugg.className="sugg on";
+  sugg.querySelectorAll("button").forEach(b=>b.onmousedown=e=>{e.preventDefault(); pick(+b.dataset.i);}); }
+function pick(i){ const h=sugHits[i]; if(!h) return; symIn.value=h.symbol; showSugg([]); document.getElementById("f_sh").focus(); say("addmsg",`${h.symbol} · ${h.name}${h.exch?" · "+h.exch:""}. Now the shares and your average cost.`); }
+symIn.addEventListener("input",()=>{ clearTimeout(sugT); const q=symIn.value.trim(); if(q.length<2){showSugg([]);return;}
+  sugT=setTimeout(async()=>{ try{ const r=await fetch("/api/symbols?q="+encodeURIComponent(q)); const d=await r.json(); if(symIn.value.trim()===q) showSugg(d.hits||[]); }catch(e){} },220); });
+symIn.addEventListener("keydown",e=>{
+  if(sugg.classList.contains("on")&&sugHits.length){
+    if(e.key==="ArrowDown"){e.preventDefault(); sugSel=Math.min(sugHits.length-1,sugSel+1);}
+    else if(e.key==="ArrowUp"){e.preventDefault(); sugSel=Math.max(0,sugSel-1);}
+    else if(e.key==="Enter"){e.preventDefault(); pick(sugSel<0?0:sugSel); return;}
+    else if(e.key==="Escape"){showSugg([]); return;}
+    sugg.querySelectorAll("button").forEach((b,i)=>b.classList.toggle("sel",i===sugSel)); return;
+  }
+  if(e.key==="Enter") document.getElementById("f_add").click();
+});
+symIn.addEventListener("blur",()=>setTimeout(()=>showSugg([]),150));
+document.getElementById("clearall").onclick=async()=>{ if(!confirm("Remove every line from the book? Cash stays as it is.")) return; await post("/api/book/clear",{}); load(); };
 document.getElementById("f_ac").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("f_add").click();});
 document.getElementById("imp").onclick=async()=>{
   const csv=document.getElementById("csv").value.trim(); if(!csv) return say("impmsg","Nothing to import.","err");

@@ -85,7 +85,7 @@ broker_health = {"dead": not clients}
 _cache = {"snap": (0.0, None), "tape": (0.0, None),
           "earn": (0.0, None), "results_home": (0.0, None), "macro": (0.0, None),
           "funds": (0.0, None), "capitol": (0.0, None), "econcal": (0.0, None),
-          "burry": (0.0, None), "pulse": (0.0, None), "insiders": (0.0, None),
+          "pulse": (0.0, None), "insiders": (0.0, None),
           "risk": (0.0, None), "act13d": (0.0, None), "flow": (0.0, None),
           "short": (0.0, None), "commods": (0.0, None), "chain": (0.0, None),
           "book": (0.0, None)}
@@ -2061,6 +2061,7 @@ def build_book():
             "day_pnl": ((ltp - prev) * shares) if (ltp is not None and prev) else None,
             "pnl": (value - cost) if value is not None else None,
             "pnl_pct": ((value - cost) / cost * 100) if (value is not None and cost) else None,
+            "example": bool(p.get("example")),
         })
         time.sleep(0.3)      # keyless feed: polite
     cash = {c.get("currency", "").upper(): float(c.get("amount") or 0)
@@ -2080,11 +2081,55 @@ def build_book():
                        "total": total, "day_pnl": day,
                        "day_pct": (day / prev_val * 100) if prev_val else None,
                        "pnl": pnl, "pnl_pct": (pnl / cost * 100) if cost else None})
-    rows.sort(key=lambda r: (r["currency"], -(r["value"] or 0)))
+    # the currency most of the book sits in comes first, so the top tiles are the book's
+    groups.sort(key=lambda g: -(g["total"] or 0))
+    order = {g["currency"]: i for i, g in enumerate(groups)}
+    rows.sort(key=lambda r: (order.get(r["currency"], 99), -(r["value"] or 0)))
     return {"positions": rows, "groups": groups,
+            "all_example": bool(rows) and all(r["example"] for r in rows),
             "cash": [{"currency": c, "amount": a} for c, a in cash.items()],
             "market_note": "from Yahoo's free feed; US near live, other exchanges 15 to 20 min behind",
             "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
+
+
+_symsearch_cache = {}
+
+
+def symbol_search(q):
+    """Yahoo's free search: a name or a partial ticker in, up to eight listings out,
+    each with the symbol the desk needs, the company's name and its exchange."""
+    q = (q or "").strip()
+    if len(q) < 1:
+        return {"q": q, "hits": []}
+    key = q.lower()
+    hit = _symsearch_cache.get(key)
+    if hit and time.time() - hit[0] < 3600:
+        return hit[1]
+    hits, ok = [], False
+    # A plain agent string on purpose: the quote poller's browser string gets
+    # rate-limited by Yahoo on busy days, and the search must still answer.
+    for host in ("query2", "query1"):
+        try:
+            r = requests.get(f"https://{host}.finance.yahoo.com/v1/finance/search",
+                             params={"q": q, "quotesCount": 8, "newsCount": 0, "listsCount": 0},
+                             headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+            if r.status_code != 200:
+                continue
+            for x in r.json().get("quotes") or []:
+                if x.get("quoteType") not in ("EQUITY", "ETF", "MUTUALFUND", "INDEX", "CRYPTOCURRENCY", "CURRENCY", "FUTURE"):
+                    continue
+                hits.append({"symbol": x.get("symbol"), "name": x.get("longname") or x.get("shortname") or "",
+                             "exch": x.get("exchDisp") or x.get("exchange") or "", "type": x.get("quoteType")})
+            ok = True
+            break
+        except Exception:  # noqa: BLE001
+            continue
+    out = {"q": q, "hits": hits}
+    if ok:
+        if len(_symsearch_cache) > 500:
+            _symsearch_cache.clear()
+        _symsearch_cache[key] = (time.time(), out)
+    return out
 
 
 def _parse_book_lines(text):
@@ -2109,33 +2154,6 @@ def _parse_book_lines(text):
             continue
         out.append({"symbol": sym, "shares": shares, "avg_cost": avg})
     return out, errors
-
-
-# ---- Burry watch (Cassandra Unchained on Substack; RSS is public) ------------
-def build_burry():
-    """Latest posts from michaeljburry.substack.com/feed. He shut Scion (last
-    13F Q3 2025, on the Funds tab) and publishes here now — titles + dates are
-    the trackable surface; content is paywalled and stays his."""
-    import re
-    try:
-        r = requests.get("https://michaeljburry.substack.com/feed",
-                         headers=_YUA, timeout=15)
-        xml = r.text if r.status_code == 200 else ""
-    except Exception:  # noqa: BLE001
-        xml = ""
-    posts = []
-    for item in re.findall(r"<item>(.*?)</item>", xml, re.S)[:10]:
-        def _tag(t, blk=item):
-            m = re.search(rf"<{t}>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</{t}>", blk, re.S)
-            return (m.group(1).strip() if m else "")
-        title, link, pub = _tag("title"), _tag("link"), _tag("pubDate")
-        try:
-            d = datetime.strptime(pub[:16].strip(), "%a, %d %b %Y").strftime("%Y-%m-%d")
-        except ValueError:
-            d = pub[:16]
-        if title:
-            posts.append({"title": title, "link": link, "date": d})
-    return {"posts": posts, "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
 
 
 # ---- insider cluster screener (whole-market Form 4 feed) ---------------------
@@ -2708,6 +2726,43 @@ def broker_state():
     return st
 
 
+# ---------------------------------------------------------------- the sidebar
+# Every screen, by key. A reader hides any of them with one click on the rail or in
+# Settings, and that choice is kept in .env as SCREENS=usdesk:off,chain:off. What
+# nobody chose follows the home market: the US public-record desk is shown when the
+# home market is the United States and hidden otherwise, one click away either way.
+SCREENS = [
+    ("home", "/", "Desk · Home"), ("usdesk", "/usdesk", "Desk · US"), ("book", "/book", "Desk · Book"),
+    ("risk", "/risk", "Risk"), ("watch", "/watch", "Watch · Home"), ("watchus", "/watch?list=us", "Watch · US"),
+    ("global", "/watch?list=global", "Global"), ("funds", "/funds", "Funds"), ("flow", "/flow", "Flow"),
+    ("short", "/short", "Short"), ("capitol", "/capitol", "Capitol"), ("macro", "/macro", "Macro"),
+    ("commods", "/commods", "Commodities"), ("chain", "/chain", "Chain"), ("settings", "/settings", "Settings"),
+]
+ALWAYS_SHOWN = {"home", "settings"}
+
+
+def screen_choices():
+    out = {}
+    for part in (os.getenv("SCREENS", "") or desk_settings.read_env().get("SCREENS", "") or "").split(","):
+        if ":" in part:
+            k, v = part.strip().split(":", 1)
+            if k in {s[0] for s in SCREENS}:
+                out[k] = v.strip().lower() == "on"
+    return out
+
+
+def nav_state():
+    hm = _market()
+    hm_id = hm.META.get("id") if hm else None
+    default_hidden = set() if hm_id == "us" else {"usdesk"}
+    choices = screen_choices()
+    hidden = [k for k, _, _ in SCREENS
+              if k not in ALWAYS_SHOWN and not choices.get(k, k not in default_hidden)]
+    return {"hidden": hidden, "default_hidden": sorted(default_hidden), "choices": choices,
+            "home_market": hm_id,
+            "screens": [{"key": k, "href": h, "label": l, "shown": k not in hidden, "fixed": k in ALWAYS_SHOWN} for k, h, l in SCREENS]}
+
+
 def settings_state():
     st = desk_settings.current()
     st["broker"] = broker_state()
@@ -2724,6 +2779,7 @@ def settings_state():
     st["profile"] = desk_settings.load_profile()
     st["profile_choices"] = desk_settings.PROFILE_CHOICES
     st["files"] = desk_settings.data_files()
+    st["nav"] = nav_state()
     return st
 
 
@@ -2885,6 +2941,8 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/ping":
                 return self._send(b'{"ok":true}', "application/json")
+            elif path == "/api/nav":
+                return self._send(json.dumps(nav_state()).encode(), "application/json")
             elif path == "/settings":
                 with open(os.path.join(HERE, "web", "settings.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
@@ -2979,8 +3037,10 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(json.dumps(_cached("macro", MACRO_TTL, build_macro)).encode(), "application/json")
             elif path == "/api/econcal":
                 self._send(json.dumps(_cached("econcal", 6 * 3600, build_econcal)).encode(), "application/json")
-            elif path == "/api/burry":
-                self._send(json.dumps(_cached("burry", 6 * 3600, build_burry)).encode(), "application/json")
+            elif path == "/api/symbols":
+                # Company name or ticker in, Yahoo's symbols out: what the Book and the
+                # watchlists use so nobody has to know that Reliance is RELIANCE.NS.
+                self._send(json.dumps(symbol_search(qs.get("q", [""])[0])).encode(), "application/json")
             elif path == "/api/pulse":
                 self._send(json.dumps(_cached("pulse", 900, build_pulse)).encode(), "application/json")
             elif path == "/api/funds":
@@ -3051,6 +3111,10 @@ class Handler(BaseHTTPRequestHandler):
             upsert(sym, shares, avg, q.get("name"))
             save_book(book); _cache["book"] = (0.0, None)
             return self._send(json.dumps({"ok": True, "name": q.get("name"), "currency": q.get("currency")}).encode(), "application/json")
+        if self.path == "/api/book/clear":
+            book["positions"] = []
+            save_book(book); _cache["book"] = (0.0, None)
+            return self._send(b'{"ok":true}', "application/json")
         if self.path == "/api/book/remove":
             sym = str(body.get("symbol", "")).strip().upper()
             book["positions"] = [p for p in book["positions"] if (p.get("symbol") or "").upper() != sym]
@@ -3109,6 +3173,19 @@ class Handler(BaseHTTPRequestHandler):
                 for k in ("snap", "risk", "results_home", "macro", "econcal", "commods", "chain"):
                     _cache[k] = (0.0, None)
             return self._send(json.dumps({"ok": True, "saved": saved, "state": settings_state()}).encode(), "application/json")
+        if self.path == "/api/settings/screens":
+            # one screen shown or hidden; the choice outlives updates because it lives in .env
+            key = str(body.get("key", "")).strip().lower()
+            if key not in {sc[0] for sc in SCREENS} or key in ALWAYS_SHOWN:
+                return self._send(b'{"ok":false,"error":"not a screen that can be hidden"}', "application/json")
+            choices = screen_choices()
+            if body.get("reset"):
+                choices.pop(key, None)
+            else:
+                choices[key] = bool(body.get("show"))
+            desk_settings.write_env({"SCREENS": ",".join(f"{k}:{'on' if v else 'off'}" for k, v in sorted(choices.items()))})
+            os.environ["SCREENS"] = ",".join(f"{k}:{'on' if v else 'off'}" for k, v in sorted(choices.items()))
+            return self._send(json.dumps({"ok": True, "nav": nav_state()}).encode(), "application/json")
         if self.path == "/api/settings/check_data":
             return self._send(json.dumps(desk_settings.check_fmp()).encode(), "application/json")
         if self.path == "/api/settings/check_ai":

@@ -33,23 +33,30 @@
     settings: '<circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6l1.4 1.4M11 11l1.4 1.4M3.6 12.4L5 11M11 5l1.4-1.4"/>',
   };
   const TABS = [
-    /* Labels: "Home" is your broker account (whatever market), "US" is the US public-record desk. Rename here. */
-    ["/", "Desk · Home", "Desks", I.deskin],
-    ["/usdesk", "Desk · US", "Desks", I.deskus],
-    ["/book", "Desk · Book", "Desks", I.book],
-    ["/risk", "Risk", "Desks", I.risk],
-    ["/watch", "Watch · Home", "Watchlists", I.watch],
-    ["/watch?list=us", "Watch · US", "Watchlists", I.list],
-    ["/watch?list=global", "Global", "Watchlists", I.globe],
-    ["/funds", "Funds", "Intelligence", I.funds],
-    ["/flow", "Flow", "Intelligence", I.flow],
-    ["/short", "Short", "Intelligence", I.short],
-    ["/capitol", "Capitol", "Intelligence", I.capitol],
-    ["/macro", "Macro", "Market", I.macro],
-    ["/commods", "Commodities", "Market", I.commods],
-    ["/chain", "Chain", "Market", I.chain],
-    ["/settings", "Settings", "Setup", I.settings],
+    /* [href, label, group, icon, key]. "Home" is your broker account (whatever market), "US" is the US public-record desk. Rename here. */
+    ["/", "Desk · Home", "Desks", I.deskin, "home"],
+    ["/usdesk", "Desk · US", "Desks", I.deskus, "usdesk"],
+    ["/book", "Desk · Book", "Desks", I.book, "book"],
+    ["/risk", "Risk", "Desks", I.risk, "risk"],
+    ["/watch", "Watch · Home", "Watchlists", I.watch, "watch"],
+    ["/watch?list=us", "Watch · US", "Watchlists", I.list, "watchus"],
+    ["/watch?list=global", "Global", "Watchlists", I.globe, "global"],
+    ["/funds", "Funds", "Intelligence", I.funds, "funds"],
+    ["/flow", "Flow", "Intelligence", I.flow, "flow"],
+    ["/short", "Short", "Intelligence", I.short, "short"],
+    ["/capitol", "Capitol", "Intelligence", I.capitol, "capitol"],
+    ["/macro", "Macro", "Market", I.macro, "macro"],
+    ["/commods", "Commodities", "Market", I.commods, "commods"],
+    ["/chain", "Chain", "Market", I.chain, "chain"],
+    ["/settings", "Settings", "Setup", I.settings, "settings"],
   ];
+  /* Screens the reader hid, or the home market hides for them. The last answer from
+     /api/nav is kept in this browser so the rail paints right on the first frame, and
+     the desk is asked again on every page for the current truth. */
+  const FIXED = new Set(["home", "settings"]);
+  let hidden = new Set();
+  try { hidden = new Set(JSON.parse(store.getItem("desk_hidden") || "[]")); } catch (e) { /* first visit */ }
+  const HIDE_ICON = '<path d="M4 4l8 8M12 4l-8 8"/>';
   function current() {
     const p = location.pathname;
     if (p === "/watch") {
@@ -62,13 +69,15 @@
 
   /* ---- sidebar rail ------------------------------------------------------ */
   function buildRail() {
-    if (document.getElementById("siderail")) return;
+    const old = document.getElementById("siderail");
+    if (old) old.remove();
     const cur = current();
     const groups = [];
-    for (const [href, label, group, icon] of TABS) {
+    for (const [href, label, group, icon, key] of TABS) {
+      if (hidden.has(key) && href !== cur) continue;   // the page you are on always shows in the rail
       let g = groups[groups.length - 1];
       if (!g || g.name !== group) { g = { name: group, items: [] }; groups.push(g); }
-      g.items.push({ href, label, icon, on: href === cur });
+      g.items.push({ href, label, icon, key, on: href === cur });
     }
     const el = document.createElement("aside");
     el.id = "siderail";
@@ -79,8 +88,10 @@
       groups.map(g =>
         `<div class="rgt">${g.name}</div>` +
         g.items.map(it =>
-          `<a class="rlink${it.on ? " on" : ""}" href="${it.href}" title="${it.label}">` +
-          `${svg(it.icon)}<span>${it.label}</span></a>`).join("")
+          `<a class="rlink${it.on ? " on" : ""}" href="${it.href}" title="${it.label}" data-key="${it.key}">` +
+          `${svg(it.icon)}<span>${it.label}</span>` +
+          (FIXED.has(it.key) ? "" : `<button class="rhide" data-key="${it.key}" title="Hide ${it.label} from the sidebar (Settings brings it back)">${svg(HIDE_ICON)}</button>`) +
+          `</a>`).join("")
       ).join("") +
       '</div>' +
       '<div class="rfoot">' +
@@ -91,6 +102,16 @@
       '</div>' +
       '<button id="railedge" title="Collapse / expand the sidebar ( [ )">‹</button>';
     document.body.prepend(el);
+    el.querySelectorAll(".rhide").forEach(b => b.onclick = async e => {
+      e.preventDefault(); e.stopPropagation();
+      const key = b.dataset.key;
+      hidden.add(key); store.setItem("desk_hidden", JSON.stringify([...hidden]));
+      buildRail();
+      try {
+        const r = await fetch("/api/settings/screens", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, show: false }) });
+        const d = await r.json(); if (d.nav) applyNav(d.nav);
+      } catch (err) { /* offline: the browser copy stands until the next page load */ }
+    });
     document.getElementById("railbtn").onclick = toggleRail;
     document.getElementById("railedge").onclick = toggleRail;
     document.getElementById("cmdkbtn").onclick = () => openCmdk(true);
@@ -105,6 +126,18 @@
     };
     syncFoot();
   }
+  function applyNav(nav) {
+    const next = new Set(nav.hidden || []);
+    const same = next.size === hidden.size && [...next].every(k => hidden.has(k));
+    hidden = next; store.setItem("desk_hidden", JSON.stringify([...hidden]));
+    if (!same) buildRail();
+    window.deskNav = nav;
+    window.dispatchEvent(new CustomEvent("desk:nav", { detail: nav }));
+  }
+  async function refreshNav() {
+    try { const r = await fetch("/api/nav"); if (r.ok) applyNav(await r.json()); } catch (e) { /* keep the browser copy */ }
+  }
+  window.deskRefreshNav = refreshNav;
   function syncFoot() {
     const t = document.getElementById("themename");
     if (t) t.textContent = document.documentElement.dataset.theme || "graphite";
@@ -518,7 +551,7 @@
     m.scrollTop = m.scrollHeight; ta.focus();
   }
 
-  function boot() { buildRail(); initAlertBar(); initUpdateBar(); }
+  function boot() { buildRail(); refreshNav(); initAlertBar(); initUpdateBar(); }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot);
   } else {

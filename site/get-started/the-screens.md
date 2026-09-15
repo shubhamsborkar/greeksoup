@@ -8,8 +8,8 @@ lead: One line per screen, in the order the sidebar lists them. Every number on 
 ## Desks
 
 - **Desk · Home**: your broker account in whatever market you trade. Holdings priced live, cash, and where the broker reports them, open futures and options, margin used and an options tape on the index. The results calendar for your home watchlist sits under it. Dark until a broker is connected.
-- **Desk · US**: the US market read from the public record and the optional feed. A book of US positions priced live, the earnings countdown, the insider tape from Form 4 filings with cluster buys, and a market pulse. Needs no broker.
-- **Desk · Book**: a portfolio you keep by hand, any Yahoo symbol in any market, priced from Yahoo's free feed. For anyone with no broker to connect.
+- **Desk · US**: the US market read from the public record and the optional feed. A book of US positions priced live, the earnings countdown, the insider tape from Form 4 filings with cluster buys, and a market pulse. Needs no broker. It shows in the sidebar when your home market is the United States and stays one click away in Settings otherwise.
+- **Desk · Book**: a portfolio you keep by hand, any listing in any market, priced from Yahoo's free feed. Type a company's name and pick the listing you hold; the desk knows the symbol. For anyone with no broker to connect, and for a book that spans markets. It arrives with a few example lines so the screen is not empty, and Clear the book removes them in one click.
 - **Risk**: beta, volatility, worst drawdown and correlation for every book against its index, leverage at underlying notional, the margin cushion where the broker reports one, a five percent stress line, and sector concentration.
 
 ## Watchlists
@@ -36,3 +36,7 @@ lead: One line per screen, in the order the sidebar lists them. Every number on 
 - **Any ticker**: Command and K, type a symbol. Chart, valuation, quality, estimates, insiders, dividends, news, and with a feed key six years of statements, ratios, segments, peers and a DCF sandbox. A home-market name opens with the exchange's filings where the market has them.
 
 **Settings**, the last entry in the sidebar, is where every key goes. Nothing on it is required.
+
+## Hiding a screen
+
+Every screen except Desk · Home and Settings can be hidden: hover it in the sidebar and click the cross, or use the Screens panel in Settings, which also brings one back. Screens you have not touched follow your home market. The choice is kept in your own settings file and survives every update.

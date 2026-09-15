@@ -72,6 +72,12 @@ html[data-rail="min"] #siderail{width:var(--railc)}
 #siderail a.rlink svg{flex:0 0 auto;width:16px;height:16px;stroke:currentColor;fill:none;
   stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 #siderail a.rlink:hover{color:var(--ink);background:var(--panel2)}
+#siderail a.rlink span{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+#siderail .rhide{display:none;flex:0 0 auto;width:18px;height:18px;padding:0;margin:0 -2px 0 0;border:0;border-radius:5px;background:none;color:var(--muted);cursor:pointer;align-items:center;justify-content:center}
+#siderail .rhide svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round}
+#siderail a.rlink:hover .rhide{display:inline-flex}
+#siderail .rhide:hover{color:var(--neg);background:var(--panel)}
+html[data-rail="min"] #siderail .rhide{display:none!important}
 #siderail a.rlink.on{color:var(--ink);background:var(--panel2);border-color:var(--line2);
   box-shadow:inset 2px 0 0 var(--accent)}
 #siderail a.rlink.on svg{stroke:var(--accent)}

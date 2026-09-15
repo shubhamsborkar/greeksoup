@@ -36,6 +36,7 @@ ALLOWED = {
     "AI_BASE_URL": (False, "address of the endpoint (local models too)"),
     "EDGAR_CONTACT": (False, "the e-mail the SEC asks for on every request"),
     "DESK_AUTO_UPDATE": (False, "on: bring a newer version in without the click"),
+    "SCREENS": (False, "screens you chose to show or hide in the sidebar (key:on or key:off); the rest follow the home market"),
 }
 try:
     import brokers as _brokers

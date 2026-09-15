@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.6. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.7. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.7
+
+*15 September 2026, release 7.* The desk adapts to whoever installs it: any screen can be hidden with one click in the sidebar or in Settings and brought back the same way, the US desk shows only when the home market is the United States unless you say otherwise, Desk · Book takes a company's name and finds the listing for you, arrives with a few example lines that Clear the book removes in one click, and totals the currency most of the book sits in first; the Burry box on Funds is gone
 
 ## 2026-09-15.6
 

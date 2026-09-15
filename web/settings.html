@@ -43,6 +43,7 @@ td.yes{color:var(--pos)} td.no{color:var(--muted)}
 .chip{font-size:11.5px;padding:4px 10px;border-radius:999px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink2);cursor:pointer;user-select:none}
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .chip.x{border-style:dashed}
+.chip.fixed{opacity:.55;cursor:default}
 .chips input{width:120px;max-width:120px;padding:4px 9px;font-size:11.5px;border-radius:999px}
 textarea{resize:vertical;line-height:1.5}
 table.files td{font-size:11.5px} table.files td:first-child{font-family:Menlo,monospace;color:var(--ink2)} table.files td:last-child{white-space:nowrap}
@@ -135,6 +136,16 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
       <div class="kv" style="margin-bottom:10px">Any AI agent that can open addresses on this computer (Claude Code, Codex, Kimi Code, Grok Build, OpenClaw, Cursor and the like) reads the whole desk through one page. Give it this address and it knows what every screen is and where to read the numbers.</div>
       <div class="code"><span id="agent_url"></span><button class="ghost" id="agent_copy">Copy</button></div>
       <div class="kv" style="margin-top:10px">A line that works in any of them: <i>Read <span id="agent_url2"></span> and go through my desk; tell me what changed today and where the numbers came from.</i></div>
+    </div>
+  </div>
+
+  <!-- Screens -->
+  <div class="panel">
+    <div class="panel-h"><h2>Screens</h2><span class="st" id="n_status"></span></div>
+    <div class="body">
+      <div class="row"><label>In the sidebar</label><div class="chips" id="n_chips"></div></div>
+      <div class="row"><span></span><div class="hint" id="n_hint">Click a screen to show or hide it. The cross that appears next to a screen in the sidebar hides it too. Screens you have not touched follow your home market: the US public-record desk shows when the home market is the United States, and stays one click away otherwise. Your choices survive every update.</div></div>
+      <div class="btns"><button class="ghost" id="n_reset">Back to the home market's own set</button></div>
     </div>
   </div>
 
@@ -404,6 +415,22 @@ function render(s){
   $("f_table").innerHTML = files.length ? `<table class="files">${files.map(f=>`<tr><td>${esc(f.file)}</td><td style="text-align:left;color:var(--muted)">${esc(f.what||"")}</td><td>${f.bytes<1024?f.bytes+" B":Math.round(f.bytes/1024)+" KB"}</td></tr>`).join("")}</table>` : "";
   st("f_status", `${files.length} file${files.length===1?"":"s"} in ${esc(s.desk.folder)}/data`);
   $("h_log").textContent=s.desk.log||"";
+  renderScreens(s.nav||{});
+}
+function renderScreens(nav){
+  const scr=nav.screens||[]; const choices=nav.choices||{};
+  $("n_chips").innerHTML=scr.map(x=>`<button type="button" class="chip${x.shown?" on":""}${x.fixed?" fixed":""}" data-key="${x.key}" ${x.fixed?"disabled":""} title="${x.fixed?"always shown":(x.key in choices?"your choice":"follows the home market")}">${esc(x.label)}${(x.key in choices)&&!x.fixed?" ·":""}</button>`).join("");
+  const n=scr.filter(x=>!x.shown).length;
+  st("n_status", n?`${n} hidden`:"every screen shown", "");
+  $("n_chips").querySelectorAll(".chip:not(.fixed)").forEach(b=>b.onclick=async()=>{
+    const cur=scr.find(x=>x.key===b.dataset.key);
+    const r=await post("/api/settings/screens",{key:b.dataset.key, show:!(cur&&cur.shown)});
+    if(r.ok){ renderScreens(r.nav); if(window.deskRefreshNav) window.deskRefreshNav(); }
+  });
+  $("n_reset").onclick=async()=>{
+    for(const k of Object.keys(choices)) await post("/api/settings/screens",{key:k, reset:true});
+    const r=await fetch("/api/nav"); renderScreens(await r.json()); if(window.deskRefreshNav) window.deskRefreshNav();
+  };
 }
 async function load(){ const r=await fetch("/api/settings"); render(await r.json()); }
 

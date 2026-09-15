@@ -1,5 +1,5 @@
 {
-  "_comment": "The hand-kept book: any symbol Yahoo Finance knows, in any market (AAPL, RELIANCE.NS, MC.PA, 0700.HK). Edit here or in the Desk \u00b7 Book page, which writes this file. Prices come from Yahoo's free feed: US listings close to live, most other exchanges 15 to 20 minutes behind. Lines with zero shares are ignored. Each currency is totalled on its own; the desk never converts between them.",
+  "_comment": "The hand-kept book: any symbol Yahoo Finance knows, in any market (AAPL, RELIANCE.NS, MC.PA, 0700.HK). Edit here or in the Desk · Book page, which writes this file. Prices come from Yahoo's free feed: US listings close to live, most other exchanges 15 to 20 minutes behind. Lines with zero shares are ignored. Each currency is totalled on its own; the desk never converts between them. The lines marked example are there so the screen is not empty on a fresh install; their cost is the price on 15 September 2026, they carry no view, and Clear the book removes them in one click.",
   "cash": [
     {
       "currency": "USD",
@@ -10,8 +10,44 @@
     {
       "symbol": "AAPL",
       "name": "Apple",
-      "shares": 0,
-      "avg_cost": 0
+      "shares": 10,
+      "avg_cost": 333.08,
+      "example": true
+    },
+    {
+      "symbol": "MSFT",
+      "name": "Microsoft",
+      "shares": 6,
+      "avg_cost": 505.41,
+      "example": true
+    },
+    {
+      "symbol": "7203.T",
+      "name": "Toyota",
+      "shares": 100,
+      "avg_cost": 3033.0,
+      "example": true
+    },
+    {
+      "symbol": "NESN.SW",
+      "name": "Nestlé",
+      "shares": 8,
+      "avg_cost": 79.2,
+      "example": true
+    },
+    {
+      "symbol": "RELIANCE.NS",
+      "name": "Reliance Industries",
+      "shares": 25,
+      "avg_cost": 1256.0,
+      "example": true
+    },
+    {
+      "symbol": "MC.PA",
+      "name": "LVMH",
+      "shares": 3,
+      "avg_cost": 417.45,
+      "example": true
     }
   ]
 }

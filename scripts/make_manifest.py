@@ -40,8 +40,9 @@ def main():
                if p and p not in SKIP and not p.startswith(SKIP_DIRS)]
     files = {}
     for rel in tracked:
-        with open(os.path.join(ROOT, rel), "rb") as fh:
-            files[rel] = bytes_hash(fh.read())
+        # Hash what is staged to ship, never the working copy: on the author's own
+        # machine a data file can hold his book while the shipped file is the example.
+        files[rel] = bytes_hash(subprocess.check_output(["git", "show", f":{rel}"], cwd=ROOT))
 
     history = {rel: {h} for rel, h in files.items()}
     blob_hash = {}
