@@ -17,3 +17,9 @@ cache/
 
 # The reader's investing profile, written by the Settings screen
 data/profile.json
+
+# the research vault is the reader's own: only the shipped examples are in the repository
+data/research/files/
+data/research/index/
+data/research/notes/*
+!data/research/notes/example-*.md
