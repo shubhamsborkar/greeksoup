@@ -81,6 +81,9 @@
       if (!g || g.name !== group) { g = { name: group, items: [] }; groups.push(g); }
       g.items.push({ href, label, icon, key, on: href === cur });
     }
+    // whatever is hidden stays in the rail, dimmed, under its own heading, with Show one click away:
+    // hiding is never a one-way door
+    const gone = TABS.filter(([href, , , , key]) => hidden.has(key) && href !== cur);
     const el = document.createElement("aside");
     el.id = "siderail";
     el.innerHTML =
@@ -92,10 +95,12 @@
         g.items.map(it =>
           `<a class="rlink${it.on ? " on" : ""}" href="${it.href}" title="${it.label}" data-key="${it.key}">` +
           `${svg(it.icon)}<span>${it.label}</span>` +
-          (FIXED.has(it.key) ? "" : `<button class="rhide" data-key="${it.key}" title="Hide ${it.label} from the sidebar (Settings brings it back)">${svg(HIDE_ICON)}</button>`) +
+          (FIXED.has(it.key) ? "" : `<button class="rhide" data-key="${it.key}" title="Hide ${it.label} from the sidebar. It moves to Hidden, below, and one click brings it back.">${svg(HIDE_ICON)}</button>`) +
           `</a>`).join("")
       ).join("") +
       '</div>' +
+      (gone.length ? `<div class="rhiddenbox"><div class="rgt rgt-hidden">Hidden</div>` + gone.map(([href, label, , icon, key]) =>
+        `<button class="rlink rgone" data-key="${key}" title="Show ${label} in the sidebar again">${svg(icon)}<span>${label}</span><em>show</em></button>`).join("") + '</div>' : "") +
       '<div class="rfoot">' +
       '<button id="askbtn" title="Ask your AI about this screen (⌘I)"><span class="rk">✦</span><span>Ask · your AI</span></button>' +
       '<button id="cmdkbtn" title="Jump anywhere (⌘K)"><span class="rk">⌘</span><span>Command · K</span></button>' +
@@ -104,16 +109,13 @@
       '</div>' +
       '<button id="railedge" title="Collapse / expand the sidebar ( [ )">‹</button>';
     document.body.prepend(el);
-    el.querySelectorAll(".rhide").forEach(b => b.onclick = async e => {
+    el.querySelectorAll(".rhide").forEach(b => b.onclick = e => {
       e.preventDefault(); e.stopPropagation();
-      const key = b.dataset.key;
-      hidden.add(key); store.setItem("desk_hidden", JSON.stringify([...hidden]));
-      buildRail();
-      try {
-        const r = await fetch("/api/settings/screens", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, show: false }) });
-        const d = await r.json(); if (d.nav) applyNav(d.nav);
-      } catch (err) { /* offline: the browser copy stands until the next page load */ }
+      setShown(b.dataset.key, false);
+      const label = (TABS.find(t => t[4] === b.dataset.key) || [])[1] || "Screen";
+      railToast(`${label} hidden. `, "Undo", () => setShown(b.dataset.key, true));
     });
+    el.querySelectorAll(".rgone").forEach(b => b.onclick = e => { e.preventDefault(); setShown(b.dataset.key, true); });
     document.getElementById("railbtn").onclick = toggleRail;
     document.getElementById("railedge").onclick = toggleRail;
     document.getElementById("cmdkbtn").onclick = () => openCmdk(true);
@@ -127,6 +129,25 @@
       syncFoot();
     };
     syncFoot();
+  }
+  async function setShown(key, show) {
+    if (show) hidden.delete(key); else hidden.add(key);
+    store.setItem("desk_hidden", JSON.stringify([...hidden]));
+    buildRail();
+    try {
+      const r = await fetch("/api/settings/screens", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, show }) });
+      const d = await r.json(); if (d.nav) applyNav(d.nav);
+    } catch (err) { /* offline: the browser copy stands until the next page load */ }
+  }
+  let toastTimer = null;
+  function railToast(text, action, onAction) {
+    const old = document.getElementById("railtoast"); if (old) old.remove();
+    const t = document.createElement("div");
+    t.id = "railtoast";
+    t.innerHTML = `<span>${esc(text)}</span><button type="button">${esc(action)}</button>`;
+    t.querySelector("button").onclick = () => { t.remove(); onAction(); };
+    document.body.appendChild(t);
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 8000);
   }
   function applyNav(nav) {
     const next = new Set(nav.hidden || []);

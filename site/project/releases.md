@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.9. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.10. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.10
+
+*15 September 2026, release 10.* Hiding a screen is no longer a one-way door: a hidden screen stays in the sidebar under Hidden with Show one click away, hiding shows an Undo where you clicked, and Settings still lists every screen; a reader hid Desk · Book and could not find the way back
 
 ## 2026-09-15.9
 
