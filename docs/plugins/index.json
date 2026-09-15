@@ -2,22 +2,6 @@
  "list": "GreekSoup plugins",
  "plugins": [
   {
-   "name": "hello",
-   "label": "Example, a plugin to copy",
-   "version": "2",
-   "author": "Shikshan Nivesh",
-   "what": "An example, for anyone who wants to write a plugin: the smallest one there is, one screen that reads a desk address and one block a note can carry. If you did not mean to build a plugin you do not need it; remove it from Settings under Plugins and nothing changes.",
-   "talks_to": [
-    "nothing outside this computer"
-   ],
-   "adds": [
-    "a screen",
-    "blocks"
-   ],
-   "zip": "https://greeksoup.ai/plugins/hello.zip",
-   "size": 2257
-  },
-  {
    "name": "terminal",
    "label": "Terminal door",
    "version": "3",

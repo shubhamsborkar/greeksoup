@@ -69,7 +69,7 @@ h3{font-size:22px;line-height:1.2;letter-spacing:-.02em}
 .install-line .copy:hover{background:var(--accent)}
 .install-line .copy svg.i{width:14px;height:14px}
 .install-big{max-width:760px;margin-top:40px;padding:18px 16px 18px 22px}
-.install-big code{font-size:16px}
+.install-big code{font-size:14px}
 .install-tall{margin-top:16px;align-items:flex-start;max-width:none}
 .install-tall::before{content:none}
 .install-tall code{font-size:13px;color:#C7CED8}
@@ -84,6 +84,21 @@ h3{font-size:22px;line-height:1.2;letter-spacing:-.02em}
 .hero::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(50% 40% at 70% 0%,var(--glow),transparent 70%)}
 .hero>*{position:relative}
 .lead{margin:24px 0 0;font-size:18px;line-height:1.55;color:var(--fg2);max-width:58ch}
+
+.hero-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:56px;align-items:center}
+.hero-links{margin:8px 0 0;display:flex;gap:24px;flex-wrap:wrap}
+.hero-card{background:var(--bg2);border:1px solid var(--line2);border-radius:14px;padding:22px 22px 20px;display:flex;flex-direction:column;gap:14px}
+.hero-card-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.os-toggle{display:inline-flex;border:1px solid var(--line2);border-radius:8px;padding:2px;gap:2px}
+.os-toggle button{height:26px;padding:0 10px;border-radius:6px;font-size:12px;font-weight:500;color:var(--muted)}
+.os-toggle button[aria-selected="true"]{background:var(--fg);color:var(--bg)}
+.hero-card .install-line{margin-top:0;max-width:none;flex-wrap:wrap;gap:10px 12px}
+.hero-card .install-line code{flex:1 1 calc(100% - 30px);font-size:13px}
+.hero-card .install-line .copy{margin-left:auto}
+.hero-grid h1{font-size:clamp(38px,4.3vw,58px)}
+.steps{margin:0;padding:0 0 0 18px;font-size:12.5px;line-height:1.9;color:var(--fg2)}
+.steps li::marker{color:var(--accent)}
+.hero-card .tiny a{color:var(--fg)}
 
 /* a screen in a frame, the page's one visual component */
 .shot{margin:0;position:relative}
@@ -187,6 +202,24 @@ button.sl[aria-selected="true"]{border-top-color:var(--accent)}
 .fig2-cols .ln{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
 .fig2-cols .ln .mono{font-size:12px}
 
+/* keys: the map of fifteen tiles, and the legend beside it */
+.keymap-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:40px 56px;margin-top:56px;align-items:start}
+.keymap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.km{display:flex;flex-direction:column;gap:4px;padding:14px 14px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg2);min-width:0;position:relative}
+.km b{font-size:14px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.km i{font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.km-broker{border-color:var(--accent);background:var(--accent-soft)}
+.km[data-feed]::after{content:"+ feed";position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.keylegend{display:flex;flex-direction:column}
+.kl{position:relative;padding:18px 0 18px 26px;border-top:1px solid var(--line)}
+.kl:first-child{border-top:0;padding-top:0}
+.kl .sw{position:absolute;left:0;top:24px;width:12px;height:12px;border-radius:3px;border:1px solid var(--line2);background:var(--bg2)}
+.kl:first-child .sw{top:6px}
+.sw-broker{border-color:var(--accent)!important;background:var(--accent-soft)!important}
+.sw-feed{border-style:dashed!important}
+.kl .big{margin:0}
+.kl p{margin:8px 0 0;font-size:14px;line-height:1.55;color:var(--fg2)}
+.kl .src{margin-top:8px!important;padding-top:0}
 /* keys: three columns on hairlines, then two */
 .table3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 40px;margin-top:56px}
 .table3 .col{padding-top:20px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:14px;min-width:0}
@@ -212,6 +245,17 @@ button.sl[aria-selected="true"]{border-top-color:var(--accent)}
 .end a{display:inline-flex;align-items:center;gap:6px} .end a:hover{color:var(--accent)}
 .end a svg.i{width:15px;height:15px}
 
+/* install: the line and the folded ways on the left, the transcript on the right */
+.install-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:40px 56px;margin-top:8px;align-items:start}
+.install-grid .install-big{max-width:none}
+.term{margin:40px 0 0}
+.term-body{margin:0;padding:18px 20px;background:var(--frame);border:1px solid var(--frame-line);border-top:0;border-radius:0 0 10px 10px;color:#C7CED8;font-size:12.5px;line-height:1.7;white-space:pre-wrap;box-shadow:var(--shadow-frame)}
+.term-body .pr{color:var(--accent)}
+.term-body span:not(.pr){display:block;opacity:0;animation:tline .4s var(--ease) forwards}
+.term-body .t1{animation-delay:.6s}.term-body .t2{animation-delay:1.4s}.term-body .t3{animation-delay:2.4s}.term-body .t4{animation-delay:3.6s}.term-body .t5{animation-delay:4.6s;color:#ECEBE6}.term-body .t6{animation-delay:5s}
+@keyframes tline{to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.term-body span:not(.pr){opacity:1;animation:none}}
+.term figcaption{margin:14px 0 0;font-size:13px;line-height:1.5;color:var(--muted)}
 /* install: two folded ways, then after + releases */
 .ways{margin-top:48px;border-top:1px solid var(--line)}
 .way{border-bottom:1px solid var(--line)}
@@ -303,7 +347,8 @@ button.sl[aria-selected="true"]{border-top-color:var(--accent)}
   .sec{padding-top:80px}
   .float-card{position:relative;right:auto;bottom:auto;width:auto;margin:0;border-radius:0;border-width:1px 0 0}
   .shot-hero::after{content:none}
-  .pair{grid-template-columns:1fr;gap:32px}
+  .pair,.hero-grid,.keymap-grid,.install-grid{grid-template-columns:1fr;gap:32px}
+  .keymap{grid-template-columns:repeat(2,minmax(0,1fr))}
   .way-body{padding-left:0}
 }
 /* phone */
@@ -316,6 +361,7 @@ button.sl[aria-selected="true"]{border-top-color:var(--accent)}
   .install-line code{font-size:13px}
   .shot-body{aspect-ratio:auto}
   .shot-body img{height:auto;aspect-ratio:1440/900}
+  .keymap{grid-template-columns:1fr 1fr}
   .fig1-wrap{-webkit-overflow-scrolling:touch}
   .fig1-wrap svg{width:1100px;max-width:none}
   .dl>div,.after .dl>div{grid-template-columns:1fr;gap:4px}

@@ -593,7 +593,7 @@ def test_plugins_load_install_remove(tmp_path, monkeypatch):
         assert desk_plugins.run_door("nothing", "x")["ok"] is False
         with open(os.path.join(here, "docs", "plugins", "index.json"), encoding="utf-8") as fh:
             lst = json.load(fh)
-        assert {p["name"] for p in lst["plugins"]} >= {"terminal", "hello"} and all(p["zip"].startswith("https://greeksoup.ai/plugins/") for p in lst["plugins"])
+        assert {p["name"] for p in lst["plugins"]} >= {"terminal"} and "hello" not in {p["name"] for p in lst["plugins"]} and all(p["zip"].startswith("https://greeksoup.ai/plugins/") for p in lst["plugins"])
     finally:
         desk_notes.RESEARCH_DIR = keep
         desk_plugins.installed(force=True)

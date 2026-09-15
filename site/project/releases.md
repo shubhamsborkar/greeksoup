@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.36. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.37. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.37
+
+*16 September 2026, release 37.* The landing page's top carries the one-line install as a card beside the headline again, with the four things the line does; What it needs is a map of the fifteen screens, each tile marked by what lights it (no key, a broker key, and where a feed key adds columns), with the three counts beside it; Install shows what the line prints, step by step, beside the line itself. The example plugin is no longer on the published list: a desk carries only what does something for you, and the example stays in the repository for anyone writing a plugin.
 
 ## 2026-09-16.36
 

@@ -19,6 +19,12 @@ for name in sorted(os.listdir(SRC)):
         continue
     with open(meta_path, encoding="utf-8") as fh:
         meta = json.load(fh)
+    if meta.get("example"):
+        # here to be copied by someone writing a plugin, not offered on the list; an old zip goes
+        stale = os.path.join(OUT, f"{name}.zip")
+        if os.path.exists(stale):
+            os.remove(stale)
+        continue
     adds = []
     if meta.get("screen"):
         adds.append("a screen")

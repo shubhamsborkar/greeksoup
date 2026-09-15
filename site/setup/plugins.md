@@ -23,9 +23,9 @@ The first plugin, and the one behind **Use it for Ask** under Your AI: when you 
 
 A plugin's screen runs inside the desk and can read every address the desk answers, your book included, and write what the desk's own screens can write: a note, a list row, a chain. A door runs the one command it names. That is the desk's own reach, handed to code you chose to install, so treat a plugin you did not write the way you treat any program: read it first, or ask your agent to read it and say what it does. Settings shows what each one adds and what it talks to before it goes in, and removes it in one click. [Security](/docs/project/security/).
 
-## Hello, a plugin to copy
+## Writing one
 
-The second plugin is the smallest there is, here to be copied: one screen and one block. Bring it in, open Hello in the sidebar, then copy its folder, rename it in `plugin.json`, change what you like, and bring your folder in from Settings under From this computer. A zip works the same way.
+The smallest plugin there is sits in the repository, in the `plugins/hello` folder: one screen and one block, here to be copied. It is not on the list, because a desk carries only what does something for you. Copy the folder, rename it in `plugin.json`, change what you like, and bring your folder in from Settings under From this computer. A zip works the same way.
 
 ## The list
 

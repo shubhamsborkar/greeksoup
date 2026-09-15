@@ -14,5 +14,6 @@
   },
   "blocks": [
     "blocks.js"
-  ]
+  ],
+  "example": true
 }
