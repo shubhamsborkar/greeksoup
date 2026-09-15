@@ -12,6 +12,7 @@ in this file assumes a particular broker, market or data provider.
 import json
 import os
 import re
+import socket
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -3352,6 +3353,18 @@ def main():
     print(f"Watch Home:    http://localhost:{PORT}/watch")
     print(f"Watch US:      http://localhost:{PORT}/watch?list=us\nCtrl+C to stop.")
     try:
+        # Answer on both of this computer's own addresses. On Windows the name
+        # "localhost" is usually the IPv6 one first, so a desk listening only on the
+        # IPv4 address can look absent to anything that does not fall back. Neither
+        # address is reachable from another machine.
+        class _Localhost6(ThreadingHTTPServer):
+            address_family = socket.AF_INET6
+
+        try:
+            six = _Localhost6(("::1", PORT), Handler)
+            threading.Thread(target=six.serve_forever, daemon=True).start()
+        except OSError:
+            pass          # no IPv6 on this computer, or already answering there
         ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
     except OSError:
         print(f"\nThe desk is already running at http://localhost:{PORT} — nothing to do.")

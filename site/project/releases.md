@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.3. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.4. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.4
+
+*15 September 2026, release 4.* The desk answers on both of this computer's own addresses, which is what a fresh Windows machine showed was needed: Windows reads the name localhost as the IPv6 address first, so a desk listening only on the IPv4 one could look absent while it was running perfectly well; neither address is reachable from another machine
 
 ## 2026-09-15.3
 
