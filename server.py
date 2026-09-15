@@ -3077,6 +3077,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(json.dumps(n or {"error": "no such note"}).encode(), "application/json")
             elif path == "/api/notes/graph":
                 return self._send(json.dumps(desk_notes.graph((qs.get("symbol", [""])[0] or "").strip())).encode(), "application/json")
+            elif path == "/api/research/tree":
+                return self._send(json.dumps(desk_notes.tree()).encode(), "application/json")
             elif path == "/api/research/tasks":
                 sym = (qs.get("symbol", [""])[0] or "").strip()
                 return self._send(json.dumps(desk_notes.tasks_view(calendar_rows(), sym or None)).encode(), "application/json")

@@ -68,6 +68,8 @@
     return p === "/index.html" ? "/" : p;
   }
   const svg = d => `<svg viewBox="0 0 16 16" aria-hidden="true">${d}</svg>`;
+  // the GreekSoup mark: a prompt caret and three rising bars (a prompt and a tape); the bars take the ink, the caret stays orange
+  const MARK_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l16 22-16 22" stroke="#ED5A24" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><rect x="48" y="66" width="12" height="20"/><rect x="66" y="50" width="12" height="36"/><rect x="84" y="34" width="12" height="52"/></svg>';
 
   /* ---- sidebar rail ------------------------------------------------------ */
   function buildRail() {
@@ -87,7 +89,7 @@
     const el = document.createElement("aside");
     el.id = "siderail";
     el.innerHTML =
-      '<a class="rbrand" href="/"><span class="rlogo">GS</span>' +
+      '<a class="rbrand" href="/"><span class="rlogo">' + MARK_SVG + '</span>' +
       '<span class="rname">GREEK<b>SOUP</b><small>equity research desk</small></span></a>' +
       '<div class="rgroups">' +
       groups.map(g =>

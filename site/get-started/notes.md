@@ -9,6 +9,10 @@ lead: Fourteen screens read the record. The research vault is where you keep wha
 
 Everything lives in the desk's own `data/research` folder, in plain files: `notes` holds one Markdown file per note, `files` holds what you bring in, an annual report, a model, a screenshot, one folder per subject (`files/AAPL`, `files/rubber`). Open the folder in Obsidian or any editor and the same files are there, an AI agent on your computer reads and writes them like any other file, and the backup on Settings takes the whole vault. Nothing is saved here unless you save it.
 
+## Two ways to look at it
+
+The Notes screen has two views of the same folder, a click apart at the top of the list. **Notes** is every note as a list, with the filters (what it is about, the type, the period, the status of the name). **Explorer** is the vault as folders: one per name with everything about it inside, whatever form it came in (the call note, the annual report, the answer you kept, the model), then commodities, sectors and themes, projects, general notes, the journal's days, the tasks, and any file on no note yet. The folder on disk stays flat; the Explorer is the desk's own view of it, which is what a folder tree in a plain editor cannot give you. Typing in the search box switches to the list, because a search wants a list.
+
 ## What a note is
 
 One plain text file in `data/research/notes`. The top of the file is the card, the rest is the note itself, in Markdown.

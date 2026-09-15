@@ -11,7 +11,7 @@
 <meta property="og:url" content="https://greeksoup.ai/docs/get-started/notes/">
 <meta property="og:image" content="https://greeksoup.ai/img/og.jpg">
 <link rel="canonical" href="https://greeksoup.ai/docs/get-started/notes/">
-<link rel="icon" href="data:,">
+<link rel="icon" href="../../../img/greeksoup-favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="../../../img/greeksoup-favicon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Source+Serif+4:ital,opsz,wght@1,8..60,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
 <a class="skip" href="#content">Skip to content</a>
 <header class="top">
   <button class="menu" id="menu" aria-label="Open the contents"><span></span><span></span><span></span></button>
-  <a class="brand" href="../../../">GreekSoup</a>
+  <a class="brand" href="../../../"><svg class="gsm" style="width:22px;height:22px;vertical-align:-5px;margin-right:8px;fill:currentColor" viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l16 22-16 22" stroke="#ED5A24" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><rect x="48" y="66" width="12" height="20"/><rect x="66" y="50" width="12" height="36"/><rect x="84" y="34" width="12" height="52"/></svg>greeksoup<b style="color:#ED5A24">/</b></a>
   <a class="docs-tag" href="../../">Docs</a>
   <button class="search" id="search-open" aria-label="Search the docs"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4.6"/><path d="M10.5 10.5L14 14"/></svg><span>Search</span><kbd>⌘K</kbd></button>
   <nav class="links">
@@ -44,6 +44,8 @@
       <p class="lead">Fourteen screens read the record. The research vault is where you keep what you make of it, notes and files alike, and the desk connects everything in it to the names and the other notes it belongs with, so nothing you did six months ago is lost.</p>
       <h2 id="the-vault">The vault</h2>
 <p>Everything lives in the desk's own <code>data/research</code> folder, in plain files: <code>notes</code> holds one Markdown file per note, <code>files</code> holds what you bring in, an annual report, a model, a screenshot, one folder per subject (<code>files/AAPL</code>, <code>files/rubber</code>). Open the folder in Obsidian or any editor and the same files are there, an AI agent on your computer reads and writes them like any other file, and the backup on Settings takes the whole vault. Nothing is saved here unless you save it.</p>
+<h2 id="two-ways-to-look-at-it">Two ways to look at it</h2>
+<p>The Notes screen has two views of the same folder, a click apart at the top of the list. <strong>Notes</strong> is every note as a list, with the filters (what it is about, the type, the period, the status of the name). <strong>Explorer</strong> is the vault as folders: one per name with everything about it inside, whatever form it came in (the call note, the annual report, the answer you kept, the model), then commodities, sectors and themes, projects, general notes, the journal's days, the tasks, and any file on no note yet. The folder on disk stays flat; the Explorer is the desk's own view of it, which is what a folder tree in a plain editor cannot give you. Typing in the search box switches to the list, because a search wants a list.</p>
 <h2 id="what-a-note-is">What a note is</h2>
 <p>One plain text file in <code>data/research/notes</code>. The top of the file is the card, the rest is the note itself, in Markdown.</p>
 <p>The card answers three questions about a note:</p>
@@ -98,11 +100,11 @@
     </nav>
     <footer class="foot">
       <span>GreekSoup: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. For analysts who refuse to settle.</span>
-      <span class="mono">version 2026-09-15.15 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/get-started/notes.md">edit this page</a></span>
+      <span class="mono">version 2026-09-15.16 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/get-started/notes.md">edit this page</a></span>
     </footer>
   </main>
   <aside class="rail">
-    <div class="rail-t">On this page</div><ul><li><a href="#the-vault">The vault</a></li><li><a href="#what-a-note-is">What a note is</a></li><li><a href="#why-the-folder-stays-flat">Why the folder stays flat</a></li><li><a href="#how-notes-connect">How notes connect</a></li><li><a href="#writing-one">Writing one</a></li><li><a href="#files-a-document-is-a-note-with-a-file-attached">Files: a document is a note with a file attached</a></li><li><a href="#the-desk-reads-what-is-inside">The desk reads what is inside</a></li><li><a href="#where-a-name-stands">Where a name stands</a></li><li><a href="#the-timeline">The timeline</a></li><li><a href="#the-journal-that-fills-itself">The journal that fills itself</a></li><li><a href="#tasks-that-make-themselves-and-tasks-you-make">Tasks that make themselves, and tasks you make</a></li><li><a href="#keeping-an-answer">Keeping an answer</a></li><li><a href="#the-examples">The examples</a></li><li><a href="#your-ai-reads-them">Your AI reads them</a></li></ul>
+    <div class="rail-t">On this page</div><ul><li><a href="#the-vault">The vault</a></li><li><a href="#two-ways-to-look-at-it">Two ways to look at it</a></li><li><a href="#what-a-note-is">What a note is</a></li><li><a href="#why-the-folder-stays-flat">Why the folder stays flat</a></li><li><a href="#how-notes-connect">How notes connect</a></li><li><a href="#writing-one">Writing one</a></li><li><a href="#files-a-document-is-a-note-with-a-file-attached">Files: a document is a note with a file attached</a></li><li><a href="#the-desk-reads-what-is-inside">The desk reads what is inside</a></li><li><a href="#where-a-name-stands">Where a name stands</a></li><li><a href="#the-timeline">The timeline</a></li><li><a href="#the-journal-that-fills-itself">The journal that fills itself</a></li><li><a href="#tasks-that-make-themselves-and-tasks-you-make">Tasks that make themselves, and tasks you make</a></li><li><a href="#keeping-an-answer">Keeping an answer</a></li><li><a href="#the-examples">The examples</a></li><li><a href="#your-ai-reads-them">Your AI reads them</a></li></ul>
   </aside>
 </div>
 <div class="modal" id="modal" hidden>

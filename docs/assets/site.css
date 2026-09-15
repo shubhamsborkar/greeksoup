@@ -73,7 +73,14 @@ h3{font-family:var(--serif);font-size:28px;line-height:1.1}
 .nav-links a:hover{color:var(--fg)}
 .nav-links a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1.5px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .2s var(--ease)}
 .nav-links a:hover::after{transform:scaleX(1)}
-.wordmark{font-family:var(--sans);font-weight:700;font-size:23px;letter-spacing:-.015em;color:var(--fg);justify-self:center;display:inline-flex;align-items:baseline}
+.wordmark{font-family:var(--sans);font-weight:700;font-size:23px;letter-spacing:-.015em;color:var(--fg);justify-self:center;display:inline-flex;align-items:center;gap:9px}
+.wordmark .gsm{width:26px;height:26px;fill:var(--fg);flex:0 0 auto}
+.wordmark b{color:var(--accent);font-weight:700}
+.wordmark:hover{color:var(--accent)} .wordmark:hover .gsm{fill:var(--accent)}
+.marks-row{display:flex;flex-direction:column;align-items:center;gap:10px;margin:30px auto 0}
+.gs-lock{display:inline-flex;align-items:center;gap:12px;font-family:var(--sans);font-weight:700;font-size:34px;letter-spacing:-.02em;color:var(--fg)}
+.gs-lock .gsm{width:44px;height:44px;fill:var(--fg)} .gs-lock b{color:var(--accent)}
+.marks-by{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .nav-right{display:flex;align-items:center;gap:12px;justify-self:end}
 .theme{display:inline-flex;border:1px solid var(--line2);border-radius:10px;padding:3px;gap:2px;background:var(--bg2)}
 .theme button{width:32px;height:30px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);transition:background .15s var(--ease),color .15s var(--ease)}
@@ -337,7 +344,7 @@ html[data-theme="light"] .band::before{opacity:.35;mix-blend-mode:multiply}
 .colophon::before{opacity:.14}
 html[data-theme="light"] .colophon::before{opacity:.45}
 .colophon .sub{max-width:720px;margin-top:0}
-.sn-mark{display:inline-flex;align-items:center;gap:12px;margin:32px auto 26px;font-family:var(--sans);font-weight:700;font-size:26px;letter-spacing:-.02em;color:var(--fg)}
+.sn-mark{display:inline-flex;align-items:center;gap:12px;margin:10px auto 26px;font-family:var(--sans);font-weight:700;font-size:26px;letter-spacing:-.02em;color:var(--fg)}
 .sn-mark .snm{width:40px;height:40px;fill:var(--fg)}
 .sn-mark b{color:var(--accent);font-weight:700}
 .sn-mark:hover{color:var(--accent)} .sn-mark:hover .snm{fill:var(--accent)}

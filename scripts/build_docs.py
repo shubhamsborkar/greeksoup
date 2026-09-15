@@ -134,7 +134,7 @@ SHELL = """<!DOCTYPE html>
 <meta property="og:url" content="{canonical}">
 <meta property="og:image" content="https://greeksoup.ai/img/og.jpg">
 <link rel="canonical" href="{canonical}">
-<link rel="icon" href="data:,">
+<link rel="icon" href="{rel}../img/greeksoup-favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="{rel}../img/greeksoup-favicon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Source+Serif+4:ital,opsz,wght@1,8..60,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -145,7 +145,7 @@ SHELL = """<!DOCTYPE html>
 <a class="skip" href="#content">Skip to content</a>
 <header class="top">
   <button class="menu" id="menu" aria-label="Open the contents"><span></span><span></span><span></span></button>
-  <a class="brand" href="{rel}../">GreekSoup</a>
+  <a class="brand" href="{rel}../"><svg class="gsm" style="width:22px;height:22px;vertical-align:-5px;margin-right:8px;fill:currentColor" viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l16 22-16 22" stroke="#ED5A24" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><rect x="48" y="66" width="12" height="20"/><rect x="66" y="50" width="12" height="36"/><rect x="84" y="34" width="12" height="52"/></svg>greeksoup<b style="color:#ED5A24">/</b></a>
   <a class="docs-tag" href="{rel}">Docs</a>
   <button class="search" id="search-open" aria-label="Search the docs"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4.6"/><path d="M10.5 10.5L14 14"/></svg><span>Search</span><kbd>⌘K</kbd></button>
   <nav class="links">

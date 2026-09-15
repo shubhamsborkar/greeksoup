@@ -1152,6 +1152,62 @@ def tasks_view(calendar_rows=None, symbol=None):
             "categories": TASK_CATEGORIES, "path": "/".join(("data", "research", "tasks.md"))}
 
 
+def tree():
+    """The vault as an explorer: a folder per subject (every listing, commodity, sector and
+    theme) with everything about it inside, whatever form it came in; then projects, general
+    notes, the journal's days, the tasks, and files on no note yet. The folder on disk is
+    flat; this is the desk's own view of it, which is the point."""
+    notes = index()
+    st = status_all()
+    def leaf(n):
+        return {"id": n["id"], "title": n["title"], "type": n["type"], "period": n["period"], "updated": n["updated"],
+                "file": n["file"], "pinned": n["pinned"], "example": n["example"]}
+    names, subjects = {}, {}
+    general, projects = [], []
+    for n in notes.values():
+        L = leaf(n)
+        if n["type"] == "project":
+            projects.append({**L, "symbols": n["symbols"] + n.get("implied_symbols", [])})
+        for sym in n["symbols"]:
+            names.setdefault(sym, []).append(L)
+        if n["kind"] != "stock" and n["about"]:
+            subjects.setdefault((n["kind"], n["about"]), []).append(L)
+        if not n["symbols"] and not n["about"] and n["type"] != "project":
+            general.append(L)
+    loose = loose_files()
+    loose_by = {}
+    for f in loose:
+        loose_by.setdefault(f["subject"].upper(), []).append(f)
+    def sort_leaves(xs):
+        xs.sort(key=lambda L: ((_period_sort(L["period"]) if L["period"] else (-1, 0, "")), L["updated"]), reverse=True)
+        return xs
+    name_rows = []
+    for sym in sorted(set(names) | {k for k in loose_by if re.match(r"^[A-Z0-9.\-^=]+$", k) and k != "GENERAL"}):
+        s_ = st.get(sym, {})
+        name_rows.append({"symbol": sym, "status": s_.get("status", ""), "notes": sort_leaves(names.get(sym, [])),
+                          "loose": loose_by.get(sym, [])})
+    subj_rows = {}
+    for (kind, about), xs in subjects.items():
+        subj_rows.setdefault(kind, []).append({"about": about, "notes": sort_leaves(xs), "loose": loose_by.get(slug(about).upper(), [])})
+    for kind in subj_rows:
+        subj_rows[kind].sort(key=lambda r: r["about"].lower())
+    days = journal_days(limit=30)
+    try:
+        tasks = tasks_view()
+    except Exception:  # noqa: BLE001
+        tasks = {"counts": {"open": 0, "due": 0}}
+    return {"names": name_rows,
+            "subjects": [{"kind": k, "rows": subj_rows[k]} for k in ("commodity", "sector", "macro", "general") if k in subj_rows],
+            "projects": sorted(projects, key=lambda p: p["title"].lower()),
+            "general": sort_leaves(general),
+            "journal": [{"date": d["date"], "title": d["title"], "count": len(d["entries"])} for d in days],
+            "tasks": tasks["counts"],
+            "loose_other": [f for f in loose if f["subject"].upper() not in {r["symbol"] for r in name_rows}
+                            and f["subject"].upper() not in {slug(r["about"]).upper() for rows in subj_rows.values() for r in rows}],
+            "counts": {"notes": sum(1 for n in notes.values() if n["type"] != "project"), "projects": len(projects),
+                       "names": len(name_rows), "files": sum(1 for n in notes.values() if n["file"]) + len(loose)}}
+
+
 def _forget_text(rel):
     try:
         os.remove(_text_cache_path(rel))

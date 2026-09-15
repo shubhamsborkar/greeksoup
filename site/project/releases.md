@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.15. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.16. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.16
+
+*15 September 2026, release 16.* The GreekSoup mark, on everything: the sidebar, the tab icon of every screen, the docs and the landing page, in the Shikshan Nivesh family (a prompt caret and three rising bars); and the Notes screen gains an Explorer view, the vault as folders, one per name with everything about it inside, plus commodities, sectors and themes, projects, the journal's days, the tasks and any file on no note yet, next to a first-class Attach a file button and a start-here card that shows the three ways in
 
 ## 2026-09-15.15
 

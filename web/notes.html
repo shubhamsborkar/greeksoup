@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Notes — GreekSoup</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23ED5A24'/><text x='16' y='22' font-size='15' font-weight='800' font-family='Arial' fill='white' text-anchor='middle'>GS</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
 <style>
@@ -15,6 +15,34 @@ main{max-width:1420px;margin:0 auto;padding:18px 22px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .panel-h{padding:11px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .panel-h h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2)}
+.vmode{cursor:pointer;color:var(--muted)} .vmode.on{color:var(--ink)} .vmode:hover{color:var(--accent)} .vsep{color:var(--muted);margin:0 7px}
+/* the explorer: folders per subject, with everything about it inside */
+.tree{max-height:calc(100vh - 230px);overflow:auto;padding:6px 6px 12px;font-size:12.5px}
+.tree details{margin:0} .tree summary{list-style:none;cursor:pointer;padding:5px 8px;border-radius:7px;display:flex;align-items:center;gap:7px;color:var(--ink2);user-select:none}
+.tree summary::-webkit-details-marker{display:none}
+.tree summary:hover{background:var(--panel2);color:var(--ink)}
+.tree summary .car{display:inline-block;width:10px;color:var(--muted);font-size:10px;transition:transform .12s}
+.tree details[open]>summary .car{transform:rotate(90deg)}
+.tree summary .cnt{margin-left:auto;font-size:10.5px;color:var(--muted)}
+.tree .grp>summary{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:9px 8px 4px}
+.tree .grp>summary:hover{background:none;color:var(--ink2)}
+.tree .fld>summary{font-weight:600;color:var(--ink)}
+.tree .fld>summary .sy{font-family:Menlo,monospace}
+.tree .fld>summary .stt{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700}
+.tree .fld>summary .tl{font-size:10px;color:var(--muted);opacity:0;margin-left:4px} .tree .fld>summary:hover .tl{opacity:1}
+.tree .lf{display:flex;align-items:baseline;gap:7px;padding:4px 8px 4px 30px;border-radius:7px;color:var(--ink);text-decoration:none;cursor:pointer}
+.tree .lf:hover,.tree .lf.on{background:var(--panel2)}
+.tree .lf .ty{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;flex:0 0 auto;width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tree .lf .nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tree .lf .per{font-size:10.5px;color:var(--muted);flex:0 0 auto} .tree .lf .fx{font-size:9.5px;color:var(--muted);flex:0 0 auto}
+.tree .lf.loose .nm{color:var(--ink2);font-style:italic}
+.tree .empty{padding:8px 8px 8px 30px;font-size:11.5px;color:var(--muted)}
+.start{padding:22px 24px;line-height:1.6;font-size:13px;color:var(--ink2)}
+.start h2{font-size:16px;color:var(--ink);margin:0 0 8px}
+.start .ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0 6px}
+.start .way{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--panel2);cursor:pointer}
+.start .way b{display:block;color:var(--ink);margin-bottom:3px} .start .way:hover{border-color:var(--accent)}
+.start .way.static{cursor:default} .start .way.static:hover{border-color:var(--line)}
 .panel-h .s{font-size:11px;color:var(--muted)}
 .tools{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .tools input{flex:1 1 140px;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:6px 10px;font-size:12px;font-family:inherit;min-width:0}
@@ -134,7 +162,7 @@ select.chip{font-family:inherit;padding:3px 6px}
   <div class="sub">Your research vault: the notes you write and the files you bring in, kept as plain files in the desk's own <b>data/research</b> folder. A note says what it is about (a listing, a commodity, a sector, the macro picture, or nothing in particular), the quarter it is researching, the project it belongs to, and links to other notes with <b>[[double brackets]]</b>, so a company page shows every note about it, a project shows every name and note inside it, and one note leads to the next. An annual report, a model or a screenshot attaches to a note and lives in the vault with it. Open the folder in Obsidian or any editor and the same files are there; your AI agent reads and writes them too. Nothing is saved here unless you save it.</div>
   <div class="lay">
     <div class="panel">
-      <div class="panel-h"><h2>Notes</h2><span><button class="chip" id="tbtn" title="what is due: results dates, follow-ups, your own lines">Tasks</button> <button class="chip" id="jbtn" title="the moments the desk saw, and your one-line whys">Journal</button> <button class="chip on" id="newbtn">+ New note</button></span></div>
+      <div class="panel-h"><h2><span class="vmode on" id="m_list" title="every note, filtered">Notes</span><span class="vsep">·</span><span class="vmode" id="m_tree" title="the vault as folders: one per name, with everything about it inside">Explorer</span></h2><span><button class="chip" id="tbtn" title="what is due: results dates, follow-ups, your own lines">Tasks</button> <button class="chip" id="jbtn" title="the moments the desk saw, and your one-line whys">Journal</button> <button class="chip" id="attachbtn" title="an annual report, a model, a screenshot: it becomes a note with the file attached">+ Attach a file</button> <button class="chip on" id="newbtn">+ New note</button></span></div>
       <div class="tools">
         <input id="q" placeholder="search notes and inside their files…" autocomplete="off">
         <select id="period" class="chip" title="the quarter or year a note is researching"><option value="">any period</option></select>
@@ -144,11 +172,14 @@ select.chip{font-family:inherit;padding:3px 6px}
       <div class="tools"><span class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)" title="notes on names you have marked with a status">Status</span><span class="chips" id="statuschips"></span></div>
       <div class="tools" id="ctx" style="display:none"></div>
       <div class="list" id="list"><div class="empty">Loading…</div></div>
+      <div class="tree" id="tree" style="display:none"></div>
       <div class="stats" id="stats"></div>
       <div id="loose"></div>
     </div>
     <div class="panel" id="right">
-      <div class="empty" id="blank">Pick a note on the left, or start a new one.</div>
+      <div id="blank"><div class="start"><h2>Your research vault</h2>Everything you write and everything you bring in, as plain files in <span class="mono">data/research</span>, connected to the names, the periods and the projects it belongs to. Nothing is saved unless you save it. Three ways in:
+        <div class="ways"><div class="way" id="w_new"><b>Write a note</b>A call, a risk, an insight, a decision. Say what it is about and which quarter.</div><div class="way" id="w_attach"><b>Bring a file in</b>An annual report, a model, a screenshot. It becomes a note with the file attached, and the desk reads what is inside.</div><div class="way static"><b>Keep an answer</b>Every answer in the Ask box has Save as note and Save as task under it.</div></div>
+        <span style="font-size:12px;color:var(--muted)">Pick a note on the left, or switch to <b style="color:var(--ink2)">Explorer</b> to see the vault as folders, one per name.</span></div></div>
       <div id="view" style="display:none"></div>
       <div class="ed" id="ed" style="display:none">
         <div class="row"><input class="title" id="e_title" placeholder="Title" autocomplete="off">
@@ -245,6 +276,7 @@ async function load(){
       <div class="sn">${n.hit==="file"?'<span style="color:var(--accent)">in the file · </span>':""}${esc(n.snippet||"")}</div></a>`).join("");
   $("list").querySelectorAll(".nc").forEach(a=>a.onclick=e=>{e.preventDefault(); open(a.dataset.id);});
   if(F.symbol&&!CUR&&$("ed").style.display==="none") showTimeline(F.symbol);
+  if(MODE==="tree") loadTree();
   const loose=d.loose||[];
   $("loose").innerHTML=loose.length?`<div class="loose"><div class="l">In the vault, on no note yet</div>${loose.map(f=>`<div class="f"><b title="${esc(f.file)}">${esc(f.name)}</b><span>${esc(f.subject)}</span><span>${fmtSize(f.size)}</span><a href="/notes?new&file=${encodeURIComponent(f.file)}${f.subject&&/^[A-Z0-9.\-]+$/.test(f.subject)?"&symbol="+encodeURIComponent(f.subject):""}">give it a note</a><button class="danger" data-f="${esc(f.file)}">delete</button></div>`).join("")}</div>`:"";
   $("loose").querySelectorAll("button").forEach(b=>b.onclick=async()=>{ if(!confirm(`Delete ${b.dataset.f} from the vault?`)) return; await post("/api/research/remove_file",{file:b.dataset.f}); load(); });
@@ -254,7 +286,7 @@ async function load(){
     $("aboutlist").innerHTML=(FACETS.abouts||[]).map(a=>`<option value="${esc(a.about)}">`).join("");
   }catch(e){}
 }
-$("q").addEventListener("input",()=>{clearTimeout(window._qt);window._qt=setTimeout(()=>{F.q=$("q").value.trim();load();},200);});
+$("q").addEventListener("input",()=>{clearTimeout(window._qt);window._qt=setTimeout(()=>{F.q=$("q").value.trim(); if(F.q&&MODE==="tree") setMode("list"); load();},200);});
 $("period").addEventListener("change",()=>{F.period=$("period").value;load();});
 
 async function open(id){
@@ -298,6 +330,40 @@ async function open(id){
   $("view").querySelectorAll("a.nl, a.wl[data-id]").forEach(a=>a.onclick=e=>{e.preventDefault();open(a.dataset.id);});
 }
 
+/* the Explorer: the vault as folders, one per name and subject, with everything about it inside */
+let MODE="list"; try{ MODE=localStorage.getItem("gs.notesmode")||"list"; }catch(e){}
+let OPEN=new Set(["g:names"]); try{ const sv=localStorage.getItem("gs.treeopen"); if(sv) OPEN=new Set(JSON.parse(sv)); }catch(e){}
+function setMode(m){ MODE=m; try{ localStorage.setItem("gs.notesmode",m); }catch(e){} $("m_list").classList.toggle("on",m==="list"); $("m_tree").classList.toggle("on",m==="tree"); $("list").style.display=m==="list"?"":"none"; $("typechips").parentElement.style.display=m==="list"?"":"none"; $("kindchips").parentElement.style.display=m==="list"?"":"none"; $("statuschips").parentElement.style.display=m==="list"?"":"none"; $("tree").style.display=m==="tree"?"":"none"; if(m==="tree") loadTree(); }
+$("m_list").onclick=()=>setMode("list"); $("m_tree").onclick=()=>setMode("tree");
+function remember(key,open){ if(open) OPEN.add(key); else OPEN.delete(key); try{ localStorage.setItem("gs.treeopen",JSON.stringify([...OPEN])); }catch(e){} }
+const leafHtml=L=>`<a class="lf${CUR&&CUR.id===L.id?" on":""}" href="/notes?id=${encodeURIComponent(L.id)}" data-id="${esc(L.id)}"><span class="ty">${TYPE_LABEL[L.type]||L.type}</span><span class="nm">${esc(L.title)}</span>${L.period?`<span class="per">${esc(L.period)}</span>`:""}${L.file?`<span class="fx">${esc(fileExt(L.file))}</span>`:""}</a>`;
+const looseHtml=f=>`<a class="lf loose" href="/notes?new&file=${encodeURIComponent(f.file)}${/^[A-Z0-9.\-]+$/.test(f.subject)?"&symbol="+encodeURIComponent(f.subject):""}" title="a file on no note yet: click to give it one"><span class="ty">file</span><span class="nm">${esc(f.name)}</span><span class="fx">${fmtSize(f.size)}</span></a>`;
+function folder(key,head,inner,cls){ const o=OPEN.has(key); return `<details class="${cls||"fld"}" data-k="${esc(key)}"${o?" open":""}><summary><span class="car">▶</span>${head}</summary>${inner}</details>`; }
+async function loadTree(){
+  let t; try{ t=await (await fetch("/api/research/tree")).json(); }catch(e){ return; }
+  const c=t.counts||{};
+  const namesInner=(t.names||[]).map(r=>folder("n:"+r.symbol,`<span class="sy">$${esc(r.symbol)}</span>${r.status?`<span class="stt">${esc(STATUS_LABEL[r.status]||r.status)}</span>`:""}<span class="tl" data-sym="${esc(r.symbol)}">timeline</span><span class="cnt">${r.notes.length+r.loose.length}</span>`,(r.notes.map(leafHtml).join("")+r.loose.map(looseHtml).join(""))||`<div class="empty">nothing yet</div>`)).join("")||`<div class="empty">No note names a listing yet.</div>`;
+  const subjInner=(t.subjects||[]).map(g=>folder("k:"+g.kind,`<span>${esc(KIND_LABEL[g.kind]||g.kind)}</span><span class="cnt">${g.rows.length}</span>`,g.rows.map(r=>folder("s:"+g.kind+":"+r.about,`<span>${esc(r.about)}</span><span class="cnt">${r.notes.length+r.loose.length}</span>`,r.notes.map(leafHtml).join("")+r.loose.map(looseHtml).join(""))).join(""),"grp")).join("");
+  const projInner=(t.projects||[]).map(p=>folder("p:"+p.id,`<span>${esc(p.title)}</span><span class="cnt">${(p.symbols||[]).length} names</span>`,leafHtml(p)+(p.symbols||[]).map(sy=>`<a class="lf" href="/notes?symbol=${encodeURIComponent(sy)}" data-sym="${esc(sy)}"><span class="ty">name</span><span class="nm mono">$${esc(sy)}</span></a>`).join(""))).join("")||`<div class="empty">No project yet. A project is a note whose type is Project.</div>`;
+  const genInner=(t.general||[]).map(leafHtml).join("")||`<div class="empty">none</div>`;
+  const jInner=(t.journal||[]).map(d=>`<a class="lf" href="/notes?journal" data-journal="1"><span class="ty">day</span><span class="nm">${esc(d.title)}</span><span class="per">${d.count}</span></a>`).join("")||`<div class="empty">nothing written yet</div>`;
+  $("tree").innerHTML=
+    folder("g:names",`<span>Names</span><span class="cnt">${c.names||0}</span>`,namesInner,"grp")+
+    (subjInner?folder("g:subjects",`<span>Commodities, sectors, themes</span>`,subjInner,"grp"):"")+
+    folder("g:projects",`<span>Projects</span><span class="cnt">${c.projects||0}</span>`,projInner,"grp")+
+    folder("g:general",`<span>General notes</span><span class="cnt">${(t.general||[]).length}</span>`,genInner,"grp")+
+    folder("g:journal",`<span>Journal</span><span class="cnt">${(t.journal||[]).length} days</span>`,jInner,"grp")+
+    `<a class="lf" href="/notes?tasks" data-tasks="1" style="padding-left:8px;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)"><span class="nm" style="color:var(--muted)">Tasks</span><span class="cnt" style="font-size:10.5px">${t.tasks?`${t.tasks.open} open${t.tasks.due?", "+t.tasks.due+" due":""}`:""}</span></a>`+
+    ((t.loose_other||[]).length?folder("g:loose",`<span>Files on no note yet</span><span class="cnt">${t.loose_other.length}</span>`,t.loose_other.map(looseHtml).join(""),"grp"):"");
+  $("tree").querySelectorAll("details").forEach(d=>d.addEventListener("toggle",()=>remember(d.dataset.k,d.open)));
+  $("tree").querySelectorAll("a.lf[data-id]").forEach(a=>a.onclick=e=>{e.preventDefault(); open(a.dataset.id); $("tree").querySelectorAll(".lf").forEach(x=>x.classList.toggle("on",x.dataset.id===a.dataset.id));});
+  $("tree").querySelectorAll("a.lf[data-sym]").forEach(a=>a.onclick=e=>{e.preventDefault(); CUR=null; F.symbol=a.dataset.sym; $("ed").style.display="none"; load(); showTimeline(a.dataset.sym);});
+  $("tree").querySelectorAll(".tl").forEach(x=>x.onclick=e=>{e.preventDefault(); e.stopPropagation(); CUR=null; F.symbol=x.dataset.sym; $("ed").style.display="none"; load(); showTimeline(x.dataset.sym);});
+  $("tree").querySelectorAll("a.lf[data-journal]").forEach(a=>a.onclick=e=>{e.preventDefault(); showJournal();});
+  $("tree").querySelectorAll("a.lf[data-tasks]").forEach(a=>a.onclick=e=>{e.preventDefault(); showTasks();});
+}
+$("attachbtn").onclick=()=>{ edit(null); setTimeout(()=>$("e_fileinput").click(),50); };
+$("w_new").onclick=()=>edit(null); $("w_attach").onclick=()=>$("attachbtn").click();
 /* Tasks: what is due, from the calendar, from answers, from notes and from the reader */
 const CAT_LABEL={results:"Results",filing:"Filing","follow-up":"Follow-up",model:"Model",reading:"Reading",call:"Call",other:"Other"};
 function taskRow(t,over){
@@ -435,7 +501,7 @@ symIn.addEventListener("input",()=>{ clearTimeout(sugT); const q=symIn.value.tri
 symIn.addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault(); if(hits.length) pick(0); else { const s=symIn.value.trim().toUpperCase(); if(s&&!EDIT.syms.includes(s)){EDIT.syms.push(s);drawSyms();} symIn.value=""; } } if(e.key==="Escape") showSugg([]); });
 symIn.addEventListener("blur",()=>setTimeout(()=>showSugg([]),150));
 
-(async()=>{ await load(); if(P.get("id")) open(P.get("id")); else if(P.has("new")) edit(null); else if(P.has("journal")) showJournal(); else if(P.has("tasks")) showTasks(); })();
+(async()=>{ setMode(MODE); await load(); if(P.get("id")) open(P.get("id")); else if(P.has("new")) edit(null); else if(P.has("journal")) showJournal(); else if(P.has("tasks")) showTasks(); })();
 </script>
 </body>
 </html>
