@@ -84,6 +84,7 @@
       ).join("") +
       '</div>' +
       '<div class="rfoot">' +
+      '<button id="askbtn" title="Ask your AI about this screen (⌘I)"><span class="rk">✦</span><span>Ask · your AI</span></button>' +
       '<button id="cmdkbtn" title="Jump anywhere (⌘K)"><span class="rk">⌘</span><span>Command · K</span></button>' +
       '<button id="themebtn" title="Cycle theme"><span class="rk">◐</span><span>Theme · <b id="themename"></b></span></button>' +
       '<button id="railbtn" title="Collapse sidebar ( [ )"><span class="rk" id="railglyph">⟨</span><span>Collapse</span></button>' +
@@ -93,6 +94,7 @@
     document.getElementById("railbtn").onclick = toggleRail;
     document.getElementById("railedge").onclick = toggleRail;
     document.getElementById("cmdkbtn").onclick = () => openCmdk(true);
+    document.getElementById("askbtn").onclick = () => openAsk(true);
     const tb = document.getElementById("themebtn");
     tb.onclick = () => {
       const curT = document.documentElement.dataset.theme || "graphite";
@@ -227,7 +229,11 @@
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
       e.preventDefault(); openCmdk(!ckOpen); return;
     }
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "i") {
+      e.preventDefault(); openAsk(!askOpen); return;
+    }
     if (ckOpen && e.key === "Escape") { openCmdk(false); return; }
+    if (askOpen && e.key === "Escape") { openAsk(false); return; }
     if (e.key === "[" && !typing(e) && !e.metaKey && !e.ctrlKey) toggleRail();
   });
 
@@ -419,6 +425,97 @@
     }
     pull();
     setInterval(pull, 30 * 60 * 1000);
+  }
+
+  /* ---- the Ask box: the reader's question, with this screen's numbers, to the
+     AI they set in Settings. Reads the desk; writes nothing. ------------------- */
+  let askOpen = false, askBusy = false;
+  const askHistory = [];
+  function askPage() {
+    const p = location.pathname === "/index.html" ? "/" : location.pathname;
+    const sp = new URLSearchParams(location.search);
+    const query = {};
+    for (const k of ["list", "symbol", "region"]) if (sp.get(k)) query[k] = sp.get(k);
+    const hit = TABS.find(([href]) => href === current());
+    const label = hit ? hit[1] : (p === "/t" ? "Ticker " + (sp.get("symbol") || "") : document.title);
+    return { page: p, query, label };
+  }
+  function buildAsk() {
+    if (document.getElementById("askdock")) return;
+    const el = document.createElement("aside");
+    el.id = "askdock";
+    el.setAttribute("aria-label", "Ask your AI");
+    el.innerHTML =
+      '<div class="ah"><div><b>Ask your AI</b><small id="asksub">reading this screen</small></div>' +
+      '<button class="ax" id="askclose" title="Close (Esc)">×</button></div>' +
+      '<div class="am" id="askmsgs"></div>' +
+      '<div class="af"><textarea id="askin" placeholder="Ask about what is on this screen. Enter sends, Shift+Enter for a new line."></textarea>' +
+      '<div class="ab"><button id="asksend">Ask</button><small id="askfoot">Your AI, reading this screen. Verify against the source the screen names.</small></div></div>';
+    document.body.appendChild(el);
+    document.getElementById("askclose").onclick = () => openAsk(false);
+    document.getElementById("asksend").onclick = sendAsk;
+    document.getElementById("askin").addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendAsk(); }
+    });
+  }
+  function askNote(html, cls) {
+    const m = document.getElementById("askmsgs");
+    const d = document.createElement("div");
+    d.className = "a" + (cls ? " " + cls : "");
+    d.innerHTML = html;
+    m.appendChild(d); m.scrollTop = m.scrollHeight;
+    return d;
+  }
+  async function openAsk(open) {
+    buildAsk();
+    askOpen = open;
+    document.getElementById("askdock").classList.toggle("open", open);
+    if (!open) return;
+    const { label } = askPage();
+    document.getElementById("asksub").textContent = "reading " + label;
+    const m = document.getElementById("askmsgs");
+    if (!m.childElementCount) {
+      try {
+        const st = await (await fetch("/api/ask", { cache: "no-store" })).json();
+        if (st.ready) {
+          askNote(`<p>Ask anything about what is on this screen. The question goes with the screen's own numbers to <b>${esc(st.label || st.provider)}</b>, model <span class="mono">${esc(st.model)}</span>, and nowhere else.</p>`, "hint");
+        } else {
+          askNote(`<p>No AI is set yet. ${esc(st.why || "")} Pick a provider and paste a key on <a href="/settings">Settings</a>, under Your AI. A model running on this computer needs no key.</p>`, "hint");
+        }
+      } catch (e) { /* the send will say */ }
+    }
+    document.getElementById("askin").focus();
+  }
+  async function sendAsk() {
+    if (askBusy) return;
+    const ta = document.getElementById("askin");
+    const question = ta.value.trim();
+    if (!question) return;
+    const { page, query, label } = askPage();
+    askBusy = true; document.getElementById("asksend").disabled = true;
+    ta.value = "";
+    const qd = document.createElement("div"); qd.className = "q"; qd.textContent = question;
+    const m = document.getElementById("askmsgs"); m.appendChild(qd);
+    const wait = askNote(`<p class="wait">Reading ${esc(label)} and asking…</p>`);
+    try {
+      const r = await fetch("/api/ask", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, page, query, history: askHistory.slice(-6) }) });
+      const out = await r.json();
+      if (!out.ok) {
+        wait.className = "a err";
+        wait.innerHTML = `<p>${esc(out.error || "The model did not answer.")}` +
+          (out.settings ? ` Set it on <a href="/settings">Settings</a>, under Your AI.` : "") + `</p>`;
+      } else {
+        wait.innerHTML = out.answer.split(/\n{2,}/).map(p => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("") +
+          (out.read && out.read.length ? `<div class="rd">read ${out.read.map(esc).join(" · ")} · ${esc(out.model || "")}</div>` : "");
+        askHistory.push({ role: "user", content: question }, { role: "assistant", content: out.answer });
+      }
+    } catch (e) {
+      wait.className = "a err";
+      wait.innerHTML = "<p>The desk did not answer. Is it still running?</p>";
+    }
+    askBusy = false; document.getElementById("asksend").disabled = false;
+    m.scrollTop = m.scrollHeight; ta.focus();
   }
 
   function boot() { buildRail(); initAlertBar(); initUpdateBar(); }

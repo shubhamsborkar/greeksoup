@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-14. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15
+
+*15 September 2026.* The Ask box: Ask · your AI at the bottom of the sidebar (or ⌘I) opens a box on every screen; your question goes with that screen's own numbers, and the how-you-invest lines from Settings, to the AI you set there, and the answer comes back in the box with the addresses it read; the box keeps the conversation while the screen is open; long price histories are shortened before they go so a screen fits in one question; it describes what the numbers show and is told never to say buy, sell or hold; nothing is sent anywhere but the one address you chose, and a model on this computer never leaves it
 
 ## 2026-09-14
 

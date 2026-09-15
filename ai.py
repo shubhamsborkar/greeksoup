@@ -6,8 +6,10 @@ Anthropic and offered as a second door by DeepSeek, Kimi, MiniMax, Z.ai and
 Alibaba's Qwen). A preset fills the format, the address and a starting model;
 any of the three can be changed, and "any other endpoint" takes all three by hand.
 
-Today this module proves a key works (the Settings screen's test button). The
-Ask box and the Research screen build on the same settings.
+Two things use it: the Settings screen's test button (ping), and the Ask box on
+every screen (ask), which sends the reader's question with the numbers of the
+screen they are on and shows the answer. Nothing here places an order or reads
+a key back.
 """
 
 import os
@@ -73,54 +75,103 @@ def _err(r):
     return (r.text or "").strip()[:240] or f"answered {r.status_code}"
 
 
-def _anthropic(s, bearer=False):
+def _anthropic(s, messages, system=None, max_tokens=16, bearer=False, timeout=45):
     headers = {"anthropic-version": "2023-06-01", "content-type": "application/json"}
     if s["key"]:
         if bearer:
             headers["authorization"] = "Bearer " + s["key"]
         else:
             headers["x-api-key"] = s["key"]
-    return requests.post(s["base_url"].rstrip("/") + "/v1/messages", headers=headers,
-                         json={"model": s["model"], "max_tokens": 16,
-                               "messages": [{"role": "user", "content": _PING}]},
-                         timeout=45)
+    body = {"model": s["model"], "max_tokens": max_tokens, "messages": messages}
+    if system:
+        body["system"] = system
+    return requests.post(s["base_url"].rstrip("/") + "/v1/messages", headers=headers, json=body, timeout=timeout)
 
 
-def ping(s=None):
-    """One tiny request. {'ok': True, 'reply': text} or {'ok': False, 'error': words}."""
-    s = s or settings()
+def _openai(s, messages, system=None, max_tokens=None, timeout=60):
+    headers = {"content-type": "application/json"}
+    if s["key"]:
+        headers["authorization"] = "Bearer " + s["key"]
+    msgs = ([{"role": "system", "content": system}] if system else []) + messages
+    body = {"model": s["model"], "messages": msgs}
+    if max_tokens:
+        body["max_tokens"] = max_tokens
+    return requests.post(s["base_url"].rstrip("/") + "/chat/completions", headers=headers, json=body, timeout=timeout)
+
+
+def not_ready(s):
+    """Why a request cannot be made yet, in the reader's words, or None."""
     if not s["provider"]:
-        return {"ok": False, "error": "Pick a provider first."}
+        return "Pick a provider first."
     if s["needs_key"] and not s["key"]:
-        return {"ok": False, "error": "No AI key saved yet."}
+        return "No AI key saved yet."
     if not s["model"]:
-        return {"ok": False, "error": "Type the model's name; this provider's page lists them."}
+        return "Type the model's name; this provider's page lists them."
     if not s["base_url"]:
-        return {"ok": False, "error": "Type the endpoint's address."}
+        return "Type the endpoint's address."
+    return None
+
+
+def complete(messages, system=None, max_tokens=16, timeout=60, s=None):
+    """One request in whichever shape the endpoint speaks.
+    {'ok': True, 'text': ...} or {'ok': False, 'error': words}."""
+    s = s or settings()
+    why = not_ready(s)
+    if why:
+        return {"ok": False, "error": why}
     try:
         if s["format"] == "anthropic":
-            r = _anthropic(s)
+            r = _anthropic(s, messages, system, max_tokens, timeout=timeout)
             if r.status_code == 401 and s["key"]:
-                r = _anthropic(s, bearer=True)   # a few compatible endpoints want Bearer
+                r = _anthropic(s, messages, system, max_tokens, bearer=True, timeout=timeout)   # a few compatible endpoints want Bearer
             if r.status_code != 200:
                 return {"ok": False, "error": _err(r)}
             j = r.json()
             if j.get("stop_reason") == "refusal":
-                return {"ok": True, "reply": "(the model declined the test line; the key itself works)"}
+                return {"ok": True, "text": "", "refused": True}
             text = " ".join(b.get("text", "") for b in j.get("content", []) if b.get("type") == "text").strip()
-            return {"ok": True, "reply": text or "(empty reply)"}
-        headers = {"content-type": "application/json"}
-        if s["key"]:
-            headers["authorization"] = "Bearer " + s["key"]
-        r = requests.post(s["base_url"].rstrip("/") + "/chat/completions", headers=headers,
-                          json={"model": s["model"], "messages": [{"role": "user", "content": _PING}]},
-                          timeout=60)
+            return {"ok": True, "text": text}
+        r = _openai(s, messages, system, max_tokens if max_tokens > 16 else None, timeout=timeout)
         if r.status_code != 200:
             return {"ok": False, "error": _err(r)}
         j = r.json()
         text = ((j.get("choices") or [{}])[0].get("message") or {}).get("content") or ""
-        return {"ok": True, "reply": str(text).strip() or "(empty reply)"}
+        return {"ok": True, "text": str(text).strip()}
     except requests.exceptions.ConnectionError:
         return {"ok": False, "error": "Nothing answered at " + s["base_url"] + ". Is it running, and is the address right?"}
+    except requests.exceptions.Timeout:
+        return {"ok": False, "error": "The model did not answer in time. Try once more, or a smaller model."}
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": str(exc)[:240]}
+
+
+def ping(s=None):
+    """One tiny request. {'ok': True, 'reply': text} or {'ok': False, 'error': words}."""
+    out = complete([{"role": "user", "content": _PING}], max_tokens=16, s=s)
+    if not out["ok"]:
+        return out
+    if out.get("refused"):
+        return {"ok": True, "reply": "(the model declined the test line; the key itself works)"}
+    return {"ok": True, "reply": out["text"] or "(empty reply)"}
+
+
+ASK_SYSTEM = """You are the reader's own AI, reading GreekSoup, the one-person equity research desk, which runs on their computer. The reader is on the screen named below, and that screen's numbers follow as JSON, exactly as the desk holds them.
+
+Answer from those numbers, in plain words, in a few short paragraphs. When you use a figure, say which screen and source it came from. When the answer is not in the data, say so plainly instead of guessing, and say which screen of the desk would carry it. Describe what the numbers show; never tell the reader what to buy, sell or hold, and never invent a figure the data does not carry. Currencies and units are as the data gives them. Keep it short."""
+
+
+def ask(question, screen, context, profile="", history=None, s=None):
+    """The Ask box. `context` is the screen's data as text; `history` the last few
+    turns as [{'role','content'}]. Returns {'ok', 'answer'} or {'ok': False, 'error'}."""
+    system = ASK_SYSTEM + "\n\nSCREEN: " + screen
+    if profile:
+        system += "\n\nHOW THIS READER INVESTS (from their Settings screen; shape answers to it)\n" + profile
+    system += "\n\nTHE SCREEN'S DATA\n" + context
+    messages = [m for m in (history or []) if m.get("role") in ("user", "assistant") and isinstance(m.get("content"), str)][-6:]
+    messages.append({"role": "user", "content": question})
+    out = complete(messages, system=system, max_tokens=1200, timeout=120, s=s)
+    if not out["ok"]:
+        return out
+    if out.get("refused"):
+        return {"ok": True, "answer": "The model declined to answer that one."}
+    return {"ok": True, "answer": out["text"] or "(the model sent an empty answer)"}

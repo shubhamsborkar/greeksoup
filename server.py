@@ -2726,6 +2726,86 @@ def settings_state():
     return st
 
 
+# ---------------------------------------------------------------- the Ask box
+# What the Ask box reads for each screen, the same addresses the /agent page lists.
+ASK_READS = {
+    "/": ("Desk · Home", ["/api/snapshot", "/api/alerts"]),
+    "/usdesk": ("Desk · US", ["/api/usbook", "/api/earnings", "/api/insiders"]),
+    "/book": ("Desk · Book", ["/api/book"]),
+    "/risk": ("Risk", ["/api/risk"]),
+    "/watch": ("Watch", ["/api/watch?list={list}", "/api/results_home"]),
+    "/funds": ("Funds", ["/api/funds"]),
+    "/flow": ("Flow", ["/api/flow"]),
+    "/short": ("Short", ["/api/short"]),
+    "/capitol": ("Capitol", ["/api/capitol"]),
+    "/macro": ("Macro", ["/api/macro", "/api/econcal"]),
+    "/commods": ("Commodities", ["/api/commods"]),
+    "/chain": ("Chain", ["/api/chain"]),
+    "/t": ("Ticker", ["/api/ticker?symbol={symbol}&region={region}"]),
+    "/settings": ("Settings", []),
+}
+ASK_CAP = 90000   # characters of screen data sent with a question, at most
+
+
+BULKY = {"full", "spark", "hist", "history", "candles", "intensity", "intensity_source", "pricing_power", "note", "also"}
+
+
+def _slim(obj, drop=frozenset()):
+    """The same numbers, made to fit one question: a price history of 400 points
+    becomes its first and last few, a long sentence is cut at 160 characters,
+    and on a second pass the descriptive keys in `drop` go entirely."""
+    if isinstance(obj, dict):
+        return {k: _slim(v, drop) for k, v in obj.items() if k not in drop}
+    if isinstance(obj, list):
+        if len(obj) > 40 and all(isinstance(x, (int, float, str, list, tuple)) and not isinstance(x, dict) for x in obj[:8]):
+            return obj[:6] + [f"... {len(obj) - 12} more points ..."] + obj[-6:]
+        return [_slim(x, drop) for x in obj[:400]]
+    if isinstance(obj, str) and len(obj) > 160:
+        return obj[:160] + "…"
+    return obj
+
+
+def ask_ready():
+    s = desk_ai.settings()
+    why = desk_ai.not_ready(s)
+    return {"ready": why is None, "why": why, "provider": s["provider"],
+            "label": desk_ai.PROVIDERS.get(s["provider"], {}).get("label", ""), "model": s["model"]}
+
+
+def ask_context(page, query):
+    """The screen's own numbers, read from the desk's own addresses, as text the model can read."""
+    page = page if page in ASK_READS else "/"
+    label, reads = ASK_READS[page]
+    q = {k: re.sub(r"[^A-Za-z0-9._&=-]", "", str(v))[:40] for k, v in (query or {}).items() if isinstance(v, str)}
+    fill = {"list": q.get("list") or "home", "symbol": q.get("symbol") or "", "region": q.get("region") or "us"}
+    if page == "/watch" and fill["list"] != "home":
+        label = {"us": "Watch · US", "global": "Global"}.get(fill["list"], "Watch")
+    if page == "/t":
+        label = "Ticker " + fill["symbol"]
+    parts, used, budget = [], [], ASK_CAP
+    for ep in reads:
+        url = ep.format(**fill)
+        if page == "/t" and not fill["symbol"]:
+            continue
+        try:
+            r = requests.get(f"http://127.0.0.1:{PORT}{url}", timeout=90)
+            data = r.json()
+        except Exception as exc:  # noqa: BLE001
+            parts.append(f"{url}: could not be read ({type(exc).__name__})")
+            continue
+        text = json.dumps(_slim(data), separators=(",", ":"), default=str)
+        if len(text) > budget:
+            text = json.dumps(_slim(data, BULKY), separators=(",", ":"), default=str)
+        if len(text) > budget:
+            text = text[:max(budget, 0)] + " ...(cut here: the screen holds more than fits in one question)"
+        budget -= len(text)
+        parts.append(f"{url}\n{text}")
+        used.append(url.split("?")[0])
+        if budget <= 0:
+            break
+    return label, "\n\n".join(parts) if parts else "(this screen has no numbers of its own)", used
+
+
 AGENT_PAGE = """GreekSoup: the one-person equity research desk. This page is for an AI agent.
 
 The desk runs on this computer at http://localhost:{port}/ and answers plain JSON at the
@@ -2807,6 +2887,8 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/settings":
                 with open(os.path.join(HERE, "web", "settings.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
+            elif path == "/api/ask":
+                self._send(json.dumps(ask_ready()).encode(), "application/json")
             elif path == "/agent":
                 self._send(agent_page().encode(), "text/plain; charset=utf-8")
             elif path == "/api/settings/backup":
@@ -3090,6 +3172,25 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(json.dumps(rep).encode(), "application/json")
         return self._send(b'{"ok":false,"error":"unknown settings action"}', "application/json")
 
+    def _ask_post(self, body):
+        """The Ask box: the reader's question, with the numbers of the screen they are
+        on, to the AI they set in Settings. Reads the desk; writes nothing."""
+        if "application/json" not in (self.headers.get("Content-Type") or ""):
+            return self.send_error(400)
+        question = str(body.get("question", "")).strip()[:4000]
+        if not question:
+            return self._send(b'{"ok":false,"error":"Type a question first."}', "application/json")
+        rd = ask_ready()
+        if not rd["ready"]:
+            return self._send(json.dumps({"ok": False, "error": rd["why"], "settings": True}).encode(), "application/json")
+        page = str(body.get("page", "/"))
+        label, context, used = ask_context(page, body.get("query") or {})
+        history = body.get("history") if isinstance(body.get("history"), list) else []
+        out = desk_ai.ask(question, label, context, desk_settings.profile_text(), history)
+        out["read"] = used
+        out["model"] = rd["model"]
+        return self._send(json.dumps(out).encode(), "application/json")
+
     def do_POST(self):  # noqa: N802 - stdlib naming
         """Watchlist add/remove. Still zero order capability — these endpoints
         only edit which names the READ-ONLY watch grid quotes."""
@@ -3102,6 +3203,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._book_post(body)
             if self.path.startswith("/api/settings/"):
                 return self._settings_post(body)
+            if self.path == "/api/ask":
+                return self._ask_post(body)
             if self.path == "/api/update/apply":
                 # The one click. Writes program files inside this folder only,
                 # then the process restarts itself; the page reconnects.

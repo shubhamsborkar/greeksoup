@@ -196,3 +196,39 @@ html[data-rail="min"] #alertbar{left:var(--railc)}
 #alertbar .adot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:0 0 auto}
 #alertbar .adot.hot{background:var(--neg)}
 #alertbar .adot.warn{background:var(--amber)}
+
+/* ---------------- the Ask box ---------------- */
+#askdock{position:fixed;top:0;right:0;bottom:0;width:min(420px,94vw);z-index:70;
+  background:var(--panel);border-left:1px solid var(--line2);
+  box-shadow:-24px 0 60px rgba(0,0,0,.45);display:none;flex-direction:column;
+  animation:vrise .18s ease both}
+#askdock.open{display:flex}
+#askdock .ah{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+#askdock .ah b{font-size:13px;color:var(--ink)}
+#askdock .ah small{display:block;font-size:11px;color:var(--ink2);margin-top:2px}
+#askdock .ax{margin-left:auto;width:26px;height:26px;border-radius:6px;background:none;
+  border:1px solid var(--line2);color:var(--ink2);cursor:pointer;font-size:16px;line-height:1}
+#askdock .ax:hover{color:var(--ink);border-color:var(--ink2)}
+#askdock .am{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;
+  font-size:13px;line-height:1.55;color:var(--ink)}
+#askdock .q{align-self:flex-end;max-width:88%;background:var(--panel2);border:1px solid var(--line);
+  border-radius:10px 10px 2px 10px;padding:8px 12px;white-space:pre-wrap}
+#askdock .a p{margin:0 0 8px}
+#askdock .a p:last-child{margin-bottom:0}
+#askdock .a.hint{color:var(--ink2)}
+#askdock .a.err{color:var(--neg)}
+#askdock .a a{color:var(--accent)}
+#askdock .a .wait{color:var(--ink2);font-style:italic}
+#askdock .a .rd{margin-top:6px;font-size:11px;color:var(--muted);
+  font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+#askdock .af{border-top:1px solid var(--line);padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+#askdock textarea{width:100%;min-height:64px;resize:vertical;background:var(--bg);
+  border:1px solid var(--line2);border-radius:8px;color:var(--ink);padding:8px 10px;
+  font:inherit;font-size:13px;line-height:1.45;outline:none}
+#askdock textarea:focus{border-color:var(--accent)}
+#askdock .ab{display:flex;align-items:center;gap:10px}
+#askdock .ab button{background:var(--accent);color:#fff;border:1px solid var(--accent);
+  border-radius:8px;padding:7px 16px;font-weight:600;font-size:13px;cursor:pointer}
+#askdock .ab button:hover{filter:brightness(1.08)}
+#askdock .ab button:disabled{opacity:.5;cursor:default;filter:none}
+#askdock .ab small{font-size:11px;color:var(--muted);line-height:1.35}
