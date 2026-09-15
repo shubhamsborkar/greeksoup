@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Options Flow — GreekSoup</title>
+<title>Options Flow · GreekSoup</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
@@ -69,14 +69,14 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
 <main>
   <div class="sub">The options-tape read on every US book and watchlist name, from CBOE's free
   15-min-delayed chains (<span id="win"></span>-day expiry window). <b style="color:var(--ink2)">Unusual
-  strikes</b> = today's volume at least twice the existing open interest with real premium — positions
+  strikes</b> = today's volume at least twice the existing open interest with real premium: positions
   that did not exist yesterday. <b style="color:var(--ink2)">OI builds</b> compare open interest against
   the previous daily snapshot on disk, so they appear from a name's second covered day. Describes
   positioning only; it makes no call.</div>
   <div id="body"><div class="loading">Reading chains… a full sweep takes about a minute.</div></div>
 </main>
 <footer>PCR = put/call ratio (OI = standing positioning, VOL = today's tape). Walls = the strikes with
-the most open interest in the window — dealer hedging tends to pin near big walls into expiry.
+the most open interest in the window; dealer hedging tends to pin near big walls into expiry.
 Expected move = ATM straddle cost on the nearest expiry, the move the market has paid for. Skew =
 5% OTM put IV minus 5% OTM call IV on the first expiry past 20 days; rising skew is downside fear.
 Delayed public data; OI updates overnight at OCC.</footer>
@@ -148,7 +148,7 @@ async function load(){
   document.getElementById("asof").textContent="as of "+d.ts;
   document.getElementById("win").textContent=d.window_days;
   if(!d.names.length){
-    document.getElementById("body").innerHTML='<div class="loading">No chains fetched — CBOE may be unreachable; retry shortly.</div>';
+    document.getElementById("body").innerHTML='<div class="loading">No chains fetched. CBOE may be unreachable; retry shortly.</div>';
     return;
   }
   let h=`<div class="grid">`;
@@ -163,7 +163,7 @@ async function load(){
       ${statHTML(n)}
       ${ladderHTML(n)}
       ${rowsHTML(n.unusual,"u")}
-      ${n.builds_vs?rowsHTML(n.builds,"b",n.builds_vs):'<div class="sec"><div class="empty">First snapshot today — OI builds appear from tomorrow.</div></div>'}
+      ${n.builds_vs?rowsHTML(n.builds,"b",n.builds_vs):'<div class="sec"><div class="empty">First snapshot today; OI builds appear from tomorrow.</div></div>'}
     </div>`;
   }
   h+="</div>";

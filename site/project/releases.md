@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.25. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.26. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.26
+
+*15 September 2026, release 26.* Risk measures your home book against the index you choose: type any index symbol in the top bar of Risk (^NSEI, ^GSPC, ^FTSE, ^N225) and a name for it, and Follow the market is the way back; every screen's words were read again for the reader, so the notes and footers no longer point at file names or the author's own folders, and the Funds and Capitol screens say where their lists are kept
 
 ## 2026-09-15.25
 

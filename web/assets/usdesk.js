@@ -161,7 +161,7 @@ async function pullInsiders(){
         ${c.ours?'<span class="sec" style="color:var(--accent);border-color:var(--accent)">OURS</span>':''}
       </div>`).join("");
     document.getElementById("us_insclusters").innerHTML =
-      `<div class="pcol"><h3>Cluster buys — 2+ distinct insiders, same name</h3>${rows||'<div class="prow"><span class="dim">None in the window.</span></div>'}</div>`;
+      `<div class="pcol"><h3>Cluster buys: 2+ distinct insiders, same name</h3>${rows||'<div class="prow"><span class="dim">None in the window.</span></div>'}</div>`;
   }catch(e){}
 }
 

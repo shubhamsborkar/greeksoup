@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Watchlist — GreekSoup</title>
+<title>Watchlist · GreekSoup</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
@@ -110,7 +110,7 @@ footer{max-width:1500px;margin:14px auto 40px;padding:0 22px;color:var(--muted);
 <footer>Quotes cycle continuously through the list (each name refreshes roughly once a
 minute on a big list; faster on a short one). LTP flashing green/red = ticked up/down since
 the last look. HI/LO badge = trading at the day's high or low. Remove a name with the ×
-that appears on hover. Read-only — this page cannot place orders.</footer>
+that appears on hover. Read-only: this page cannot place orders.</footer>
 
 <script>
 "use strict";
@@ -146,7 +146,7 @@ function cols(){
 }
 let COLS = cols();
 
-document.title = (REGION==="us"?"Watch US":REGION==="global"?"Watch Global":"Watch Home")+" — GreekSoup";
+document.title = (REGION==="us"?"Watch US":REGION==="global"?"Watch Global":"Watch Home")+" · GreekSoup";
 if(REGION==="us"){
   document.getElementById("addcode").placeholder="company name or US ticker";
 }

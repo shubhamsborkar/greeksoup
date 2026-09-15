@@ -3,11 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Risk — GreekSoup</title>
+<title>Risk · GreekSoup</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
 <style>
+.benchpick{display:inline-flex;align-items:center;gap:6px;margin-right:14px;font-size:11.5px;color:var(--ink2)}
+.benchpick input{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:4px 8px;font:inherit;font-size:12px;width:90px}
+.benchpick input#benchlbl{width:110px}
+.benchpick button{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}
+.benchpick button:hover{border-color:var(--accent);color:var(--accent)}
+.benchpick button.ghost{background:transparent;color:var(--muted)}
 body{padding-bottom:50px}
 main{max-width:1420px;margin:0 auto;padding:20px 22px}
 .sub{color:var(--muted);font-size:12px;margin-bottom:18px;line-height:1.55}
@@ -101,10 +107,10 @@ footer{max-width:1420px;margin:28px auto 0;padding:14px 22px;border-top:1px soli
 <header>
   <div class="brand">RESEARCH <span>DESK</span></div>
   <nav></nav>
-  <div class="right"><span id="asof"></span></div>
+  <div class="right"><span class="benchpick"><label for="bench">Home book against</label> <input id="bench" placeholder="^NSEI" title="a Yahoo index symbol: ^NSEI, ^GSPC, ^FTSE, ^N225; empty follows the home market"> <input id="benchlbl" placeholder="its name" title="what to call it"> <button id="benchsave" type="button">Set</button> <button id="benchback" type="button" class="ghost" title="back to the home market's own index">Follow the market</button></span><span id="asof"></span></div>
 </header>
 <main>
-  <div class="sub">How much each book moves, what moves it, and what a bad index day costs —
+  <div class="sub">How much each book moves, what moves it, and what a bad index day costs,
   <span id="window"></span>. Futures count at full underlying value, so a leveraged book shows
   positions worth more than the account. Home books measure against their own market's index, the US book
   against the <b>S&amp;P 500</b>.</div>
@@ -122,6 +128,15 @@ names are carried at their last print; a no-trade day counts as a 0% day, same a
 
 <script>
 "use strict";
+/* the reader's own benchmark: saved on Settings under the hood, shown here where the choice matters */
+(function(){
+  const $=id=>document.getElementById(id);
+  fetch("/api/settings",{cache:"no-store"}).then(r=>r.json()).then(s=>{ $("bench").value=s.risk_benchmark||""; $("benchlbl").value=s.risk_benchmark_label||""; }).catch(()=>{});
+  const save=async(sym,lbl)=>{ const r=await fetch("/api/settings/save",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({RISK_BENCHMARK:sym,RISK_BENCHMARK_LABEL:lbl})}); const d=await r.json(); if(!d.ok){ alert(d.error||"That did not save."); return; } location.reload(); };
+  $("benchsave").onclick=()=>save($("bench").value.trim(),$("benchlbl").value.trim());
+  $("benchback").onclick=()=>save("","");
+  $("bench").addEventListener("keydown",e=>{ if(e.key==="Enter") $("benchsave").click(); });
+})();
 const fmt=(cur,v,dp)=>{
   if(v==null)return "—";
   const loc=cur==="₹"?"en-IN":"en-US";
@@ -196,13 +211,13 @@ function bookCard(b){
     const big=b.margin&&b.margin.fno_free!=null&&b.stress_5pct<0&&Math.abs(b.stress_5pct)>b.margin.fno_free*0.5;
     stress=`<div class="callout ${big?"danger":""}">A <b>−5% ${idx} day</b> costs this book about
       <b class="mono">${sgn(cur,b.stress_5pct)}</b> (beta estimate)${
-      big?` — <span class="flag">bigger than half the free margin (${fmt(cur,b.margin.fno_free)})</span>`:""}</div>`;
+      big?` · <span class="flag">bigger than half the free margin (${fmt(cur,b.margin.fno_free)})</span>`:""}</div>`;
   }
   let marg="";
   if(b.margin&&b.margin.util_pct!=null){
     const u=b.margin.util_pct;
     const col=u>=85?"var(--neg)":u>=60?"var(--amber)":"var(--pos)";
-    const state=u>=85?"THIN — a bad week can force a square-off":u>=60?"working, watch it":"comfortable";
+    const state=u>=85?"THIN: a bad week can force a square-off":u>=60?"working, watch it":"comfortable";
     marg=`<div class="marg">
       <div class="l"><span>Cushion before forced square-off</span>
         <span class="st" style="color:${col}">${state}</span></div>
@@ -212,7 +227,7 @@ function bookCard(b){
   }
   const sleeve=`<div class="sleeve">Cash set aside, the invested money alone runs
     β <b class="mono">${n2(b.inv_beta)}</b> · vol <b class="mono">${pct(b.inv_vol)}</b> ·
-    max DD <b class="mono">${pct(b.inv_mdd)}</b>${b.note?` — ${b.note}`:""}</div>`;
+    max DD <b class="mono">${pct(b.inv_mdd)}</b>${b.note?` · ${b.note}`:""}</div>`;
   return `<div class="bk">
     <div class="ttl"><span class="nm">${b.label}</span>${levChip(b.leverage)}
       <span class="chip bench">vs ${idx}</span></div>
@@ -259,13 +274,13 @@ async function load(){
     document.getElementById("body").innerHTML='<div class="loadingnote">No books yet: connect a broker on <a href="/settings" style="color:var(--accent)">Settings</a>, add positions on Desk · Book, or put US positions in the US book file.</div>';
     return;
   }
-  let h=`<h2 class="grp">The three books <span class="why">headline risk per account — the small print under each number says what it means</span></h2>
+  let h=`<h2 class="grp">The three books <span class="why">headline risk per account; the small print under each number says what it means</span></h2>
     <div class="bookgrid">${d.books.map(bookCard).join("")}</div>`;
   if(d.cross&&d.cross.labels.length>1)
     h+=`<h2 class="grp">Do the books hedge each other? <span class="why">correlation of daily returns on overlapping dates</span></h2>
       <div class="mxwrap">${matrixHTML(d.cross.labels,d.cross.vals,false)}</div>${legendHTML}`;
   for(const b of d.books){
-    h+=`<h2 class="grp">${b.label} — what's inside (${b.positions.length} positions)
+    h+=`<h2 class="grp">${b.label}: what's inside (${b.positions.length} positions)
       <span class="why">sorted by size; the grid below shows which names move together</span></h2>${posTable(b)}`;
     if(b.matrix&&b.matrix.codes.length>1)
       h+=`<div class="mxwrap" style="margin-top:12px">${matrixHTML(b.matrix.codes,b.matrix.vals,true)}</div>${legendHTML}`;

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Short Interest — GreekSoup</title>
+<title>Short Interest · GreekSoup</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
@@ -45,16 +45,16 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
 <main>
   <div class="sub">Two different FINRA datasets, kept apart on purpose.
   <b style="color:var(--ink2)">Short INTEREST</b> (left block) is the bi-monthly consolidated
-  settlement report — actual open short positions, settled <b class="mono" id="settle"></b>, change
+  settlement report: actual open short positions, settled <b class="mono" id="settle"></b>, change
   vs the prior settlement, days-to-cover at recent volume, and the position against FMP's float
   count. <b style="color:var(--ink2)">Short VOLUME ratio</b> (right block) is the share of each
-  DAY'S off-exchange volume marked short — tape flow, <b style="color:var(--ink2)">not</b> open
+  DAY'S off-exchange volume marked short: tape flow, <b style="color:var(--ink2)">not</b> open
   positions; ~40-50% is normal market-making, the signal is the change against a name's own average.</div>
   <div id="body"><div class="loading">Reading FINRA files…</div></div>
 </main>
 <footer>Short interest settles twice a month and publishes ~9 days later, so the settlement shown
 may trail today's positioning. Days-to-cover = short position / average daily volume. Daily short
-volume covers off-exchange (TRF) trades only — exchange-floor volume is not in the file, another
+volume covers off-exchange (TRF) trades only; exchange-floor volume is not in the file, another
 reason the two numbers must not be mixed. OTC names without FINRA equity data are omitted.</footer>
 
 <script>
@@ -84,7 +84,7 @@ async function load(){
   document.getElementById("asof").textContent="as of "+d.ts;
   document.getElementById("settle").textContent=d.settlement||"—";
   if(!d.names||!d.names.length){
-    document.getElementById("body").innerHTML='<div class="loading">FINRA unreachable — retry shortly.</div>';return;
+    document.getElementById("body").innerHTML='<div class="loading">FINRA unreachable; retry shortly.</div>';return;
   }
   let h=`<div class="wrap"><table><thead><tr>
     <th>Name</th>

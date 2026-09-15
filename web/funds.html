@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Funds 13F — GreekSoup</title>
+<title>Funds 13F · GreekSoup</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
@@ -81,17 +81,17 @@ h2.grp{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--
   <div class="right"><span id="asof"></span></div>
 </header>
 <main>
-  <div class="sub">Latest 13F-HR for every fund on the register, straight from SEC EDGAR — and
+  <div class="sub">Latest 13F-HR for every fund on the register, straight from SEC EDGAR, and
   <b style="color:var(--ink2)">what changed since last quarter</b>: new buys, exits, adds and trims,
-  diffed on CUSIP across the two most recent filings. 13Fs show US long positions only — no shorts,
+  diffed on CUSIP across the two most recent filings. 13Fs show US long positions only: no shorts,
   no cash, no non-US listings.</div>
   <div class="grid" id="funds"><div class="loading">Reading 13F filings from EDGAR… first load of the day takes up to a minute.</div></div>
   <div id="act"></div>
 </main>
-<footer>Quarterly snapshots filed up to 45 days after quarter end — positions may have moved since.
+<footer>Quarterly snapshots filed up to 45 days after quarter end, so positions may have moved since.
 Change threshold: ±10% of shares. "% of co" = the fund's reported shares against the company's
 current shares outstanding (live float math, so quarter-end stakes vs today's share count).
-Register lives in the vault (13f-analysis/FUND_REGISTER.md); edit data/funds.json to add a fund by CIK.</footer>
+Your list in the top bar adds a fund by its CIK.</footer>
 <script>
 "use strict";
 const big=x=>{if(x==null)return "—";if(x>=1e9)return "$"+(x/1e9).toFixed(1)+"B";
@@ -145,7 +145,7 @@ async function load(){
       <thead><tr><th>Holding</th><th>Value</th><th title="share of the company's stock the fund owns">Own</th><th>Weight</th></tr></thead>
       <tbody>${rows}</tbody></table></div>`;
   }
-  document.getElementById("funds").innerHTML=html||'<div class="loading">No filings parsed — EDGAR may be busy; refresh in a minute.</div>';
+  document.getElementById("funds").innerHTML=html||'<div class="loading">No filings parsed. EDGAR may be busy; refresh in a minute.</div>';
 }
 load();
 /* ---- 13D/G activist feed (EDGAR full-text search; live SCHEDULE 13D/G forms) ---- */
@@ -172,7 +172,7 @@ function actRow(r,withTag){
     let h="";
     const head=`<thead><tr><th>Filed</th><th>Form</th><th>Subject</th><th>Filer(s)</th><th></th></tr></thead>`;
     if(d.ours&&d.ours.length){
-      h+=`<h2 class="grp">13D / 13G on our names <span class="dim" style="text-transform:none;letter-spacing:0">— beneficial-ownership filings where a book or watchlist company is the subject, last two years</span></h2>
+      h+=`<h2 class="grp">13D / 13G on our names <span class="dim" style="text-transform:none;letter-spacing:0">· beneficial-ownership filings where a book or watchlist company is the subject, last two years</span></h2>
         <div class="actwrap"><table>${head}<tbody>${d.ours.map(x=>actRow(x,true)).join("")}</tbody></table></div>`;
     }
     if(d.funds&&d.funds.length){
@@ -181,11 +181,11 @@ function actRow(r,withTag){
         rows+=`<tr class="fundrow"><td class="fname" colspan="5">${f.name}</td></tr>`;
         rows+=f.rows.map(x=>actRow(x,false)).join("");
       }
-      h+=`<h2 class="grp">13D / 13G filed by tracked funds <span class="dim" style="text-transform:none;letter-spacing:0">— activist and 5%+ stakes the register funds have declared</span></h2>
+      h+=`<h2 class="grp">13D / 13G filed by tracked funds <span class="dim" style="text-transform:none;letter-spacing:0">· activist and 5%+ stakes the register funds have declared</span></h2>
         <div class="actwrap"><table>${head}<tbody>${rows}</tbody></table></div>`;
     }
     if(d.firehose&&d.firehose.length){
-      h+=`<h2 class="grp">13D firehose <span class="dim" style="text-transform:none;letter-spacing:0">— every SCHEDULE 13D and amendment hitting EDGAR, whole market, newest first</span></h2>
+      h+=`<h2 class="grp">13D firehose <span class="dim" style="text-transform:none;letter-spacing:0">· every SCHEDULE 13D and amendment hitting EDGAR, whole market, newest first</span></h2>
         <div class="actwrap"><table>${head}<tbody>${d.firehose.map(x=>actRow(x,false)).join("")}</tbody></table></div>`;
     }
     if(d.unmapped&&d.unmapped.length)

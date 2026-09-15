@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Capitol — GreekSoup</title>
+<title>Capitol · GreekSoup</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
@@ -72,7 +72,7 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
 </header>
 <main>
   <div class="sub">US Congress trading disclosures (Senate + House PTRs). Members report up to 45
-  days after trading — the <b style="color:var(--ink2)">lag</b> column shows how stale each filing
+  days after trading; the <b style="color:var(--ink2)">lag</b> column shows how stale each filing
   already is. Top panel: every filing touching a name on the book or watchlist. Bottom: the raw
   disclosure firehose.</div>
 
@@ -83,7 +83,7 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
 
   <section class="panel">
     <div class="panel-h"><h2>Tracked members</h2>
-      <span class="s">edit data/members.json to follow someone else</span></div>
+      <span class="s">Your list in the top bar follows someone else</span></div>
     <div class="memgrid" id="members"><div class="loading">Loading…</div></div>
   </section>
 
@@ -103,7 +103,7 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
   </section>
 </main>
 <footer>Source: FMP senate-latest / house-latest / senate-trades / house-trades (public PTR data).
-Amounts are disclosure ranges, not exact sizes. Spouse/child trades count — check the owner column.
+Amounts are disclosure ranges, not exact sizes. Spouse and child trades count; check the owner column.
 Cached 6 hours. Read-only reference; disclosures are context, never a signal by themselves.</footer>
 <script>
 "use strict";
@@ -162,7 +162,7 @@ function renderMembers(){
         <span class="cnt">${m.count} filings on record · scroll for the latest ${m.rows.length}</span></div>
       <div class="memscroll"><table><thead><tr><th>Traded</th><th>Ticker</th><th>Type</th><th>Amount</th><th>Asset</th></tr></thead>
       <tbody>${rows||'<tr><td class="dim" style="padding:14px">No filings.</td></tr>'}</tbody></table></div></div>`;
-  }).join("") : '<div class="empty">No members tracked — add one to data/members.json.</div>';
+  }).join("") : '<div class="empty">No members tracked yet. Add one with Your list in the top bar.</div>';
 }
 function renderDjt(){
   const rows=(D.djt||[]).map(r=>`<tr>
@@ -184,7 +184,7 @@ async function load(){
     D.ours.length+" filings across "+D.tracked+" tracked names";
   document.getElementById("ours").innerHTML = D.ours.length
     ? `<table>${HEAD}<tbody>${D.ours.map(r=>rowHtml(r,D.held)).join("")}</tbody></table>`
-    : `<div class="empty">No Congress filings on any tracked name — that is itself worth knowing.</div>`;
+    : `<div class="empty">No Congress filings on any tracked name, which is itself worth knowing.</div>`;
   renderFlow();
   document.getElementById("filter").addEventListener("input",renderFlow);
 }

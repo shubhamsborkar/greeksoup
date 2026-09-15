@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ticker — GreekSoup</title>
+<title>Ticker · GreekSoup</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
@@ -435,7 +435,7 @@ async function load(){
   const app=document.getElementById("app");
   loadNotes();   // your notes on the name show even when the quote does not
   if(d.error){app.innerHTML=`<div class="loading">${d.error}</div>`;return;}
-  document.title=SYM+" — GreekSoup";
+  document.title=SYM+" · GreekSoup";
   HIST=[...(d.history||[])].reverse();
   INTRA=d.intraday||{};
   if(HOME) renderHome(d,app); else renderUS(d,app);
@@ -495,7 +495,7 @@ function renderHome(d,app){
         </div></section>`;
     }else{
       const val=px*h.qty, cost=h.avg*h.qty, pnl=val-cost;
-      posCards+=`<section class="panel poscard"><div class="panel-h"><h2>Held — ${k}</h2></div>
+      posCards+=`<section class="panel poscard"><div class="panel-h"><h2>Held · ${k}</h2></div>
         <div class="panel-b">
         <div class="an-row"><span class="k">Qty</span><span class="mono">${F(h.qty,0)}</span></div>
         <div class="an-row"><span class="k">Avg cost</span><span class="mono">${money(h.avg)}</span></div>
@@ -607,7 +607,7 @@ async function loadInfund(filings){
     ? ann.map(x=>`<div class="an-row" style="align-items:baseline;gap:10px">
         <span class="s mono" style="white-space:nowrap">${x.date}</span>
         <span style="flex:1;font-size:12px">${x.pdf?`<a href="${x.pdf}" target="_blank" style="color:var(--ink);text-decoration:none">${x.desc||"Filing"}</a>`:(x.desc||"Filing")}
-          <span class="s"> — ${x.text||""}</span></span></div>`).join("")
+          <span class="s"> · ${x.text||""}</span></span></div>`).join("")
     : `<div class="desc">No filings in the last 90 days.</div>`;
 }
 
@@ -629,7 +629,7 @@ function renderUS(d,app){
   let posCard="";
   if(d.held&&d.held.us_book){
     const h=d.held.us_book, val=px*h.shares, cost=h.avg_cost*h.shares, pnl=val-cost;
-    posCard=`<section class="panel poscard"><div class="panel-h"><h2>Held — US Desk</h2></div>
+    posCard=`<section class="panel poscard"><div class="panel-h"><h2>Held · US Desk</h2></div>
       <div class="panel-b">
       <div class="an-row"><span class="k">Shares</span><span class="mono">${h.shares}</span></div>
       <div class="an-row"><span class="k">Avg cost</span><span class="mono">${usd(h.avg_cost)}</span></div>
@@ -783,7 +783,7 @@ let FIN=null, FINPX=null, FINCO="", FS={mode:"inc",period:"annual",unit:"M",chg:
 async function loadFin(){
   if(!document.getElementById("finbody")) return;
   try{ const r=await fetch("/api/fin?symbol="+SYM); FIN=await r.json(); }
-  catch(e){ FIN={error:"fetch failed — reload to retry"}; }
+  catch(e){ FIN={error:"fetch failed; reload to retry"}; }
   renderFin();
 }
 function finTab(m){FS.mode=m;renderFin();}
@@ -970,7 +970,7 @@ function finPeersHTML(){
 }
 function finDivHTML(){
   const ds=(FIN.divs||[]).slice(0,16);
-  if(!ds.length) return '<div class="fin-note">No dividend history — this name does not pay one.</div>';
+  if(!ds.length) return '<div class="fin-note">No dividend history; this name does not pay one.</div>';
   const t12=(FIN.divs||[]).filter(d=>(d.date||"")>=new Date(Date.now()-365*864e5).toISOString().slice(0,10))
     .reduce((a,d)=>a+(d.adjDividend??d.dividend??0),0);
   let h=`<div class="fin-note">Trailing 12 months: <b>${usd(t12)}</b> per share${FINPX?` · yield <b>${fp(t12/FINPX*100,2)}</b> at today's price`:""}.</div>
@@ -1049,7 +1049,7 @@ function finDcfHTML(){
     ${dcfSlider("cx","Capex, % of revenue","Cash spent on plant and equipment each year",0,30,0.5)}
     ${dcfSlider("tax","Tax rate","Seeded from the company's last effective rate",5,40,1)}
     ${dcfSlider("wacc","Discount rate (WACC)","The return you demand for waiting and risk",5,15,0.25)}
-    ${dcfSlider("tg","Terminal growth","Growth forever after year 5 — keep it near GDP",0,4,0.25)}
+    ${dcfSlider("tg","Terminal growth","Growth forever after year 5; keep it near GDP",0,4,0.25)}
     <button class="fsbtn" onclick="DCFA=null;renderFin()">Reset to filed numbers</button>
   </div><div class="dcfout" id="dcfout"></div></div>
   <div class="fin-note" style="padding:10px 0 0">A five-year FCFF sandbox seeded from ${FINCO}'s filed FY${DCFA.fy} numbers. It answers "what am I assuming at this price," never "what should anyone do." Working capital is left out for simplicity; check the cash flow tab for how much that omits.</div></div>`;

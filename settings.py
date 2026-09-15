@@ -39,6 +39,8 @@ ALLOWED = {
     "SCREENS": (False, "screens you chose to show or hide in the sidebar (key:on or key:off); the rest follow the home market"),
     "JOURNAL": (False, "ask (the default), always or never: how the journal takes the moments the desk sees"),
     "RESEARCH_DIR": (False, "where the research vault lives when not in data/research: a folder inside a drive you already sync"),
+    "RISK_BENCHMARK": (False, "the index the home book is measured against on Risk, a Yahoo symbol; empty follows the home market"),
+    "RISK_BENCHMARK_LABEL": (False, "what Risk calls that index"),
 }
 try:
     import brokers as _brokers
@@ -133,6 +135,7 @@ def current():
         "ai": {"provider": g("AI_PROVIDER") or "", "format": g("AI_FORMAT") or "", "key": masked(g("AI_API_KEY")),
                "model": g("AI_MODEL"), "base_url": g("AI_BASE_URL")},
         "edgar_contact": g("EDGAR_CONTACT"),
+        "risk_benchmark": g("RISK_BENCHMARK"), "risk_benchmark_label": g("RISK_BENCHMARK_LABEL"),
         "home_market": (g("HOME_MARKET") or "").lower(),
         "auto_update": (env.get("DESK_AUTO_UPDATE") or os.getenv("DESK_AUTO_UPDATE", "off")).strip().lower() == "on",
         "journal": ((env.get("JOURNAL") or os.getenv("JOURNAL", "ask")).strip().lower() or "ask"),

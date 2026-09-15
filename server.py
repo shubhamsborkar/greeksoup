@@ -2591,6 +2591,9 @@ def build_risk():
     m = _market()
     home_bench = m.META["benchmark"] if m else "^GSPC"
     home_label = m.META["benchmark_label"] if m else "S&P 500"
+    if (os.getenv("RISK_BENCHMARK") or "").strip():           # the reader's own index, from the Risk screen
+        home_bench = os.getenv("RISK_BENCHMARK").strip()
+        home_label = (os.getenv("RISK_BENCHMARK_LABEL") or "").strip() or home_bench
     home_cur = m.META["symbol"] if m else "$"
     home_exch = m.META["exchanges"][0] if m else ""
     home_region = m.META["id"] if m else "home"
@@ -2699,7 +2702,7 @@ def build_risk():
                           "bench": "^GSPC", "bench_label": "S&P 500", "region": "us",
                           "nav": cash + sum(p["exposure"] for p in positions),
                           "cash": cash, "positions": positions, "margin": None,
-                          "note": f"positions as of {usb.get('as_of')} (from data/us_book.json); "
+                          "note": f"positions as recorded on Desk · Home{(' as of ' + usb['as_of']) if usb.get('as_of') else ''}; "
                                   "cash account, no margin"})
     except OSError:
         pass
@@ -3656,6 +3659,10 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(b'{"ok":false,"error":"unknown request shape"}', "application/json")
             if "DATA_PROVIDER" in fields:
                 fields["DATA_PROVIDER"] = re.sub(r"[^a-z0-9_]", "", fields["DATA_PROVIDER"].lower())[:32]
+            if "RISK_BENCHMARK" in fields:
+                fields["RISK_BENCHMARK"] = re.sub(r"[^A-Za-z0-9^=.\-]", "", fields["RISK_BENCHMARK"].upper())[:24]
+                fields["RISK_BENCHMARK_LABEL"] = re.sub(r"[^\w &.\-]", "", fields.get("RISK_BENCHMARK_LABEL", ""))[:40]
+                _cache["risk"] = (0.0, None)
             if "HOME_MARKET" in fields:
                 hm = re.sub(r"[^a-z0-9_]", "", fields["HOME_MARKET"].lower())[:16]
                 if hm and hm not in markets.REGISTRY:
