@@ -1,7 +1,7 @@
 {
  "version": "2026-09-15.3",
- "generated": "2026-09-15 07:21",
- "commits_scanned": 54,
+ "generated": "2026-09-15 07:26",
+ "commits_scanned": 55,
  "files": {
   ".env.example": "e265472952dbe4c0c5180b8aa7d6127e9f5b90a33bceef6e72e4196abe71af2a",
   ".github/ISSUE_TEMPLATE/broker.yml": "7a078be513076d3e7262364df80aac5adef7c815889efeb33c84ade7c4f2a409",
@@ -77,7 +77,7 @@
   "docs/img/og.jpg": "dc1f0f8b889483bccf4a4177e10963cfc381a6f03d060ff7ba3ba462c3884bb4",
   "docs/img/strip-funds.webp": "5f604dd45a0e068c7209fb2c4c6c17b2e2f963d733c5ba79786cd5c2881401d3",
   "docs/index.html": "c15a0b0382c46e0835318c01aa87f572c9b15b7e89fd5f8885139ebc4468b55f",
-  "docs/install.ps1": "9b925a83b83688a8ffae72c79d351a8ef300a36a993cc3fbcc6dc29bcad9eb14",
+  "docs/install.ps1": "8c4a7c6a489f076cb5e960e407942f1dc7cc46f1820e7861fe9ab74283863e48",
   "docs/install.sh": "4af578376f8bb46b117dc9681ead7ff5f5d346c99cd42f75ca2d18e8c06bfb28",
   "docs/llms.txt": "88628f1df3baea2338bba5a383313eafc3e156322c68376456a5b653bdfed811",
   "docs/robots.txt": "64855f734ab60dffd0e2dfa532976f614ac4ad469f534eca1a0ba17fa6aabe75",
@@ -91,7 +91,7 @@
   "freefeed.py": "96cbe460101c8482eedf6b1a48fdb6a0ebb7d001e6174f4108026be7bc13b035",
   "house_ptr.py": "0d891b390a4bcc3a06d63a9da67fc34afadf52bfd29ed4af438dd5860d25dba7",
   "insiders.py": "54e3750832a3ac6254e4944bc3d5bfc40ea6f8de744d17feba96a0df88fcf9e1",
-  "install.ps1": "9b925a83b83688a8ffae72c79d351a8ef300a36a993cc3fbcc6dc29bcad9eb14",
+  "install.ps1": "8c4a7c6a489f076cb5e960e407942f1dc7cc46f1820e7861fe9ab74283863e48",
   "install.sh": "4af578376f8bb46b117dc9681ead7ff5f5d346c99cd42f75ca2d18e8c06bfb28",
   "local_in.py": "eaa0b69c11117a40a2a6e604edce7899643ff8f9a68dd11eb43735af2ed6242f",
   "markets/README.md": "cde6446b367a836ba907ea8f7877f9b82f25d17c19db323b0948d3033cc25704",
@@ -876,6 +876,7 @@
   "docs/install.ps1": [
    "4cebcbbfda3a2127d10fbea9e30a2029a440bede5a7edcbdefc0c8a622c29a07",
    "6de39e715ae5640e394aa0e4b0a4478f5c9616a022f4213978e1331f1039ca97",
+   "8c4a7c6a489f076cb5e960e407942f1dc7cc46f1820e7861fe9ab74283863e48",
    "9b925a83b83688a8ffae72c79d351a8ef300a36a993cc3fbcc6dc29bcad9eb14",
    "ea3575b328061cdd3c4bda34d71cd2241b575b08bb59863cc42b19afe7417f31"
   ],
@@ -937,6 +938,7 @@
   "install.ps1": [
    "4cebcbbfda3a2127d10fbea9e30a2029a440bede5a7edcbdefc0c8a622c29a07",
    "6de39e715ae5640e394aa0e4b0a4478f5c9616a022f4213978e1331f1039ca97",
+   "8c4a7c6a489f076cb5e960e407942f1dc7cc46f1820e7861fe9ab74283863e48",
    "9b925a83b83688a8ffae72c79d351a8ef300a36a993cc3fbcc6dc29bcad9eb14",
    "ea3575b328061cdd3c4bda34d71cd2241b575b08bb59863cc42b19afe7417f31"
   ],

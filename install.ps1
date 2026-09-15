@@ -66,11 +66,15 @@ $Url = "http://localhost:$Port"
 # entry and without opening a browser. It is how the desk is tested on a fresh Windows
 # machine that nobody is sitting at.
 $NoService = -not [string]::IsNullOrWhiteSpace($env:GREEKSOUP_NO_SERVICE)
-function Up { try { Invoke-WebRequest -Uri "$Url/api/ping" -TimeoutSec 2 -UseBasicParsing | Out-Null; $true } catch { $false } }
+# Ask 127.0.0.1 rather than "localhost": on Windows "localhost" is often the IPv6
+# address first, and the desk listens on the IPv4 one, so the name can say nothing is
+# there while the desk is running perfectly well.
+function Up { try { Invoke-WebRequest -Uri "http://127.0.0.1:$Port/api/ping" -TimeoutSec 2 -UseBasicParsing | Out-Null; $true } catch { $false } }
+$proc = $null
 if (-not (Up)) {
   if ($NoService) {
-    Start-Process -FilePath (Join-Path $Dest ".venv\Scripts\python.exe") -ArgumentList "server.py" -WorkingDirectory $Dest `
-      -WindowStyle Hidden -RedirectStandardOutput (Join-Path $Dest "logs\desk.log") `
+    $proc = Start-Process -FilePath (Join-Path $Dest ".venv\Scripts\python.exe") -ArgumentList "server.py" -WorkingDirectory $Dest `
+      -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $Dest "logs\desk.log") `
       -RedirectStandardError (Join-Path $Dest "logs\desk-start.log")
   } else {
     $env:DESK_PORT = $Port
@@ -82,11 +86,18 @@ if (-not (Up)) {
   # Say what the desk itself printed, so the reader (or their agent) has the reason
   # in front of them instead of only the fact that nothing answered.
   Write-Host "`n  The desk has not answered yet. This is what it printed:"
+  if ($proc) {
+    if ($proc.HasExited) { Write-Host "  The desk stopped by itself, exit code $($proc.ExitCode)." }
+    else { Write-Host "  The desk is still running as process $($proc.Id), but nothing answered on door $Port." }
+  }
   foreach ($f in @("logs\desk.log", "logs\desk-start.log", "logs\desk-service.log")) {
     $p = Join-Path $Dest $f
     if (Test-Path $p) {
-      $tail = Get-Content $p -Tail 40 -ErrorAction SilentlyContinue
-      if ($tail) { Write-Host "`n  --- $f ---"; $tail | ForEach-Object { Write-Host "  $_" } }
+      $size = (Get-Item $p).Length
+      Write-Host "`n  --- $f ($size bytes) ---"
+      if ($size -gt 0) { Get-Content $p -Tail 40 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $_" } }
+    } else {
+      Write-Host "`n  --- $f: not there ---"
     }
   }
   throw "The desk has not answered yet. Give it a minute, then open $Url . If it stays blank, read $Dest\logs\desk.log or give it to your AI agent."
