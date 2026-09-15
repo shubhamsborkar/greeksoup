@@ -172,7 +172,7 @@ SHELL = """<!DOCTYPE html>
       {next}
     </nav>
     <footer class="foot">
-      <span>{site}: the one-person equity research desk. {tagline}</span>
+      <span>{site}: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. {tagline}</span>
       <span class="mono">version {version} · built {built} · <a href="{edit}">edit this page</a></span>
     </footer>
   </main>

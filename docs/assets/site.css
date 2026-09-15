@@ -337,7 +337,10 @@ html[data-theme="light"] .band::before{opacity:.35;mix-blend-mode:multiply}
 .colophon::before{opacity:.14}
 html[data-theme="light"] .colophon::before{opacity:.45}
 .colophon .sub{max-width:720px;margin-top:0}
-.owl{width:112px;height:112px;margin:36px auto 28px;border-radius:28px;box-shadow:0 2px 6px rgba(0,0,0,.35),0 30px 60px -24px rgba(237,90,36,.55)}
+.sn-mark{display:inline-flex;align-items:center;gap:12px;margin:32px auto 26px;font-family:var(--sans);font-weight:700;font-size:26px;letter-spacing:-.02em;color:var(--fg)}
+.sn-mark .snm{width:40px;height:40px;fill:var(--fg)}
+.sn-mark b{color:var(--accent);font-weight:700}
+.sn-mark:hover{color:var(--accent)} .sn-mark:hover .snm{fill:var(--accent)}
 .edition{display:flex;flex-direction:column;align-items:flex-start;gap:14px;text-align:left;max-width:680px;margin:40px auto 0;padding:28px 32px 32px;color:var(--card-fg)}
 .ed-pub{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding-bottom:16px;border-bottom:1px solid var(--line)}
 .ed-name{font-weight:700;font-size:15px;letter-spacing:-.01em}

@@ -7,7 +7,7 @@ lead: One desk, published whole, from the people who use it every day.
 
 ## Who is behind it
 
-GreekSoup is the research desk we use every day at Alpha with AI, the newsletter by Shubham Borkar, built with Claude Code from plain-English descriptions and published so that you can run the same desk on your own computer. [The edition that walks through every screen and the build](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity) is on the newsletter.
+GreekSoup is a [Shikshan Nivesh](https://shikshannivesh.com) product: the research desk we use every day, built with Claude Code from plain-English descriptions and published so that you can run the same desk on your own computer. [The edition that walks through every screen and the build](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity) is on Alpha with AI, our newsletter.
 
 ## What is free
 
