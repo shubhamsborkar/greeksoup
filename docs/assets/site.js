@@ -80,7 +80,7 @@
   /* reveal on first sight; the hero card's line draws once */
   var card = d.getElementById("rubber");
   if (card && !reduced) card.classList.add("draw");
-  var targets = d.querySelectorAll(".feat, .fig, .way, .stats > div, .card.ledger, .split > div, .releases, .acc, .colophon .wrap > *, .fig1-wrap");
+  var targets = d.querySelectorAll(".feat, .fig, .way, .kc, .split > div, .releases, .acc, .colophon .wrap > *, .fig1-wrap");
   var tilts = d.querySelectorAll(".tilt");
   if ("IntersectionObserver" in window && !reduced) {
     targets.forEach(function (el) { el.classList.add("rv"); });
