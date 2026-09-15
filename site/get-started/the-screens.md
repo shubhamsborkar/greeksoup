@@ -46,3 +46,5 @@ Every screen except Desk · Home and Settings can be hidden: hover it in the sid
 - **Notes**: the research you write, kept as plain Markdown files in the desk folder and connected to the listings they name, the projects they belong to and the notes they link to. [How notes connect](/docs/get-started/notes/).
 
 Every list a screen runs on is yours. Funds, Capitol, Macro and Commodities carry a **Your list** button in the top bar, and the options tape on Desk · Home has one on its panel: add a row, edit one, remove one (Undo brings it back), or bring the shipped starters back. What ships is a starter; your rows live in your research vault beside your notes.
+
+On the first opens a startup guide sits bottom right: five steps, each a link to the exact place, starting with where your research lives (beside the desk, in Documents › GreekSoup, or in a folder a drive you already use syncs). Done hides it; Settings, under This desk, and the ⌘K palette bring it back.

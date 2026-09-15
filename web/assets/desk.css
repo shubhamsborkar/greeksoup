@@ -329,3 +329,25 @@ html[data-rail="min"] #alertbar{left:var(--railc)}
 #rowmenu button:disabled{color:var(--muted)}
 #rowmenu .rm-sub{max-height:260px;overflow:auto;border-top:1px solid var(--line);margin-top:4px;padding-top:4px}
 #rowmenu .rm-chain{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:6px 10px 2px}
+
+/* the startup guide */
+#guide{position:fixed;right:16px;bottom:16px;z-index:75;width:min(400px,92vw);background:var(--panel);color:var(--ink);border:1px solid var(--line2);
+  border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.28);font-size:12.5px;max-height:80vh;overflow:auto}
+#guide .gh{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);font-size:13px}
+#guide .gc{font-size:11px;color:var(--muted)}
+#guide .gx{margin-left:auto;background:none;border:0;color:var(--muted);font-size:18px;cursor:pointer;line-height:1}
+#guide .gx:hover{color:var(--accent)}
+#guide .gs{display:flex;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line)}
+#guide .gs.done .gb a{color:var(--muted);text-decoration:line-through}
+#guide .gt{flex:0 0 auto;padding-top:1px}
+#guide .gb a{color:var(--ink);font-weight:700;text-decoration:none}
+#guide .gb a:hover{color:var(--accent)}
+#guide .gtx{font-size:11.5px;color:var(--ink2);line-height:1.5;margin-top:2px}
+#guide .gv{margin-top:7px}
+#guide .gvp{font-size:11px;color:var(--muted);margin-bottom:5px}
+#guide .gvb{display:flex;flex-wrap:wrap;gap:6px}
+#guide .gvb button,#guide .gdone{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:4px 10px;font:inherit;font-size:11.5px;cursor:pointer}
+#guide .gvb button:hover,#guide .gdone:hover{border-color:var(--accent);color:var(--accent)}
+#guide .gf{display:flex;align-items:center;gap:10px;padding:10px 14px}
+#guide .gn{font-size:10.5px;color:var(--muted)}
+#jtoast{bottom:16px}

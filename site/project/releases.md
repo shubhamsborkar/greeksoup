@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.27. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.28. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.28
+
+*15 September 2026, release 28.* A startup guide sits bottom right on the first opens: five steps with a tick each, where your research lives (keep it beside the desk, put it in Documents › GreekSoup, or in a folder iCloud Drive, Google Drive, Dropbox or OneDrive already syncs, chosen right there), connect a broker or start with the paper book, pick your AI, make your first list your own, save your first note; a step ticks itself when the desk can see it is done, Done hides the guide, and it comes back from Settings under This desk or from the ⌘K palette
 
 ## 2026-09-15.27
 

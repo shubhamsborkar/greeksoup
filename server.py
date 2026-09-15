@@ -3286,6 +3286,59 @@ repeat a key back. Lists the reader keeps are plain files under {folder}/data/.
 {profile}"""
 
 
+# ---- the startup guide: five steps, each a link to the exact place; done is read off the desk ----
+def _synced_folders():
+    """Folders on this computer that a drive already syncs, where the vault could live."""
+    home = os.path.expanduser("~")
+    cands = [("iCloud Drive", os.path.join(home, "Library", "Mobile Documents", "com~apple~CloudDocs")),
+             ("Google Drive", os.path.join(home, "Google Drive")), ("Dropbox", os.path.join(home, "Dropbox")),
+             ("OneDrive", os.path.join(home, "OneDrive"))]
+    cs = os.path.join(home, "Library", "CloudStorage")
+    if os.path.isdir(cs):
+        for d in sorted(os.listdir(cs)):
+            cands.append((d.split("-")[0].replace("GoogleDrive", "Google Drive"), os.path.join(cs, d)))
+    out, seen = [], set()
+    for label, path in cands:
+        if os.path.isdir(path) and path not in seen:
+            seen.add(path)
+            out.append({"label": label, "path": os.path.join(path, "GreekSoup")})
+    return out
+
+
+def build_guide():
+    env = desk_settings.read_env()
+    ticks = set(x for x in (env.get("GUIDE_TICKS") or "").split(",") if x)
+    loc = desk_notes.vault_location()
+    has_book = False
+    try:
+        has_book = bool(brokers.active_id()) or any(p.get("shares") for p in load_book().get("positions", []))
+        if not has_book:
+            with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
+                has_book = any(p.get("shares") for p in json.load(fh).get("positions", []))
+    except Exception:  # noqa: BLE001
+        pass
+    rd = ask_ready()
+    has_ai = rd["ready"] or bool(rd.get("doors"))
+    has_note = any(not n.get("example") for n in desk_notes.index().values())
+    steps = [
+        {"key": "vault", "label": "Where your research lives", "href": "/settings#vault",
+         "done": (not loc["in_desk"]) or "vault" in ticks,
+         "text": "Your notes, files, chains and lists are plain files in one folder. Keep them beside the desk, or in a folder a drive you already use syncs."},
+        {"key": "book", "label": "Connect a broker, or start with the paper book", "href": "/settings",
+         "done": has_book or "book" in ticks,
+         "text": "A broker connects read-only on Settings; a book kept by hand lives on Desk · Book. Both price live."},
+        {"key": "ai", "label": "Pick your AI", "href": "/settings#ai", "done": has_ai or "ai" in ticks,
+         "text": "A key from a lab, a model running on this computer, or an app you already pay for through a door under Plugins."},
+        {"key": "watch", "label": "Make your first list your own", "href": "/watch", "done": "watch" in ticks,
+         "text": "Every list on the desk is yours: add a name to Watch, or open Your list on Funds, Capitol, Macro or Commodities."},
+        {"key": "note", "label": "Save your first note", "href": "/notes?new", "done": has_note or "note" in ticks,
+         "text": "A note on a name, a document brought in, or a dashboard of live blocks. Everything in your vault, nothing written until you save."},
+    ]
+    return {"shown": (env.get("GUIDE") or "").strip().lower() != "done", "steps": steps,
+            "vault": {"path": loc["path"], "in_desk": loc["in_desk"], "documents": os.path.join(os.path.expanduser("~"), "Documents", "GreekSoup"),
+                      "synced": _synced_folders()}}
+
+
 def agent_page():
     prof = desk_settings.profile_text()
     block = ("\nHOW THIS READER INVESTS (from their Settings screen; shape answers to it)\n" + prof + "\n") if prof else ""
@@ -3490,6 +3543,8 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/short":
                 self._send(json.dumps(_cached("short", SHORT_TTL, build_short)).encode(), "application/json")
+            elif path == "/api/guide":
+                self._send(json.dumps(build_guide()).encode(), "application/json")
             elif path == "/api/lists":
                 self._send(json.dumps({k: {"label": v["label"], "screen": v["screen"]} for k, v in desk_lists.KINDS.items()}).encode(), "application/json")
             elif path.startswith("/api/lists/"):
@@ -3827,6 +3882,18 @@ class Handler(BaseHTTPRequestHandler):
                 return _chain_post(self, body)
             if self.path.startswith("/api/lists/"):
                 return _lists_post(self, body)
+            if self.path == "/api/guide":
+                # the reader's own ticks, Done, and Show it again; nothing else is written
+                env = desk_settings.read_env()
+                ticks = set(x for x in (env.get("GUIDE_TICKS") or "").split(",") if x)
+                if body.get("tick") in ("vault", "book", "ai", "watch", "note"):
+                    ticks = (ticks | {body["tick"]}) if body.get("on", True) else (ticks - {body["tick"]})
+                    desk_settings.write_env({"GUIDE_TICKS": ",".join(sorted(ticks))})
+                if body.get("done"):
+                    desk_settings.write_env({"GUIDE": "done"})
+                if body.get("again"):
+                    desk_settings.write_env({"GUIDE": ""})
+                return self._send(json.dumps({"ok": True, **build_guide()}).encode(), "application/json")
             if self.path == "/api/notes/save":
                 try:
                     note = desk_notes.save(body)

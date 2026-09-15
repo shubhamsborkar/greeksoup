@@ -840,3 +840,22 @@ def test_lists_are_the_readers_own(tmp_path):
             assert "house, senate" in str(exc)
     finally:
         desk_notes._point_at(keep)
+
+
+def test_startup_guide_reads_the_desk(tmp_path, monkeypatch):
+    """The guide's steps tick themselves off the desk's state, a tick by hand sticks, Done hides
+    it and Show again brings it back; the vault step offers Documents and the synced folders."""
+    import server, settings as desk_settings
+    monkeypatch.setattr(desk_settings, "ENV_PATH", str(tmp_path / ".env"))
+    monkeypatch.setattr(server, "ask_ready", lambda: {"ready": False, "doors": []})
+    g = server.build_guide()
+    assert g["shown"] and [s["key"] for s in g["steps"]] == ["vault", "book", "ai", "watch", "note"]
+    assert g["vault"]["documents"].endswith(os.path.join("Documents", "GreekSoup")) and all(s["path"].endswith("GreekSoup") for s in g["vault"]["synced"])
+    assert not next(s for s in g["steps"] if s["key"] == "ai")["done"]
+    desk_settings.write_env({"GUIDE_TICKS": "ai,watch"})
+    g = server.build_guide()
+    assert all(s["done"] for s in g["steps"] if s["key"] in ("ai", "watch"))
+    desk_settings.write_env({"GUIDE": "done"})
+    assert not server.build_guide()["shown"]
+    desk_settings.write_env({"GUIDE": ""})
+    assert server.build_guide()["shown"]

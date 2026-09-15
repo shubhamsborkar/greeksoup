@@ -115,7 +115,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
 
   <!-- AI -->
   <div class="panel">
-    <div class="panel-h"><h2>Your AI</h2><span class="st" id="a_status"></span></div>
+    <div class="panel-h" id="ai"><h2>Your AI</h2><span class="st" id="a_status"></span></div>
     <div class="body">
       <div class="row"><label for="a_prov">Provider</label><select id="a_prov"><option value="">none yet</option></select></div>
       <div class="row"><label for="a_fmt">Request shape</label><select id="a_fmt"></select></div>
@@ -169,7 +169,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
 
   <!-- Where the vault lives -->
   <div class="panel">
-    <div class="panel-h"><h2>Where the vault lives</h2><span class="st" id="v_loc_st"></span></div>
+    <div class="panel-h" id="vault"><h2>Where the vault lives</h2><span class="st" id="v_loc_st"></span></div>
     <div class="body">
       <div class="row"><label>Now</label><div class="kv mono" id="v_loc"></div></div>
       <div class="row"><span></span><div class="hint">Your research vault (notes, files, the journal, the tasks, the statuses, the plugins) is plain files in one folder. Point it at a folder inside a drive you already sync, iCloud Drive, Google Drive, Dropbox, OneDrive or Syncthing, and the same vault is on your other computer the moment its desk points at the same folder: no service, no account, your own storage. The desk moves the vault there now; if a vault is already in that folder, the desk adopts it and folds this one in, keeping any file that differs aside under cache/previous. Open the desk on one computer at a time for the smoothest sync.</div></div>
@@ -209,7 +209,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
       <div class="row"><label>Newer versions</label><div class="sw"><input type="checkbox" id="s_upd"><span id="s_upd_txt"></span></div></div>
       <div class="row"><label for="e_mail">Your e-mail for the SEC</label><input id="e_mail" autocomplete="off" spellcheck="false" placeholder="you@example.com"></div>
       <div class="row"><span></span><div class="hint">The SEC's filing servers ask every program for a contact address and answer faster to one that gives it. Any address you own; it is sent only to the SEC.</div></div>
-      <div class="btns"><button class="ghost" id="e_save">Save the address</button></div>
+      <div class="btns"><button class="ghost" id="e_save">Save the address</button><button class="ghost" id="g_again" type="button">Show the startup guide again</button></div>
       <div class="msg" id="s_msg"></div>
     </div>
   </div>
@@ -448,6 +448,7 @@ $("p_addz").onclick=()=>$("p_zip").click();
 $("p_zip").addEventListener("change",async()=>{ const f=$("p_zip").files[0]; if(!f) return; say("p_msg","Reading the zip…"); const r=await (await fetch("/api/plugins/install_zip",{method:"POST",headers:{"Content-Type":"application/zip"},body:f})).json(); say("p_msg", r.ok?`${r.plugin.label} is in.`:(r.error||"could not bring it in"), r.ok?"ok":"err"); $("p_zip").value=""; loadPlugins(); if(window.deskRefreshNav) deskRefreshNav(); });
 loadPlugins();
 $("s_upd").onchange=async()=>{ const r=await post("/api/settings/save",{DESK_AUTO_UPDATE:$("s_upd").checked?"on":"off"}); if(r.ok){ render(r.state); say("s_msg","Saved.","ok"); } };
+$("g_again").onclick=()=>{ if(window.deskGuide) window.deskGuide.show(); };
 $("e_save").onclick=async()=>{ const v=$("e_mail").value.trim(); if(!v) return say("s_msg","Type the address first.","err"); const r=await post("/api/settings/save",{EDGAR_CONTACT:v}); if(r.ok){ $("e_mail").value=""; say("s_msg","Saved.","ok"); render(r.state);} };
 
 /* ---------- render ---------- */

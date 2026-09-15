@@ -155,6 +155,50 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 8000);
   }
   window.deskToast = railToast;   // a page's own undo (a deleted chain, a removed name) uses the same strip
+  /* ---- the startup guide: five steps bottom right on the first opens, each a link to the
+     exact place; a step ticks itself when the desk can see it is done, or by hand. Done closes
+     it; it comes back from Settings (This desk) and from the ⌘K palette. ------------------- */
+  const post = (url, body) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) }).then(r => r.json());
+  let guideData = null;
+  function renderGuide(g) {
+    guideData = g;
+    let el = document.getElementById("guide");
+    if (!g || !g.shown) { if (el) el.remove(); return; }
+    if (!el) { el = document.createElement("aside"); el.id = "guide"; document.body.appendChild(el); }
+    const done = g.steps.filter(s => s.done).length;
+    const v = g.vault || {};
+    let vaultPick = "";
+    if (!g.steps[0].done) {
+      vaultPick = `<div class="gv"><div class="gvp">Now: <span class="mono">${esc(v.path)}</span></div><div class="gvb">` +
+        `<button type="button" data-v="keep">Keep it here</button>` +
+        `<button type="button" data-v="${esc(v.documents)}">Documents › GreekSoup</button>` +
+        (v.synced || []).map(s => `<button type="button" data-v="${esc(s.path)}">${esc(s.label)} › GreekSoup</button>`).join("") +
+        `<button type="button" data-v="other">Another folder…</button></div></div>`;
+    }
+    el.innerHTML = `<div class="gh"><b>Getting started</b><span class="gc">${done} of ${g.steps.length}</span><button type="button" class="gx" title="Close for now">×</button></div>` +
+      g.steps.map((s, i) => `<div class="gs ${s.done ? "done" : ""}"><label class="gt"><input type="checkbox" data-k="${s.key}" ${s.done ? "checked" : ""}><span></span></label>` +
+        `<div class="gb"><a href="${esc(s.href)}">${i + 1}. ${esc(s.label)}</a><div class="gtx">${esc(s.text)}</div>${i === 0 ? vaultPick : ""}</div></div>`).join("") +
+      `<div class="gf"><button type="button" class="gdone">Done, hide this</button><span class="gn">Comes back from Settings, under This desk.</span></div>`;
+    el.querySelector(".gx").onclick = () => { el.remove(); try { sessionStorage.setItem("guide_hidden", "1"); } catch (e) { /* fine */ } };
+    el.querySelector(".gdone").onclick = async () => { renderGuide(await post("/api/guide", { done: true })); };
+    el.querySelectorAll("input[data-k]").forEach(i => i.onchange = async () => { renderGuide(await post("/api/guide", { tick: i.dataset.k, on: i.checked })); });
+    el.querySelectorAll("[data-v]").forEach(b => b.onclick = async () => {
+      let target = b.dataset.v;
+      if (target === "keep") { renderGuide(await post("/api/guide", { tick: "vault", on: true })); return; }
+      if (target === "other") { target = prompt("The folder where your research should live (it is made if it is not there):", v.documents || ""); if (!target) return; }
+      b.disabled = true; b.textContent = "Moving…";
+      const out = await post("/api/research/relocate", { path: target });
+      if (!out.ok) { alert(out.error || "That did not work."); renderGuide(g); return; }
+      railToast(`Your research now lives in ${out.location ? out.location.path : target}. Bring it back is on Settings.`, "OK", () => {});
+      renderGuide(await post("/api/guide", { tick: "vault", on: true }));
+    });
+  }
+  async function loadGuide() {
+    try { if (sessionStorage.getItem("guide_hidden")) return; } catch (e) { /* fine */ }
+    try { renderGuide(await (await fetch("/api/guide", { cache: "no-store" })).json()); } catch (e) { /* the guide is a nicety */ }
+  }
+  window.deskGuide = { show: async () => { try { sessionStorage.removeItem("guide_hidden"); } catch (e) { /* fine */ } renderGuide(await post("/api/guide", { again: true })); } };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", loadGuide); else loadGuide();
   /* ---- the row menu: wherever a name appears as a link to its ticker page, a small ⋯ appears on
      hover with the next thing to do from here: open it, add it to a watchlist, a note on it, a
      task, put it on a chain, ask the AI about it. One component; no page has to know. ------- */
@@ -342,11 +386,13 @@
     if (open) {
       const inp = el.querySelector("input");
       inp.value = ""; inp.focus();
-      renderCk({ pages: allTabs().map(([href, label]) => ({ href, label })), us: [], in: [] });
+      renderCk({ pages: allTabs().map(([href, label]) => ({ href, label })).concat([{ href: "#guide", label: "The startup guide" }]), us: [], in: [] });
     }
   }
   function go(item) {
-    if (item) location.href = item.href;
+    if (!item) return;
+    if (item.href === "#guide") { openCmdk(false); window.deskGuide.show(); return; }
+    location.href = item.href;
   }
   function moveSel(d) {
     if (!ckItems.length) return;
