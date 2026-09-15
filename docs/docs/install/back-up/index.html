@@ -43,10 +43,11 @@
       <h1>Back up</h1>
       <p class="lead">Everything that is yours sits in one folder, and Settings makes a zip of it with one click.</p>
       <h2 id="the-one-click">The one click</h2>
-<p>Open Settings, scroll to <strong>Your files</strong>. It lists every file in your <code>data</code> folder with a plain name and its size, and a button, <strong>Back up</strong>, downloads one zip of that folder: your watchlists, the hand-kept book, the US book, the funds you follow, the members you track, the alert rules, the price levels, the value-chain map, the commodity map and your investing profile.</p>
+<p>Open Settings, scroll to <strong>Your files</strong>. It lists every file in your <code>data</code> folder with a plain name and its size, and a button, <strong>Back up</strong>, downloads one zip of that folder: your watchlists, the hand-kept book, the US book, the funds you follow, the members you track, the alert rules, the price levels, the value-chain map, the commodity map, your investing profile, and the whole research vault (<code>data/research</code>: notes, files, the journal, the tasks, the statuses, and any plugins you brought in).</p>
 <p>The zip never contains your settings file with the keys in it, the daily broker login, or the downloaded caches. Those are either secret or rebuilt.</p>
 <h2 id="putting-it-back">Putting it back</h2>
-<p>Unzip it into the <code>data</code> folder of any copy of the desk, replacing what is there, and restart the desk. Keys are re-entered on the Settings screen of the new copy; that is the one thing the zip does not carry, on purpose.</p>
+<p>Next to <strong>Back up</strong> sits <strong>Restore a backup</strong>. Pick the zip and the desk writes its files back into place, on this copy or on a fresh one on another computer. A file the restore would change is kept aside first under <code>cache/previous/restore-&lt;date&gt;</code>, so a restore can itself be undone, and the message afterwards says how many files were written, how many were already the same, and where the changed ones were kept. Keys are re-entered on the Settings screen of the new copy; that is the one thing the zip does not carry, on purpose.</p>
+<p>That is also the way to carry the vault to a second computer today: back up here, restore there.</p>
 <h2 id="by-hand">By hand</h2>
 <p>The <code>data</code> folder is plain text files you can copy anywhere. The settings file, <code>.env</code>, is the other thing worth keeping if you would rather not type the keys again; keep it somewhere private.</p>
     </article>
@@ -56,7 +57,7 @@
     </nav>
     <footer class="foot">
       <span>GreekSoup: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. For analysts who refuse to settle.</span>
-      <span class="mono">version 2026-09-15.18 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/install/back-up.md">edit this page</a></span>
+      <span class="mono">version 2026-09-15.19 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/install/back-up.md">edit this page</a></span>
     </footer>
   </main>
   <aside class="rail">

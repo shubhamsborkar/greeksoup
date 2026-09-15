@@ -586,3 +586,47 @@ def test_plugins_load_install_remove(tmp_path, monkeypatch):
         desk_notes.RESEARCH_DIR = keep
         desk_plugins.installed(force=True)
 
+
+def test_backup_restore_round_trip(tmp_path, monkeypatch):
+    """A backup back in: files under data/ are written; a file that would change is kept aside
+    first; the same file is counted, not rewritten; a zip that reaches outside data/ or has
+    no data/ is refused."""
+    import io
+    import zipfile
+    import settings as desk_settings
+    monkeypatch.setattr(desk_settings, "HERE", str(tmp_path))
+    (tmp_path / "data" / "research" / "notes").mkdir(parents=True)
+    (tmp_path / "data" / "book.json").write_text('{"positions": [1]}', encoding="utf-8")
+    (tmp_path / "data" / "research" / "notes" / "a.md").write_text("old", encoding="utf-8")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("data/book.json", '{"positions": [1]}')                 # the same: untouched
+        z.writestr("data/research/notes/a.md", "new")                    # changed: kept aside, then written
+        z.writestr("data/research/notes/b.md", "fresh")                  # new: written
+        z.writestr("data/.env", "SECRET=1")                              # never restored
+        z.writestr("VERSION", "x")                                       # not data/: ignored
+    rep = desk_settings.restore_zip(buf.getvalue())
+    assert rep["unchanged"] == 1 and sorted(rep["written"]) == ["data/research/notes/a.md", "data/research/notes/b.md"]
+    assert rep["kept"] == ["data/research/notes/a.md"] and rep["kept_in"]
+    assert (tmp_path / "data" / "research" / "notes" / "a.md").read_text() == "new"
+    kept = os.path.join(rep["kept_in"], "data", "research", "notes", "a.md")
+    assert open(kept, encoding="utf-8").read() == "old"
+    assert not (tmp_path / "data" / ".env").exists() and not (tmp_path / "VERSION").exists()
+    bad = io.BytesIO()
+    with zipfile.ZipFile(bad, "w") as z:
+        z.writestr("data/../escape.txt", "no")
+    for blob in (bad.getvalue(), b"not a zip"):
+        try:
+            desk_settings.restore_zip(blob)
+            assert False, "must be refused"
+        except ValueError:
+            pass
+    nodata = io.BytesIO()
+    with zipfile.ZipFile(nodata, "w") as z:
+        z.writestr("readme.md", "x")
+    try:
+        desk_settings.restore_zip(nodata.getvalue())
+        assert False
+    except ValueError:
+        pass
+

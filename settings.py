@@ -232,6 +232,50 @@ def data_files():
     return rows
 
 
+def restore_zip(data):
+    """A backup back in: every file under data/ in the zip is written into place. A file that
+    is about to change is kept first under cache/previous/restore-<stamp>/, so a restore can
+    itself be undone by hand, and the report says what was written and what was kept. Paths
+    that would leave data/ are refused; nothing else in the zip is touched."""
+    import io
+    import zipfile
+    from datetime import datetime
+    if not data or len(data) > 500 * 1024 * 1024:
+        raise ValueError("the zip is empty or larger than the desk takes (500 MB)")
+    try:
+        z = zipfile.ZipFile(io.BytesIO(data))
+    except zipfile.BadZipFile:
+        raise ValueError("that is not a zip file")
+    names = [n for n in z.namelist() if not n.endswith("/")]
+    if any(n.startswith("/") or ".." in n.split("/") or "\\" in n for n in names):
+        raise ValueError("the zip reaches outside the desk folder; refused")
+    wanted = [n for n in names if n.startswith("data/") and n.split("/")[-1] not in (".env",) and not n.split("/")[-1].startswith(".")]
+    if not wanted:
+        raise ValueError("no data/ folder in the zip: this is not a desk backup")
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    kept_dir = os.path.join(HERE, "cache", "previous", f"restore-{stamp}")
+    written, kept, same = [], [], 0
+    for n in wanted:
+        blob = z.read(n)
+        dst = os.path.join(HERE, *n.split("/"))
+        if os.path.isfile(dst):
+            with open(dst, "rb") as fh:
+                cur = fh.read()
+            if cur == blob:
+                same += 1
+                continue
+            keep = os.path.join(kept_dir, *n.split("/"))
+            os.makedirs(os.path.dirname(keep), exist_ok=True)
+            with open(keep, "wb") as fh:
+                fh.write(cur)
+            kept.append(n)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        with open(dst, "wb") as fh:
+            fh.write(blob)
+        written.append(n)
+    return {"written": written, "kept": kept, "unchanged": same, "kept_in": kept_dir if kept else ""}
+
+
 def backup_zip():
     """A zip of data/ (and research/ when it exists): lists, book, profile, alerts.
     Never the key file, never the daily tokens, never the downloaded caches."""

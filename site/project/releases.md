@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.18. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.19. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.19
+
+*15 September 2026, release 19.* Restore a backup from Settings: the zip's files go back into place, on this copy or a fresh one on another computer, any file the restore would change is kept aside first under cache/previous so the restore can be undone, and the message says what was written, what was already the same and where the changed files went; the backup itself now carries the whole research vault, plugins included
 
 ## 2026-09-15.18
 

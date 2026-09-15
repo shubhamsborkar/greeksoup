@@ -3660,6 +3660,19 @@ class Handler(BaseHTTPRequestHandler):
         only edit which names the READ-ONLY watch grid quotes."""
         try:
             length = int(self.headers.get("Content-Length", 0))
+            if self.path.startswith("/api/settings/restore"):
+                # a backup back in: raw zip bytes; data/ files written, changed ones kept aside first
+                data = self.rfile.read(length)
+                try:
+                    rep = desk_settings.restore_zip(data)
+                except ValueError as exc:
+                    return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
+                # what the desk holds in memory follows the files
+                for kind in ("book",):
+                    _cache[kind] = (0.0, None)
+                desk_notes.index(force=True)
+                desk_plugins.installed(force=True)
+                return self._send(json.dumps({"ok": True, **rep}).encode(), "application/json")
             if self.path.startswith("/api/plugins/install_zip"):
                 q = parse_qs(urlparse(self.path).query)
                 data = self.rfile.read(length)
