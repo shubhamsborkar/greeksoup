@@ -161,7 +161,7 @@ def test_ask_says_what_is_missing_before_it_asks_anything():
 def test_windows_scripts_have_no_drive_qualified_variables():
     """PowerShell reads "$name:" as a drive, so a variable followed by a colon inside a
     string is a parse error that stops the whole script. It cost one Windows run."""
-    for name in ("install.ps1", "desk-service.ps1", os.path.join("docs", "install.ps1"),
+    for name in ("install.ps1", "desk-service.ps1", "desk-stop.ps1", os.path.join("docs", "install.ps1"),
                  os.path.join("scripts", "windows_smoke.ps1")):
         path = os.path.join(HERE, name)
         if not os.path.isfile(path):

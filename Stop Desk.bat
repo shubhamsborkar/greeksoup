@@ -5,7 +5,7 @@ set "TASK=Research Desk"
 schtasks /End /TN "%TASK%" >nul 2>&1
 schtasks /Delete /TN "%TASK%" /F >nul 2>&1
 rem stop only the desk that runs from THIS folder, never other Python programs
-powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*server.py*' -and $_.CommandLine -like '*%~dp0*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0desk-stop.ps1"
 echo.
 echo   The desk is OFF and will not start at login. Double-click "Keep Desk Running.bat" to turn it back on.
 echo.

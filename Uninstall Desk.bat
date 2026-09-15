@@ -11,8 +11,7 @@ rem with a second copy of the desk keeps that copy's task exactly as it is.
 set "TASK=Research Desk"
 powershell -NoProfile -Command "$t = (schtasks /Query /TN '%TASK%' /XML 2>$null) -join ''; if (-not $t) { Write-Host '  No start-at-login task to remove.' } elseif ($t -like ('*' + '%~dp0'.TrimEnd('\') + '*')) { schtasks /End /TN '%TASK%' | Out-Null; schtasks /Delete /TN '%TASK%' /F | Out-Null; Write-Host '  Start-at-login task removed.' } else { Write-Host '  Left the start-at-login task alone: it starts another copy of the desk, not this one.' }"
 rem stop only the desk that runs from THIS folder, never other Python programs
-powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*server.py*' -and $_.CommandLine -like '*%~dp0*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }"
-echo   The desk is stopped.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0desk-stop.ps1"
 if exist "data" (
   powershell -NoProfile -Command "$d=[Environment]::GetFolderPath('Desktop'); $z=Join-Path $d ('GreekSoup-backup-' + (Get-Date -Format yyyy-MM-dd) + '.zip'); Compress-Archive -Path 'data' -DestinationPath $z -Force; Write-Host ('  Your lists and data are saved at ' + $z + ' (your keys are not in it).')"
 )
