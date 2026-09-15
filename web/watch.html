@@ -22,7 +22,7 @@ input,select,button{background:var(--panel2);color:var(--ink);border:1px solid v
   border-radius:8px;padding:8px 12px;font-size:13px;outline:none}
 input:focus{border-color:var(--accent)}
 input#filter{width:220px}
-input#addcode{width:150px;text-transform:uppercase}
+input#addcode{width:220px}
 button{cursor:pointer}
 button:hover{border-color:var(--accent);color:var(--accent)}
 #msg{font-size:12px;color:var(--neg);min-height:15px}
@@ -92,7 +92,7 @@ footer{max-width:1500px;margin:14px auto 40px;padding:0 22px;color:var(--muted);
     <input id="filter" placeholder="Filter list…">
     <span style="width:14px"></span>
     <span class="addwrap">
-      <input id="addcode" placeholder="add a name (your broker's code, or the exchange symbol)" autocomplete="off">
+      <input id="addcode" placeholder="company name or symbol" autocomplete="off">
       <div id="sugg"></div>
     </span>
     <select id="addexch" style="display:none"></select>
@@ -148,10 +148,10 @@ let COLS = cols();
 
 document.title = (REGION==="us"?"Watch US":REGION==="global"?"Watch Global":"Watch Home")+" — GreekSoup";
 if(REGION==="us"){
-  document.getElementById("addcode").placeholder="US ticker e.g. AAPL";
+  document.getElementById("addcode").placeholder="company name or US ticker";
 }
 if(REGION==="global"){
-  document.getElementById("addcode").placeholder="Yahoo symbol e.g. TALABAT.AE";
+  document.getElementById("addcode").placeholder="company name, any market";
   document.getElementById("addcode").style.width="200px";
 }
 let exchFilled=false;

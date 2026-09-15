@@ -338,21 +338,15 @@ def search_symbols(q, region):
             if r.get("symbol"):
                 out.append({"code": r["symbol"], "name": r.get("name") or "",
                             "exch": r.get("exchange") or ""})
-        if not out:                         # no feed key (or nothing back): Yahoo search
-            out = freefeed.search(q)
+        if not out:                         # no feed key (or nothing back): Yahoo's search, by name or ticker
+            us_venues = ("NYSE", "NASDAQ", "NYSEARCA", "AMEX", "BATS", "CBOE", "NYQ", "NMS", "NGM", "NCM", "PCX", "ASE", "BTS")
+            for h in symbol_search(q)["hits"]:
+                if "." not in (h["symbol"] or "") and (not h["exch"] or any(v in h["exch"].upper() for v in us_venues)):
+                    out.append({"code": h["symbol"], "name": h["name"], "exch": h["exch"]})
+            out = out[:8]
     elif region == "global":
-        try:
-            resp = requests.get(
-                "https://query1.finance.yahoo.com/v1/finance/search",
-                params={"q": q, "quotesCount": 8, "newsCount": 0},
-                headers={"User-Agent": "Mozilla/5.0"}, timeout=10).json()
-            for r in resp.get("quotes", [])[:8]:
-                if r.get("symbol"):
-                    out.append({"code": r["symbol"],
-                                "name": r.get("shortname") or r.get("longname") or "",
-                                "exch": f"{r.get('quoteType') or ''} · {r.get('exchange') or ''}"})
-        except Exception:  # noqa: BLE001
-            pass
+        for h in symbol_search(q)["hits"][:8]:
+            out.append({"code": h["symbol"], "name": h["name"], "exch": f"{h.get('type') or ''} · {h['exch']}"})
     else:                               # home: the broker's master, else Yahoo in the home market
         hook = _hook("search", live=False)
         if hook:
