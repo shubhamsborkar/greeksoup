@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.31. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.32. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.32
+
+*15 September 2026, release 32.* Two guards on every request, so a web page you visit cannot read your book or post to Settings: a request whose Host is not this computer is refused (DNS rebinding), and a request from a browser that is not the desk's own page is refused (a cross-site read or post); programs on your own computer are let through as before; the Security page is rewritten around what can go wrong and what the desk does about each thing, with the honest limits and the answer to running it on a server; new docs pages for Your lists, Chains and Your computer or a server; the landing page and the docs carry every screen and setting shipped this week, with fresh screens
 
 ## 2026-09-15.31
 

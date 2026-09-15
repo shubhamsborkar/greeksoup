@@ -3383,7 +3383,38 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    LOCAL_HOSTS = ("localhost", "127.0.0.1", "::1", "[::1]", "")
+
+    def _from_this_computer(self):
+        """The two guards a desk with no login needs. Host: a request whose Host header is not
+        this computer is a DNS-rebinding read from a web page and is refused. Origin: a browser
+        names the page that made a cross-site request in Origin; any page that is not the
+        desk's own is refused, which is what stops a web page elsewhere posting to Settings
+        or reading the book. Programs on this computer (the reader's agent, curl) send no
+        Origin and are let through, as they are the reader."""
+        host = (self.headers.get("Host") or "").rsplit(":", 1)[0].strip().lower()
+        if host.startswith("[") and not host.endswith("]"):
+            host = host + "]"
+        if host not in self.LOCAL_HOSTS:
+            return False
+        origin = self.headers.get("Origin")
+        if origin and origin.lower() not in ("null",):
+            oh = (urlparse(origin).hostname or "").lower()
+            if oh not in ("localhost", "127.0.0.1", "::1"):
+                return False
+        elif origin:
+            return False
+        return True
+
+    def _refuse(self):
+        self.send_response(403)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(b"This desk answers only to its own computer and its own pages.")
+
     def do_GET(self):  # noqa: N802 - stdlib naming
+        if not self._from_this_computer():
+            return self._refuse()
         try:
             path = urlparse(self.path).path
             qs = parse_qs(urlparse(self.path).query)
@@ -3867,8 +3898,11 @@ class Handler(BaseHTTPRequestHandler):
         return self._send(json.dumps(out).encode(), "application/json")
 
     def do_POST(self):  # noqa: N802 - stdlib naming
-        """Watchlist add/remove. Still zero order capability — these endpoints
-        only edit which names the READ-ONLY watch grid quotes."""
+        """Every edit the desk accepts. Still zero order capability anywhere. A request from a
+        page that is not the desk's own, or with a Host that is not this computer, is refused
+        before it is read."""
+        if not self._from_this_computer():
+            return self._refuse()
         try:
             length = int(self.headers.get("Content-Length", 0))
             if self.path.startswith("/api/settings/restore"):

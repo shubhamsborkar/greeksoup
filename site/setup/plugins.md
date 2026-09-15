@@ -17,7 +17,11 @@ A plugin runs on your computer and reads what you let it. Settings shows what ea
 
 ## The terminal door
 
-The first plugin. Bring it in from Settings, under Plugins, and the Ask box gains a small picker at the top: your AI from Settings, or **Terminal**. Pick Terminal and the question goes to the coding agent already installed on your computer, Claude Code or Codex, whichever the desk finds, with the screen's numbers and your notes, and the answer comes back into the box, where Save as note and Save as task work as usual. No key on Settings is needed for this door; the agent reaches its own provider with its own login, and that is the one thing it talks to. The agent is told to answer from the data and nothing else: no commands, no file edits, no permissions.
+The first plugin, and the one behind **Use it for Ask** under Your AI: when you pick Claude Code, Codex or Gemini CLI there, the desk brings this door in for you. The Ask box gains a picker at the top naming each app found on this computer and what it runs on; the question goes to the app you picked with the screen's numbers and your notes, and the answer comes back into the box, where Save as note and Save as task work as usual. No key on Settings is needed; the app reaches its own provider with its own login, which the desk never sees. The app is told to answer from the data and nothing else: no commands, no file edits, no permissions; its own permission settings apply on top. [Your AI](/docs/setup/your-ai/).
+
+## What a plugin can reach
+
+A plugin's screen runs inside the desk and can read every address the desk answers, your book included, and write what the desk's own screens can write: a note, a list row, a chain. A door runs the one command it names. That is the desk's own reach, handed to code you chose to install, so treat a plugin you did not write the way you treat any program: read it first, or ask your agent to read it and say what it does. Settings shows what each one adds and what it talks to before it goes in, and removes it in one click. [Security](/docs/project/security/).
 
 ## Hello, a plugin to copy
 

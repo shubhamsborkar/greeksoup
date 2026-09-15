@@ -8,7 +8,7 @@ lead: The questions we get, in the order people ask them.
 ## Before you install
 
 **Does it cost anything?**
-No. GreekSoup is open source under the MIT licence. You bring your own keys, and without any key at all twelve of the fourteen screens run on the free public record.
+No. GreekSoup is open source under the MIT licence. You bring your own keys, and without any key at all thirteen of the fifteen screens run on the free public record.
 
 **Do I need a broker?**
 No. Desk · Book takes a portfolio you keep by hand, in any market, and every intelligence screen reads the public record. A broker lights up Desk · Home and Watch · Home with your live account.
@@ -37,13 +37,25 @@ In one settings file inside the GreekSoup folder on your own computer, written b
 Your broker, the public sources, your data provider and your AI if you connected them, and GitHub once a day to check for a newer version. No telemetry, no analytics, no account.
 
 **Which AI can it use?**
-Any. Fourteen providers are preset, models running on your own computer among them, and any AI app on your computer can read the desk through [a page made for it](/docs/setup/your-ai/).
+Any. An app you already pay for on this computer (Claude Code, Codex, Gemini CLI) answers with no key at all; fourteen providers are preset for a key, models running on your own computer among them; and any AI app on your computer can read the desk through [a page made for it](/docs/setup/your-ai/).
+
+**Does my book go to the AI?**
+When you ask, yes. The Ask box sends your question with the numbers on the screen you are on, and on Desk · Home those are your holdings. It goes to the one place you chose and nowhere else; a model running on your computer keeps it on your computer. Nothing is sent until you press Enter. [Security](/docs/project/security/).
+
+**Can a web page I visit read my desk?**
+No. Every request must name this computer as its host and, from a browser, must come from the desk's own pages; anything else is refused before it is read. [Security](/docs/project/security/) explains both guards.
+
+**The lists on the screens are someone else's. Can I change them?**
+Every list is yours. Funds, Capitol, Macro, Commodities and the options tape carry a Your list button: add, edit, remove with Undo, bring the starters back. Chain is yours to draft and build. [Your lists](/docs/setup/your-lists/).
+
+**What happens to my files when the desk updates?**
+Nothing is lost. Your keys, your lists, your research vault and any file your agent changed stay as they are. When a version changes the shape of a file you own, the desk keeps a copy first, brings the file up, and says so on the banner. [Updates](/docs/install/updates/).
 
 **Can I open it on my phone or another computer?**
 The desk answers only on the computer it runs on. That is a choice, so that it needs no login. Install it on the computer you want to read it on.
 
-**Can I run it on a server?**
-It runs wherever Python runs. On a server it still answers only to that machine, so reaching it from elsewhere needs a tunnel of your own, which we do not document.
+**Can I run it on a server? Is that safer?**
+It runs wherever Python runs, but a server is the less safe place for this desk. Its safety rests on nothing else being able to reach it, which holds on a laptop and turns around on a machine with a front door on the internet. If you must, put it behind a reverse proxy with encryption and a login of your own; we do not document or test that path. [Your computer or a server](/docs/install/your-computer-or-a-server/).
 
 **How do I change it?**
 Open the folder in an AI agent, Claude Code, Codex, Kimi Code, Grok Build or whichever you use, and describe what you want. That is how the desk was built, and the README inside the folder is written for the agent as much as for you.

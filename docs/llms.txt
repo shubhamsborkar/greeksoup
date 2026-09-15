@@ -26,13 +26,16 @@ Installed with one line on Mac, Windows or Linux. Six brokers connect read-only 
 - [Back up](https://greeksoup.ai/docs/install/back-up/): One zip of everything on the GreekSoup desk that is yours.
 - [Uninstall](https://greeksoup.ai/docs/install/uninstall/): Remove GreekSoup from your computer completely: one file to double-click, or one line, and nothing is left behind.
 - [What it talks to](https://greeksoup.ai/docs/install/what-it-talks-to/): Every place GreekSoup sends a request, what it sends, and what it never sends. No telemetry, no account, no analytics.
+- [Your computer or a server](https://greeksoup.ai/docs/install/your-computer-or-a-server/): Whether to run GreekSoup on the computer in front of you or on a rented server, and why the desk's safety story holds on a laptop and turns around on a VPS.
 - [If something is wrong](https://greeksoup.ai/docs/install/if-something-is-wrong/): Symptom first. What each thing a GreekSoup screen can do means, and the one check that tells your agent what to fix.
 - [The page is blank](https://greeksoup.ai/docs/install/the-page-is-blank/): What to do when the GreekSoup address does not open, in order.
 
 ## Setup
 
 - [Setup](https://greeksoup.ai/docs/setup/): The Settings screen inside GreekSoup: your broker, your data provider, your AI, how you invest, the always-on switch, your files and a backup, all in one place.
-- [Your AI](https://greeksoup.ai/docs/setup/your-ai/): How an AI reads GreekSoup: the page made for any AI app on your computer, and your own key with fourteen presets, models on your own computer among them.
+- [Your AI](https://greeksoup.ai/docs/setup/your-ai/): Three ways to have an AI on the GreekSoup desk: an app you already pay for (Claude Code, Codex, Gemini CLI) without a key, your own key from any of fourteen labs, or a model running on your own computer. What the Ask box sends, and what the desk never sees.
+- [Your lists](https://greeksoup.ai/docs/setup/your-lists/): Every list a GreekSoup screen runs on is yours: the funds you follow, the members you track, the macro series, the commodities on the board, the names on the options tape, and the index Risk measures against. The Your list drawer, starters, undo, and where your rows live.
+- [Chains](https://greeksoup.ai/docs/setup/chains/): Building your own value-chain map on the GreekSoup Chain screen: layers upstream to downstream, the listed names under each with a receipt, the named supplier-to-customer links, and the AI draft that fills the first version from your description.
 - [Plugins](https://greeksoup.ai/docs/setup/plugins/): A GreekSoup plugin is a folder that adds a screen to the sidebar, blocks a note can carry, or a door for the Ask box, such as the terminal door that answers through the coding agent already on your computer.
 - [Two computers](https://greeksoup.ai/docs/setup/two-computers/): How the GreekSoup research vault reaches a second computer, or a colleague, with no service and no account, through a folder you already sync.
 - [Data providers](https://greeksoup.ai/docs/setup/data-providers/): What a data provider key adds to GreekSoup, the one that ships (Financial Modeling Prep), and how any other provider is one file to a written contract.
@@ -61,7 +64,7 @@ Installed with one line on Mac, Windows or Linux. Six brokers connect read-only 
 - [The project](https://greeksoup.ai/docs/project/): Who is behind GreekSoup, the licence, what is free, and how to take part.
 - [Releases](https://greeksoup.ai/docs/project/releases/): What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
 - [Contributing](https://greeksoup.ai/docs/project/contributing/): How to add a broker, a market or a data provider to GreekSoup, and what every contribution keeps true.
-- [Security](https://greeksoup.ai/docs/project/security/): How GreekSoup keeps your keys on your computer, what it talks to, and how to report a security problem privately.
+- [Security](https://greeksoup.ai/docs/project/security/): The GreekSoup threat model in plain words, what the desk does about each threat, the honest limits, whether to run it on your own computer or a server, and how to report a problem privately.
 
 ## Elsewhere
 

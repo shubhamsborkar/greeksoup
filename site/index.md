@@ -13,7 +13,7 @@ lead: The one-person equity research desk that runs on your own computer, writte
 
 ## What GreekSoup is
 
-A research desk that runs as a small program on your own computer and opens in your browser. Fourteen screens: your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a commodity board that names the industries each move squeezes or helps, and a page for any ticker, priced live. It reads the public record (SEC EDGAR, CBOE, FINRA, FRED, Yahoo), your broker if you connect one, and one optional data feed.
+A research desk that runs as a small program on your own computer and opens in your browser. Fifteen screens: your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a commodity board that names the industries each move squeezes or helps, your own value chains, a research vault of plain files, and a page for any ticker, priced live. It reads the public record (SEC EDGAR, CBOE, FINRA, FRED, Yahoo), your broker if you connect one, and one optional data feed. Every list a screen runs on is yours, and an AI you already pay for answers about your book without a key.
 
 Three things are involved, and it helps to know which is which.
 
@@ -23,9 +23,9 @@ Three things are involved, and it helps to know which is which.
 
 **The data** comes from three places. Your broker knows what you own. The public record is free and needs no account. An optional paid feed adds the parsed financial statements on the ticker page and a few columns. Skip the feed and nothing breaks.
 
-## The two rules the desk is built on
+## The three rules the desk is built on
 
-Nothing on it places an order, and nothing in it assumes your broker, your country or your data provider. You pick each one from a list, or leave it empty, and the desk gives you the most it can from what you gave it.
+Nothing on it places an order. Nothing in it assumes your broker, your country or your data provider; you pick each one from a list, or leave it empty, and the desk gives you the most it can from what you gave it. And what ships is a starter, never your list: every list a screen runs on is yours to change from the screen, and an update never loses what you saved. It answers only to your own computer, and [Security](/docs/project/security/) says exactly what that means.
 
 ## Where to go next
 
@@ -33,3 +33,4 @@ Nothing on it places an order, and nothing in it assumes your broker, your count
 - You know what you want: [install it in one line](/docs/install/).
 - You have a broker account: [connect it](/docs/brokers/).
 - Something is wrong: [the page is blank](/docs/install/the-page-is-blank/), and the other help pages under Install.
+- Before you connect a broker: [Security](/docs/project/security/), and [your computer or a server](/docs/install/your-computer-or-a-server/).

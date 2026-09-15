@@ -30,4 +30,4 @@ The desk opens at `http://localhost:8765`. "localhost" means *this computer*: th
 
 ## What happens next
 
-Once it is running, [the first ten minutes](/docs/get-started/first-ten-minutes/) walk you through the screens that work with nothing added, and [the screens](/docs/get-started/the-screens/) name every one of the fourteen. When you are ready, [connect your broker](/docs/brokers/) and Desk · Home fills.
+Once it is running, [the first ten minutes](/docs/get-started/first-ten-minutes/) walk you through the screens that work with nothing added, and [the screens](/docs/get-started/the-screens/) name every one of the fifteen. When you are ready, [connect your broker](/docs/brokers/) and Desk · Home fills.

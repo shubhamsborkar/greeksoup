@@ -10,7 +10,7 @@ lead: One line per screen, in the order the sidebar lists them. Every number on 
 - **Desk · Home**: your broker account in whatever market you trade. Holdings priced live, cash, and where the broker reports them, open futures and options, margin used and an options tape on the index. The results calendar for your home watchlist sits under it. Dark until a broker is connected.
 - **The US panels of Desk · Home**: under the broker book, for every reader wherever the home market is, because a reader in any market holds and watches US names. A hand-kept book of US positions priced live, the earnings countdown, the insider tape from Form 4 filings with cluster buys, and a market pulse. Needs no broker.
 - **Desk · Book**: a portfolio you keep by hand, any listing in any market, priced from Yahoo's free feed. Type a company's name and pick the listing you hold; the desk knows the symbol. For anyone with no broker to connect, and for a book that spans markets. It arrives with a few example lines so the screen is not empty, and Clear the book removes them in one click.
-- **Risk**: beta, volatility, worst drawdown and correlation for every book against its index, leverage at underlying notional, the margin cushion where the broker reports one, a five percent stress line, and sector concentration.
+- **Risk**: beta, volatility, worst drawdown and correlation for every book against its index (the index is yours to choose), leverage at underlying notional, the margin cushion where the broker reports one, a five percent stress line, and sector concentration.
 
 ## Watchlists
 
@@ -20,7 +20,7 @@ lead: One line per screen, in the order the sidebar lists them. Every number on 
 
 ## Intelligence
 
-- **Funds**: the 13F tracker straight from SEC EDGAR for the funds you follow: top holdings, quarter-over-quarter changes, the share of each company owned, plus the 13D and 13G activist feed.
+- **Funds**: the 13F tracker straight from SEC EDGAR for the funds you follow (yours to add to and edit): top holdings, quarter-over-quarter changes, the share of each company owned, plus the 13D and 13G activist feed.
 - **Flow**: the options tape on every US name from CBOE's free delayed chains: put/call, open-interest walls, expected move, unusual strikes, day-over-day builds.
 - **Short**: FINRA short interest and the daily short-volume ratio.
 - **Capitol**: Senate and House trading disclosures on your names, plus the members you track.
@@ -29,13 +29,22 @@ lead: One line per screen, in the order the sidebar lists them. Every number on 
 
 - **Macro**: twenty-two FRED series in groups, the home market's own cards (for India: the ten-year, the repo rate and CPI), and an economic calendar for the US and the home market.
 - **Commodities**: fifty-one commodities, the industries each move squeezes and helps, the listed names mapped to them from their own filings, priced live, and a names-under-pressure panel.
-- **Chain**: your own value-chain maps, priced live. Describe an industry, a product or a company and your AI drafts the first map, upstream to downstream; you keep, change or drop every line. Chains live in your research vault.
+- **Chain**: your own value-chain maps, priced live. Describe an industry, a product or a company and your AI drafts the first map, upstream to downstream; you keep, change or drop every line. Chains live in your research vault. [Chains](/docs/setup/chains/).
 
 ## And one more
 
 - **Any ticker**: Command and K, type a symbol. Chart, valuation, quality, estimates, insiders, dividends, news, and with a feed key six years of statements, ratios, segments, peers and a DCF sandbox. A home-market name opens with the exchange's filings where the market has them.
 
-**Settings**, the last entry in the sidebar, is where every key goes. Nothing on it is required.
+**Settings**, the last entry in the sidebar, is three short tabs: Connect (your broker, your data provider, your AI), Your desk (screens, where the vault lives, how you invest, the journal, backups) and Plugins. Nothing on it is required.
+
+## Two things on every screen
+
+- **Your list.** Every list a screen runs on is yours. Funds, Capitol, Macro and Commodities carry a **Your list** button in the top bar, and the options tape on Desk · Home has one on its panel: add a row, edit one, remove one (Undo brings it back), or bring the shipped starters back. [Your lists](/docs/setup/your-lists/).
+- **The ⋯ on any name.** Hover a name anywhere and a small ⋯ appears with the next thing to do from right there: open it, add it to a watchlist, a note on it, a task on it, put it on one of your chains, ask your AI about it.
+
+## The first opens
+
+A startup guide sits bottom right: five steps with a tick each, starting with where your research lives (beside the desk, in Documents › GreekSoup, or in a folder a drive you already use syncs, chosen right there). Done hides it; Settings, under This desk, and the ⌘K palette bring it back.
 
 ## Hiding a screen
 
@@ -45,8 +54,3 @@ Every screen except Desk · Home and Settings can be hidden: hover it in the sid
 
 - **Notes**: the research you write, kept as plain Markdown files in the desk folder and connected to the listings they name, the projects they belong to and the notes they link to. [How notes connect](/docs/get-started/notes/).
 
-Every list a screen runs on is yours. Funds, Capitol, Macro and Commodities carry a **Your list** button in the top bar, and the options tape on Desk · Home has one on its panel: add a row, edit one, remove one (Undo brings it back), or bring the shipped starters back. What ships is a starter; your rows live in your research vault beside your notes.
-
-On the first opens a startup guide sits bottom right: five steps, each a link to the exact place, starting with where your research lives (beside the desk, in Documents › GreekSoup, or in a folder a drive you already use syncs). Done hides it; Settings, under This desk, and the ⌘K palette bring it back.
-
-An AI you already pay for works without a key: Settings, under Your AI, lists the apps on this computer (Claude Code, Codex, Gemini CLI); Use it for Ask, and Sign in through the app's own window. The desk never sees the login.

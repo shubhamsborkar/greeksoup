@@ -865,3 +865,22 @@ def test_startup_guide_reads_the_desk(tmp_path, monkeypatch):
     assert not server.build_guide()["shown"]
     desk_settings.write_env({"GUIDE": ""})
     assert server.build_guide()["shown"]
+
+
+def test_desk_answers_only_its_own_computer_and_pages():
+    """No login, so two guards carry the weight: a Host that is not this computer (DNS
+    rebinding) is refused, and a browser Origin that is not the desk's own page (a cross-site
+    post to Settings, a cross-site read of the book) is refused; programs on this computer
+    send no Origin and are let through."""
+    import server
+    class H(server.Handler):
+        def __init__(self, headers):
+            self.headers = headers
+    ok = lambda h: H(h)._from_this_computer()  # noqa: E731
+    assert ok({"Host": "localhost:8765"}) and ok({"Host": "127.0.0.1:8765"}) and ok({"Host": "[::1]:8765"})
+    assert ok({"Host": "localhost:8765", "Origin": "http://localhost:8765"})
+    assert ok({"Host": "localhost:8765", "Origin": "http://127.0.0.1:8765"})
+    assert not ok({"Host": "evil.example.com:8765"})                                  # rebinding
+    assert not ok({"Host": "localhost:8765", "Origin": "https://evil.example.com"})    # cross-site
+    assert not ok({"Host": "localhost:8765", "Origin": "http://localhost.evil.com"})
+    assert not ok({"Host": "localhost:8765", "Origin": "null"})                         # a sandboxed or file page

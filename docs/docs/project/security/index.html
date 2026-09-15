@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Security · GreekSoup docs</title>
-<meta name="description" content="How GreekSoup keeps your keys on your computer, what it talks to, and how to report a security problem privately.">
+<meta name="description" content="The GreekSoup threat model in plain words, what the desk does about each threat, the honest limits, whether to run it on your own computer or a server, and how to report a problem privately.">
 <meta property="og:title" content="Security · GreekSoup docs">
-<meta property="og:description" content="How GreekSoup keeps your keys on your computer, what it talks to, and how to report a security problem privately.">
+<meta property="og:description" content="The GreekSoup threat model in plain words, what the desk does about each threat, the honest limits, whether to run it on your own computer or a server, and how to report a problem privately.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://greeksoup.ai/docs/project/security/">
 <meta property="og:image" content="https://greeksoup.ai/img/og.jpg">
@@ -34,30 +34,54 @@
 </header>
 <div class="frame">
   <aside class="side" id="side">
-    <div class="side-in"><div class="sec"><div class="sec-t">Get started</div><ul><li><a href="../../get-started/">Overview</a></li><li><a href="../../get-started/first-ten-minutes/">The first ten minutes</a></li><li><a href="../../get-started/the-screens/">The screens</a></li><li><a href="../../get-started/notes/">Notes</a></li><li><a href="../../get-started/no-key-needed/">No key needed</a></li><li><a href="../../get-started/faq/">FAQ</a></li></ul></div><div class="sec"><div class="sec-t">Install</div><ul><li><a href="../../install/">Overview</a></li><li><a href="../../install/mac/">Mac</a></li><li><a href="../../install/windows/">Windows</a></li><li><a href="../../install/linux/">Linux</a></li><li><a href="../../install/with-an-agent/">With an AI agent</a></li><li><a href="../../install/from-source/">From source</a></li><li><a href="../../install/keep-it-running/">Keep it running</a></li><li><a href="../../install/updates/">Updates</a></li><li><a href="../../install/back-up/">Back up</a></li><li><a href="../../install/uninstall/">Uninstall</a></li><li><a href="../../install/what-it-talks-to/">What it talks to</a></li><li><a href="../../install/if-something-is-wrong/">If something is wrong</a></li><li><a href="../../install/the-page-is-blank/">The page is blank</a></li></ul></div><div class="sec"><div class="sec-t">Setup</div><ul><li><a href="../../setup/">Overview</a></li><li><a href="../../setup/your-ai/">Your AI</a></li><li><a href="../../setup/plugins/">Plugins</a></li><li><a href="../../setup/two-computers/">Two computers</a></li><li><a href="../../setup/data-providers/">Data providers</a></li><li><a href="../../setup/data-sources/">Data sources</a></li></ul></div><div class="sec"><div class="sec-t">Brokers</div><ul><li><a href="../../brokers/">Overview</a></li><li><a href="../../brokers/alpaca/">Alpaca</a></li><li><a href="../../brokers/icici-direct/">ICICI Direct</a></li><li><a href="../../brokers/interactive-brokers/">Interactive Brokers</a></li><li><a href="../../brokers/tradier/">Tradier</a></li><li><a href="../../brokers/trading-212/">Trading 212</a></li><li><a href="../../brokers/zerodha/">Zerodha</a></li><li><a href="../../brokers/another-broker/">Another broker</a></li></ul></div><div class="sec"><div class="sec-t">Markets</div><ul><li><a href="../../markets/">Overview</a></li><li><a href="../../markets/india/">India</a></li><li><a href="../../markets/united-states/">United States</a></li><li><a href="../../markets/your-own-market/">Your own market</a></li></ul></div><div class="sec"><div class="sec-t">Project</div><ul><li><a href="../../project/">Overview</a></li><li><a href="../../project/releases/">Releases</a></li><li><a href="../../project/contributing/">Contributing</a></li><li class="on"><a href="../../project/security/">Security</a></li></ul></div></div>
+    <div class="side-in"><div class="sec"><div class="sec-t">Get started</div><ul><li><a href="../../get-started/">Overview</a></li><li><a href="../../get-started/first-ten-minutes/">The first ten minutes</a></li><li><a href="../../get-started/the-screens/">The screens</a></li><li><a href="../../get-started/notes/">Notes</a></li><li><a href="../../get-started/no-key-needed/">No key needed</a></li><li><a href="../../get-started/faq/">FAQ</a></li></ul></div><div class="sec"><div class="sec-t">Install</div><ul><li><a href="../../install/">Overview</a></li><li><a href="../../install/mac/">Mac</a></li><li><a href="../../install/windows/">Windows</a></li><li><a href="../../install/linux/">Linux</a></li><li><a href="../../install/with-an-agent/">With an AI agent</a></li><li><a href="../../install/from-source/">From source</a></li><li><a href="../../install/keep-it-running/">Keep it running</a></li><li><a href="../../install/updates/">Updates</a></li><li><a href="../../install/back-up/">Back up</a></li><li><a href="../../install/uninstall/">Uninstall</a></li><li><a href="../../install/what-it-talks-to/">What it talks to</a></li><li><a href="../../install/your-computer-or-a-server/">Your computer or a server</a></li><li><a href="../../install/if-something-is-wrong/">If something is wrong</a></li><li><a href="../../install/the-page-is-blank/">The page is blank</a></li></ul></div><div class="sec"><div class="sec-t">Setup</div><ul><li><a href="../../setup/">Overview</a></li><li><a href="../../setup/your-ai/">Your AI</a></li><li><a href="../../setup/your-lists/">Your lists</a></li><li><a href="../../setup/chains/">Chains</a></li><li><a href="../../setup/plugins/">Plugins</a></li><li><a href="../../setup/two-computers/">Two computers</a></li><li><a href="../../setup/data-providers/">Data providers</a></li><li><a href="../../setup/data-sources/">Data sources</a></li></ul></div><div class="sec"><div class="sec-t">Brokers</div><ul><li><a href="../../brokers/">Overview</a></li><li><a href="../../brokers/alpaca/">Alpaca</a></li><li><a href="../../brokers/icici-direct/">ICICI Direct</a></li><li><a href="../../brokers/interactive-brokers/">Interactive Brokers</a></li><li><a href="../../brokers/tradier/">Tradier</a></li><li><a href="../../brokers/trading-212/">Trading 212</a></li><li><a href="../../brokers/zerodha/">Zerodha</a></li><li><a href="../../brokers/another-broker/">Another broker</a></li></ul></div><div class="sec"><div class="sec-t">Markets</div><ul><li><a href="../../markets/">Overview</a></li><li><a href="../../markets/india/">India</a></li><li><a href="../../markets/united-states/">United States</a></li><li><a href="../../markets/your-own-market/">Your own market</a></li></ul></div><div class="sec"><div class="sec-t">Project</div><ul><li><a href="../../project/">Overview</a></li><li><a href="../../project/releases/">Releases</a></li><li><a href="../../project/contributing/">Contributing</a></li><li class="on"><a href="../../project/security/">Security</a></li></ul></div></div>
   </aside>
   <div class="scrim" id="scrim"></div>
   <main class="content" id="content">
     <div class="crumb">Project</div>
     <article class="prose">
       <h1>Security</h1>
-      <p class="lead">The desk answers only to your own computer, keeps your keys in one file it never sends, and places no orders. Here is how to report anything that looks otherwise.</p>
-      <h2 id="the-shape-of-it">The shape of it</h2>
+      <p class="lead">The desk holds your book, your keys and your research. Here is what can go wrong, what the desk does about each thing, and what it cannot do for you. Read this once before you connect a broker.</p>
+      <h2 id="the-shape-of-it-in-six-lines">The shape of it, in six lines</h2>
 <ul>
-<li>The desk listens at an address only your computer can reach. It has no login because nobody else can get to it.</li>
-<li>Your keys live in one settings file inside the desk folder. The update never touches it, the backup never includes it, and the page your AI app reads tells the AI not to read it.</li>
-<li>The Settings screen accepts changes only from a browser on the same computer, which is the guard against a web page elsewhere posting to it.</li>
-<li>There is no order path, on any broker.</li>
-<li><a href="../../install/what-it-talks-to/">What it talks to</a> is the complete list of outbound requests. No telemetry, no analytics, no account.</li>
+<li>The desk listens at an address only your own computer can reach, on both of its own names (<code>localhost</code> and <code>127.0.0.1</code>), and on nothing else. Another machine on your network cannot open it.</li>
+<li>It has no login of its own, because nothing outside your computer can reach it. Two guards carry that weight, described below.</li>
+<li>Your keys live in one settings file inside the desk folder. The update never touches it, the backup never includes it, and the page your AI reads tells the AI not to read it.</li>
+<li>There is no order path, on any broker. Every broker file uses that broker's read endpoints and nothing else.</li>
+<li>Nothing about you leaves your computer unless you connect something that needs it: your broker, a data provider, your AI. <a href="../../install/what-it-talks-to/">What it talks to</a> is the whole list.</li>
+<li>No telemetry, no analytics, no account, no crash reports. The once-a-day version check carries no identifier.</li>
 </ul>
-<h2 id="reporting-a-problem">Reporting a problem</h2>
-<p>Open a GitHub issue titled <code>Security</code> with no details in it, and we will reply with a private channel within a few days. Please do not post the details publicly first. The repository's <code>SECURITY.md</code> says the same.</p>
+<h2 id="what-can-go-wrong-and-what-the-desk-does-about-it">What can go wrong, and what the desk does about it</h2>
+<p><strong>A web page you visit reaches the desk.</strong> A page on any site can try to send a request to <code>localhost</code>. Two guards refuse it. The desk checks the browser's <code>Origin</code> header on every request and answers only its own pages; a request that names another site, or a page with no site at all, gets a refusal before it is read. And it checks the <code>Host</code> header on every request, so a page that has tricked your browser into calling <code>localhost</code> by another name (DNS rebinding) is refused too. A program running on your own computer, your AI agent or a command line, sends no <code>Origin</code> and is let through, because it is you.</p>
+<p><strong>Someone with access to your computer reads your book.</strong> They can. The desk trusts your computer the way your documents folder does. If several people share a computer, they share the desk; run it under your own user account and lock the screen.</p>
+<p><strong>The AI you chose sees your holdings.</strong> It does, when you ask. The Ask box sends your question together with the numbers on the screen you are on, and on Desk · Home those numbers are your book. That is the point of asking, and it is also a fact to know. Where it goes is the one address you chose under Your AI: a lab's key, an app you already pay for on this computer, or a model running on this computer through Ollama or LM Studio, which never leaves it. Nothing is sent until you press Enter.</p>
+<p><strong>An app on this computer answers the Ask box.</strong> With Claude Code, Codex or Gemini CLI chosen under Your AI, the desk runs that app with the question on standard input and reads what comes back on standard output. The desk never sees the app's login; the app reaches its own provider under your own account, exactly as it would from a terminal. The brief tells the app to answer from the data and to run no commands and edit no files; the app's own permission settings still apply, and you should read them once.</p>
+<p><strong>A plugin does something you did not expect.</strong> A plugin is a folder you bring in yourself, from the list we publish, from a folder or from a zip. Its screen runs inside the desk and can read every address the desk answers, and a door can run one command on your computer, the one it names. The desk shows what a plugin adds and what it talks to before it goes in, and removes it in one click. Treat a plugin you did not write the way you would treat any program you install: read it first, or ask your agent to read it and tell you what it does. Nothing is brought in on its own.</p>
+<p><strong>A feed lies.</strong> Every number comes from a source that can be wrong, late or restated, and the desk names the source on the screen. Verify against the primary source before acting on anything. The desk never acts on your behalf, so a wrong number costs you a wrong read, not a trade.</p>
+<p><strong>An update breaks something.</strong> The desk keeps the files each update replaced, for the last three versions, and one line brings any of them back. Every file you own carries a format number; when a version changes a file's shape the desk keeps a copy first and says so on the banner. <a href="../../install/updates/">Updates</a>.</p>
+<h2 id="the-honest-limits">The honest limits</h2>
+<ul>
+<li><strong>No login means the computer is the boundary.</strong> Anyone who can sit at your unlocked computer, or run a program on it, can read the desk. That is the same boundary as your files.</li>
+<li><strong>A plugin is trusted code.</strong> It runs with the desk's own reach. Read what you install.</li>
+<li><strong>The AI is outside the boundary by your choice.</strong> A lab's key or an app you pay for sends what you ask about to that lab. A local model does not.</li>
+<li><strong>The desk is not built to be reached from elsewhere.</strong> It does not carry the login, the encryption or the audit log that a service open to the internet needs.</li>
+</ul>
+<h2 id="your-own-computer-or-a-server">Your own computer, or a server?</h2>
+<p>Your own computer. The desk was built to sit beside you, read your broker under your eyes and keep your research in a folder you can open in Finder or Explorer. Its whole safety story is that nothing else can reach it, and that story holds on a laptop.</p>
+<p>A rented server (a VPS) turns that around. Its front door faces the internet; to read the desk from your laptop you would open a port, and then the desk's lack of a login becomes the problem rather than the answer. If you must run it there, put it behind a reverse proxy with encryption and a login of your own, keep the desk itself bound to the server's own address as it ships, and understand that we do not document or test that path. <a href="../../install/your-computer-or-a-server/">Your computer or a server</a> says more.</p>
+<p>The reason some readers of other agent projects moved to a server, that the agent had the run of their files and could be turned against them by a page it read, does not apply in the same way here. The desk runs no agent of its own, executes nothing a page or a feed says, and takes instructions only from you. The one program it can run is the app you chose under Your AI, with a brief that tells it to read and answer only.</p>
 <h2 id="keeping-your-copy-safe">Keeping your copy safe</h2>
 <ul>
-<li>Do not expose the port to the internet.</li>
-<li>Back up from Settings before a big change.</li>
-<li>Every number comes from a feed that can be wrong, late or restated. Verify against the primary source before acting on anything.</li>
+<li>Do not expose the port to the internet, and do not put it behind a tunnel you do not understand.</li>
+<li>Use read-only broker keys where the broker offers them, and a paper account while you learn the desk.</li>
+<li>Read a plugin before you install it, or have your agent read it.</li>
+<li>Back up from Settings before a big change. The backup carries your data and your research vault, never your keys.</li>
+<li>Keep the desk on the current version; the banner tells you when one exists.</li>
 </ul>
+<h2 id="if-you-want-to-check">If you want to check</h2>
+<p>In the desk folder, <code>python doctor.py</code> prints every setting by name and never by value, and which sources it can reach from your computer. Nothing in the printout is private; give it to your agent or paste it into a report.</p>
+<h2 id="reporting-a-problem">Reporting a problem</h2>
+<p>Open a GitHub issue titled <code>Security</code> with no details in it, and we will reply with a private channel within a few days. Please do not post the details publicly first. The repository's <code>SECURITY.md</code> says the same.</p>
     </article>
     <nav class="pn">
       <a class="prev" href="../../project/contributing/"><small>Previous</small><b>Contributing</b></a>
@@ -65,11 +89,11 @@
     </nav>
     <footer class="foot">
       <span>GreekSoup: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. For analysts who refuse to settle.</span>
-      <span class="mono">version 2026-09-15.31 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/project/security.md">edit this page</a></span>
+      <span class="mono">version 2026-09-15.32 · built 2026-09-15 · <a href="https://github.com/shubhamsborkar/one-person-equity-research-desk/edit/main/site/project/security.md">edit this page</a></span>
     </footer>
   </main>
   <aside class="rail">
-    <div class="rail-t">On this page</div><ul><li><a href="#the-shape-of-it">The shape of it</a></li><li><a href="#reporting-a-problem">Reporting a problem</a></li><li><a href="#keeping-your-copy-safe">Keeping your copy safe</a></li></ul>
+    <div class="rail-t">On this page</div><ul><li><a href="#the-shape-of-it-in-six-lines">The shape of it, in six lines</a></li><li><a href="#what-can-go-wrong-and-what-the-desk-does-about-it">What can go wrong, and what the desk does about it</a></li><li><a href="#the-honest-limits">The honest limits</a></li><li><a href="#your-own-computer-or-a-server">Your own computer, or a server?</a></li><li><a href="#keeping-your-copy-safe">Keeping your copy safe</a></li><li><a href="#if-you-want-to-check">If you want to check</a></li><li><a href="#reporting-a-problem">Reporting a problem</a></li></ul>
   </aside>
 </div>
 <div class="modal" id="modal" hidden>

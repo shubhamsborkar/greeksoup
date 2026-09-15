@@ -10,6 +10,8 @@ Open `http://localhost:8765`. The sidebar on the left lists every screen in four
 
 Desk · Home is dark on a fresh copy, and it says so in plain words, with the three ways to put a book on it. Leave it for now.
 
+Bottom right sits the startup guide: five steps with a tick each. The first is where your research lives. Keep it beside the desk, put it in a GreekSoup folder inside Documents, or in a folder a drive you already use syncs; the choice is made right there and changed later from Settings. The other four steps are the rest of this page. The guide ticks a step itself when it can see it is done, and Done hides it.
+
 ## Minutes two to four: the screens that need nothing
 
 Open these in turn. Each one is live from the public record with no key at all.
@@ -33,7 +35,7 @@ Open Desk · Book. Add a line with any symbol Yahoo Finance knows, in any market
 
 ## Minutes nine and ten: Settings
 
-Open Settings, the last entry in the sidebar. Nothing on it is required. Read down it once so you know what is there: your broker, picked from a list; the home market, which follows the broker; your data provider; your own AI, from any lab or a model running on your computer; the address that lets an AI agent on your computer read the desk; a short page on how you invest; and two switches, *Start with the computer* and *Newer versions*.
+Open Settings, the last entry in the sidebar. Nothing on it is required. Three tabs. **Connect**: your broker, picked from a list; the home market, which follows the broker; your data provider; your AI, where an app you already pay for on this computer (Claude Code, Codex, Gemini CLI) answers with no key at all, or a key from any lab, or a model running on your computer. **Your desk**: which screens show, where the vault lives, how you invest, the journal, backups, and two switches, *Start with the computer* and *Newer versions*. **Plugins**: the small folders that add a screen, a block or a door.
 
 !!! tip "One thing to switch on"
     If the desk was installed with the one-line install, *Start with the computer* is already on. If you installed it another way, switch it on now, and the desk is there every time you sit down.

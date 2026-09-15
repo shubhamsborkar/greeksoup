@@ -111,7 +111,7 @@ And **Settings**, the last entry in the sidebar: your broker, picked from the li
 
 ## What runs with no key at all
 
-With no broker key and no feed key the desk still starts, and twelve of the fourteen screens are live: the US panels of Desk · Home, Desk · Book, Watch · US, Global, Risk, Macro, Funds, Flow, Short, Capitol, Chain, Commodities, and the ticker page's chart, quote, ratios and insider table. The broker key lights up Desk · Home and Watch · Home. The feed key adds the parsed statements, ratio history, segments, estimates, peers, dividends and news on the ticker page, the 50 and 200 day columns on the US watch grid, a market-wide insider scan, and cleaner Congress rows.
+With no broker key and no feed key the desk still starts, and thirteen of the fifteen screens are live: the US panels of Desk · Home, Desk · Book, Watch · US, Global, Risk, Macro, Funds, Flow, Short, Capitol, Chain, Commodities, Notes, and the ticker page's chart, quote, ratios and insider table. The broker key lights up Desk · Home and Watch · Home. The feed key adds the parsed statements, ratio history, segments, estimates, peers, dividends and news on the ticker page, the 50 and 200 day columns on the US watch grid, a market-wide insider scan, and cleaner Congress rows.
 
 ## Your own market on the Commodities screen
 

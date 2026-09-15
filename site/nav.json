@@ -27,6 +27,7 @@
         "back-up",
         "uninstall",
         "what-it-talks-to",
+        "your-computer-or-a-server",
         "if-something-is-wrong",
         "the-page-is-blank"
       ]
@@ -37,6 +38,8 @@
       "pages": [
         "index",
         "your-ai",
+        "your-lists",
+        "chains",
         "plugins",
         "two-computers",
         "data-providers",
