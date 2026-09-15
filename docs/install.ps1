@@ -62,15 +62,25 @@ if (-not (Test-Path ".env")) {
 New-Item -ItemType Directory -Path logs -Force | Out-Null
 
 $Url = "http://localhost:$Port"
+# GREEKSOUP_NO_SERVICE=1 starts the desk for this run only, without the start-at-login
+# entry and without opening a browser. It is how the desk is tested on a fresh Windows
+# machine that nobody is sitting at.
+$NoService = -not [string]::IsNullOrWhiteSpace($env:GREEKSOUP_NO_SERVICE)
 function Up { try { Invoke-WebRequest -Uri "$Url/api/ping" -TimeoutSec 2 -UseBasicParsing | Out-Null; $true } catch { $false } }
 if (-not (Up)) {
-  $env:DESK_PORT = $Port
-  & cmd /c "`"Keep Desk Running.bat`"" | Out-Null
+  if ($NoService) {
+    Start-Process -FilePath ".venv\Scripts\python.exe" -ArgumentList "server.py" -WorkingDirectory $Dest `
+      -WindowStyle Hidden -RedirectStandardOutput "logs\desk.log" -RedirectStandardError "logs\desk-start.log"
+  } else {
+    $env:DESK_PORT = $Port
+    & cmd /c "`"Keep Desk Running.bat`"" | Out-Null
+  }
 }
 for ($i = 0; $i -lt 30; $i++) { if (Up) { break }; Start-Sleep -Seconds 2 }
 if (-not (Up)) { throw "The desk has not answered yet. Give it a minute, then open $Url . If it stays blank, read $Dest\logs\desk-service.log or give it to your AI agent." }
-Start-Process $Url
-Write-Host "`n  Done. The desk is at $Url and it starts with your computer from now on."
+if (-not $NoService) { Start-Process $Url }
+$tail = if ($NoService) { "(this run only; not set to start at login)." } else { "and it starts with your computer from now on." }
+Write-Host "`n  Done. The desk is at $Url $tail"
 Write-Host "  Folder: $Dest"
 Write-Host "  Keys are optional: the Settings screen inside the desk takes them."
 Write-Host "  Newer versions: the desk tells you on every screen and updates with one click.`n"

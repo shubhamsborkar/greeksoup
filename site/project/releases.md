@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.2. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.3. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.3
+
+*15 September 2026, release 3.* The Windows install can run unattended, so a fresh Windows machine can install the desk, open every screen and remove it again on every change, which is how Windows gets tested without a Windows PC in the room
 
 ## 2026-09-15.2
 
