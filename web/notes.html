@@ -7,6 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
+<script src="/assets/blocks.js" defer></script>
 <style>
 main{max-width:1420px;margin:0 auto;padding:18px 22px}
 .sub{color:var(--muted);font-size:12px;margin-bottom:14px;line-height:1.5}
@@ -133,6 +134,20 @@ select.chip{font-family:inherit;padding:3px 6px}
 .md a{color:var(--accent);text-decoration:none} .md a.wl{border-bottom:1px dashed var(--accent)}
 .md a.sy{font-family:Menlo,monospace;font-weight:700}
 .md blockquote{margin:0 0 10px;padding:4px 12px;border-left:2px solid var(--line2);color:var(--ink2)}
+.md pre{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 10px;overflow:auto;font-family:Menlo,monospace;font-size:12px;line-height:1.5}
+/* live blocks */
+.bk{border:1px solid var(--line2);border-radius:10px;background:var(--panel2);margin:0 0 12px;overflow:hidden}
+.bk .bk-spec{font-size:10.5px;color:var(--muted);padding:6px 12px;border-bottom:1px solid var(--line);letter-spacing:.02em}
+.bk .bk-body{padding:10px 12px;font-size:12.5px} .bk .bk-err{color:var(--neg);font-size:12px}
+.bk .muted{color:var(--muted)} .bk .pos{color:var(--pos)} .bk .neg{color:var(--neg)} .bk .r{text-align:right}
+.bk a{color:var(--ink);text-decoration:none} .bk a:hover{color:var(--accent)}
+.bk .bk-h{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px} .bk .bk-h b{font-size:14px}
+.bk .bk-row{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;margin:2px 0 6px}
+.bk .bk-t{width:100%;border-collapse:collapse;font-size:12.5px} .bk .bk-t th{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);text-align:left;padding:2px 6px 6px 0;font-weight:600} .bk .bk-t td{padding:4px 6px 4px 0;border-top:1px solid var(--line)}
+.bk .bk-list{display:flex;flex-direction:column;gap:4px} .bk .bk-list>*{display:flex;gap:8px;align-items:baseline}
+.bk .bk-list .r{margin-left:auto} .bk .ty{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700}
+.bk .bk-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px 20px;font-size:12px}
+.bk-spark{width:100%;height:110px;display:block;margin-top:4px}
 .conn{padding:12px 16px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 .conn .g .l{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
 .conn a{display:inline-block;font-size:11.5px;color:var(--ink2);margin:0 8px 6px 0;text-decoration:none}
@@ -193,7 +208,8 @@ select.chip{font-family:inherit;padding:3px 6px}
         <div class="row"><span class="lbl">Project</span><input id="e_project" list="projlist" placeholder="a project note's title, or leave empty" style="width:280px" autocomplete="off"><datalist id="projlist"></datalist>
           <span class="lbl" style="margin-left:8px">Tags</span><input id="e_tags" placeholder="comma, separated" style="width:200px" autocomplete="off"></div>
         <div class="row"><span class="lbl">File</span><span id="e_file"></span><button class="ghost" id="e_attach" type="button">Attach a file</button><input type="file" id="e_fileinput" style="display:none"><span class="msg">An annual report, a model, a screenshot. It goes into the vault when you save the note, and nowhere else.</span></div>
-        <textarea id="e_body" placeholder="The note, in Markdown. [[Another note]] links by title. $AAPL names a listing anywhere in the text."></textarea>
+        <textarea id="e_body" placeholder="The note, in Markdown. [[Another note]] links by title. $AAPL names a listing anywhere in the text. A live block: three backticks then desk on one line, chart AAPL 1y on the next, three backticks to close."></textarea>
+        <div class="row" style="gap:6px;flex-wrap:wrap"><span class="lbl">Blocks</span><span class="msg">live, drawn on the note's page:</span>${["quote AAPL","chart AAPL 1y","watch AAPL MSFT","commodity wti","status AAPL","notes AAPL 5","tasks AAPL","timeline AAPL","book"].map(b=>`<button type="button" class="chip bkchip" data-b="${b}">${b.split(" ")[0]}</button>`).join("")}</div>
         <div class="row"><button id="e_save">Save</button><button class="ghost" id="e_cancel">Cancel</button><span style="flex:1"></span><button class="danger" id="e_del" style="display:none">Delete this note</button></div>
         <div class="msg" id="e_msg"></div>
       </div>
@@ -234,9 +250,12 @@ function md(src){
     .replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>").replace(/(^|\W)\*([^*]+)\*(?=\W|$)/g,"$1<i>$2</i>")
     .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
   const flush=()=>{ if(para.length){out+=`<p>${inline(para.join(" "))}</p>`;para=[];} if(inList){out+=`</${inList}>`;inList=null;} };
+  let fence=null, fbuf=[];
   for(const raw of lines){
     const l=raw.replace(/\s+$/,"");
     let m;
+    if(fence!==null){ if(/^```\s*$/.test(l)){ if(fence==="desk"){ fbuf.filter(x=>x.trim()).forEach(spec=>{ out+=`<div data-desk-block="${esc(spec.trim())}"></div>`; }); } else out+=`<pre>${esc(fbuf.join("\n"))}</pre>`; fence=null; fbuf=[]; } else fbuf.push(raw); continue; }
+    if((m=l.match(/^```\s*(\w*)\s*$/))){ flush(); fence=m[1].toLowerCase(); fbuf=[]; continue; }
     if(!l.trim()){flush();continue;}
     if((m=l.match(/^(#{1,3})\s+(.*)/))){flush();out+=`<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`;continue;}
     if((m=l.match(/^\s*[-*]\s+(.*)/))){ if(para.length){out+=`<p>${inline(para.join(" "))}</p>`;para=[];} if(inList!=="ul"){if(inList)out+=`</${inList}>`;out+="<ul>";inList="ul";} out+=`<li>${inline(m[1])}</li>`;continue;}
@@ -245,7 +264,7 @@ function md(src){
     if(inList){out+=`</${inList}>`;inList=null;}
     para.push(l);
   }
-  flush(); return out;
+  flush(); if(fence!==null) out+=`<pre>${esc(fbuf.join("\n"))}</pre>`; return out;
 }
 
 async function post(url,body){ const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})}); return r.json(); }
@@ -316,6 +335,7 @@ async function open(id){
       <div class="g"><div class="l">Linked from</div>${backs.length?backs.map(x=>`<a href="/notes?id=${encodeURIComponent(x.id)}" data-id="${esc(x.id)}" class="nl">${esc(x.title)}</a>`).join(""):'<span style="font-size:11.5px;color:var(--muted)">none yet</span>'}</div>
       ${related.length?`<div class="g"><div class="l">Also connected, through your notes</div>${related.map(s=>`<a class="sy" href="/t?symbol=${encodeURIComponent(s)}">$${esc(s)}</a>`).join("")}</div>`:""}
     </div>`;
+  if(window.deskBlocks) deskBlocks.hydrate($("view"));
   $("v_edit").onclick=()=>edit(n);
   if(n.text&&n.text.state==="reading"){ const poll=async()=>{ if(!CUR||CUR.id!==n.id) return; const t=await (await fetch("/api/research/text?path="+encodeURIComponent(n.file))).json(); if(t.state==="reading") return setTimeout(poll,2500); const el=$("v_text"); if(el) el.innerHTML=textLine(t); }; setTimeout(poll,2500); }
   const vd=$("v_detach"); if(vd) vd.onclick=()=>{
@@ -455,6 +475,7 @@ function pickFile(f){
   if($("e_type").value==="general"){ const ext=(f.name.split(".").pop()||"").toLowerCase(); $("e_type").value=/^(xlsx|xls|xlsm|csv|numbers|ods)$/.test(ext)?"model":/^(png|jpe?g|gif|webp)$/.test(ext)?"clipping":"document"; }
 }
 $("e_attach").onclick=()=>$("e_fileinput").click();
+document.querySelectorAll(".bkchip").forEach(b=>b.onclick=()=>{ const ta=$("e_body"); const sym=EDIT.syms[0]||"AAPL"; const spec=b.dataset.b.replace(/AAPL/g,sym).replace(/MSFT/g,EDIT.syms[1]||"MSFT"); const ins="\n```desk\n"+spec+"\n```\n"; const p=ta.selectionStart||ta.value.length; ta.value=ta.value.slice(0,p)+ins+ta.value.slice(p); ta.focus(); ta.selectionStart=ta.selectionEnd=p+ins.length; });
 $("e_fileinput").addEventListener("change",()=>{ pickFile($("e_fileinput").files[0]); $("e_fileinput").value=""; });
 $("ed").addEventListener("dragover",e=>{ e.preventDefault(); $("ed").classList.add("drop"); });
 $("ed").addEventListener("dragleave",()=>$("ed").classList.remove("drop"));

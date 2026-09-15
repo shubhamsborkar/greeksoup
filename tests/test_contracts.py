@@ -276,6 +276,13 @@ def test_research_vault_files(tmp_path):
             assert False, "a file that is not in the vault must be refused"
         except ValueError:
             pass
+        # the file follows its note's subject: rename the note's name and the file moves, index entry with it
+        moved = desk_notes.save({**desk_notes.get(n["id"]), "symbols": ["MSFT"]})
+        assert moved["file"] == "files/MSFT/apple-10-k-fy25-final.pdf" and moved["file_ok"] and not (tmp_path / "research" / "files" / "AAPL" / "apple-10-k-fy25-final.pdf").exists()
+        gen = desk_notes.save({**moved, "kind": "general", "symbols": []})
+        assert gen["kind"] == "general" and gen["file"] == "files/general/apple-10-k-fy25-final.pdf"   # no names: general, and the file follows
+        rel = gen["file"]
+        assert desk_notes.save({"title": "Named", "kind": "general", "symbols": ["AAPL"]})["kind"] == "stock"   # a name makes it a stock note
         # a missing file is reported, never dropped
         (tmp_path / "research" / rel).unlink()
         assert desk_notes.get(n["id"])["file_ok"] is False and desk_notes.get(n["id"])["file"] == rel
@@ -496,4 +503,23 @@ def test_research_tasks(tmp_path, monkeypatch):
     finally:
         desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR, desk_notes.INDEX_DIR = keep
         desk_notes.index(force=True)
+
+
+def test_live_blocks_resolve(monkeypatch):
+    """A fenced desk block resolves to data the page can draw, and a bad block answers with an
+    error in place rather than breaking the note: unknown kinds, missing symbols, a commodity
+    that is not on the board. Quotes come from the watch pools when they hold the name."""
+    import server
+    monkeypatch.setitem(server.WATCH_US, "AAPL", {"code": "AAPL", "name": "Apple Inc.", "ltp": 100.0, "prev": 90.0, "day_pct": 11.1, "chg": 10.0, "ts": "10:00"})
+    q = server.resolve_block("quote aapl")
+    assert q["kind"] == "quote" and q["rows"][0]["symbol"] == "AAPL" and q["rows"][0]["price"] == 100.0
+    assert "error" in server.resolve_block("quote") and "error" in server.resolve_block("chart")
+    bad = server.resolve_block("nonsense AAPL")
+    assert "no block called" in bad["error"] and "chart" in bad["known"]
+    c = server.resolve_block("commodity nothing-like-this")
+    assert "error" in c
+    t = server.resolve_block("tasks")
+    assert "tasks" in t and "open" in t["tasks"]
+    assert server.resolve_block("")["error"]
+    assert set(server.BLOCKS) == {"quote", "chart", "watch", "commodity", "status", "notes", "tasks", "timeline", "book"}
 

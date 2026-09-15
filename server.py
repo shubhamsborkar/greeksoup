@@ -446,8 +446,7 @@ def calendar_rows():
     rows = []
     for kind in ("earn", "results_home"):
         try:
-            _stamp, data = _cache.get(kind, (0.0, None))
-            rows.extend((data or {}).get("rows") or [])
+            rows.extend((cache_peek(kind) or {}).get("rows") or [])
         except Exception:  # noqa: BLE001
             pass
     return rows
@@ -467,6 +466,122 @@ def task_alerts():
     for t in v["open"]["today"]:
         out.append({"level": "", "text": f"Task due today: {t['text']}" + (f" (${t['symbol']})" if t.get("symbol") and t["symbol"] not in t["text"] else ""),
                     "ts": "", "date": today, "task": True})
+    return out
+
+
+# ---- live blocks inside a note. A fenced ```desk block names a block and its arguments
+# ("chart AAPL 1y", "quote AAPL MSFT", "commodity rubber", "tasks AAPL"); the desk answers
+# the data here and the page draws it, so a note carries live numbers next to the reader's
+# words. The vocabulary is small and documented on the agent page; a plugin adds a renderer
+# on the page and reads any desk address for its data.
+BLOCKS = {
+    "quote": "quote SYM [SYM ...]              the last price and day change of each listing",
+    "chart": "chart SYM [1m|3m|6m|1y|2y|5y]    closes over the range, drawn as a line",
+    "watch": "watch SYM SYM ... | watch project \"Title\"   a small grid of quotes",
+    "commodity": "commodity NAME                   the commodity board's card (rubber, wti, gold)",
+    "status": "status SYM                       where the name stands in your research",
+    "notes": "notes SYM [N]                    your latest notes on the name",
+    "tasks": "tasks [SYM]                      what is open, and due",
+    "timeline": "timeline SYM                     everything about the name by period",
+    "book": "book                             Desk · Book, the lines and their weights",
+}
+_block_quotes = {}
+
+
+def cache_peek(kind):
+    """What the cache holds for a kind, from memory or the disk copy, without ever building:
+    a block reads what the screens already have and never makes a note wait on a feed."""
+    with _locks[kind]:
+        stamp, data = _cache[kind]
+        if data is None and kind not in DISKLESS:
+            try:
+                with open(os.path.join(HIST_CACHE_DIR, f"api_{kind}.json")) as fh:
+                    c = json.load(fh)
+                _cache[kind] = (c["at"], c["data"])
+                data = c["data"]
+            except (OSError, ValueError, KeyError):
+                pass
+    return data
+
+
+def block_quote(sym):
+    """A quote for a block, kept a minute so a note with ten quotes is not ten feed calls a second."""
+    now = time.time()
+    hit = _block_quotes.get(sym)
+    if hit and now - hit[0] < 60:
+        return hit[1]
+    q = None
+    with _watch_lock:
+        for pool in (WATCH_US, WATCH, WATCH_GLOBAL):
+            if sym in pool and pool[sym].get("ltp"):
+                q = dict(pool[sym])
+                break
+    if not q:
+        q = fetch_yahoo_quote(sym) or freefeed.quote(sym)
+    if q:
+        q = {"symbol": sym, "name": q.get("name") or "", "price": q.get("ltp"), "day_pct": q.get("day_pct"),
+             "chg": q.get("chg"), "currency": q.get("currency") or "", "ts": q.get("ts") or datetime.now().strftime("%H:%M")}
+        _block_quotes[sym] = (now, q)
+    return q
+
+
+def resolve_block(spec):
+    """One block's data. Unknown or malformed blocks answer with an error the page shows in place."""
+    parts = [p for p in re.split(r"\s+", (spec or "").strip()) if p]
+    if not parts:
+        return {"error": "an empty block"}
+    kind, args = parts[0].lower(), parts[1:]
+    syms = [a.upper() for a in args if re.match(r"^[A-Za-z0-9.\-^=]{1,24}$", a)]
+    out = {"kind": kind, "spec": spec.strip()}
+    if kind == "quote":
+        if not syms:
+            return {**out, "error": "quote needs a symbol: quote AAPL"}
+        out["rows"] = [block_quote(sy) or {"symbol": sy, "error": "no quote right now"} for sy in syms[:20]]
+    elif kind == "chart":
+        if not syms:
+            return {**out, "error": "chart needs a symbol: chart AAPL 1y"}
+        rng = next((a.lower() for a in args if a.lower() in ("1m", "3m", "6m", "1y", "2y", "5y", "max")), "1y")
+        interval = "1d" if rng in ("1m", "3m", "6m", "1y") else "1wk"
+        rows = _yahoo_candles(syms[0], {"1m": "1mo", "3m": "3mo", "6m": "6mo", "max": "max"}.get(rng, rng), interval)
+        out.update({"symbol": syms[0], "range": rng, "dates": [r.get("date") for r in rows], "closes": [r.get("price") for r in rows],
+                    "error": "" if rows else "no history right now (the free feed is resting; try again in a minute)"})
+    elif kind == "watch":
+        m = re.search(r'project\s+"([^"]+)"', spec, re.I)
+        if m:
+            rows = desk_notes.listing(project=m.group(1))
+            syms = sorted({sy for r in rows for sy in r["symbols"] + r.get("implied_symbols", [])})
+            out["project"] = m.group(1)
+        if not syms:
+            return {**out, "error": "watch needs symbols, or a project: watch AAPL MSFT, or watch project \"Gulf delivery\""}
+        out["rows"] = [block_quote(sy) or {"symbol": sy, "error": "no quote"} for sy in syms[:30]]
+    elif kind == "commodity":
+        want = " ".join(args).strip().lower()
+        cards = (cache_peek("commods") or {}).get("cards") or []
+        hit = next((c for c in cards if c.get("id", "").lower() == want or c.get("label", "").lower() == want), None)
+        if not hit:
+            return {**out, "error": f"no commodity called {want!r} on the board" if want else "commodity needs a name: commodity rubber",
+                    "known": [c.get("id") for c in cards][:60]}
+        out["card"] = {k: hit.get(k) for k in ("id", "label", "group", "unit", "value", "date", "chg", "spark", "hi52", "lo52", "from_all_high", "stale")}
+    elif kind == "status":
+        if not syms:
+            return {**out, "error": "status needs a symbol"}
+        out["status"] = name_status(syms[0])
+    elif kind == "notes":
+        if not syms:
+            return {**out, "error": "notes needs a symbol"}
+        n = next((int(a) for a in args if a.isdigit()), 5)
+        out["rows"] = desk_notes.listing(symbol=syms[0])[:max(1, min(n, 30))]
+    elif kind == "tasks":
+        out["tasks"] = desk_notes.tasks_view(calendar_rows(), syms[0] if syms else None)
+    elif kind == "timeline":
+        if not syms:
+            return {**out, "error": "timeline needs a symbol"}
+        out["timeline"] = desk_notes.timeline(syms[0])
+    elif kind == "book":
+        book = cache_peek("book") or load_book()
+        out["book"] = {"positions": (book.get("positions") or [])[:60], "totals": book.get("totals") or {}, "cash": book.get("cash") or []}
+    else:
+        return {**out, "error": f"no block called {kind!r}", "known": sorted(BLOCKS)}
     return out
 
 
@@ -2990,6 +3105,13 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
                                             /api/research/status?symbol=AAPL    where the name stands: watchlist, researching, thesis built, invested, exited
                                             /api/research/timeline?symbol=AAPL  everything about the name by period and date
                                             /api/research/tasks?symbol=         the reader's tasks (tasks.md, checkboxes in notes, results dates)
+                                            /api/research/block?spec=chart+AAPL+1y   the data behind a live block in a note
+             A note may carry live blocks: a fenced code block whose language is desk, one
+             block per fence, e.g. ```desk / chart AAPL 1y / ```. The desk draws them on the
+             note's page; an editor shows the fence as code. The blocks:
+               quote SYM [SYM ...]  ·  chart SYM [1m|3m|6m|1y|2y|5y]  ·  watch SYM ... | watch project "Title"
+               commodity NAME  ·  status SYM  ·  notes SYM [N]  ·  tasks [SYM]  ·  timeline SYM  ·  book
+             A note that is mostly blocks is a dashboard.
                                             /api/research/journal               the journal: the moments the desk saw, and the reader's whys
              The vault is data/research: notes/ holds one Markdown file per note, files/ holds
              what the reader brought in (annual reports, models, screenshots), one folder per
@@ -3077,6 +3199,12 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(json.dumps(n or {"error": "no such note"}).encode(), "application/json")
             elif path == "/api/notes/graph":
                 return self._send(json.dumps(desk_notes.graph((qs.get("symbol", [""])[0] or "").strip())).encode(), "application/json")
+            elif path == "/api/research/block":
+                spec = (qs.get("spec", [""])[0] or "")[:200]
+                try:
+                    return self._send(json.dumps(resolve_block(spec), default=str).encode(), "application/json")
+                except Exception as exc:  # noqa: BLE001 - a block never breaks the note around it
+                    return self._send(json.dumps({"spec": spec, "error": f"could not read this block ({type(exc).__name__})"}).encode(), "application/json")
             elif path == "/api/research/tree":
                 return self._send(json.dumps(desk_notes.tree()).encode(), "application/json")
             elif path == "/api/research/tasks":

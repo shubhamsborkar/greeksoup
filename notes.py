@@ -156,8 +156,8 @@ def parse(text):
         if s not in symbols:
             symbols.append(s)
     kind = _unq(meta.get("kind", "")).lower()
-    if kind not in KINDS:
-        kind = "stock" if symbols else "general"
+    if kind not in KINDS or (kind == "general" and symbols):
+        kind = "stock" if symbols else "general"      # a card that says general but names a listing is about that listing
     about = _unq(meta.get("about", ""))[:120]
     if kind == "stock":
         about = ""
@@ -247,6 +247,55 @@ def file_type(name):
     return FILE_TYPES.get(os.path.splitext(name or "")[1].lower(), "document")
 
 
+def _subject_folder(symbol="", about=""):
+    sym = re.sub(r"[^A-Z0-9.\-]", "", (symbol or "").upper())[:20]
+    if sym:
+        return sym
+    a = re.sub(r"[^a-z0-9]+", "-", (about or "").lower()).strip("-")[:40]
+    return a or "general"
+
+
+def refile(rel, symbol="", about=""):
+    """Move an attached file under the subject its note now names, so files/ keeps reading
+    like the vault. The index entry moves with it. Returns the new reference, or the old one
+    when nothing needed to move or the move was refused."""
+    rel = _clean_rel(rel)
+    full = file_path(rel) if rel else None
+    if not full or not os.path.isfile(full):
+        return rel
+    want = _subject_folder(symbol, about)
+    parts = rel.split("/")
+    if len(parts) != 3 or parts[1] == want:
+        return rel
+    others = [m for m in index().values() if m.get("file") == rel]
+    if len(others) > 1:
+        return rel                          # two notes share it: leave it where both can see it
+    folder = os.path.join(FILES_DIR, want)
+    os.makedirs(folder, exist_ok=True)
+    stem, ext = os.path.splitext(parts[2])
+    fname, k = parts[2], 2
+    while os.path.exists(os.path.join(folder, fname)):
+        fname, k = f"{stem}-{k}{ext}", k + 1
+    new_rel = f"files/{want}/{fname}"
+    try:
+        os.replace(full, os.path.join(folder, fname))
+    except OSError:
+        return rel
+    old_cache, new_cache = _text_cache_path(rel), _text_cache_path(new_rel)
+    try:
+        import json
+        with open(old_cache, encoding="utf-8") as fh:
+            d = json.load(fh)
+        d["file"] = new_rel
+        with open(new_cache, "w", encoding="utf-8") as fh:
+            json.dump(d, fh)
+        os.remove(old_cache)
+    except (OSError, ValueError):
+        pass
+    _prune(os.path.dirname(full))
+    return new_rel
+
+
 def store_file(name, data, symbol="", about=""):
     """Put a file the reader brought in under files/<subject>/, with a safe name that never
     overwrites another. Returns the reference the card will hold."""
@@ -257,8 +306,7 @@ def store_file(name, data, symbol="", about=""):
     stem, ext = os.path.splitext(os.path.basename(name or "file"))
     ext = re.sub(r"[^a-z0-9.]", "", ext.lower())[:12]
     stem = slug(stem)[:80] or "file"
-    sym = re.sub(r"[^A-Z0-9.\-]", "", (symbol or "").upper())[:20]
-    subject = sym or slug(about)[:40] or "general"
+    subject = _subject_folder(symbol, about)
     folder = os.path.join(FILES_DIR, subject)
     os.makedirs(folder, exist_ok=True)
     fname, k = stem + ext, 2
@@ -431,13 +479,15 @@ def save(data):
         if s and s not in symbols:
             symbols.append(s)
     kind = (data.get("kind") or "").lower()
-    if kind not in KINDS:
-        kind = "stock" if symbols else "general"
+    if kind not in KINDS or (kind == "general" and symbols):
+        kind = "stock" if symbols else "general"      # a note that names a listing is about that listing unless it says commodity, sector or macro
     rel = _clean_rel(str(data.get("file") or ""))
     if rel and not (file_path(rel) and os.path.isfile(file_path(rel))):
         raise ValueError("that file is not in the vault's files folder")
     if rel and ntype in ("general", "note"):
         ntype = file_type(rel)          # a file makes the note a document, a model or a clipping unless the reader says otherwise
+    if rel:
+        rel = refile(rel, symbols[0] if symbols else "", "" if kind == "stock" else str(data.get("about") or ""))
     note = {"title": title, "kind": kind, "type": ntype, "symbols": symbols, "file": rel,
             "about": "" if kind == "stock" else str(data.get("about") or "").strip()[:120],
             "period": period_key(str(data.get("period") or "")),
@@ -1188,7 +1238,7 @@ def tree():
                           "loose": loose_by.get(sym, [])})
     subj_rows = {}
     for (kind, about), xs in subjects.items():
-        subj_rows.setdefault(kind, []).append({"about": about, "notes": sort_leaves(xs), "loose": loose_by.get(slug(about).upper(), [])})
+        subj_rows.setdefault(kind, []).append({"about": about, "notes": sort_leaves(xs), "loose": loose_by.get(_subject_folder("", about).upper(), [])})
     for kind in subj_rows:
         subj_rows[kind].sort(key=lambda r: r["about"].lower())
     days = journal_days(limit=30)
@@ -1203,7 +1253,7 @@ def tree():
             "journal": [{"date": d["date"], "title": d["title"], "count": len(d["entries"])} for d in days],
             "tasks": tasks["counts"],
             "loose_other": [f for f in loose if f["subject"].upper() not in {r["symbol"] for r in name_rows}
-                            and f["subject"].upper() not in {slug(r["about"]).upper() for rows in subj_rows.values() for r in rows}],
+                            and f["subject"].upper() not in {_subject_folder("", r["about"]).upper() for rows in subj_rows.values() for r in rows}],
             "counts": {"notes": sum(1 for n in notes.values() if n["type"] != "project"), "projects": len(projects),
                        "names": len(name_rows), "files": sum(1 for n in notes.values() if n["file"]) + len(loose)}}
 

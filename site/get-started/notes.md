@@ -53,6 +53,10 @@ The loop closes both ways. **Remove file** on a note asks whether the file stays
 
 When a file arrives the desk reads its text once, locally, into `data/research/index`: a PDF page by page, a spreadsheet sheet by sheet with its first rows, a Word file by paragraph, a presentation by slide. Nothing leaves your computer and the index is rebuilt from the files whenever it is missing, so it is never the record. From then on the search box on the Notes screen and Command K find a phrase that lives only inside an annual report, marked **in the file**, and the Ask box on that listing's page reads your notes and your documents about it along with the screen's numbers, so an answer can quote the filing you brought in. A scanned image has no text to read; the file is kept and opens as it is, and the note says so.
 
+## Live blocks: a note that carries the desk's numbers
+
+Three backticks, the word `desk`, one line naming a block, three backticks to close, and the desk draws it on the note's page while any editor shows it as code. The blocks: `quote AAPL MSFT` (last price and day change), `chart AAPL 1y` (closes as a line; 1m, 3m, 6m, 1y, 2y, 5y), `watch AAPL MSFT` or `watch project "Gulf delivery"` (a small grid), `commodity rubber` (the board's card), `status AAPL`, `notes AAPL 5`, `tasks AAPL`, `timeline AAPL`, `book`. The Blocks row under the editor drops one in with the note's own name filled. A block reads what the screens already hold and never makes the note wait on a feed; when a feed is resting the block says so in place. A note that is mostly blocks is a dashboard, and the example note on a fresh desk is one.
+
 ## Where a name stands
 
 Every listing's page carries a status: **watchlist**, **researching**, **thesis built**, **invested**, **exited**. Two of the five the desk can see for itself and shows as such: a name in one of your books reads invested, a name on a watch grid reads watchlist. Pick one yourself and your word wins, dated, and every change is kept in `data/research/status.json`, so an exit six months on still shows when the thesis was built. The Notes screen filters on status, so "everything on the names I am researching" is one click.
@@ -83,7 +87,7 @@ Every answer in the Ask box has a **Save as note** button under it. Press it and
 
 ## The examples
 
-A fresh desk arrives with one example project and three example notes (a call, a risk, and a commodity note with a period), so the screen shows how the pieces fit. They are four files in `data/research/notes` whose names start with `example-`; delete them from the Notes screen or from the folder whenever you like.
+A fresh desk arrives with one example project and four example notes (a call, a risk, a commodity note with a period, and a dashboard), so the screen shows how the pieces fit. They are five files in `data/research/notes` whose names start with `example-`; delete them from the Notes screen or from the folder whenever you like.
 
 ## Your AI reads them
 

@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.16. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.17. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.17
+
+*15 September 2026, release 17.* Live blocks in a note: three backticks, the word desk, one line naming a block, and the desk draws it on the note's page while any editor shows it as code (quote, chart, watch, commodity, status, notes, tasks, timeline, book), reading what the screens already hold and never waiting on a feed; a note that is mostly blocks is a dashboard, and an example one ships; a note that names a listing is a stock note unless it says otherwise, and an attached file follows its note's name into the right folder (a file with no subject used to land in files/note)
 
 ## 2026-09-15.16
 
