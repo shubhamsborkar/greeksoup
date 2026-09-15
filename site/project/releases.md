@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-15.14. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-15.15. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-15.15
+
+*15 September 2026, release 15.* Tasks that make themselves, and tasks you make: a results date for a name you hold, watch or are researching becomes a task on its own and goes when the date passes; every answer in the Ask box gets Save as task beside Save as note; a line typed on the Tasks screen or a listing's page, or a checkbox inside any note, lands on the same list, with a due date and a category; tasks live in data/research/tasks.md as plain checkboxes, a task due today or overdue shows in the alert bar, and ticking one is a moment the journal sees
 
 ## 2026-09-15.14
 

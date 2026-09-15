@@ -63,6 +63,16 @@ The desk sees the moments that matter: a name enters or leaves Desk · Book or a
 
 The Journal itself is a button on the Notes screen: the days newest first, every entry with its why, **add a why** under any line later, and a box for your own line whatever the setting says. So what you did writes itself and what you thought sits next to it, and the exit review six months on reads both. The desk records only what happened on the desk, never a view of its own.
 
+## Tasks that make themselves, and tasks you make
+
+One list, three sources, on the Notes screen under **Tasks** and on every listing's page:
+
+- **The calendar.** A results date for a name you hold, watch or are researching becomes a task on its own, "AAPL results, due 28 September", and goes when the date passes. Tick it and it stays ticked.
+- **The conversation.** Every answer in the Ask box has **Save as task** under it: name the thing to do and when, and the task carries the name and the screen it came from.
+- **You.** A line typed on the Tasks screen or on a listing's page, with a due date and a category if you like (results, filing, follow-up, model, reading, call), or a `- [ ]` checkbox inside any note, which stays in that note and is ticked from either place.
+
+Tasks live in `data/research/tasks.md` as plain checkboxes, one line each with the name, the due date and where it came from, so Obsidian and any editor read them. A task due today or overdue shows in the alert bar on every screen. Ticking a task is a moment the journal sees.
+
 ## Keeping an answer
 
 Every answer in the Ask box has a **Save as note** button under it. Press it and a small card opens, already filled from the screen you asked on: the name on a listing's page, commodity on the Commodities screen, macro on Macro. Set the period, change the title if you like, Save. The question and the answer land in the vault as a note of type AI answer, with the screen, the date and the model written at the foot, so you can see later where it came from. Nothing is saved unless you press the button; an answer you do not keep is gone when you close the box.

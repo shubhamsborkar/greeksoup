@@ -628,9 +628,35 @@
   function offerSave(box, question, out, query, screen) {
     const sv = document.createElement("div");
     sv.className = "sv";
-    sv.innerHTML = `<button type="button" class="svb">Save as note</button>`;
+    sv.innerHTML = `<button type="button" class="svb">Save as note</button> <button type="button" class="svb svt2">Save as task</button>`;
     box.appendChild(sv);
     sv.querySelector(".svb").onclick = () => saveForm(sv, question, out, query, screen);
+    sv.querySelector(".svt2").onclick = () => taskForm(sv, question, out, query, screen);
+  }
+  /* Save as task: the reader names the thing to do and when; the task carries the name and
+     where it came from, and lands in tasks.md with the rest */
+  function taskForm(sv, question, out, query, screen) {
+    const sym = (query.symbol || "").toUpperCase();
+    const CATS = { results: "Results", filing: "Filing", "follow-up": "Follow-up", model: "Model", reading: "Reading", call: "Call", other: "Other" };
+    sv.innerHTML =
+      `<div class="svf"><input class="svt" placeholder="The task, in your words" value="${esc(question.replace(/\s+/g, " ").trim().slice(0, 120))}">` +
+      `<div class="svr"><input class="svs" placeholder="symbol" value="${esc(sym)}" style="flex:0 0 90px;text-transform:uppercase"><input class="svp" type="date" title="due" style="width:auto">` +
+      `<select class="svk">${Object.keys(CATS).map(k => `<option value="${k}"${k === "follow-up" ? " selected" : ""}>${CATS[k]}</option>`).join("")}</select></div>` +
+      `<div class="svr"><button type="button" class="svgo">Save task</button><button type="button" class="svno">Cancel</button><small class="svm">Lands in your tasks with the screen it came from.</small></div></div>`;
+    sv.querySelector(".svno").onclick = () => { const box = sv.parentNode; sv.remove(); offerSave(box, question, out, query, screen); };
+    sv.querySelector(".svgo").onclick = async () => {
+      const msg = sv.querySelector(".svm"), text = sv.querySelector(".svt").value.trim();
+      if (!text) { msg.textContent = "Say what the task is first."; return; }
+      sv.querySelector(".svgo").disabled = true;
+      try {
+        const r = await fetch("/api/research/tasks/add", { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, symbol: sv.querySelector(".svs").value.trim(), due: sv.querySelector(".svp").value, category: sv.querySelector(".svk").value, source: "an answer on " + screen }) });
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error || "could not save");
+        sv.innerHTML = `<small class="svm">Task saved. <a href="/notes?tasks">Open your tasks</a></small>`;
+      } catch (e) { sv.querySelector(".svgo").disabled = false; msg.textContent = "Not saved: " + (e.message || "the desk did not answer."); }
+    };
+    sv.querySelector(".svt").focus();
   }
   function saveForm(sv, question, out, query, screen) {
     const page = askPage().page;

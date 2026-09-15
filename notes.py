@@ -954,6 +954,204 @@ def journal_why(date, line_no, why):
     return True
 
 
+# ---- tasks: from the calendar (results dates for the names the reader holds, watches or
+# is researching), from the conversation (Save as task under an answer), and from the
+# reader (a line typed anywhere, or a checkbox in any note). One plain list, tasks.md,
+# that Obsidian and any editor read; a checkbox in a note stays in that note.
+TASK_CATEGORIES = ["results", "filing", "follow-up", "model", "reading", "call", "other"]
+_TASK = re.compile(r"^- \[( |x|X)\] (.*)$")
+_CHECK = re.compile(r"^(\s*)- \[( |x|X)\] (.+)$")
+
+
+def _tasks_path():
+    return os.path.join(RESEARCH_DIR, "tasks.md")
+
+
+def _parse_task_line(i, line):
+    m = _TASK.match(line)
+    if not m:
+        return None
+    parts = [p.strip() for p in m.group(2).split(" · ")]
+    t = {"line": i, "done": m.group(1).lower() == "x", "text": parts[0] if parts else "", "symbol": "", "due": "",
+         "category": "", "source": "you", "done_at": ""}
+    for p in parts[1:]:
+        if re.match(r"^\$[A-Z0-9.\-^=]+$", p):
+            t["symbol"] = p[1:]
+        elif re.match(r"^due \d{4}-\d{2}-\d{2}$", p):
+            t["due"] = p[4:]
+        elif re.match(r"^done \d{4}-\d{2}-\d{2}$", p):
+            t["done_at"] = p[5:]
+        elif p.startswith("via "):
+            t["source"] = p[4:]
+        elif p.lower() in TASK_CATEGORIES:
+            t["category"] = p.lower()
+    return t
+
+
+def _task_line(t):
+    bits = [t["text"]]
+    if t.get("symbol"):
+        bits.append("$" + t["symbol"])
+    if t.get("due"):
+        bits.append("due " + t["due"])
+    if t.get("category"):
+        bits.append(t["category"])
+    if t.get("source") and t["source"] != "you":
+        bits.append("via " + t["source"])
+    if t.get("done") and t.get("done_at"):
+        bits.append("done " + t["done_at"])
+    return f"- [{'x' if t.get('done') else ' '}] " + " · ".join(bits)
+
+
+def _read_tasks_lines():
+    try:
+        with open(_tasks_path(), encoding="utf-8", errors="replace") as fh:
+            return fh.read().split("\n")
+    except OSError:
+        return []
+
+
+def _write_tasks_lines(lines):
+    os.makedirs(RESEARCH_DIR, exist_ok=True)
+    tmp = _tasks_path() + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(lines).rstrip("\n") + "\n")
+    os.replace(tmp, _tasks_path())
+
+
+def tasks_all():
+    out = []
+    for i, line in enumerate(_read_tasks_lines()):
+        t = _parse_task_line(i, line)
+        if t and t["text"]:
+            out.append(t)
+    return out
+
+
+def add_task(text, symbol="", due="", category="", source="you"):
+    text = re.sub(r"\s+", " ", (text or "").strip())[:200].replace(" · ", " - ")
+    if not text:
+        raise ValueError("Write the task first.")
+    sym = re.sub(r"[^A-Z0-9.\-^=]", "", (symbol or "").upper())[:24]
+    due = due if re.match(r"^\d{4}-\d{2}-\d{2}$", due or "") else ""
+    category = (category or "").lower() if (category or "").lower() in TASK_CATEGORIES else ""
+    source = re.sub(r"[^\w .:'()-]", "", (source or "you"))[:60] or "you"
+    t = {"text": text, "symbol": sym, "due": due, "category": category, "source": source, "done": False}
+    with _lock:
+        lines = _read_tasks_lines()
+        if not lines or not lines[0].startswith("---"):
+            lines = ['---', 'title: "Tasks"', 'type: tasks', '---', ''] + lines
+        while lines and lines[-1] == "":
+            lines.pop()
+        lines.append(_task_line(t))
+        _write_tasks_lines(lines)
+    t["line"] = len(lines) - 1
+    return t
+
+
+def tick_task(line_no, done=True):
+    with _lock:
+        lines = _read_tasks_lines()
+        if not (0 <= line_no < len(lines)):
+            return None
+        t = _parse_task_line(line_no, lines[line_no])
+        if not t:
+            return None
+        t["done"] = bool(done)
+        t["done_at"] = datetime.now().strftime("%Y-%m-%d") if done else ""
+        lines[line_no] = _task_line(t)
+        _write_tasks_lines(lines)
+    return t
+
+
+def delete_task(line_no):
+    with _lock:
+        lines = _read_tasks_lines()
+        if not (0 <= line_no < len(lines)) or not _TASK.match(lines[line_no]):
+            return False
+        del lines[line_no]
+        _write_tasks_lines(lines)
+    return True
+
+
+def note_tasks():
+    """Checkboxes inside notes: each stays in its note, and the desk lists and ticks them there."""
+    out = []
+    for n in index().values():
+        for i, line in enumerate(n["body"].split("\n")):
+            m = _CHECK.match(line)
+            if m:
+                out.append({"note_id": n["id"], "note": n["title"], "symbols": n["symbols"], "project": n.get("project") or "",
+                            "line": i, "done": m.group(2).lower() == "x", "text": m.group(3).strip(), "source": "note"})
+    return out
+
+
+def tick_note_task(note_id, line_no, done=True):
+    n = index().get(re.sub(r"[^a-z0-9-]", "", (note_id or "").lower()))
+    if not n:
+        return None
+    lines = n["body"].split("\n")
+    if not (0 <= line_no < len(lines)):
+        return None
+    m = _CHECK.match(lines[line_no])
+    if not m:
+        return None
+    lines[line_no] = f"{m.group(1)}- [{'x' if done else ' '}] {m.group(3)}"
+    return save({**n, "body": "\n".join(lines)})
+
+
+def calendar_tasks(rows, tracked=None):
+    """Results dates as tasks that made themselves: one per name and date, marked via calendar,
+    unless the reader has already ticked or written that one (then the written line stands)."""
+    today = datetime.now().strftime("%Y-%m-%d")
+    have = {(t["symbol"], t["due"]) for t in tasks_all() if t.get("category") == "results"}
+    out, seen = [], set()
+    for r in rows or []:
+        sym = (r.get("symbol") or r.get("code") or "").upper()
+        date = (r.get("date") or "")[:10]
+        if not sym or not date or date < today or (sym, date) in have or (sym, date) in seen:
+            continue
+        if tracked is not None and sym not in tracked:
+            continue
+        seen.add((sym, date))
+        out.append({"line": -1, "done": False, "text": f"{sym} results", "symbol": sym, "due": date,
+                    "category": "results", "source": "calendar", "done_at": ""})
+    return out
+
+
+def tasks_view(calendar_rows=None, symbol=None):
+    """The list as the reader sees it: open tasks by when they are due (overdue, today, this
+    week, later, no date), then the ones done lately."""
+    today = datetime.now().date()
+    rows = tasks_all() + calendar_tasks(calendar_rows) + [
+        {**t, "line": t["line"], "due": "", "category": "", "symbol": (t["symbols"] or [""])[0], "done_at": ""} for t in note_tasks()]
+    if symbol:
+        sym = symbol.upper()
+        rows = [t for t in rows if t.get("symbol") == sym or sym in (t.get("symbols") or [])]
+    buckets = {"overdue": [], "today": [], "week": [], "later": [], "undated": []}
+    done = []
+    for t in rows:
+        if t["done"]:
+            done.append(t)
+            continue
+        if not t.get("due"):
+            buckets["undated"].append(t)
+            continue
+        try:
+            d = datetime.strptime(t["due"], "%Y-%m-%d").date()
+        except ValueError:
+            buckets["undated"].append(t)
+            continue
+        days = (d - today).days
+        buckets["overdue" if days < 0 else "today" if days == 0 else "week" if days <= 7 else "later"].append(t)
+    for k in buckets:
+        buckets[k].sort(key=lambda t: (t.get("due") or "9999", t.get("symbol") or ""))
+    done.sort(key=lambda t: t.get("done_at") or "", reverse=True)
+    n_open = sum(len(v) for v in buckets.values())
+    return {"open": buckets, "done": done[:40], "counts": {"open": n_open, "due": len(buckets["overdue"]) + len(buckets["today"]), "done": len(done)},
+            "categories": TASK_CATEGORIES, "path": "/".join(("data", "research", "tasks.md"))}
+
+
 def _forget_text(rel):
     try:
         os.remove(_text_cache_path(rel))

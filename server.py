@@ -440,6 +440,36 @@ def note_moment(note):
     return text + tail
 
 
+def calendar_rows():
+    """Results dates the desk already holds (the US earnings countdown and the home market's
+    calendar), from the cache only: tasks never wait on a feed."""
+    rows = []
+    for kind in ("earn", "results_home"):
+        try:
+            _stamp, data = _cache.get(kind, (0.0, None))
+            rows.extend((data or {}).get("rows") or [])
+        except Exception:  # noqa: BLE001
+            pass
+    return rows
+
+
+def task_alerts():
+    """Tasks due today or overdue, as rows for the alert bar. Computed as the bar is read; nothing stored."""
+    try:
+        v = desk_notes.tasks_view(calendar_rows())
+    except Exception:  # noqa: BLE001
+        return []
+    today = datetime.now().strftime("%Y-%m-%d")
+    out = []
+    for t in v["open"]["overdue"]:
+        out.append({"level": "hot", "text": f"Task overdue since {t['due']}: {t['text']}" + (f" (${t['symbol']})" if t.get("symbol") and t["symbol"] not in t["text"] else ""),
+                    "ts": "", "date": today, "task": True})
+    for t in v["open"]["today"]:
+        out.append({"level": "", "text": f"Task due today: {t['text']}" + (f" (${t['symbol']})" if t.get("symbol") and t["symbol"] not in t["text"] else ""),
+                    "ts": "", "date": today, "task": True})
+    return out
+
+
 def name_status(symbol):
     sets = held_sets()
     sym = (symbol or "").upper()
@@ -2959,6 +2989,8 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
                                             /api/research/context?symbol=AAPL   the reader's notes and files on a subject, as text
                                             /api/research/status?symbol=AAPL    where the name stands: watchlist, researching, thesis built, invested, exited
                                             /api/research/timeline?symbol=AAPL  everything about the name by period and date
+                                            /api/research/tasks?symbol=         the reader's tasks (tasks.md, checkboxes in notes, results dates)
+                                            /api/research/journal               the journal: the moments the desk saw, and the reader's whys
              The vault is data/research: notes/ holds one Markdown file per note, files/ holds
              what the reader brought in (annual reports, models, screenshots), one folder per
              subject. A note's front matter card: title, kind (stock, commodity, sector, macro,
@@ -3045,6 +3077,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(json.dumps(n or {"error": "no such note"}).encode(), "application/json")
             elif path == "/api/notes/graph":
                 return self._send(json.dumps(desk_notes.graph((qs.get("symbol", [""])[0] or "").strip())).encode(), "application/json")
+            elif path == "/api/research/tasks":
+                sym = (qs.get("symbol", [""])[0] or "").strip()
+                return self._send(json.dumps(desk_notes.tasks_view(calendar_rows(), sym or None)).encode(), "application/json")
             elif path == "/api/research/journal":
                 return self._send(json.dumps({"mode": desk_notes.journal_mode(), "pending": desk_notes.journal_pending(),
                                               "days": desk_notes.journal_days()}).encode(), "application/json")
@@ -3166,7 +3201,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(json.dumps(cached_infund(sym)).encode(), "application/json")
             elif path == "/api/alerts":
                 with _alerts_lock:
-                    body = json.dumps({"active": ALERTS["active"],
+                    body = json.dumps({"active": task_alerts() + ALERTS["active"],
                                        "rules": _load_alert_rules()})
                 self._send(body.encode(), "application/json")
             elif path == "/api/search":
@@ -3453,6 +3488,29 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
             if self.path == "/api/notes/delete":
                 return self._send(json.dumps({"ok": desk_notes.delete(str(body.get("id", "")), bool(body.get("with_file")))}).encode(), "application/json")
+            if self.path == "/api/research/tasks/add":
+                try:
+                    t = desk_notes.add_task(str(body.get("text", "")), str(body.get("symbol", "")), str(body.get("due", "")),
+                                            str(body.get("category", "")), str(body.get("source", "you")))
+                    return self._send(json.dumps({"ok": True, "task": t}).encode(), "application/json")
+                except ValueError as exc:
+                    return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
+            if self.path == "/api/research/tasks/tick":
+                done = bool(body.get("done", True))
+                if body.get("note_id"):
+                    n = desk_notes.tick_note_task(str(body["note_id"]), int(body.get("line", -1)), done)
+                    return self._send(json.dumps({"ok": bool(n)}).encode(), "application/json")
+                if int(body.get("line", -1)) < 0 and body.get("task"):
+                    # a task the calendar made: ticking it writes it down as done, so it stays ticked
+                    ct = body["task"]
+                    t = desk_notes.add_task(str(ct.get("text", "")), str(ct.get("symbol", "")), str(ct.get("due", "")), "results", "calendar")
+                    t = desk_notes.tick_task(t["line"], True)
+                else:
+                    t = desk_notes.tick_task(int(body.get("line", -1)), done)
+                j = journal("task", (t or {}).get("symbol", ""), f"task done: {t['text']}") if t and done else None
+                return self._send(json.dumps({"ok": bool(t), "task": t, "journal": j}).encode(), "application/json")
+            if self.path == "/api/research/tasks/delete":
+                return self._send(json.dumps({"ok": desk_notes.delete_task(int(body.get("line", -1)))}).encode(), "application/json")
             if self.path == "/api/research/journal/decide":
                 ok = desk_notes.journal_decide(str(body.get("id", "")), bool(body.get("write")), str(body.get("why", "")))
                 return self._send(json.dumps({"ok": ok, "pending": len(desk_notes.journal_pending())}).encode(), "application/json")

@@ -451,3 +451,49 @@ def test_research_journal(tmp_path, monkeypatch):
         desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR, desk_notes.INDEX_DIR = keep
         desk_notes.index(force=True)
 
+
+def test_research_tasks(tmp_path, monkeypatch):
+    """Tasks: a line in tasks.md with its name, due date, category and source; ticked with the
+    day it was done; a checkbox inside a note is listed and ticked in that note; a results date
+    from the calendar becomes a task on its own, once, and stays ticked once the reader ticks it;
+    the view buckets by when things are due."""
+    from datetime import date, timedelta
+    import notes as desk_notes
+    keep = (desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR, desk_notes.INDEX_DIR)
+    desk_notes.RESEARCH_DIR = str(tmp_path / "research")
+    desk_notes.NOTES_DIR = str(tmp_path / "research" / "notes")
+    desk_notes.FILES_DIR = str(tmp_path / "research" / "files")
+    desk_notes.LEGACY_NOTES_DIR = str(tmp_path / "notes")
+    desk_notes.INDEX_DIR = str(tmp_path / "research" / "index" / "text")
+    try:
+        today = date.today()
+        t = desk_notes.add_task("check the segment split", "aapl", (today - timedelta(days=3)).isoformat(), "filing", "an answer on Ticker AAPL")
+        assert t["symbol"] == "AAPL" and t["line"] == 4
+        line = open(tmp_path / "research" / "tasks.md", encoding="utf-8").read().split("\n")[4]
+        assert line == f"- [ ] check the segment split · $AAPL · due {(today - timedelta(days=3)).isoformat()} · filing · via an answer on Ticker AAPL"
+        assert desk_notes._parse_task_line(4, line)["source"] == "an answer on Ticker AAPL"
+        desk_notes.add_task("read the rubber note")
+        desk_notes.save({"title": "To-dos", "symbols": ["MSFT"], "body": "- [ ] rebuild the model\n- [x] read the call\n"})
+        cal = [{"symbol": "AAPL", "date": (today + timedelta(days=2)).isoformat()},
+               {"code": "MSFT", "date": (today + timedelta(days=20)).isoformat()},
+               {"symbol": "OLD", "date": (today - timedelta(days=1)).isoformat()}]          # in the past: no task
+        v = desk_notes.tasks_view(cal)
+        o = v["open"]
+        assert [x["text"] for x in o["overdue"]] == ["check the segment split"]
+        assert [x["text"] for x in o["week"]] == ["AAPL results"] and o["week"][0]["source"] == "calendar" and o["week"][0]["line"] == -1
+        assert [x["text"] for x in o["later"]] == ["MSFT results"]
+        assert {x["text"] for x in o["undated"]} == {"read the rubber note", "rebuild the model"}
+        assert [x["text"] for x in v["done"]] == ["read the call"] and v["counts"]["due"] == 1
+        # ticking: a written task, a checkbox in a note, and a calendar task (written down as done so it stays ticked)
+        assert desk_notes.tick_task(4, True)["done_at"] == today.isoformat()
+        assert "[x] rebuild the model" in desk_notes.tick_note_task("to-dos", 0, True)["body"]
+        ct = desk_notes.add_task("AAPL results", "AAPL", (today + timedelta(days=2)).isoformat(), "results", "calendar")
+        desk_notes.tick_task(ct["line"], True)
+        v2 = desk_notes.tasks_view(cal)
+        assert v2["open"]["week"] == [] and v2["counts"]["open"] == 2 and len(v2["done"]) == 4
+        assert desk_notes.tick_task(4, False)["done"] is False and desk_notes.delete_task(4)
+        assert desk_notes.tasks_view(cal, symbol="MSFT")["counts"]["open"] == 1                # MSFT results only; the note's checkbox is done
+    finally:
+        desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR, desk_notes.FILES_DIR, desk_notes.LEGACY_NOTES_DIR, desk_notes.INDEX_DIR = keep
+        desk_notes.index(force=True)
+

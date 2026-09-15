@@ -68,6 +68,17 @@ select.chip{font-family:inherit;padding:3px 6px}
 .je input{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:5px 9px;font:inherit;font-size:12px;margin-top:4px}
 .jpend{border:1px solid var(--accent);border-radius:10px;padding:10px 12px;margin:0 0 14px}
 .jpend .l{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:6px}
+.tk{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line);font-size:12.5px}
+.tk input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;vertical-align:-2px}
+.tk .m{font-size:10.5px;color:var(--muted);margin-left:8px} .tk .m .sy{font-family:Menlo,monospace;font-weight:700;color:var(--ink2)}
+.tk .m .due{color:var(--ink2)} .tk.over .m .due{color:var(--neg);font-weight:700}
+.tk .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:12px} .tk .x:hover{color:var(--neg)}
+.tk.done .t{color:var(--muted);text-decoration:line-through}
+.tb{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:14px 0 4px} .tb.over{color:var(--neg)} .tb.today{color:var(--accent)}
+.tadd{display:grid;grid-template-columns:1fr 130px 130px 120px auto;gap:6px;margin:0 0 12px}
+.tadd input,.tadd select{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font:inherit;font-size:12.5px;min-width:0}
+.tadd button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer}
+@media(max-width:1100px){.tadd{grid-template-columns:1fr 1fr}}
 .jown{display:flex;gap:8px;margin:0 0 16px} .jown input{flex:1;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font:inherit;font-size:12.5px}
 .jown button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer}
 .ed .msg.ok{color:var(--pos)} .ed .msg.err{color:var(--neg)}
@@ -123,7 +134,7 @@ select.chip{font-family:inherit;padding:3px 6px}
   <div class="sub">Your research vault: the notes you write and the files you bring in, kept as plain files in the desk's own <b>data/research</b> folder. A note says what it is about (a listing, a commodity, a sector, the macro picture, or nothing in particular), the quarter it is researching, the project it belongs to, and links to other notes with <b>[[double brackets]]</b>, so a company page shows every note about it, a project shows every name and note inside it, and one note leads to the next. An annual report, a model or a screenshot attaches to a note and lives in the vault with it. Open the folder in Obsidian or any editor and the same files are there; your AI agent reads and writes them too. Nothing is saved here unless you save it.</div>
   <div class="lay">
     <div class="panel">
-      <div class="panel-h"><h2>Notes</h2><span><button class="chip" id="jbtn" title="the moments the desk saw, and your one-line whys">Journal</button> <button class="chip on" id="newbtn">+ New note</button></span></div>
+      <div class="panel-h"><h2>Notes</h2><span><button class="chip" id="tbtn" title="what is due: results dates, follow-ups, your own lines">Tasks</button> <button class="chip" id="jbtn" title="the moments the desk saw, and your one-line whys">Journal</button> <button class="chip on" id="newbtn">+ New note</button></span></div>
       <div class="tools">
         <input id="q" placeholder="search notes and inside their files…" autocomplete="off">
         <select id="period" class="chip" title="the quarter or year a note is researching"><option value="">any period</option></select>
@@ -287,6 +298,34 @@ async function open(id){
   $("view").querySelectorAll("a.nl, a.wl[data-id]").forEach(a=>a.onclick=e=>{e.preventDefault();open(a.dataset.id);});
 }
 
+/* Tasks: what is due, from the calendar, from answers, from notes and from the reader */
+const CAT_LABEL={results:"Results",filing:"Filing","follow-up":"Follow-up",model:"Model",reading:"Reading",call:"Call",other:"Other"};
+function taskRow(t,over){
+  const meta=[t.symbol?`<span class="sy">$${esc(t.symbol)}</span>`:"",t.due?`<span class="due">due ${esc(t.due)}</span>`:"",t.category?esc(CAT_LABEL[t.category]||t.category):"",t.source==="note"?`in <a href="/notes?id=${encodeURIComponent(t.note_id)}" style="color:var(--ink2)">${esc(t.note)}</a>`:t.source&&t.source!=="you"?"via "+esc(t.source):"",t.done_at?"done "+esc(t.done_at):""].filter(Boolean).join(" · ");
+  return `<div class="tk${t.done?" done":""}${over?" over":""}" data-line="${t.line}" data-note="${esc(t.note_id||"")}"><input type="checkbox"${t.done?" checked":""}><span><span class="t">${esc(t.text)}</span><span class="m">${meta}</span></span>${t.source==="note"||t.line<0?"<span></span>":`<button class="x" title="remove this task">✕</button>`}</div>`;
+}
+async function showTasks(){
+  CUR=null; $("blank").style.display="none"; $("ed").style.display="none"; $("view").style.display="block"; history.replaceState(null,"","/notes?tasks");
+  document.querySelectorAll(".nc").forEach(a=>a.classList.remove("on"));
+  let v; try{ v=await (await fetch("/api/research/tasks"+(F.symbol?"?symbol="+encodeURIComponent(F.symbol):""))).json(); }catch(e){ return; }
+  const o=v.open||{}, B=[["overdue","Overdue","over"],["today","Due today","today"],["week","This week",""],["later","Later",""],["undated","No date",""]];
+  $("view").innerHTML=`<div class="view"><h1>Tasks${F.symbol?" · $"+esc(F.symbol):""}</h1>
+    <div class="meta"><span><b style="color:var(--ink2)">${v.counts.open}</b> open${v.counts.due?`, <b style="color:var(--neg)">${v.counts.due}</b> due`:""}</span><span>results dates for the names you hold, watch or are researching arrive on their own; ticking one keeps it ticked</span><span class="mono" style="opacity:.7">${esc(v.path)}</span></div>
+    <div class="tadd"><input id="t_text" placeholder="A task: check the segment split before the call…" maxlength="200"><input id="t_sym" placeholder="symbol" value="${esc(F.symbol||"")}" style="text-transform:uppercase"><input id="t_due" type="date" title="due"><select id="t_cat"><option value="">category</option>${(v.categories||[]).map(c=>`<option value="${c}">${CAT_LABEL[c]||c}</option>`).join("")}</select><button id="t_add">Add</button></div>
+    ${v.counts.open?B.map(([k,label,cls])=>o[k]&&o[k].length?`<div class="tb ${cls}">${label} · ${o[k].length}</div>${o[k].map(t=>taskRow(t,k==="overdue")).join("")}`:"").join(""):`<div style="font-size:12.5px;color:var(--muted);line-height:1.6">Nothing open. A results date for a name you hold or watch shows up here on its own; an answer in the Ask box has Save as task under it; and a line typed above, or a checkbox in any note, lands here too.</div>`}
+    ${v.done&&v.done.length?`<div class="tb">Done lately · ${v.done.length}</div>${v.done.map(t=>taskRow(t)).join("")}`:""}
+  </div>`;
+  $("t_add").onclick=async()=>{ const text=$("t_text").value.trim(); if(!text) return; const r=await post("/api/research/tasks/add",{text,symbol:$("t_sym").value.trim(),due:$("t_due").value,category:$("t_cat").value}); if(r.ok) showTasks(); };
+  $("t_text").addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault();$("t_add").click();} });
+  $("view").querySelectorAll(".tk").forEach(el=>{
+    const cb=el.querySelector("input[type=checkbox]"), line=+el.dataset.line, note=el.dataset.note;
+    cb.onchange=async()=>{ let body; if(note) body={note_id:note,line,done:cb.checked}; else if(line<0){ const t=findCal(el); body={line:-1,task:t,done:true}; } else body={line,done:cb.checked};
+      const r=await post("/api/research/tasks/tick",body); if(r.ok){ showTasks(); if(window.deskJournal) deskJournal(r.journal); } };
+    const x=el.querySelector(".x"); if(x) x.onclick=async()=>{ await post("/api/research/tasks/delete",{line}); showTasks(); };
+  });
+  function findCal(el){ const text=el.querySelector(".t").textContent; for(const k in o) for(const t of o[k]) if(t.line<0&&t.text===text) return t; return null; }
+}
+$("tbtn").onclick=showTasks;
 /* the Journal: the moments the desk saw (held, or written), the reader's own lines, and the whys */
 async function showJournal(){
   CUR=null; $("blank").style.display="none"; $("ed").style.display="none"; $("view").style.display="block"; history.replaceState(null,"","/notes?journal");
@@ -396,7 +435,7 @@ symIn.addEventListener("input",()=>{ clearTimeout(sugT); const q=symIn.value.tri
 symIn.addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault(); if(hits.length) pick(0); else { const s=symIn.value.trim().toUpperCase(); if(s&&!EDIT.syms.includes(s)){EDIT.syms.push(s);drawSyms();} symIn.value=""; } } if(e.key==="Escape") showSugg([]); });
 symIn.addEventListener("blur",()=>setTimeout(()=>showSugg([]),150));
 
-(async()=>{ await load(); if(P.get("id")) open(P.get("id")); else if(P.has("new")) edit(null); else if(P.has("journal")) showJournal(); })();
+(async()=>{ await load(); if(P.get("id")) open(P.get("id")); else if(P.has("new")) edit(null); else if(P.has("journal")) showJournal(); else if(P.has("tasks")) showTasks(); })();
 </script>
 </body>
 </html>
