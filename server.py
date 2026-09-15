@@ -3365,7 +3365,21 @@ def main():
             threading.Thread(target=six.serve_forever, daemon=True).start()
         except OSError:
             pass          # no IPv6 on this computer, or already answering there
-        ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+        four = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+        # Once the door is ours, leave this process number in the folder, so Stop Desk
+        # and Uninstall Desk can find exactly this copy. On Windows a desk started
+        # through its .venv runs as a child of a launcher, so neither its program path
+        # nor its command line names the folder, and the port alone cannot tell two
+        # copies apart. Written only after the bind, so a second start that finds the
+        # door taken never overwrites the running desk's number.
+        try:
+            here = os.path.dirname(os.path.abspath(__file__))
+            os.makedirs(os.path.join(here, "logs"), exist_ok=True)
+            with open(os.path.join(here, "logs", "desk.pid"), "w") as f:
+                f.write(str(os.getpid()))
+        except OSError:
+            pass
+        four.serve_forever()
     except OSError:
         print(f"\nThe desk is already running at http://localhost:{PORT} — nothing to do.")
 
