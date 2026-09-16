@@ -711,6 +711,25 @@ HIST_CACHE_DIR = os.path.join(HERE, "cache")
 os.makedirs(HIST_CACHE_DIR, exist_ok=True)
 
 
+CANDLE_RANGES = {"1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "3y", "5y", "10y", "max"}
+CANDLE_INTERVALS = {"5m", "15m", "30m", "1h", "1d", "1wk", "1mo"}
+_candle_cache = {}
+
+
+def cached_candles(sym, rng, itv):
+    key = (sym, rng, itv)
+    hit = _candle_cache.get(key)
+    now = time.time()
+    if hit and now - hit[0] < 600:
+        return hit[1]
+    rows = _yahoo_candles(sym, rng, itv)
+    out = {"symbol": sym, "range": rng, "interval": itv, "rows": rows,
+           "error": "" if rows else "no bars at that size right now (the free feed is resting; try again in a minute)"}
+    if rows:
+        _candle_cache[key] = (now, out)
+    return out
+
+
 def _yahoo_candles(ysym, rng, interval):
     """Candles for any Yahoo symbol, ascending, the chart's row shape. Goes
     through freefeed first; when that is resting after a rate limit, one plain
@@ -3936,6 +3955,15 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send_error(400)
                 reg = (qs.get("region", ["us"])[0] or "us").lower()
                 self._send(json.dumps(cached_ticker(sym, reg)).encode(), "application/json")
+            elif path == "/api/candles":
+                # the chart's bars at the size the reader picked: any Yahoo symbol, one of the
+                # feed's own ranges and intervals, cached ten minutes per (symbol, range, interval)
+                sym = (qs.get("symbol", [""])[0] or "").upper().strip()
+                rng = (qs.get("range", ["1mo"])[0] or "1mo").lower()
+                itv = (qs.get("interval", ["1d"])[0] or "1d").lower()
+                if not sym or rng not in CANDLE_RANGES or itv not in CANDLE_INTERVALS:
+                    return self.send_error(400)
+                self._send(json.dumps(cached_candles(sym, rng, itv)).encode(), "application/json")
             elif path == "/api/fin":
                 sym = (qs.get("symbol", [""])[0] or "").upper().strip()
                 if not sym:

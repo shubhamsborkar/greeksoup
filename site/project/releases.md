@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.62. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.63. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.63
+
+*16 September 2026, release 63.* The chart's bar size is the reader's. Next to the range, a second row picks the bar size the way a charting screen does: 5-min, 15-min, 30-min, hourly, daily, weekly, monthly, each range offering the sizes the free feed serves for it (a day from 5-min to hourly; a month from 15-min to daily; a year daily or weekly; five years weekly or monthly) with a default per range, and the size stays as you change range while it still fits. Every range names its bars next to the return; a size too fine for the width says it is drawn as a line; the years before the daily record says quarterly. Bars at a size the page does not hold are fetched from the free feed as you pick them.
 
 ## 2026-09-16.62
 

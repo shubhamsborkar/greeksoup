@@ -158,18 +158,54 @@ let HIST=[];               // oldest -> newest {date, price, o,h,l,v}
 let INTRA={};              // {"1D":[...], "5D":[...]} where the source serves minute candles
 let mode="candles", range="1Y", isFS=false;
 const DAYRANGES={"1M":22,"3M":66,"6M":132,"1Y":252,"3Y":756,"5Y":1260,"MAX":1e9};
+/* Range and bar size are two choices, as on any charting screen: the range says how far
+   back, the bar size how much each candle holds. Each range has the sizes the free feed
+   serves for it and a default; the size is remembered while it fits the next range. */
+const RANGES=["1D","5D","1M","3M","6M","1Y","3Y","5Y","MAX"];
+const INTERVALS={"5m":{label:"5-min bars",yahoo:"5m",min:5},"15m":{label:"15-min bars",yahoo:"15m",min:15},"30m":{label:"30-min bars",yahoo:"30m",min:30},
+  "1h":{label:"hourly bars",yahoo:"1h",min:60},"1D":{label:"daily bars",yahoo:"1d"},"1W":{label:"weekly bars",yahoo:"1wk"},"1M":{label:"monthly bars",yahoo:"1mo"}};
+const ALLOWED={"1D":["5m","15m","30m","1h"],"5D":["5m","15m","30m","1h","1D"],"1M":["15m","30m","1h","1D"],"3M":["1h","1D","1W"],"6M":["1h","1D","1W"],"1Y":["1D","1W"],"3Y":["1D","1W","1M"],"5Y":["1W","1M"],"MAX":["1W","1M"]};
+const DEFAULT_INT={"1D":"5m","5D":"15m","1M":"1h","3M":"1D","6M":"1D","1Y":"1D","3Y":"1W","5Y":"1W","MAX":"1M"};
+const YRANGE={"1D":"1d","5D":"5d","1M":"1mo","3M":"3mo","6M":"6mo","1Y":"1y","3Y":"3y","5Y":"5y","MAX":"max"};
+let interval=DEFAULT_INT[range];
+const BARS={};             // "range|interval" -> rows fetched at that size; "…:loading" while on the way
+const isIntra=i=>!!INTERVALS[i].min;
 
-function rangeList(){
-  const base=Object.keys(DAYRANGES);
-  return (INTRA["1D"]?.length||INTRA["5D"]?.length) ? ["1D","5D",...base] : base;
-}
-/* One bar size per range, so every range draws candles: 1D five-minute bars,
-   5D fifteen-minute (the five-minute feed folded three into one), 1M to 1Y
-   daily, longer ranges weekly or monthly (drawChart folds those). */
+function rangeList(){ return RANGES; }
+function intervalList(){ return ALLOWED[range]||["1D"]; }
+/* The bars for the range at the bar size: intraday sizes fold the five-minute feed the page
+   already holds (1D, 5D) or come from the feed at that size (longer ranges); daily bars slice
+   the ten-year history; weekly and monthly fold the daily bars. */
 function sliced(){
-  if(range==="1D") return INTRA["1D"]||[];
-  if(range==="5D") return resampleOHLC(INTRA["5D"]||[],"15");
-  const n=DAYRANGES[range]; return n>=HIST.length?HIST:HIST.slice(HIST.length-n);
+  const iv=INTERVALS[interval];
+  if(isIntra(interval)){
+    if((range==="1D"||range==="5D")&&(INTRA[range]||[]).length){
+      const base=INTRA[range];
+      return iv.min===5 ? base : resampleOHLC(base, "m"+iv.min);
+    }
+    const key=range+"|"+interval;
+    if(Array.isArray(BARS[key])) return BARS[key];
+    fetchBars(key); return [];
+  }
+  const n=DAYRANGES[range]||5;
+  let pts = range==="1D"||range==="5D" ? HIST.slice(-5) : (n>=HIST.length?HIST:HIST.slice(HIST.length-n));
+  // the free history is daily for ten years and quarterly before that; a range that reaches
+  // into the quarterly stretch is drawn as quarterly bars whatever size is picked
+  if(pts.some((p,i)=>i&&Date.parse(p.date)-Date.parse(pts[i-1].date)>45*864e5)) return resampleOHLC(pts,"Q");
+  if(interval==="1W") return resampleOHLC(pts,"W");
+  if(interval==="1M") return resampleOHLC(pts,"M");
+  return pts;
+}
+async function fetchBars(key){
+  if(BARS[key]==="loading") return;
+  BARS[key]="loading";
+  const [r,i]=key.split("|");
+  try{
+    const res=await fetch(`/api/candles?symbol=${encodeURIComponent(FINSYM||SYM)}&range=${YRANGE[r]}&interval=${INTERVALS[i].yahoo}`);
+    const d=await res.json();
+    BARS[key]=(d.rows||[]).map(x=>({date:(x.date||"").slice(0,16),price:x.price,o:x.o,h:x.h,l:x.l,v:x.v}));
+  }catch(e){ BARS[key]=[]; }
+  if(range===r&&interval===i) drawChart();
 }
 /* Aggregate bars to a wider bucket so CANDLES stays candles on long ranges
    (the Koyfin/TradingView behaviour) instead of falling back to a line. */
@@ -178,14 +214,14 @@ function resampleOHLC(pts,bucket){
   for(const p of pts){
     const k = bucket==="M" ? (p.date||"").slice(0,7)
       : bucket==="Q" ? (p.date||"").slice(0,4)+"Q"+Math.ceil(+(p.date||"").slice(5,7)/3)
-      : bucket==="15" ? (p.date||"").slice(0,13)+Math.floor(+(p.date||"").slice(14,16)/15)
+      : bucket[0]==="m" ? (p.date||"").slice(0,13)+Math.floor(+(p.date||"").slice(14,16)/+bucket.slice(1))*(+bucket.slice(1)>=60?0:1)
       : String(Math.floor((Date.parse(p.date)/864e5+4)/7));   // ISO-ish week bucket
     if(k!==key){ if(cur)out.push(cur); key=k;
       cur={date:p.date,o:p.o??p.price,h:p.h??p.price,l:p.l??p.price,price:p.price,v:p.v||0};
     }else{
       cur.h=Math.max(cur.h,p.h??p.price); cur.l=Math.min(cur.l,p.l??p.price);
       cur.price=p.price; cur.v+=(p.v||0);
-      if(bucket!=="15") cur.date=p.date;    // stamp = period end; intraday keeps the bar's open time
+      if(bucket[0]!=="m") cur.date=p.date;    // stamp = period end; intraday keeps the bar's open time
     }
   }
   if(cur)out.push(cur);
@@ -205,11 +241,9 @@ function seriesFor(pts,intra){
 }
 const MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function xLabel(d){
-  if(range==="1D") return d.slice(11,16);
-  if(range==="5D") return d.slice(8,10)+" · "+d.slice(11,16);
+  if(isIntra(interval)) return range==="1D" ? d.slice(11,16) : (range==="5D" ? d.slice(8,10)+" · "+d.slice(11,16) : d.slice(5,10));
   if(range==="1M"||range==="3M") return d.slice(5,10);
-  if(range==="6M"||range==="1Y") return MONS[+d.slice(5,7)-1]+" "+d.slice(2,4);
-  if(range==="3Y"||range==="5Y") return MONS[+d.slice(5,7)-1]+" "+d.slice(2,4);
+  if(range==="6M"||range==="1Y"||range==="3Y"||range==="5Y") return MONS[+d.slice(5,7)-1]+" "+d.slice(2,4);
   return d.slice(0,4);
 }
 function niceStep(span){
@@ -229,18 +263,13 @@ function drawChart(){
   const el=document.getElementById("chart");
   if(!el)return;
   let pts=sliced();
-  if(pts.length<2){el.innerHTML='<div class="dim" style="padding:30px">No data for this range.</div>';return;}
-  const intra=(range==="1D"||range==="5D");
-  let barNote=intra?(range==="1D"?"5-min bars":"15-min bars"):"";
-  // the free history is daily for ten years and quarterly before that; a chart
-  // that spaces bars by index would give one quarter the width of one day, so
-  // a range that reaches into the quarterly stretch is drawn as quarterly bars
-  if(!intra&&pts.some((p,i)=>i&&Date.parse(p.date)-Date.parse(pts[i-1].date)>45*864e5)){
-    pts=resampleOHLC(pts,"Q"); barNote="quarterly bars";
-  }else if(mode==="candles"&&!intra&&pts.length>320){
-    pts=resampleOHLC(pts,"W"); barNote="weekly bars";
-    if(pts.length>320){pts=resampleOHLC(sliced(),"M"); barNote="monthly bars";}
-  }
+  const loadingKey=range+"|"+interval;
+  if(pts.length<2){
+    el.innerHTML=`<div class="dim" style="padding:30px">${BARS[loadingKey]==="loading"?"Fetching "+INTERVALS[interval].label+"…":"No "+INTERVALS[interval].label+" for this range on the free feed right now."}</div>`;
+    const lbl0=document.getElementById("chartret"); if(lbl0) lbl0.innerHTML=""; return; }
+  const intra=isIntra(interval);
+  const quarterly=!intra&&pts.length>1&&(Date.parse(pts[1].date)-Date.parse(pts[0].date)>45*864e5);
+  let barNote=quarterly?"quarterly bars (the free record before ten years back)":INTERVALS[interval].label;
   const S=seriesFor(pts,intra);
   const showVol = mode!=="drawdown" && pts.some(p=>p.v);
   // native pixels: crisp type at every width
@@ -282,12 +311,13 @@ function drawChart(){
   // marks: candles or line
   let marks="";
   const cw=plotW/S.length;
-  if(useCandles && cw>=1.8 && mode==="candles"){
+  if(mode==="candles" && useCandles && cw<1.0) barNote+=", drawn as a line at this width";
+  if(useCandles && cw>=1.0 && mode==="candles"){
     // body follows the bar count: ~62% of its slot, never wider than 14px, so
     // a 22-bar month reads as candles rather than slabs and a 130-bar week
     // still reads as candles rather than a line; wick scales with the body
-    const bw=Math.max(1.2,Math.min(14,cw*0.62));
-    const wickW=Math.max(0.8,Math.min(2,bw*0.14));
+    const bw=Math.max(0.8,Math.min(14,cw*0.62));
+    const wickW=Math.max(0.6,Math.min(2,bw*0.14));
     for(let i=0;i<pts.length;i++){
       const p=pts[i]; if(p.o==null)continue;
       const close=p.price;
@@ -400,6 +430,8 @@ function drawChart(){
 function renderRangeSeg(){
   const seg=document.getElementById("rangeseg");
   if(seg) seg.innerHTML=rangeList().map(r=>`<button data-r="${r}" class="${r===range?"on":""}">${r}</button>`).join("");
+  const iseg=document.getElementById("intseg");
+  if(iseg) iseg.innerHTML=intervalList().map(i=>`<button data-i="${i}" class="${i===interval?"on":""}" title="${INTERVALS[i].label}">${i}</button>`).join("");
 }
 function chartPanel(){
   return `<section class="panel" id="chartpanel">
@@ -412,6 +444,7 @@ function chartPanel(){
         <button data-m="drawdown">DD</button>
       </div>
       <div class="seg" id="rangeseg"></div>
+      <div class="seg" id="intseg" title="Bar size"></div>
       <button class="fsbtn" id="fsbtn" title="Full screen">⛶</button>
     </div>
     <div class="panel-b" id="chartwrap"><div id="chart"></div><div id="tip"></div></div>
@@ -421,7 +454,12 @@ function bindChart(){
   renderRangeSeg();
   document.getElementById("rangeseg").addEventListener("click",e=>{
     const b=e.target.closest("button"); if(!b)return;
-    range=b.dataset.r; renderRangeSeg(); drawChart();});
+    range=b.dataset.r;
+    if(!ALLOWED[range].includes(interval)) interval=DEFAULT_INT[range];   // the size stays while it fits
+    renderRangeSeg(); drawChart();});
+  document.getElementById("intseg").addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b)return;
+    interval=b.dataset.i; renderRangeSeg(); drawChart();});
   document.querySelectorAll("#modeseg button").forEach(b=>b.onclick=()=>{
     mode=b.dataset.m;
     document.querySelectorAll("#modeseg button").forEach(x=>x.classList.toggle("on",x===b));
