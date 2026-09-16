@@ -726,6 +726,14 @@
     return TRACKER + "?issue[title]=" + encodeURIComponent(t) + "&issue[description]=" + encodeURIComponent(b);
   }
   window.deskFeedback = feedbackUrl;
+  // another screen opens the box with a request ready: Settings hands a broker file to Build
+  window.deskAsk = async (text, mode) => {
+    await openAsk(true);
+    const md = document.getElementById("askmode");
+    if (mode && md && md.value !== mode) { md.value = mode; md.onchange(); }
+    const ta = document.getElementById("askin");
+    if (text) { ta.value = text; ta.focus(); }
+  };
   function buildAsk() {
     if (document.getElementById("askdock")) return;
     const el = document.createElement("aside");

@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.54. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.55. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.55
+
+*16 September 2026, release 55.* Settings, Connect: Another broker is a way in now. Picking it shows three fields for the broker (name, country, its API page) and the three ways in: paste an export into Desk · Book today, have SuperAnalyst in Build mode write the broker file from the broker's own documentation on this computer (one button puts the request in the Ask box), or send us a ticket with the name. What you type stays on the page between visits. The brokers readers have already asked about, with the way in for each, follow below.
 
 ## 2026-09-16.54
 

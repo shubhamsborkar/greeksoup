@@ -349,12 +349,28 @@ function onPick(silent){
   $("b_btns").style.display = id==="other" ? "none" : "";
   if(id==="other"){
     const home=((S.markets||[]).find(m=>m.id===((S.broker&&S.broker.id&&S.broker.region)||S.home_market||""))||{}).label||"";
-    $("b_others").innerHTML=`<b>Brokers the desk knows about without a file of their own, and the way in for each:</b><table class="others">${(S.others||[]).map(o=>`<tr><td>${esc(o.name)}</td><td>${esc(o.path)}</td></tr>`).join("")}</table><div style="margin-top:8px">Any broker file your agent writes appears in the list above the next time this page loads.</div>`+
-      `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><b>Your broker is not here?</b> There are thousands of brokers across every market, and the desk grows one at a time from what readers ask for. Name yours and we look at its way in; until then <a href="/book" style="color:var(--accent)">Desk · Book</a> takes an export.`+
-      `<div class="btns" style="margin-top:8px"><input id="fb_broker" placeholder="broker name" style="width:220px" autocomplete="off"><input id="fb_country" placeholder="country" value="${esc(home)}" style="width:160px" autocomplete="off"><button class="ghost" id="fb_ask">Ask for this broker</button></div><div class="msg" id="fb_msg"></div></div>`;
-    $("fb_ask").onclick=()=>{ const n=$("fb_broker").value.trim(), c=$("fb_country").value.trim(); if(!n) return say("fb_msg","The broker's name is needed.","err");
-      window.open(window.deskFeedback(`Broker: ${n}${c?" ("+c+")":""}`,`Broker: ${n}\nCountry: ${c||"?"}\nDoes it publish an API for individuals? \nWhat does its holdings export look like? \n`),"_blank","noopener");
+    let kept={}; try{ kept=JSON.parse(localStorage.getItem("gs.otherbroker")||"{}"); }catch(e){}
+    $("b_others").innerHTML=
+      `<div class="row"><label for="fb_broker">Broker</label><input id="fb_broker" placeholder="its name" value="${esc(kept.name||"")}" autocomplete="off"></div>`+
+      `<div class="row"><label for="fb_country">Country</label><input id="fb_country" placeholder="country" value="${esc(kept.country||home)}" autocomplete="off"></div>`+
+      `<div class="row"><label for="fb_docs">Its API page</label><input id="fb_docs" class="mono" placeholder="https://  (the broker's own developer or API documentation, if it publishes one)" value="${esc(kept.docs||"")}" autocomplete="off" spellcheck="false"></div>`+
+      `<div class="hint" style="margin:10px 0 6px">Three ways in. The first works today with every broker on earth; the second writes the file this desk reads a broker through; the third tells us.</div>`+
+      `<table class="others">`+
+      `<tr><td>Paste an export</td><td>Export the holdings from the broker's site or app and paste them into Desk · Book; most exports paste straight in, and the book prices itself. <a href="/book" style="color:var(--accent)">Open Desk · Book</a></td></tr>`+
+      `<tr><td>Have the file written</td><td>SuperAnalyst in Build mode reads the broker's documentation and writes the file, on this computer, read-only; your keys never leave it. Needs an app on this computer (Claude Code, Codex, Gemini CLI or Qwen Code, under Your AI). <button class="ghost" id="fb_build" type="button">Write the broker file</button></td></tr>`+
+      `<tr><td>Ask us</td><td>The desk grows one broker at a time from what readers ask for; a ticket with the name and country is how it starts. <button class="ghost" id="fb_ask" type="button">Ask for this broker</button></td></tr>`+
+      `</table><div class="msg" id="fb_msg"></div>`+
+      `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><b>Brokers readers have asked about, and the way in for each</b><table class="others">${(S.others||[]).map(o=>`<tr><td>${esc(o.name)}</td><td>${esc(o.path)}</td></tr>`).join("")}</table><div class="hint" style="margin-top:8px">A broker file written on this computer appears in the picker above the next time this page loads.</div></div>`;
+    const keep=()=>{ try{ localStorage.setItem("gs.otherbroker",JSON.stringify({name:$("fb_broker").value.trim(),country:$("fb_country").value.trim(),docs:$("fb_docs").value.trim()})); }catch(e){} };
+    for(const k of ["fb_broker","fb_country","fb_docs"]) $(k).addEventListener("change",keep);
+    const named=()=>{ const n=$("fb_broker").value.trim(); if(!n){ say("fb_msg","The broker's name is needed first.","err"); $("fb_broker").focus(); } return n; };
+    $("fb_ask").onclick=()=>{ const n=named(); if(!n) return; const c=$("fb_country").value.trim(), d=$("fb_docs").value.trim(); keep();
+      window.open(window.deskFeedback(`Broker: ${n}${c?" ("+c+")":""}`,`Broker: ${n}\nCountry: ${c||"?"}\nIts API page: ${d||"?"}\nDoes it publish an API for individuals? \nWhat does its holdings export look like? \n`),"_blank","noopener");
       say("fb_msg","A ticket opened in a new tab with the details filled in; nothing is sent until you press the button there.","ok"); };
+    $("fb_build").onclick=()=>{ const n=named(); if(!n) return; const c=$("fb_country").value.trim(), d=$("fb_docs").value.trim(); keep();
+      if(!window.deskAsk) return say("fb_msg","The Ask box is not on this page yet; reload and try again.","err");
+      window.deskAsk(`Write a broker file for ${n}${c?" ("+c+")":""} so this desk can read an account there. Follow brokers/README.md: copy the closest shipped file in brokers/, keep the same function names, fill META from the broker's own API documentation${d?" at "+d:""}, read-only throughout, and add the file to REGISTRY in brokers/__init__.py. If the broker publishes no API for individuals, say so and change nothing.`,"build");
+      say("fb_msg","The request is in the Ask box, in Build mode. Press Ask there; the file appears in the picker above after the next reload.","ok"); };
   }
   const daily = m && m.daily_login && id===b.id;
   $("b_tokenblock").style.display = daily ? "" : "none";
