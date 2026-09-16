@@ -1042,8 +1042,27 @@ def cached_ticker(symbol, region="us"):
                 alt["matched_from"] = symbol
                 alt["region"] = "us"
                 data = alt
+    dpath = os.path.join(HIST_CACHE_DIR, f"api_ticker_{re.sub(r'[^A-Za-z0-9.^=-]', '_', key)}.json")
     if not data.get("error"):        # never cache a failure; retry next click
         _ticker_cache[key] = (now, data)
+        try:
+            with open(dpath, "w") as fh:
+                json.dump({"at": now, "data": data}, fh)
+        except OSError:
+            pass
+        return data
+    # the feed is resting or the name is off the air: the last full read of this page, from
+    # disk, with the time it was taken, rather than a blank screen
+    try:
+        with open(dpath) as fh:
+            c = json.load(fh)
+        if now - c["at"] < 7 * 86400 and not c["data"].get("error"):
+            stale = dict(c["data"])
+            stale["stale_since"] = datetime.fromtimestamp(c["at"]).strftime("%Y-%m-%d %H:%M")
+            stale["stale_why"] = data.get("error", "")
+            return stale
+    except (OSError, ValueError, KeyError):
+        pass
     return data
 
 
@@ -3974,7 +3993,8 @@ class Handler(BaseHTTPRequestHandler):
                     if region == "us":
                         data = {"region": "us", "quotes": WATCH_US,
                                 "names": load_watchlist_us(),
-                                "market_open": us_market_open()}
+                                "market_open": us_market_open(),
+                                "provider": bool(os.getenv("FMP_API_KEY", "").strip())}
                     elif region == "global":
                         data = {"region": "global", "quotes": WATCH_GLOBAL,
                                 "names": load_watchlist_global(),

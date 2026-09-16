@@ -190,7 +190,9 @@ def ticker(symbol):
         hist = [r for r in older if r["date"] < first] + hist
     price = _num(meta.get("regularMarketPrice"))
     if price is None or price <= 0:
-        return {"symbol": symbol, "error": f"no quote for {symbol} right now (Yahoo symbol needed, e.g. BRK-B; Yahoo also rate-limits bursts, so retry in a few minutes)"}
+        return {"symbol": symbol, "error": (f"The free feed has nothing for {symbol} right now. Either the name is spelt another way on the feed (a listing outside the US carries its exchange, HDFCBANK.NS, SHEL.L; a share class uses a dash, BRK-B), or the feed is resting after too many requests in a row and answers again in a few minutes."
+                                            if time.time() >= _throttle["until"] else
+                                            "The free feed is resting after too many requests in a row; it answers again in a few minutes. The watchlists keep their last prices meanwhile.")}
     imeta, intra = chart(symbol, "5d", "5m")
     prev = _num(imeta.get("previousClose")) or _prev_close(meta, hist)
     s = summary(symbol, ["summaryProfile", "summaryDetail", "defaultKeyStatistics",

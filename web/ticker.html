@@ -52,6 +52,7 @@ main{max-width:1280px;margin:0 auto;padding:18px 22px}
 #tip .d{color:var(--muted);font-size:10px}
 #tip .v{font-weight:700;font-size:13px}
 .rangeret{font-size:12px;font-weight:700}
+.stalebar{margin:0 0 12px;padding:9px 14px;border:1px solid var(--amber);border-radius:8px;color:var(--amber);font-size:12px}
 
 .range{margin:10px 0 4px}
 .range .cap{font-size:9.5px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
@@ -433,11 +434,50 @@ function renderRangeSeg(){
   const iseg=document.getElementById("intseg");
   if(iseg) iseg.innerHTML=intervalList().map(i=>`<button data-i="${i}" class="${i===interval?"on":""}" title="${INTERVALS[i].label}">${i}</button>`).join("");
 }
+/* The chart itself: TradingView's own chart by default (their embedded chart, their data,
+   with their name on it), the desk's chart drawn from the free feed a click away and the
+   fallback whenever the embed cannot load. The choice is remembered. */
+const TV_EXCH={NASDAQGS:"NASDAQ",NASDAQGM:"NASDAQ",NASDAQCM:"NASDAQ",NASDAQ:"NASDAQ",NMS:"NASDAQ",NGM:"NASDAQ",NCM:"NASDAQ",NYSE:"NYSE",NYQ:"NYSE",NYSEARCA:"AMEX",PCX:"AMEX",NYSEAMERICAN:"AMEX",ASE:"AMEX",BATS:"BATS",BTS:"BATS",
+  NSE:"NSE",NSI:"NSE",BSE:"BSE",LSE:"LSE",AMSTERDAM:"EURONEXT",AMS:"EURONEXT",PARIS:"EURONEXT",PAR:"EURONEXT",BRUSSELS:"EURONEXT",BRU:"EURONEXT",LISBON:"EURONEXT",XETRA:"XETR",GER:"XETR",FRANKFURT:"FWB",FRA:"FWB",TOKYO:"TSE",JPX:"TSE",HKSE:"HKEX",HKG:"HKEX",TORONTO:"TSX",TOR:"TSX",TSXV:"TSXV",VAN:"TSXV",ASX:"ASX",
+  KSE:"KRX",KSC:"KRX",TAIWAN:"TWSE",TAI:"TWSE",SAOPAULO:"BMFBOVESPA",SAO:"BMFBOVESPA",MEXICO:"BMV",MEX:"BMV",JOHANNESBURG:"JSE",JNB:"JSE",SAUDI:"TADAWUL",SAU:"TADAWUL",DUBAI:"DFM",DFM:"DFM",ABUDHABI:"ADX",ADX:"ADX",SINGAPORE:"SGX",SES:"SGX",KUALALUMPUR:"MYX",KLS:"MYX",THAILAND:"SET",SET:"SET",JAKARTA:"IDX",JKT:"IDX",
+  STOCKHOLM:"OMXSTO",STO:"OMXSTO",COPENHAGEN:"OMXCOP",CPH:"OMXCOP",OSLO:"OSL",OSL:"OSL",HELSINKI:"OMXHEX",HEL:"OMXHEX",SWISS:"SIX",EBS:"SIX",VIENNA:"VIE",VIE:"VIE",WARSAW:"GPW",WSE:"GPW",ISTANBUL:"BIST",IST:"BIST",TELAVIV:"TASE",TLV:"TASE",MILAN:"MIL",MIL:"MIL",MADRID:"BME",MCE:"BME"};
+let TVEXCH="";     // the exchange the loaded page names, set by the layout that has it
+function tvSymbol(){
+  const bare=(FINSYM||SYM).replace(/\.[A-Z]{1,3}$/,"").replace(/-/g,".");   // HDFCBANK.NS -> HDFCBANK, BRK-B -> BRK.B
+  const ex=TV_EXCH[(TVEXCH||"").toUpperCase().replace(/[^A-Z]/g,"")];
+  return ex ? ex+":"+bare : bare;
+}
+function chartSource(){ try{ return localStorage.getItem("gs.chart")==="desk"?"desk":"tv"; }catch(e){ return "tv"; } }
+function mountTV(){
+  const wrap=document.getElementById("tvwrap"); if(!wrap) return;
+  wrap.innerHTML=`<div class="tradingview-widget-container" style="height:100%"><div id="tvchart" style="height:calc(100% - 22px)"></div></div>`;
+  const sc=document.createElement("script");
+  sc.type="text/javascript"; sc.async=true;
+  sc.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+  sc.text=JSON.stringify({autosize:true,symbol:tvSymbol(),interval:"D",timezone:"Etc/UTC",theme:"dark",style:"1",locale:"en",
+    allow_symbol_change:false,hide_side_toolbar:false,withdateranges:true,calendar:false,save_image:false,support_host:"https://www.tradingview.com"});
+  wrap.firstChild.appendChild(sc);
+  // no iframe within a few seconds means the embed could not load (no network, or blocked): the desk's chart takes over
+  setTimeout(()=>{ if(chartSource()==="tv"&&!wrap.querySelector("iframe")){ setChartSource("desk",true); } },6000);
+}
+function setChartSource(src,fallback){
+  try{ if(!fallback) localStorage.setItem("gs.chart",src); }catch(e){}
+  const tv=src==="tv";
+  document.getElementById("tvwrap").style.display=tv?"":"none";
+  for(const id of ["modeseg","rangeseg","intseg","fsbtn","chart","tip","chartret"]){ const el=document.getElementById(id); if(el) el.style.display=tv?"none":""; }
+  document.querySelectorAll("#srcseg button").forEach(b=>b.classList.toggle("on",b.dataset.s===(fallback?"desk":src)));
+  const note=document.getElementById("srcnote"); if(note) note.textContent=fallback?"TradingView's chart could not load here; this is the desk's own.":"";
+  if(tv){ if(!document.querySelector("#tvwrap iframe")) mountTV(); } else drawChart();
+}
 function chartPanel(){
   return `<section class="panel" id="chartpanel">
     <div class="panel-h"><h2>Price</h2>
-      <span id="chartret"></span>
+      <span id="chartret"></span><span id="srcnote" class="dim" style="font-size:11px"></span>
       <span style="flex:1"></span>
+      <div class="seg" id="srcseg" title="Which chart: TradingView's, or the desk's own from the free feed">
+        <button data-s="tv">TRADINGVIEW</button>
+        <button data-s="desk">DESK</button>
+      </div>
       <div class="seg" id="modeseg">
         <button data-m="candles" class="on">CANDLES</button>
         <button data-m="line">LINE</button>
@@ -447,11 +487,12 @@ function chartPanel(){
       <div class="seg" id="intseg" title="Bar size"></div>
       <button class="fsbtn" id="fsbtn" title="Full screen">⛶</button>
     </div>
-    <div class="panel-b" id="chartwrap"><div id="chart"></div><div id="tip"></div></div>
+    <div class="panel-b" id="chartwrap"><div id="tvwrap" style="height:480px;display:none"></div><div id="chart"></div><div id="tip"></div></div>
   </section>`;
 }
 function bindChart(){
   renderRangeSeg();
+  document.querySelectorAll("#srcseg button").forEach(b=>b.onclick=()=>setChartSource(b.dataset.s));
   document.getElementById("rangeseg").addEventListener("click",e=>{
     const b=e.target.closest("button"); if(!b)return;
     range=b.dataset.r;
@@ -467,7 +508,7 @@ function bindChart(){
   document.getElementById("fsbtn").onclick=toggleFS;
   window.addEventListener("resize",()=>drawChart());
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&isFS)toggleFS();});
-  drawChart();
+  setChartSource(chartSource());
 }
 function toggleFS(){
   isFS=!isFS;
@@ -492,7 +533,13 @@ async function load(){
   const d=await r.json();
   const app=document.getElementById("app");
   loadNotes();   // your notes on the name show even when the quote does not
-  if(d.error){app.innerHTML=`<div class="loading">${d.error}</div>`;return;}
+  if(d.error){app.innerHTML=`<div class="loading">${esc(d.error)}</div>`;return;}
+  // the feed is resting: the page is the last full read, and says when it was taken
+  if(d.stale_since){
+    const bar=document.createElement("div"); bar.className="stalebar";
+    bar.textContent=`The free feed is resting, so this is the page as read at ${d.stale_since}. It refreshes on its own once the feed answers again.`;
+    app.parentNode.insertBefore(bar,app);
+  }
   // the free feed matched the name to its exchange symbol: the page is that symbol's
   if(d.matched_from&&(HOME||d.symbol!==SYM)){ location.replace("/t?symbol="+encodeURIComponent(d.symbol)+"&from="+encodeURIComponent(d.matched_from)); return; }
   document.title=SYM+" · GreekSoup";
@@ -569,6 +616,7 @@ function finPanelHTML(){
 function renderHome(d,app){
   const q=d.quote, m=d.meta||{};
   FINSYM=d.ysym||"";     // a broker code's statements are read under its free-feed symbol
+  TVEXCH=q.exch||m.exch||"";
   const px=q.ltp;
   if(d.currency_symbol) CUR=d.currency_symbol;
   // position cards — labelled by account number; futures detected by shape
@@ -707,6 +755,7 @@ async function loadInfund(filings){
 
 function renderUS(d,app){
   const q=d.quote, p=d.profile, ra=d.ratios, m=d.metrics;
+  TVEXCH=q.exchange||p.exchange||"";
   const px=q.price;
   const pt=d.pt||{}, g=d.grades||{};
   const avgPT=pt.lastQuarterAvgPriceTarget||pt.lastYearAvgPriceTarget;

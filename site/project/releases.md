@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.63. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.64. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.64
+
+*16 September 2026, release 64.* TradingView's chart on the ticker page, and a page that never goes blank. The Price panel now shows TradingView's own chart by default (their embedded chart, their data and tools, their name on it), for any listing the desk opens: the symbol is handed over with its exchange (NASDAQ:AAPL, NSE:HDFCBANK, LSE:SHEL). A switch in the panel brings back the desk's own chart from the free feed, and the desk's chart takes over on its own when the embed cannot load; the choice is remembered. And when the free feed is resting after too many requests in a row, the ticker page shows its last full read with the time it was taken instead of an error; the error itself, when there is nothing to fall back on, now says what happened in plain words. The Watch · US add box marks free-feed listings like Watch · Home.
 
 ## 2026-09-16.63
 

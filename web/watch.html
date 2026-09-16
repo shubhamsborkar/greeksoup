@@ -330,7 +330,7 @@ function renderSugg(){
   suggEl.innerHTML=suggItems.map((r,i)=>
     `<div class="sg ${i===suggSel?"sel":""}" data-i="${i}">
       <span class="c mono">${r.code}</span><span class="n">${r.name||""}</span>
-      <span class="e">${exName(r.exch)}${REGION==="home"&&data&&!data.broker&&r.code.includes(".")?" · free feed":""}</span></div>`).join("");
+      <span class="e">${exName(r.exch)}${data&&((REGION==="home"&&!data.broker&&r.code.includes("."))||(REGION==="us"&&!data.provider))?" · free feed":""}</span></div>`).join("");
   suggEl.style.display="block";
   suggEl.querySelectorAll(".sg").forEach(el=>{
     el.onmousedown=e=>{e.preventDefault(); pickSugg(+el.dataset.i);};
