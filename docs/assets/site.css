@@ -89,6 +89,7 @@ h3{font-size:22px;line-height:1.2;letter-spacing:-.02em}
 .hero::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(55% 45% at 72% 0%,rgba(237,90,36,.30),transparent 70%)}
 .hero>*{position:relative}
 .lead{margin:24px 0 0;font-size:18px;line-height:1.55;color:var(--fg2);max-width:58ch}
+.hero-line{margin:18px 0 0;font-size:18px;line-height:1.4;font-weight:600;letter-spacing:-.015em;color:var(--fg)}
 
 .hero-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:56px;align-items:center}
 .hero-links{margin:8px 0 0;display:flex;gap:24px;flex-wrap:wrap}
