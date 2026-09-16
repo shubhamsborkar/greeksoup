@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.41. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.42. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.42
+
+*16 September 2026, release 42.* Three corrections to what the charts and the quotes say. A history chart on Commodities and Macro places every point at its date, so a year is the same width wherever the series is dense; the free series are daily for the last two years and weekly or monthly before, and the old axis gave 2025 a third of the chart and 2019 a sliver; the years or months are marked along the bottom. A ticker's free history is daily for ten years, since Yahoo's all-time answer is quarterly whatever is asked and the one-year chart of a name with no data key was four points spread over forty years; the years before those ten are quarterly, and a range that reaches into them is drawn as quarterly bars. The day change on a free quote is against the last session's close; it was against the close five sessions back on every Watch grid, every Desk · Book line and the Global list. Every commodity card's sparkline covers the same one year.
 
 ## 2026-09-16.41
 

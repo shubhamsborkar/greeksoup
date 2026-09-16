@@ -336,7 +336,8 @@ function drawBig(){
   const vals=pts.map(p=>p[1]);
   let min=Math.min(...vals),max=Math.max(...vals);
   const pad=(max-min)*0.06||1; min-=pad; max+=pad;
-  const X=i=>PL+(i/(pts.length-1))*(W-PL-PR);
+  // a point sits at its date, so a year is the same width wherever the series is dense
+  const TS=deskTimeScale(pts.map(p=>p[0]),PL,W-PL-PR), X=TS.x;
   const Y=v=>PT+(1-(v-min)/(max-min))*(H-PT-PB);
   const up=vals[vals.length-1]>=vals[0];
   const col=up?"var(--pos)":"var(--neg)";
@@ -346,11 +347,10 @@ function drawBig(){
     grid+=`<line x1="${PL}" y1="${Y(v)}" x2="${W-PR}" y2="${Y(v)}" stroke="var(--grid)" stroke-width="1"/>`;
     labels+=`<text x="${PL-8}" y="${Y(v)+3.5}" text-anchor="end" font-size="10.5" fill="var(--muted)" font-family="Menlo,monospace">${Math.abs(v)<10?v.toFixed(2):v.toLocaleString("en-US",{maximumFractionDigits:0})}</text>`;
   }
-  const nx=Math.min(7,pts.length);
-  for(let i=0;i<nx;i++){
-    const idx=Math.round(i*(pts.length-1)/(nx-1));
-    const anchor=i===0?"start":(i===nx-1?"end":"middle");
-    labels+=`<text x="${X(idx)}" y="${H-8}" text-anchor="${anchor}" font-size="10.5" fill="var(--muted)" font-family="Menlo,monospace">${pts[idx][0].slice(0,7)}</text>`;
+  for(const [t,lbl] of deskTimeTicks(TS.t0,TS.t1,Math.max(3,Math.floor((W-PL-PR)/110)))){
+    const x=TS.xt(t); const anchor=x<PL+24?"start":(x>W-PR-24?"end":"middle");
+    grid+=`<line x1="${x.toFixed(1)}" y1="${H-PB}" x2="${x.toFixed(1)}" y2="${H-PB+4}" stroke="var(--line2)" stroke-width="1"/>`;
+    labels+=`<text x="${x.toFixed(1)}" y="${H-8}" text-anchor="${anchor}" font-size="10.5" fill="var(--muted)" font-family="Menlo,monospace">${lbl}</text>`;
   }
   // the five-year-high line, so the "vs peak" number has a picture
   let pk="";
@@ -379,7 +379,7 @@ function drawBig(){
   svg.onmousemove=e=>{
     const box=svg.getBoundingClientRect(); const mx=e.clientX-box.left;
     if(mx<PL||mx>W-PR){xh.style.display="none";return;}
-    const i=Math.max(0,Math.min(pts.length-1,Math.round((mx-PL)/(W-PL-PR)*(pts.length-1))));
+    const i=TS.at(TS.t(mx));
     const px=X(i), py=Y(pts[i][1]);
     const label=`${pts[i][0]}  ${fmtN(pts[i][1])}`;
     const tw=label.length*6.6+16; const tx=Math.max(PL+tw/2,Math.min(W-PR-tw/2,px));

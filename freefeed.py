@@ -132,13 +132,23 @@ def summary(symbol, modules):
         return {}
 
 
+def _prev_close(meta, rows):
+    """The last session's close: the daily bar before the latest one, and the
+    meta's own field only when there is no second bar."""
+    if len(rows) >= 2 and rows[-2].get("price") is not None:
+        return rows[-2]["price"]
+    return _num(meta.get("previousClose")) or _num(meta.get("chartPreviousClose"))
+
+
 def quote(symbol):
     """One quote in the watch-grid schema (the shape the desk prices books with)."""
     meta, rows = chart(symbol, "5d", "1d")
     price = _num(meta.get("regularMarketPrice"))
     if price is None or price <= 0:
         return None
-    prev = _num(meta.get("chartPreviousClose")) or _num(meta.get("previousClose"))
+    # chartPreviousClose is the close before the RANGE (five sessions back here),
+    # not the last session's; the previous close is the bar before the latest
+    prev = _prev_close(meta, rows)
     last = rows[-1] if rows else {}
     return {
         "code": symbol, "exch": meta.get("exchangeName") or "US",
@@ -159,12 +169,19 @@ def ticker(symbol):
     """The ticker page's research view, keyless. Quote and candles from the
     chart API (always); profile, ratios, targets, analyst counts and the
     earnings record from quoteSummary when the crumb is available."""
-    meta, hist = chart(symbol, "max", "1d")
+    # Yahoo answers range=max at three-month steps whatever interval is asked,
+    # so the daily record comes from the ten-year call and the years before it
+    # from the quarterly one, joined where the daily record begins.
+    meta, hist = chart(symbol, "10y", "1d")
+    if hist:
+        _, older = chart(symbol, "max", "3mo")
+        first = hist[0]["date"]
+        hist = [r for r in older if r["date"] < first] + hist
     price = _num(meta.get("regularMarketPrice"))
     if price is None or price <= 0:
         return {"symbol": symbol, "error": f"no quote for {symbol} right now (Yahoo symbol needed, e.g. BRK-B; Yahoo also rate-limits bursts, so retry in a few minutes)"}
-    _, intra = chart(symbol, "5d", "5m")
-    prev = _num(meta.get("chartPreviousClose")) or _num(meta.get("previousClose"))
+    imeta, intra = chart(symbol, "5d", "5m")
+    prev = _num(imeta.get("previousClose")) or _prev_close(meta, hist)
     s = summary(symbol, ["summaryProfile", "summaryDetail", "defaultKeyStatistics",
                          "financialData", "recommendationTrend", "earningsHistory",
                          "calendarEvents"])

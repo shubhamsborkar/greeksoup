@@ -170,6 +170,7 @@ function resampleOHLC(pts,bucket){
   const out=[]; let cur=null, key="";
   for(const p of pts){
     const k = bucket==="M" ? (p.date||"").slice(0,7)
+      : bucket==="Q" ? (p.date||"").slice(0,4)+"Q"+Math.ceil(+(p.date||"").slice(5,7)/3)
       : String(Math.floor((Date.parse(p.date)/864e5+4)/7));   // ISO-ish week bucket
     if(k!==key){ if(cur)out.push(cur); key=k;
       cur={date:p.date,o:p.o??p.price,h:p.h??p.price,l:p.l??p.price,price:p.price,v:p.v||0};
@@ -222,7 +223,12 @@ function drawChart(){
   if(pts.length<2){el.innerHTML='<div class="dim" style="padding:30px">No data for this range.</div>';return;}
   const intra=(range==="1D"||range==="5D");
   let barNote="";
-  if(mode==="candles"&&!intra&&pts.length>320){
+  // the free history is daily for ten years and quarterly before that; a chart
+  // that spaces bars by index would give one quarter the width of one day, so
+  // a range that reaches into the quarterly stretch is drawn as quarterly bars
+  if(!intra&&pts.some((p,i)=>i&&Date.parse(p.date)-Date.parse(pts[i-1].date)>45*864e5)){
+    pts=resampleOHLC(pts,"Q"); barNote="quarterly bars";
+  }else if(mode==="candles"&&!intra&&pts.length>320){
     pts=resampleOHLC(pts,"W"); barNote="weekly bars";
     if(pts.length>320){pts=resampleOHLC(sliced(),"M"); barNote="monthly bars";}
   }
@@ -294,12 +300,16 @@ function drawChart(){
   // moving averages — computed on DAILY closes, joined to visible bars by
   // date (index-joining breaks once long ranges resample to weekly/monthly)
   let mas="", legend="";
-  if(!intra && mode!=="drawdown" && HIST.length>50){
-    const closes=HIST.map(p=>p.price);
+  // only the daily stretch feeds an average; the quarterly years before it would
+  // make the first fifty days' average a blend of days and quarters
+  let d0=0; for(let i=HIST.length-1;i>0;i--) if(Date.parse(HIST[i].date)-Date.parse(HIST[i-1].date)>45*864e5){d0=i;break;}
+  const DAILY=HIST.slice(d0);
+  if(!intra && mode!=="drawdown" && DAILY.length>50 && barNote!=="quarterly bars"){
+    const closes=DAILY.map(p=>p.price);
     for(const [n,mcol,name] of [[50,"var(--amber)","MA50"],[200,"var(--cyan)","MA200"]]){
-      if(HIST.length<n+5)continue;
+      if(DAILY.length<n+5)continue;
       const m=sma(closes,n), byDate={};
-      for(let i=0;i<HIST.length;i++) if(m[i]!=null) byDate[HIST[i].date]=m[i];
+      for(let i=0;i<DAILY.length;i++) if(m[i]!=null) byDate[DAILY[i].date]=m[i];
       const seg=[];
       for(let i=0;i<pts.length;i++){
         const v=byDate[pts[i].date];

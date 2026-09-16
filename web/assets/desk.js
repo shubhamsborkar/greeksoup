@@ -906,3 +906,59 @@
     }, 5000);
   })();
 })();
+
+/* ---- the time axis every history chart shares ------------------------------
+   A series the desk keeps is often denser at the near end (daily for the last
+   two years, weekly before, monthly before that), so a chart that spaces points
+   by index stretches the recent years across most of the width and squeezes
+   the old ones into a sliver. Every big chart places a point by its DATE:
+   deskTimeScale gives the x for a date, and deskTimeTicks the year or month
+   boundaries to label, so 2019 and 2025 are the same width on the axis. */
+(function () {
+  "use strict";
+  const YEAR = 31557600000;
+  /* dates: the series' "YYYY-MM-DD" strings, ascending. Returns {T, x(i), at(t)}:
+     T the parsed times, x(i) the pixel for point i, at(t) the nearest index to a time. */
+  window.deskTimeScale = function (dates, left, width) {
+    const T = dates.map(d => Date.parse(d));
+    const t0 = T[0], span = (T[T.length - 1] - t0) || 1;
+    const xOf = t => left + ((t - t0) / span) * width;
+    return {
+      T, t0, t1: T[T.length - 1],
+      x: i => xOf(T[i]),
+      xt: xOf,
+      t: px => t0 + ((px - left) / width) * span,
+      at: t => {                       // nearest point to a time, by binary search
+        let lo = 0, hi = T.length - 1;
+        while (lo < hi) { const mid = (lo + hi) >> 1; if (T[mid] < t) lo = mid + 1; else hi = mid; }
+        return lo > 0 && (t - T[lo - 1]) < (T[lo] - t) ? lo - 1 : lo;
+      },
+    };
+  };
+  /* [[time, label], ...] at year boundaries when the span is long, month
+     boundaries when it is short; never more than nMax labels. */
+  window.deskTimeTicks = function (t0, t1, nMax) {
+    nMax = nMax || 7;
+    const out = [], yrs = (t1 - t0) / YEAR, a = new Date(t0);
+    if (yrs >= 2.5) {
+      const need = Math.max(1, Math.floor(yrs / nMax));
+      const s = [1, 2, 3, 5, 10, 20, 50].find(v => v >= need) || 50;
+      const y1 = new Date(t1).getUTCFullYear();
+      for (let y = Math.ceil(a.getUTCFullYear() / s) * s; y <= y1; y += s) {
+        const t = Date.UTC(y, 0, 1);
+        if (t >= t0 && t <= t1) out.push([t, String(y)]);
+      }
+    } else {
+      const months = yrs * 12, s = months <= 7 ? 1 : (months <= 14 ? 2 : (months <= 21 ? 3 : 6));
+      let y = a.getUTCFullYear(), m = a.getUTCMonth() + 1;
+      if (m > 11) { m = 0; y++; }
+      for (let k = 0; k < 400; k++) {
+        const t = Date.UTC(y, m, 1);
+        if (t > t1) break;
+        if (m % s === 0) out.push([t, y + "-" + String(m + 1).padStart(2, "0")]);
+        m++; if (m > 11) { m = 0; y++; }
+      }
+    }
+    return out;
+  };
+})();

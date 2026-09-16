@@ -402,7 +402,7 @@ def _card(c):
         daily = is_daily(fred)
         st = stats(fred, daily=daily)
         card.update(st)
-        card["spark"] = _spark(fred) if daily else _spark(fred, days=3 * 365, n=48)
+        card["spark"] = _spark(fred)   # one year on every card, so the sparklines compare
         card["full"] = _downsample(fred) if daily else fred
         card["hist_kind"] = "daily" if daily else "monthly"
         card["hist_through"] = fred[-1][0]

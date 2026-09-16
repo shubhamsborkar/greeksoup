@@ -890,3 +890,29 @@ def test_desk_answers_only_its_own_computer_and_pages():
     assert not ok({"Host": "localhost:8765", "Origin": "https://evil.example.com"})    # cross-site
     assert not ok({"Host": "localhost:8765", "Origin": "http://localhost.evil.com"})
     assert not ok({"Host": "localhost:8765", "Origin": "null"})                         # a sandboxed or file page
+
+
+def test_day_change_is_against_the_last_session():
+    """Yahoo's chartPreviousClose is the close before the RANGE asked for, so a
+    five-day quote measured against it showed a five-day move as the day's. The
+    previous close is the bar before the latest one."""
+    import freefeed
+    meta = {"chartPreviousClose": 493.95, "previousClose": None}
+    rows = [{"date": "2026-09-11", "price": 495.63}, {"date": "2026-09-14", "price": 505.41},
+            {"date": "2026-09-15", "price": 497.12}]
+    assert freefeed._prev_close(meta, rows) == 505.41
+    assert freefeed._prev_close(meta, rows[-1:]) == 493.95    # one bar: the meta is all there is
+
+
+def test_history_charts_place_points_by_date():
+    """Every big history chart uses the shared time scale, never the point's index:
+    the free series are daily at the near end and weekly or quarterly before, so
+    an index axis stretched the recent years across most of the width."""
+    for page in ("commods.html", "macro.html"):
+        src = open(os.path.join(HERE, "web", page)).read()
+        assert "deskTimeScale(" in src and "deskTimeTicks(" in src, page
+        assert "i/(pts.length-1)" not in src, f"{page}: an index-spaced axis is back"
+    desk = open(os.path.join(HERE, "web", "assets", "desk.js")).read()
+    assert "window.deskTimeScale" in desk and "window.deskTimeTicks" in desk
+    ticker = open(os.path.join(HERE, "web", "ticker.html")).read()
+    assert 'resampleOHLC(pts,"Q")' in ticker, "a range into the quarterly years is drawn as quarterly bars"
