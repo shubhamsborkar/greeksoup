@@ -481,6 +481,8 @@ $("e_fileinput").addEventListener("change",()=>{ pickFile($("e_fileinput").files
 $("ed").addEventListener("dragover",e=>{ e.preventDefault(); $("ed").classList.add("drop"); });
 $("ed").addEventListener("dragleave",()=>$("ed").classList.remove("drop"));
 $("ed").addEventListener("drop",e=>{ e.preventDefault(); $("ed").classList.remove("drop"); if(e.dataTransfer.files&&e.dataTransfer.files[0]) pickFile(e.dataTransfer.files[0]); });
+// a picture on the clipboard (a chart copied from TradingView's camera, a screenshot) pasted into the editor attaches itself
+document.addEventListener("paste",e=>{ if($("ed").style.display==="none") return; const it=[...((e.clipboardData||{}).items||[])].find(x=>x.type.startsWith("image/")); if(!it) return; e.preventDefault(); const f=it.getAsFile(); const ext=(f.type.split("/")[1]||"png").replace("jpeg","jpg"); pickFile(new File([f],(f.name&&f.name!=="image."+ext?f.name:`clipping-${new Date().toISOString().slice(0,10)}.${ext}`),{type:f.type})); });
 function kindChanged(){ const k=$("e_kind").value; $("e_about").style.display=k==="stock"?"none":"inline-block"; $("e_about").placeholder=ABOUT_HINT[k]||""; }
 $("e_kind").addEventListener("change",kindChanged);
 function drawSyms(){ $("e_syms").innerHTML=EDIT.syms.map(s=>`<span class="chip sym" data-s="${esc(s)}">$${esc(s)}<span class="x">✕</span></span>`).join(""); $("e_syms").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{EDIT.syms=EDIT.syms.filter(x=>x!==c.dataset.s);drawSyms();}); }

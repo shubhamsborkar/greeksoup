@@ -498,8 +498,10 @@ function chartPanel(){
       </div>
       <div class="seg" id="rangeseg"></div>
       <div class="seg" id="intseg" title="Bar size"></div>
+      <button class="fsbtn" id="snapbtn" title="A picture of this chart, as drawn, becomes a clipping in your notes on this name">Save chart to notes</button>
       <button class="fsbtn" id="fsbtn" title="Full screen (Esc closes)">⛶ Full screen</button>
     </div>
+    <div id="snapmsg" style="display:none;padding:8px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--ink2);line-height:1.5"></div>
     <div class="panel-b" id="chartwrap"><div id="tvwrap" style="height:480px;display:none"></div><div id="chart"></div><div id="tip"></div></div>
   </section>`;
 }
@@ -519,10 +521,61 @@ function bindChart(){
     document.querySelectorAll("#modeseg button").forEach(x=>x.classList.toggle("on",x===b));
     drawChart();});
   document.getElementById("fsbtn").onclick=toggleFS;
+  document.getElementById("snapbtn").onclick=snapChart;
   window.addEventListener("resize",()=>drawChart());
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&isFS)toggleFS();});
   setChartSource(chartSource(),false,true);
 }
+/* Save chart to notes: the chart as drawn becomes a clipping note on this name, filed under the
+   calendar quarter of the day, so it sits on the timeline next to the quarter's other notes and
+   the Ask box can read it later. The desk's own chart is drawn straight to a picture. TradingView's
+   chart lives in their frame, which the page cannot read, so their own camera makes the picture
+   (Copy image) and a paste on this page brings it in with the reader's drawings and studies. */
+function snapSay(html){ const m=document.getElementById("snapmsg"); if(!m) return; m.innerHTML=html; m.style.display=html?"":"none"; }
+function chartWords(){ return ((document.getElementById("chartret")||{}).innerText||range).replace(/\s*—\s*/g," · ").replace(/\s+/g," ").trim(); }   // "+40.2% over 1Y · daily bars · MA50 · MA200"
+function calQuarter(d){ return "Q"+(Math.floor(d.getMonth()/3)+1)+" "+d.getFullYear(); }
+function stamp(d){ const z=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`; }
+async function deskChartPNG(){
+  const svg=document.querySelector("#chart svg"); if(!svg) return null;
+  const cs=getComputedStyle(document.documentElement);
+  const w=+svg.getAttribute("width"), h=+svg.getAttribute("height"), cap=22;
+  // the page's colour variables are resolved, since the picture carries no stylesheet
+  const xml=new XMLSerializer().serializeToString(svg).replace(/var\((--[a-z0-9-]+)\)/g,(m,v)=>cs.getPropertyValue(v).trim()||"#888").replace(/ style="display:none"/g,' visibility="hidden"');
+  const img=new Image(); const url=URL.createObjectURL(new Blob([xml],{type:"image/svg+xml;charset=utf-8"}));
+  await new Promise((ok,no)=>{ img.onload=ok; img.onerror=no; img.src=url; });
+  const c=document.createElement("canvas"); const k=2; c.width=w*k; c.height=(h+cap)*k;
+  const g=c.getContext("2d"); g.scale(k,k);
+  g.fillStyle=cs.getPropertyValue("--panel").trim()||"#111"; g.fillRect(0,0,w,h+cap);
+  g.fillStyle=cs.getPropertyValue("--ink2").trim()||"#ccc"; g.font="600 11px -apple-system,Segoe UI,Helvetica,Arial,sans-serif";
+  g.fillText(`${SYM} · ${range} · ${chartWords()} · ${stamp(new Date())}`,10,15);
+  g.drawImage(img,0,cap,w,h); URL.revokeObjectURL(url);
+  return new Promise(ok=>c.toBlob(ok,"image/png"));
+}
+async function saveClipping(blob,how){
+  const now=new Date(), day=stamp(now).slice(0,10);
+  snapSay("Saving the chart to your notes…");
+  let up; try{ up=await (await fetch("/api/research/upload?"+new URLSearchParams({name:`${SYM}-chart-${day}.png`,symbol:SYM}),{method:"POST",headers:{"Content-Type":"application/octet-stream"},body:blob})).json(); }catch(e){ up={ok:false,error:"the desk did not answer"}; }
+  if(!up.ok) return snapSay("The picture did not go in: "+esc(up.error||"unknown"));
+  const body=how==="tv"?`TradingView's chart of ${tvSymbol()} as drawn on ${stamp(now)}, with the drawings and studies it carried.`:`The desk's own chart on ${stamp(now)}: ${chartWords()}.`;
+  let r; try{ r=await (await fetch("/api/notes/save",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:`${SYM} chart · ${day}`,type:"clipping",kind:"stock",symbols:[SYM],period:calQuarter(now),file:up.file,body})})).json(); }catch(e){ r={ok:false,error:"the desk did not answer"}; }
+  if(!r.ok) return snapSay("The note did not save: "+esc(r.error||"unknown"));
+  snapSay(`Saved to your notes on ${esc(SYM)}, filed under ${esc(calQuarter(now))}: <a href="/notes?id=${encodeURIComponent(r.note.id)}" style="color:var(--accent)">${esc(r.note.title)}</a> <button class="fsbtn" id="snapundo" style="margin-left:10px;padding:2px 8px;font-size:11px">Undo</button>`);
+  document.getElementById("snapundo").onclick=async()=>{ await fetch("/api/notes/delete",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:r.note.id,with_file:true})}); snapSay(""); loadNotes(); };
+  if(window.deskJournal&&r.journal) deskJournal(r.journal);
+  loadNotes();
+}
+async function snapChart(){
+  const tv=document.getElementById("tvwrap").style.display!=="none";
+  if(!tv){ const b=await deskChartPNG().catch(()=>null); if(!b) return snapSay("There is no chart drawn to save yet."); return saveClipping(b,"desk"); }
+  snapSay("On TradingView's toolbar press the camera, choose <b>Copy image</b>, then press <b>"+(navigator.platform.startsWith("Mac")?"⌘V":"Ctrl+V")+"</b> on this page. The picture, with your drawings and studies, lands in your notes on "+esc(SYM)+". <button class=\"fsbtn\" id=\"snapno\" style=\"margin-left:10px;padding:2px 8px;font-size:11px\">Close</button>");
+  document.getElementById("snapno").onclick=()=>snapSay("");
+}
+document.addEventListener("paste",e=>{
+  if(/^(INPUT|TEXTAREA)$/.test((document.activeElement||{}).tagName)) return;   // text pasted into a box stays text
+  const it=[...(e.clipboardData||{}).items||[]].find(x=>x.type.startsWith("image/")); if(!it) return;
+  e.preventDefault(); const tv=document.getElementById("tvwrap")&&document.getElementById("tvwrap").style.display!=="none";
+  saveClipping(it.getAsFile(),tv?"tv":"paste");
+});
 function toggleFS(){
   isFS=!isFS;
   document.getElementById("chartpanel").classList.toggle("fs",isFS);

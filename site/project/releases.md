@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.66. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.67. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.67
+
+*16 September 2026, release 67.* Save chart to notes. A button on the Price panel keeps the chart as a picture in the reader's notes on that name: a clipping note, filed under the calendar quarter of the day, with the range, the bar size and the return in its one line, so it sits on the name's timeline next to that quarter's other notes, opens in Obsidian, and the Ask box can read it later. The desk's own chart is drawn straight to the picture. TradingView's chart lives in their frame, so the button says what to do: the camera on their toolbar, Copy image, then paste on the page, and the picture lands with the reader's drawings and studies on it. Undo sits next to the saved line and takes the note and its file back out. A picture pasted into the Notes editor attaches itself the same way a dropped file does.
 
 ## 2026-09-16.66
 
