@@ -122,8 +122,10 @@ let prev={}, sortKey="code", sortDir=1, data=null;
 function inr(x,dp=2){ if(x==null||isNaN(x))return "—";
   const loc = (REGION==="home" && data && data.market && data.market.locale) || "en-US";
   return x.toLocaleString(loc,{minimumFractionDigits:dp,maximumFractionDigits:dp}).replace("-","−");}
-function pct(x){ return x==null?"—":(x>=0?"+":"−")+Math.abs(x).toFixed(2)+"%"; }
-function cls(x){ return x==null?"dim":(x>=0?"pos":"neg"); }
+// a move that prints as 0.00 is flat: no sign, no colour
+function flat(x,eps=0.005){ return x!=null&&Math.abs(x)<eps; }
+function pct(x){ return x==null?"—":flat(x)?"0.00%":(x>=0?"+":"−")+Math.abs(x).toFixed(2)+"%"; }
+function cls(x,eps=0.005){ return x==null||flat(x,eps)?"dim":(x>=0?"pos":"neg"); }
 function mcapFmt(x){ if(x==null)return "—";
   if(x>=1e12)return "$"+(x/1e12).toFixed(2)+"T";
   if(x>=1e9)return "$"+(x/1e9).toFixed(1)+"B";

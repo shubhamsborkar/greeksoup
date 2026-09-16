@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.46. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.47. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.47
+
+*16 September 2026, release 47.* Desk · Book, read screen by screen. The tiles sit one row per currency, the largest book first, so a second currency no longer leaves one tile stranded on a line of its own. A flat day reads flat: a price that has not moved shows 0.00% in grey rather than +0.01% in green, on the book, the home screen, the watchlists, the ticker page, the chain and the commodities board alike, and the single-precision noise in Yahoo's daily closes (1.15 arriving as 1.1499999761) is rounded away at the feed so no zero move is ever reported as a move. Fractional shares carry three decimals here as on the home screen. The positions header no longer repeats the feed note printed above it, the currency box and the symbol box are wide enough for their own hints, Enter saves from the shares box and the cash box, and the two notes that named a file on disk say what the book is instead. The installer's first download try is quiet, so a reader whose install fell through to the mirror never sees an error from a download that succeeded.
 
 ## 2026-09-16.46
 

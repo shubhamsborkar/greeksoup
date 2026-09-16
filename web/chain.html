@@ -149,7 +149,7 @@ function presCls(p){
   if(p.includes("thin")||p.includes("emerging")) return "p-thin";
   return "p-none";
 }
-function pct(x){ return x==null?"":(x>=0?"+":"−")+Math.abs(x).toFixed(2)+"%"; }
+function pct(x){ return x==null?"":Math.abs(x)<0.005?"0.00%":(x>=0?"+":"−")+Math.abs(x).toFixed(2)+"%"; }
 function regionLabel(r){ return r==="us"?"US":r==="global"?"Global":HOME.label; }
 function tickerHref(region,code){
   if(!code) return "";

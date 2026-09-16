@@ -141,8 +141,10 @@ const F=(x,dp=2)=>x==null||isNaN(x)?"—":Number(x).toFixed(dp).replace(/\B(?=(\
 let CUR = "$";               // the home market's currency symbol arrives with the page data
 const money=(x,dp=2)=>x==null||isNaN(x)?"—":(x<0?"−"+CUR:CUR)+F(Math.abs(x),dp);
 const usd=money;
-const pct=(x,dp=2)=>x==null||isNaN(x)?"—":(x>=0?"+":"−")+Math.abs(x).toFixed(dp)+"%";
-const cls=x=>x==null?"dim":(x>=0?"pos":"neg");
+// a move that prints as zero is flat: no sign, no colour
+const flat=(x,eps=0.005)=>x!=null&&!isNaN(x)&&Math.abs(x)<eps;
+const pct=(x,dp=2)=>x==null||isNaN(x)?"—":flat(x,0.5*Math.pow(10,-dp))?(0).toFixed(dp)+"%":(x>=0?"+":"−")+Math.abs(x).toFixed(dp)+"%";
+const cls=(x,eps=0.005)=>x==null||isNaN(x)||flat(x,eps)?"dim":(x>=0?"pos":"neg");
 const big=x=>{if(x==null)return "—";if(Math.abs(x)>=1e12)return "$"+(x/1e12).toFixed(2)+"T";
   if(Math.abs(x)>=1e9)return "$"+(x/1e9).toFixed(1)+"B";if(Math.abs(x)>=1e6)return "$"+(x/1e6).toFixed(0)+"M";return usd(x,0);};
 const xr=(x,dp=1)=>x==null||isNaN(x)?"—":Number(x).toFixed(dp)+"x";

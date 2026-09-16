@@ -10,7 +10,8 @@
 <style>
 main{max-width:1180px;margin:0 auto;padding:18px 22px}
 .sub{color:var(--muted);font-size:12px;margin-bottom:16px;line-height:1.5}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:12px;margin-bottom:12px}
+@media (max-width:700px){.tiles{grid-template-columns:1fr}}
 .tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 16px}
 .tile .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink2);margin-bottom:7px}
 .tile .v{font-size:20px;font-weight:700}
@@ -45,7 +46,7 @@ td.name .co{color:var(--muted);font-size:10.5px;font-weight:400;display:block}
 .empty{padding:26px 15px;color:var(--muted);font-size:12.5px;line-height:1.6}
 .cc{font-size:9.5px;font-weight:800;border-radius:4px;padding:1.5px 6px;letter-spacing:.05em;background:var(--panel2);color:var(--ink2);margin-left:6px}
 .symwrap{position:relative}
-.form input.sym{width:260px;text-transform:none}
+.form input.sym{width:310px;text-transform:none}
 .sugg{position:absolute;left:0;top:calc(100% + 4px);z-index:20;min-width:360px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);overflow:hidden;display:none}
 .sugg.on{display:block}
 .sugg button{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:10px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:8px 12px;color:var(--ink);font:inherit;font-size:12.5px;cursor:pointer;border-radius:0;font-weight:400}
@@ -69,13 +70,13 @@ td.name .co{color:var(--muted);font-size:10.5px;font-weight:400;display:block}
   <div class="sub">A portfolio you keep by hand, with no broker and no feed key: any symbol Yahoo Finance knows, in any market, priced from Yahoo's free feed. US listings are close to live; most other exchanges run 15 to 20 minutes behind. Add a line, or paste your whole holdings list below.</div>
 
   <div class="msg" id="example" style="display:none;padding:12px 15px;margin-bottom:14px;background:var(--panel);border:1px solid var(--line2);border-radius:12px;color:var(--ink2);font-size:12.5px">These lines are examples, so the screen is not empty before you have added anything. They carry no view; their cost is the price on the day this version shipped. <b>Clear the book</b> removes them in one click, then add your own lines below, one at a time or by pasting your holdings.</div>
-  <div class="tiles" id="tiles"></div>
+  <div id="tiles"></div>
 
   <div class="panel pos-panel">
     <div class="panel-h"><h2>Positions</h2><span class="sub" id="cnt"></span><button class="x clear" id="clearall" title="remove every line">Clear the book</button></div>
     <div id="table"><div class="empty">Loading…</div></div>
     <div class="form" id="addform">
-      <span class="symwrap"><input class="sym" id="f_sym" placeholder="company name or symbol (Apple, Reliance, 0700.HK)" autocomplete="off"><div class="sugg" id="sugg"></div></span>
+      <span class="symwrap"><input class="sym" id="f_sym" placeholder="name or symbol (Apple, Reliance, 0700.HK)" autocomplete="off"><div class="sugg" id="sugg"></div></span>
       <input class="num" id="f_sh" placeholder="shares" inputmode="decimal">
       <input class="num" id="f_ac" placeholder="avg cost" inputmode="decimal">
       <button id="f_add">Add</button>
@@ -100,22 +101,24 @@ td.name .co{color:var(--muted);font-size:10.5px;font-weight:400;display:block}
   <div class="panel">
     <div class="panel-h"><h2>Cash</h2><span class="sub">per currency, so a book across markets adds up honestly</span></div>
     <div class="form">
-      <input class="sym" id="c_ccy" placeholder="currency (USD, INR, EUR)" style="width:120px">
+      <input class="sym" id="c_ccy" placeholder="currency (USD, INR)" style="width:160px">
       <input class="num" id="c_amt" placeholder="amount" inputmode="decimal">
-      <button class="ghost" id="c_set">Set</button>
+      <button id="c_set">Set</button>
       <span id="cashlist" class="dim" style="font-size:11.5px"></span>
     </div>
   </div>
 
-  <div class="note"><b>What this is:</b> the desk reads <span class="mono">data/book.json</span>, which these forms edit. Nothing here places orders and nothing leaves your computer except the price lookups. Each currency is totalled on its own; the desk does not convert between them, because a converted total hides which market moved. <b>Symbols:</b> type the company's name in the box above and pick the listing you hold from the list; the desk fills in Yahoo's symbol (<span class="mono">RELIANCE.NS</span>, <span class="mono">0700.HK</span>, <span class="mono">MC.PA</span>). Pasted lists need Yahoo's symbols already.</div>
+  <div class="note"><b>What this is:</b> a book the desk keeps as a plain file in its own folder; these forms edit it. Nothing here places orders and nothing leaves your computer except the price lookups. Each currency is totalled on its own; the desk does not convert between them, because a converted total hides which market moved. <b>Symbols:</b> type the company's name in the box above and pick the listing you hold from the list; the desk fills in Yahoo's symbol (<span class="mono">RELIANCE.NS</span>, <span class="mono">0700.HK</span>, <span class="mono">MC.PA</span>). Pasted lists need Yahoo's symbols already.</div>
 </main>
 
 <script>
 "use strict";
 const fmt=(v,ccy,dp)=>{ if(v==null||isNaN(v)) return "—"; try{ return new Intl.NumberFormat("en-US",{style:"currency",currency:ccy||"USD",maximumFractionDigits:dp??2,minimumFractionDigits:dp??2}).format(v);}catch(e){ return (ccy||"")+" "+v.toFixed(dp??2);} };
 const num=(v,dp=2)=>v==null||isNaN(v)?"—":v.toLocaleString("en-US",{maximumFractionDigits:dp,minimumFractionDigits:dp});
-const pct=x=>x==null?"—":(x>=0?"+":"−")+Math.abs(x).toFixed(2)+"%";
-const cls=x=>x==null?"dim":(x>=0?"pos":"neg");
+// a move that prints as 0.00 is flat: no sign, no colour
+const flat=(x,eps=0.005)=>x!=null&&Math.abs(x)<eps;
+const pct=x=>x==null?"—":flat(x)?"0.00%":(x>=0?"+":"−")+Math.abs(x).toFixed(2)+"%";
+const cls=(x,eps=0.005)=>x==null||flat(x,eps)?"dim":(x>=0?"pos":"neg");
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let D=null;
 function tile(l,v,k,s){return `<div class="tile"><div class="l">${l}</div><div class="v mono ${k||""}">${v}</div><div class="s">${s||""}</div></div>`;}
@@ -123,26 +126,29 @@ async function load(){
   const r=await fetch("/api/book"); D=await r.json();
   document.getElementById("asof").textContent="Yahoo · "+(D.ts||"");
   const groups=D.groups||[];
+  // one row of three tiles per currency, the largest book first; a whole-book
+  // total would need a conversion, and a converted total hides which market moved
   let t="";
   for(const g of groups){
-    t+=tile(`${g.currency} · value`,fmt(g.total,g.currency,0),"",`${g.n} position${g.n===1?"":"s"}${g.cash?" · cash "+fmt(g.cash,g.currency,0):""}`);
-    t+=tile(`${g.currency} · today`,fmt(g.day_pnl,g.currency,0),cls(g.day_pnl),pct(g.day_pct));
-    t+=tile(`${g.currency} · since cost`,fmt(g.pnl,g.currency,0),cls(g.pnl),pct(g.pnl_pct));
+    t+=`<div class="tiles">`+
+      tile(`${g.currency} · value`,fmt(g.total,g.currency,0),"",`${g.n} position${g.n===1?"":"s"}${g.cash?" · cash "+fmt(g.cash,g.currency,0):""}`)+
+      tile(`${g.currency} · today`,fmt(g.day_pnl,g.currency,0),cls(g.day_pnl,0.5),pct(g.day_pct))+
+      tile(`${g.currency} · since cost`,fmt(g.pnl,g.currency,0),cls(g.pnl,0.5),pct(g.pnl_pct))+`</div>`;
   }
   document.getElementById("tiles").innerHTML=t;
   document.getElementById("example").style.display=D.all_example?"block":"none";
   const ps=D.positions||[];
-  document.getElementById("cnt").textContent=ps.length?`${ps.length} lines · prices ${D.market_note||""}`:"";
-  if(!ps.length){document.getElementById("table").innerHTML=`<div class="empty">No positions yet. Add one below, or paste your holdings. The example line in <span class="mono">data/book.json</span> has zero shares and is ignored.</div>`;}
+  document.getElementById("cnt").textContent=ps.length?`${ps.length} position${ps.length===1?"":"s"}${groups.length>1?` in ${groups.length} currencies`:""}`:"";
+  if(!ps.length){document.getElementById("table").innerHTML=`<div class="empty">No positions yet. Add one below, or paste your holdings.</div>`;}
   else{
     let h=`<table><thead><tr><th>Name</th><th>Shares</th><th>Avg cost</th><th>Last</th><th>Day</th><th>Value</th><th>P&amp;L</th><th>P&amp;L %</th><th>Weight</th><th></th></tr></thead><tbody>`;
     for(const p of ps){
       h+=`<tr><td class="name"><b>${esc(p.symbol)}</b><span class="cc">${esc(p.currency||"")}</span>${p.example?'<span class="cc" title="an example line; Clear the book removes it">EXAMPLE</span>':""}<span class="co">${esc(p.name||"")}${p.exch?" · "+esc(p.exch):""}</span></td>
-        <td class="mono">${num(p.shares,p.shares%1?2:0)}</td><td class="mono">${num(p.avg_cost)}</td>
+        <td class="mono">${num(p.shares,p.shares%1?3:0)}</td><td class="mono">${num(p.avg_cost)}</td>
         <td class="mono">${p.ltp==null?'<span class="dim">no quote</span>':num(p.ltp)}</td>
         <td class="mono ${cls(p.day_pct)}">${pct(p.day_pct)}</td>
         <td class="mono">${p.value==null?"—":num(p.value,0)}</td>
-        <td class="mono ${cls(p.pnl)}">${p.pnl==null?"—":num(p.pnl,0)}</td>
+        <td class="mono ${cls(p.pnl,0.5)}">${p.pnl==null?"—":num(p.pnl,0)}</td>
         <td class="mono ${cls(p.pnl_pct)}">${pct(p.pnl_pct)}</td>
         <td class="mono"><span class="wbar" style="width:${Math.max(2,Math.round((p.weight||0)*0.8))}px"></span>${p.weight==null?"—":p.weight.toFixed(1)+"%"}</td>
         <td><button class="x" data-sym="${esc(p.symbol)}" title="remove this line">✕</button></td></tr>`;
@@ -184,7 +190,8 @@ symIn.addEventListener("keydown",e=>{
 });
 symIn.addEventListener("blur",()=>setTimeout(()=>showSugg([]),150));
 document.getElementById("clearall").onclick=async()=>{ if(!confirm("Remove every line from the book? Cash stays as it is.")) return; const d=await post("/api/book/clear",{}); load(); if(window.deskJournal) deskJournal(d.journal); };
-document.getElementById("f_ac").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("f_add").click();});
+for(const id of ["f_sh","f_ac"]) document.getElementById(id).addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("f_add").click();});
+document.getElementById("c_amt").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("c_set").click();});
 document.getElementById("imp").onclick=async()=>{
   const csv=document.getElementById("csv").value.trim(); if(!csv) return say("impmsg","Nothing to import.","err");
   say("impmsg","Checking every symbol on Yahoo, this takes a second per line…");

@@ -902,6 +902,12 @@ def test_day_change_is_against_the_last_session():
             {"date": "2026-09-15", "price": 497.12}]
     assert freefeed._prev_close(meta, rows) == 505.41
     assert freefeed._prev_close(meta, rows[-1:]) == 493.95    # one bar: the meta is all there is
+    # Yahoo's closes are single-precision: 1.15 arrives as 1.1499999761, and a flat
+    # day then read +0.00% in green on Desk · Book. Seven significant digits is
+    # all such a number carries; the noise goes, the price does not.
+    assert freefeed.tidy(1.1499999761581421) == 1.15 and freefeed.tidy(118.16000366210938) == 118.16
+    assert freefeed.tidy(0.000012345678) == 1.234568e-05 and freefeed.tidy(None) is None and freefeed.tidy(0) == 0
+    assert freefeed._prev_close({}, [{"price": 1.1499999761581421}, {"price": 1.15}]) == 1.15
 
 
 def test_history_charts_place_points_by_date():

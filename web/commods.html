@@ -174,8 +174,10 @@ and pricing power are.</footer>
 let DATA=null, CARDS=[];
 const fmtN=v=>{ if(v==null)return "—"; const a=Math.abs(v);
   const dp=a<10?2:(a<1000?2:0); return v.toLocaleString("en-US",{minimumFractionDigits:dp,maximumFractionDigits:dp}); };
-const pct=(p,dp=1)=>p==null?"—":(p>=0?"+":"")+p.toFixed(dp)+"%";
-const cls=p=>p==null?"":(p>=0?"pos":"neg");
+// a move that prints as zero is flat: no sign, no colour
+const flat=(p,eps=0.05)=>p!=null&&Math.abs(p)<eps;
+const pct=(p,dp=1)=>p==null?"—":flat(p,0.5*Math.pow(10,-dp))?(0).toFixed(dp)+"%":(p>=0?"+":"")+p.toFixed(dp)+"%";
+const cls=(p,eps=0.005)=>p==null||flat(p,eps)?"":(p>=0?"pos":"neg");
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let SPID=0;
 function spark(series,w=200,h=44){

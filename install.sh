@@ -61,7 +61,9 @@ if [ -f "$DEST/server.py" ]; then
 else
   say "Downloading the desk into $DEST ..."
   TMP="$(mktemp -d)"
-  curl -fsSL "$ZIP_URL" -o "$TMP/desk.zip" || curl -fsSL "$MIRROR_ZIP_URL" -o "$TMP/desk.zip"
+  # GitHub first, the GitLab mirror when it does not answer; the first try is quiet
+  # so a reader never sees an error from a download that succeeded on the second
+  curl -fsSL "$ZIP_URL" -o "$TMP/desk.zip" 2>/dev/null || curl -fsSL "$MIRROR_ZIP_URL" -o "$TMP/desk.zip" || fail "The download did not complete. Check the connection and run the same line again."
   ( cd "$TMP" && unzip -q desk.zip )
   SRC="$(find "$TMP" -maxdepth 1 -mindepth 1 -type d | head -1)"
   mkdir -p "$(dirname "$DEST")"

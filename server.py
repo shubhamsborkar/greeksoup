@@ -1105,8 +1105,8 @@ def fetch_yahoo_quote(symbol):
         # chartPreviousClose is the close before the five-day range, not the last
         # session's; the previous close is the second-last daily close in the answer
         closes = [_num(c) for c in (((res[0].get("indicators") or {}).get("quote") or [{}])[0].get("close") or [])]
-        closes = [c for c in closes if c is not None]
-        prev = closes[-2] if len(closes) >= 2 else (_num(m.get("previousClose")) or _num(m.get("chartPreviousClose")))
+        closes = [freefeed.tidy(c) for c in closes if c is not None]     # single-precision noise off
+        prev = closes[-2] if len(closes) >= 2 else freefeed.tidy(_num(m.get("previousClose")) or _num(m.get("chartPreviousClose")))
         if price is None:
             return None
         return {

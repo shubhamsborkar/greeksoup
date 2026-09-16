@@ -7,6 +7,7 @@ cookie and a "crumb" that Yahoo hands out freely but rate-limits. Everything
 here returns an empty shape instead of raising, so a page degrades instead of
 dying. Yahoo's endpoints are unofficial and can change without notice.
 """
+import math
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -136,8 +137,18 @@ def _prev_close(meta, rows):
     """The last session's close: the daily bar before the latest one, and the
     meta's own field only when there is no second bar."""
     if len(rows) >= 2 and rows[-2].get("price") is not None:
-        return rows[-2]["price"]
-    return _num(meta.get("previousClose")) or _num(meta.get("chartPreviousClose"))
+        return tidy(rows[-2]["price"])
+    return tidy(_num(meta.get("previousClose")) or _num(meta.get("chartPreviousClose")))
+
+
+def tidy(x):
+    """Yahoo's daily closes arrive as single-precision floats (1.15 comes back as
+    1.1499999761, 118.16 as 118.16000366). Seven significant digits is all a
+    single-precision number carries, so rounding there drops the noise and
+    nothing else, and a flat day then reads flat instead of +0.00%."""
+    if x is None or x == 0:
+        return x
+    return round(x, 6 - int(math.floor(math.log10(abs(x)))))
 
 
 def quote(symbol):

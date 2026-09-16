@@ -210,9 +210,11 @@ function money(x,dp=0,ccy){
   catch(e){ return c+" "+inr(x,dp); }
 }
 const rupee = money;   // older call sites
-function pct(x,dp=2){ return x==null?"—":(x>=0?"+":"−")+Math.abs(x).toFixed(dp)+"%"; }
-function cls(x){ return x==null?"dim":(x>=0?"pos":"neg"); }
-function signed(x,dp=0){ return x==null?"—":(x>=0?"+":"−")+inr(Math.abs(x),dp); }
+// a move that prints as zero is flat: no sign, no colour
+function flat(x,eps=0.005){ return x!=null&&Math.abs(x)<eps; }
+function pct(x,dp=2){ return x==null?"—":flat(x,0.5*Math.pow(10,-dp))?(0).toFixed(dp)+"%":(x>=0?"+":"−")+Math.abs(x).toFixed(dp)+"%"; }
+function cls(x,eps=0.005){ return x==null||flat(x,eps)?"dim":(x>=0?"pos":"neg"); }
+function signed(x,dp=0){ return x==null?"—":flat(x,0.5*Math.pow(10,-dp))?inr(0,dp):(x>=0?"+":"−")+inr(Math.abs(x),dp); }
 
 /* ---------- change-flash ---------- */
 function cell(key, html, klass){
