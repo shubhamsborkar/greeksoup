@@ -157,18 +157,50 @@ APPS = {
                "models": [["claude-opus-5", "Opus 5"], ["claude-fable-5-1", "Fable 5.1"], ["claude-fable-5", "Fable 5"],
                           ["claude-opus-4-8", "Opus 4.8"], ["claude-opus-4-7", "Opus 4.7"], ["claude-opus-4-6", "Opus 4.6"],
                           ["claude-sonnet-5", "Sonnet 5"], ["claude-sonnet-4-6", "Sonnet 4.6"], ["claude-haiku-4-5", "Haiku 4.5"]]},
+    # Codex and Gemini lists are the makers' own pages (read 2026-09-17); Grok and Cursor list
+    # their models live through `list_cmd`, since what an account can use varies; Qwen takes
+    # a typed name; Kimi Code has no model switch the desk knows of.
     "codex": {"label": "Codex", "pays": "your ChatGPT subscription", "site": "https://openai.com/codex/", "signin": "codex login",
-              "model_flag": "-m", "models": []},
+              "model_flag": "-m", "models": [["gpt-6-astra", "GPT-6 Astra"], ["gpt-5.6-sol", "GPT-5.6 Sol"], ["gpt-5.6-terra", "GPT-5.6 Terra"],
+                                             ["gpt-5.6-luna", "GPT-5.6 Luna"], ["gpt-5.3-codex-spark", "GPT-5.3 Codex Spark"], ["gpt-5.5", "GPT-5.5"]]},
     "gemini": {"label": "Gemini CLI", "pays": "your Google account", "site": "https://github.com/google-gemini/gemini-cli", "signin": "gemini",
-               "model_flag": "-m", "models": []},
+               "model_flag": "-m", "models": [["gemini-3-pro-preview", "Gemini 3 Pro"], ["gemini-3-flash-preview", "Gemini 3 Flash"],
+                                              ["gemini-2.5-pro", "Gemini 2.5 Pro"], ["gemini-2.5-flash", "Gemini 2.5 Flash"]]},
     "kimi": {"label": "Kimi Code", "pays": "your Kimi account", "site": "https://www.kimi.com/code", "signin": "kimi"},
     "grok": {"label": "Grok Build", "pays": "your xAI account", "site": "https://x.ai/build", "signin": "grok",
-             "model_flag": "-m", "models": []},
+             "model_flag": "-m", "models": [], "list_cmd": ["models"]},
     "qwen": {"label": "Qwen Code", "pays": "your Qwen account", "site": "https://qwen.ai/qwencode", "signin": "qwen",
              "model_flag": "-m", "models": []},
     "cursor-agent": {"label": "Cursor", "pays": "your Cursor subscription", "site": "https://cursor.com/docs/cli/overview",
-                     "signin": "cursor-agent login", "model_flag": "--model", "models": []},
+                     "signin": "cursor-agent login", "model_flag": "--model", "models": [], "list_cmd": ["--list-models"]},
 }
+
+_model_lists = {}     # app -> (at, rows): what the app itself says it can run, read once an hour
+
+
+def app_models(key, path):
+    """The models an app offers: the maker's list, plus what the app itself lists when it has
+    a command for that (Grok `models`, Cursor `--list-models`), read from this computer."""
+    a = APPS.get(key, {})
+    rows = list(a.get("models", []))
+    if not a.get("list_cmd") or not path:
+        return rows
+    hit = _model_lists.get(key)
+    if hit and time.time() - hit[0] < 3600:
+        live = hit[1]
+    else:
+        live = []
+        try:
+            r = subprocess.run([path] + a["list_cmd"], capture_output=True, text=True, timeout=20)
+            for line in (r.stdout or "").splitlines():
+                m = re.match(r"^\s*[*\-]?\s*([A-Za-z][A-Za-z0-9._:/-]{2,60})(\s+\(default\))?\s*$", line)
+                if m and ("." in m.group(1) or "-" in m.group(1)):
+                    live.append(m.group(1))
+        except (subprocess.TimeoutExpired, OSError):
+            live = []
+        _model_lists[key] = (time.time(), live)
+    have = {r[0] for r in rows}
+    return rows + [[m, m] for m in live if m not in have]
 
 
 def doors():
@@ -184,7 +216,7 @@ def doors():
                         "pays": app.get("pays", ""), "site": app.get("site", ""), "signin": app.get("signin", ""),
                         "ready": bool(c["found"]), "via": c["label"], "app": os.path.basename(c["command"][0]),
                         "build": bool(c.get("build")), "web": c.get("web") is not None, "model_flag": app.get("model_flag", ""),
-                        "models": app.get("models", [])})
+                        "models": app_models(os.path.basename(c["command"][0]), c.get("path")) if c["found"] else app.get("models", [])})
     return out
 
 

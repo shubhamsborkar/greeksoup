@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.60. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.61. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.61
+
+*16 September 2026, release 61.* Models for every app in the Ask box. Codex offers GPT-6 Astra, GPT-5.6 Sol, Terra and Luna, GPT-5.3 Codex Spark and GPT-5.5 (OpenAI's own list); Gemini CLI offers Gemini 3 Pro and Flash and 2.5 Pro and Flash; Grok Build and Cursor list what your account can run by asking the app itself, read once an hour; Qwen Code takes a typed name; Kimi Code has no model switch and says so. Claude Code's list is unchanged.
 
 ## 2026-09-16.60
 
