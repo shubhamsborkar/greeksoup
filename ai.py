@@ -12,6 +12,7 @@ screen they are on and shows the answer. Nothing here places an order or reads
 a key back.
 """
 
+import base64
 import os
 
 import requests
@@ -192,7 +193,28 @@ WEB_LINE = ("You may also search the web for what the desk does not hold: filing
             "carries its source as a link, and a figure you could not verify is said to be unverified.")
 
 
-def door_prompt(question, screen, context, profile="", history=None, desk_map="", web=False):
+def pictures_text(pictures):
+    """The reader's pictures on the subject, for an app that can open files on this computer."""
+    if not pictures:
+        return ""
+    lines = [f"- {p['path']}  ({p['title']}" + (f", {p['period']}" if p.get("period") else "") + (f", kept {p['updated']}" if p.get("updated") else "") + ")" for p in pictures]
+    return ("\n\nTHE READER'S PICTURES ON THIS SUBJECT (chart clippings and screenshots they kept in their notes; open and look at each file before answering, and quote it by its title)\n" + "\n".join(lines))
+
+
+def _image_block(p, fmt):
+    """One picture as the provider's own image block, or None when the file cannot be read."""
+    try:
+        with open(p["path"], "rb") as fh:
+            data = base64.b64encode(fh.read()).decode("ascii")
+    except OSError:
+        return None
+    mt = p.get("media_type") or "image/png"
+    if fmt == "anthropic":
+        return {"type": "image", "source": {"type": "base64", "media_type": mt, "data": data}}
+    return {"type": "image_url", "image_url": {"url": f"data:{mt};base64,{data}"}}
+
+
+def door_prompt(question, screen, context, profile="", history=None, desk_map="", web=False, pictures=None):
     """The same brief the Ask box gives a provider, as one text for a door: a command on the
     reader's computer (their coding agent) that reads standard input and answers on standard output."""
     text = ASK_SYSTEM + "\n\nSCREEN: " + screen
@@ -201,6 +223,7 @@ def door_prompt(question, screen, context, profile="", history=None, desk_map=""
     if desk_map:
         text += "\n\nTHE WHOLE DESK (address, screen, what it holds)\n" + desk_map
     text += "\n\nTHE DATA (this screen first, then the screens the question points at)\n" + context
+    text += pictures_text(pictures)
     turns = [m for m in (history or []) if m.get("role") in ("user", "assistant") and isinstance(m.get("content"), str)][-6:]
     if turns:
         text += "\n\nTHE CONVERSATION SO FAR\n" + "\n".join(f"{m['role'].upper()}: {m['content']}" for m in turns)
@@ -222,7 +245,7 @@ def build_prompt(request, screen, agent_page, history=None):
     return text
 
 
-def ask(question, screen, context, profile="", history=None, s=None, desk_map="", web=False):
+def ask(question, screen, context, profile="", history=None, s=None, desk_map="", web=False, pictures=None):
     """The Ask box. `context` is the screen's data as text; `history` the last few
     turns as [{'role','content'}]. Returns {'ok', 'answer'} or {'ok': False, 'error'}."""
     system = ASK_SYSTEM + ("\n\n" + WEB_LINE if web else "") + "\n\nSCREEN: " + screen
@@ -232,7 +255,20 @@ def ask(question, screen, context, profile="", history=None, s=None, desk_map=""
         system += "\n\nTHE WHOLE DESK (address, screen, what it holds)\n" + desk_map
     system += "\n\nTHE DATA (this screen first, then the screens the question points at)\n" + context
     messages = [m for m in (history or []) if m.get("role") in ("user", "assistant") and isinstance(m.get("content"), str)][-6:]
-    messages.append({"role": "user", "content": question})
+    s = s or settings()
+    blocks = []
+    for p in (pictures or []):
+        # the reader's own chart pictures go in as pictures, each named so the answer can quote it
+        b = _image_block(p, s["format"])
+        if b:
+            blocks.append({"type": "text", "text": f"The reader's picture: {p['title']}" + (f" ({p['period']})" if p.get("period") else "")})
+            blocks.append(b)
+    if blocks:
+        system += "\n\nTHE READER'S PICTURES ON THIS SUBJECT are attached to the question (chart clippings and screenshots they kept in their notes); look at each, and quote it by its title."
+        blocks.append({"type": "text", "text": question})
+        messages.append({"role": "user", "content": blocks})
+    else:
+        messages.append({"role": "user", "content": question})
     out = complete(messages, system=system, max_tokens=2000 if web else 1200, timeout=240 if web else 120, s=s, web=web)
     if not out["ok"]:
         return out

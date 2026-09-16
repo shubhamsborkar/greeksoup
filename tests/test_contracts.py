@@ -1085,3 +1085,39 @@ def test_ticker_falls_through_to_the_free_feed_match(monkeypatch):
     out = server.cached_ticker("ZZZZ", "us")
     assert out["error"] and "us:ZZZZ" not in server._ticker_cache
     server._ticker_cache.clear()
+
+
+def test_chart_pictures_reach_the_ask_box(tmp_path, monkeypatch):
+    """A chart saved to notes is a clipping with a picture; the Ask box on that name gets it as a
+    picture (a key: an image block on the question; an app: the file's path in the brief), the
+    picture is not read as text, and a picture on another name stays out."""
+    import ai as desk_ai
+    import notes as desk_notes
+    keep = desk_notes.RESEARCH_DIR
+    desk_notes._point_at(str(tmp_path / "data" / "research"))
+    png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+    rel = desk_notes.store_file("AAPL-chart-2026-09-17.png", png, "AAPL")
+    desk_notes.save({"title": "AAPL chart · 2026-09-17", "type": "clipping", "symbols": ["AAPL"], "period": "Q3 2026", "file": rel, "body": "The desk's own chart."})
+    other = desk_notes.store_file("MSFT-chart.png", png, "MSFT")
+    desk_notes.save({"title": "MSFT chart", "type": "clipping", "symbols": ["MSFT"], "file": other})
+    pics = desk_notes.pictures(symbol="AAPL")
+    assert [p["title"] for p in pics] == ["AAPL chart · 2026-09-17"] and pics[0]["period"] == "Q3 2026"
+    assert os.path.isfile(pics[0]["path"]) and pics[0]["media_type"] == "image/png"
+    ctx = desk_notes.context(symbol="AAPL")
+    assert ctx["pictures"] and ctx["pictures"][0]["file"] == rel and not ctx["documents"]     # a picture is never a text document
+    seen = {}
+    monkeypatch.setattr(desk_ai, "complete", lambda messages, system=None, **kw: seen.update(messages=messages, system=system) or {"ok": True, "text": "looked"})
+    s = {"format": "anthropic", "model": "m", "key": "k", "base_url": "http://x"}
+    out = desk_ai.ask("what does the chart show", "Ticker AAPL", "{}", s=s, pictures=pics)
+    assert out["ok"] and out["answer"] == "looked"
+    blocks = seen["messages"][-1]["content"]
+    assert isinstance(blocks, list) and blocks[-1] == {"type": "text", "text": "what does the chart show"}
+    assert any(b.get("type") == "image" and b["source"]["media_type"] == "image/png" for b in blocks)
+    assert "AAPL chart · 2026-09-17" in json.dumps(blocks, ensure_ascii=False) and "PICTURES" in seen["system"]
+    s["format"] = "openai"
+    desk_ai.ask("q", "Ticker AAPL", "{}", s=s, pictures=pics)
+    assert any(b.get("type") == "image_url" and b["image_url"]["url"].startswith("data:image/png;base64,") for b in seen["messages"][-1]["content"])
+    text = desk_ai.door_prompt("q", "Ticker AAPL", "{}", pictures=pics)
+    assert pics[0]["path"] in text and "open and look at each file" in text
+    assert "PICTURES" not in desk_ai.door_prompt("q", "Ticker AAPL", "{}")
+    desk_notes._point_at(keep)

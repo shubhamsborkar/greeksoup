@@ -4236,18 +4236,22 @@ class Handler(BaseHTTPRequestHandler):
         label, context, used = ask_context(page, body.get("query") or {}, question)
         desk_map = _desk_map_text()
         web = mode == "web"
+        # on a listing's page the pictures the reader kept on it (chart clippings, screenshots) go
+        # along: as pictures to a key, as files on this computer to an app
+        qsym = re.sub(r"[^A-Za-z0-9.^=-]", "", str((body.get("query") or {}).get("symbol", "") if isinstance(body.get("query"), dict) else ""))[:40]
+        pictures = desk_notes.pictures(symbol=qsym) if page == "/t" and qsym else []
         def _ask(ctx):
             if door:
                 # a door: the same brief, handed to a command on this computer (the reader's coding agent);
                 # with the web too, the app's own search flags go on and the brief says to cite
-                o = desk_plugins.run_door(door, desk_ai.door_prompt(question, label, ctx, desk_settings.profile_text(), history, desk_map, web=web),
+                o = desk_plugins.run_door(door, desk_ai.door_prompt(question, label, ctx, desk_settings.profile_text(), history, desk_map, web=web, pictures=pictures),
                                           mode="web" if web else "research", timeout=480 if web else 240, model=model, ask_id=ask_id)
                 o["model"] = o.pop("via", door)
             else:
                 s = desk_ai.settings()
                 if model:
                     s["model"] = model     # the model the reader picked in the box, over the one on Settings
-                o = desk_ai.ask(question, label, ctx, desk_settings.profile_text(), history, s=s, desk_map=desk_map, web=web)
+                o = desk_ai.ask(question, label, ctx, desk_settings.profile_text(), history, s=s, desk_map=desk_map, web=web, pictures=pictures)
                 o["model"] = s["model"]
             return o
         out = _ask(context)
@@ -4259,7 +4263,7 @@ class Handler(BaseHTTPRequestHandler):
             used += used2
         if out.get("ok") and re.match(r"^\s*NEED:", out.get("answer", "")):
             out["answer"] = "I would need " + out["answer"].strip()[5:].strip() + " for that, and could not read it this time. Try the question once more, or ask on that screen."
-        out["read"] = used + (["the web"] if web and out.get("ok") else [])
+        out["read"] = used + ([f"{len(pictures)} picture{'s' if len(pictures) != 1 else ''} from your notes"] if pictures and out.get("ok") else []) + (["the web"] if web and out.get("ok") else [])
         out["screen"] = label
         return self._send(json.dumps(out).encode(), "application/json")
 

@@ -758,8 +758,8 @@ def context(symbol=None, kind=None, about=None, budget=50000):
                               "updated": n["updated"], "text": cut + ("…" if len(cut) < len(body) else "")})
             left -= len(cut)
     for r in rows:
-        if not r["file"] or left <= 0:
-            continue
+        if not r["file"] or left <= 0 or os.path.splitext(r["file"])[1].lower() in IMAGE_EXT:
+            continue      # pictures go to the model as pictures (see pictures()), not as text
         d = text_of(r["file"])
         if not d or not d.get("chars"):
             docs_out.append({"title": r["title"], "file": r["file"], "period": r["period"],
@@ -770,9 +770,29 @@ def context(symbol=None, kind=None, about=None, budget=50000):
                          "text": cut + ("…" if len(cut) < d["chars"] else "")})
         left -= len(cut)
     st = status_all().get((symbol or "").upper()) if symbol else None
-    return {"subject": symbol or about or kind or "", "notes": notes_out, "documents": docs_out,
+    pics = [{k: p[k] for k in ("title", "period", "updated", "file")} for p in pictures(symbol=symbol, kind=kind, about=about)]
+    return {"subject": symbol or about or kind or "", "notes": notes_out, "documents": docs_out, "pictures": pics,
             "status": ({"status": st["status"], "since": st.get("since", "")} if st and st.get("status") else None),
             "note": "the reader's own notes and files about this subject, from their research vault; quote the note or file by title"}
+
+
+def pictures(symbol=None, kind=None, about=None, limit=4):
+    """The pictures the reader kept on a subject (chart clippings, screenshots), newest first,
+    for the Ask box to look at: title, period, and where the file is on this computer."""
+    out = []
+    for r in listing(symbol=symbol, kind=kind, about=about):
+        rel = r.get("file") or ""
+        if os.path.splitext(rel)[1].lower() not in IMAGE_EXT or not r.get("file_ok"):
+            continue
+        full = file_path(rel)
+        if not full or not os.path.isfile(full) or os.path.getsize(full) > 5 * 1024 * 1024:
+            continue
+        out.append({"title": r["title"], "period": r.get("period") or "", "updated": r.get("updated") or "",
+                    "file": rel, "path": full,
+                    "media_type": {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp"}.get(os.path.splitext(rel)[1].lower(), "image/png")})
+        if len(out) >= limit:
+            break
+    return out
 
 
 # ---- status on a name: watchlist, researching, thesis built, invested, exited. Two of the

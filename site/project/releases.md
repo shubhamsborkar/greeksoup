@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.67. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.68. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.68
+
+*16 September 2026, release 68.* The Ask box looks at the reader's chart pictures. On a listing's page the pictures kept in the notes on that name (the charts saved from the Price panel, screenshots attached to a note) go along with the question: to a key as pictures on the question, to an app on this computer as files it opens before answering; up to four, newest first, each named so the answer quotes it by title. The line under the answer says how many pictures were read.
 
 ## 2026-09-16.67
 
