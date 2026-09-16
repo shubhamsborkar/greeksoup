@@ -104,8 +104,12 @@ def _read(name, folder=None):
             if isinstance(c, dict) and isinstance(c.get("command"), list) and c["command"] and all(isinstance(x, str) for x in c["command"]):
                 found = _which(c["command"][0])
                 build = c.get("build") if isinstance(c.get("build"), list) and all(isinstance(x, str) for x in c.get("build")) else []
+                # "web": the flags that let the app search the web (an empty list: it searches
+                # without a flag); no key at all: the desk does not know how, so the box greys it
+                web = c.get("web") if isinstance(c.get("web"), list) and all(isinstance(x, str) for x in c.get("web")) else None
                 cmds.append({"label": str(c.get("label") or c["command"][0])[:40], "command": c["command"][:12], "found": bool(found), "path": found or "",
-                             "prompt": "arg" if c.get("prompt") == "arg" else "stdin", "build": build[:6]})
+                             "prompt": "arg" if c.get("prompt") == "arg" else "stdin", "build": build[:6],
+                             "web": web[:6] if web is not None else None})
         out["door"] = {"label": str(door.get("label") or out["label"])[:40], "commands": cmds,
                        "ready": next((c for c in cmds if c["found"]), None)}
         out["adds"].append("a door")
@@ -179,7 +183,7 @@ def doors():
             out.append({"name": f"{p['name']}:{i}", "plugin": p["name"], "label": app.get("label") or c["label"],
                         "pays": app.get("pays", ""), "site": app.get("site", ""), "signin": app.get("signin", ""),
                         "ready": bool(c["found"]), "via": c["label"], "app": os.path.basename(c["command"][0]),
-                        "build": bool(c.get("build")), "model_flag": app.get("model_flag", ""),
+                        "build": bool(c.get("build")), "web": c.get("web") is not None, "model_flag": app.get("model_flag", ""),
                         "models": app.get("models", [])})
     return out
 
@@ -411,6 +415,10 @@ def run_door(name, prompt, timeout=240, mode="research", model="", ask_id=""):
         if not ready.get("build"):
             return {"ok": False, "error": f"{ready['label']} answers questions here but the desk does not know how to let it edit files yet; pick Claude Code, Codex, Gemini CLI or Qwen Code for Build, or ask on Settings for it to be added."}
         cmd = [cmd[0]] + list(ready["build"]) + cmd[1:]
+    elif mode == "web":
+        if ready.get("web") is None:
+            return {"ok": False, "error": f"The desk does not know how to let {ready['label']} search the web; Claude Code, Codex and Gemini CLI can. Or pick Research, which reads the desk alone."}
+        cmd = [cmd[0]] + list(ready["web"]) + cmd[1:]
     # Most apps read the question on standard input; an app whose command says
     # "prompt": "arg" takes it as its last argument instead (Kimi Code has no stdin mode).
     as_arg = ready.get("prompt") == "arg"

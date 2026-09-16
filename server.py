@@ -3281,6 +3281,8 @@ def ask_ready():
     return {"ready": why is None, "why": why, "provider": s["provider"],
             "label": desk_ai.PROVIDERS.get(s["provider"], {}).get("label", ""), "model": s["model"],
             "doors": doors, "default_door": default_door,
+            "web": desk_ai.web_ready(s) is None if why is None else False,
+            "web_why": desk_ai.web_ready(s) if why is None else "",
             # the names the box offers for the key on Settings: Anthropic's own list when that is the
             # provider; any other provider takes the name typed, as the provider's page spells it
             "models": desk_plugins.APPS["claude"]["models"] if s["provider"] == "anthropic" else []}
@@ -3325,7 +3327,8 @@ def ask_thread_save(body):
     """The whole thread as the box holds it: id (new when empty), title, screen, msgs."""
     tid = re.sub(r"[^a-z0-9]", "", str(body.get("id", "")))[:24] or f"{int(time.time() * 1000):x}"
     msgs = [{"role": m.get("role"), "content": str(m.get("content", ""))[:20000], "model": str(m.get("model", ""))[:80],
-             "read": [str(x)[:80] for x in (m.get("read") or [])][:20]}
+             "read": [str(x)[:80] for x in (m.get("read") or [])][:20],
+             "sources": [{"url": str(x.get("url", ""))[:400], "title": str(x.get("title", ""))[:200]} for x in (m.get("sources") or []) if isinstance(x, dict)][:20]}
             for m in (body.get("msgs") or []) if isinstance(m, dict) and m.get("role") in ("user", "assistant")][:200]
     row = {"id": tid, "title": str(body.get("title", ""))[:120], "screen": str(body.get("screen", ""))[:80],
            "at": datetime.now().strftime("%Y-%m-%d %H:%M"), "msgs": msgs}
@@ -4166,7 +4169,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(json.dumps({"ok": False, "error": rd["why"], "settings": True}).encode(), "application/json")
         page = str(body.get("page", "/"))
         history = body.get("history") if isinstance(body.get("history"), list) else []
-        mode = "build" if str(body.get("mode", "")) == "build" else "research"
+        mode = str(body.get("mode", "")) if str(body.get("mode", "")) in ("build", "web") else "research"
         model = str(body.get("model", "") or "").strip()[:80]
         ask_id = re.sub(r"[^a-z0-9]", "", str(body.get("id", "")))[:24]
         if mode == "build":
@@ -4184,16 +4187,19 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(json.dumps(out).encode(), "application/json")
         label, context, used = ask_context(page, body.get("query") or {}, question)
         desk_map = _desk_map_text()
+        web = mode == "web"
         def _ask(ctx):
             if door:
-                # a door: the same brief, handed to a command on this computer (the reader's coding agent)
-                o = desk_plugins.run_door(door, desk_ai.door_prompt(question, label, ctx, desk_settings.profile_text(), history, desk_map), model=model, ask_id=ask_id)
+                # a door: the same brief, handed to a command on this computer (the reader's coding agent);
+                # with the web too, the app's own search flags go on and the brief says to cite
+                o = desk_plugins.run_door(door, desk_ai.door_prompt(question, label, ctx, desk_settings.profile_text(), history, desk_map, web=web),
+                                          mode="web" if web else "research", timeout=480 if web else 240, model=model, ask_id=ask_id)
                 o["model"] = o.pop("via", door)
             else:
                 s = desk_ai.settings()
                 if model:
                     s["model"] = model     # the model the reader picked in the box, over the one on Settings
-                o = desk_ai.ask(question, label, ctx, desk_settings.profile_text(), history, s=s, desk_map=desk_map)
+                o = desk_ai.ask(question, label, ctx, desk_settings.profile_text(), history, s=s, desk_map=desk_map, web=web)
                 o["model"] = s["model"]
             return o
         out = _ask(context)
@@ -4205,7 +4211,7 @@ class Handler(BaseHTTPRequestHandler):
             used += used2
         if out.get("ok") and re.match(r"^\s*NEED:", out.get("answer", "")):
             out["answer"] = "I would need " + out["answer"].strip()[5:].strip() + " for that, and could not read it this time. Try the question once more, or ask on that screen."
-        out["read"] = used
+        out["read"] = used + (["the web"] if web and out.get("ok") else [])
         out["screen"] = label
         return self._send(json.dumps(out).encode(), "application/json")
 

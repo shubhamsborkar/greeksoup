@@ -75,7 +75,7 @@ def _err(r):
     return (r.text or "").strip()[:240] or f"answered {r.status_code}"
 
 
-def _anthropic(s, messages, system=None, max_tokens=16, bearer=False, timeout=45):
+def _anthropic(s, messages, system=None, max_tokens=16, bearer=False, timeout=45, web=False):
     headers = {"anthropic-version": "2023-06-01", "content-type": "application/json"}
     if s["key"]:
         if bearer:
@@ -85,7 +85,19 @@ def _anthropic(s, messages, system=None, max_tokens=16, bearer=False, timeout=45
     body = {"model": s["model"], "max_tokens": max_tokens, "messages": messages}
     if system:
         body["system"] = system
+    if web:
+        # Anthropic's own web search, run on their side; the answer carries citations
+        body["tools"] = [{"type": "web_search_20260209", "name": "web_search", "max_uses": 6}]
     return requests.post(s["base_url"].rstrip("/") + "/v1/messages", headers=headers, json=body, timeout=timeout)
+
+
+def web_ready(s=None):
+    """Whether the key on Settings can search the web through the way the desk speaks to it:
+    Anthropic's own endpoint has a search tool; the common way has none. Words when it cannot."""
+    s = s or settings()
+    if s["format"] == "anthropic" and "anthropic.com" in (s.get("base_url") or ""):
+        return None
+    return f"{PROVIDERS.get(s['provider'], {}).get('label') or 'This provider'} cannot search the web through the desk; an app on this computer (Claude Code, Codex, Gemini CLI) or an Anthropic key can."
 
 
 def _openai(s, messages, system=None, max_tokens=None, timeout=60):
@@ -112,25 +124,38 @@ def not_ready(s):
     return None
 
 
-def complete(messages, system=None, max_tokens=16, timeout=60, s=None):
+def complete(messages, system=None, max_tokens=16, timeout=60, s=None, web=False):
     """One request in whichever shape the endpoint speaks.
     {'ok': True, 'text': ...} or {'ok': False, 'error': words}."""
     s = s or settings()
     why = not_ready(s)
     if why:
         return {"ok": False, "error": why}
+    if web:
+        why = web_ready(s)
+        if why:
+            return {"ok": False, "error": why}
     try:
         if s["format"] == "anthropic":
-            r = _anthropic(s, messages, system, max_tokens, timeout=timeout)
+            r = _anthropic(s, messages, system, max_tokens, timeout=timeout, web=web)
             if r.status_code == 401 and s["key"]:
-                r = _anthropic(s, messages, system, max_tokens, bearer=True, timeout=timeout)   # a few compatible endpoints want Bearer
+                r = _anthropic(s, messages, system, max_tokens, bearer=True, timeout=timeout, web=web)   # a few compatible endpoints want Bearer
             if r.status_code != 200:
                 return {"ok": False, "error": _err(r)}
             j = r.json()
             if j.get("stop_reason") == "refusal":
                 return {"ok": True, "text": "", "refused": True}
-            text = " ".join(b.get("text", "") for b in j.get("content", []) if b.get("type") == "text").strip()
-            return {"ok": True, "text": text}
+            blocks = [b for b in j.get("content", []) if b.get("type") == "text"]
+            text = " ".join(b.get("text", "") for b in blocks).strip()
+            # the pages the search read, as the answer cites them
+            seen, sources = set(), []
+            for b in blocks:
+                for c in b.get("citations") or []:
+                    u = c.get("url")
+                    if u and u not in seen:
+                        seen.add(u)
+                        sources.append({"url": u, "title": c.get("title") or u})
+            return {"ok": True, "text": text, "sources": sources}
         r = _openai(s, messages, system, max_tokens if max_tokens > 16 else None, timeout=timeout)
         if r.status_code != 200:
             return {"ok": False, "error": _err(r)}
@@ -162,7 +187,12 @@ Answer from those numbers, in plain words, in a few short paragraphs. When you u
 BUILD_SYSTEM = """You are SuperAnalyst, working inside GreekSoup, the one-person equity research desk, which runs from the folder you are in on the reader's own computer. The reader has switched you from Research to Build: they are asking you to change the desk itself, and you may read and edit files in this folder to do it. The rules: change only what the reader asked for, and say plainly what you changed, file by file, when you are done; the folder data/ holds the reader's own book, watchlists, keys and research vault, never delete or rewrite those beyond the edit asked for; never send anything outside this computer, never touch a broker, and never place an order; if a Python file changed, say that the desk needs a restart to pick it up. If the request is unclear or would reach outside this folder, say so and stop instead of guessing. What the desk is and how it is laid out follows."""
 
 
-def door_prompt(question, screen, context, profile="", history=None, desk_map=""):
+WEB_LINE = ("You may also search the web for what the desk does not hold: filings, news, the company's own pages, "
+            "the regulator's record. The desk's numbers come first and are named as such; every fact from the web "
+            "carries its source as a link, and a figure you could not verify is said to be unverified.")
+
+
+def door_prompt(question, screen, context, profile="", history=None, desk_map="", web=False):
     """The same brief the Ask box gives a provider, as one text for a door: a command on the
     reader's computer (their coding agent) that reads standard input and answers on standard output."""
     text = ASK_SYSTEM + "\n\nSCREEN: " + screen
@@ -174,7 +204,10 @@ def door_prompt(question, screen, context, profile="", history=None, desk_map=""
     turns = [m for m in (history or []) if m.get("role") in ("user", "assistant") and isinstance(m.get("content"), str)][-6:]
     if turns:
         text += "\n\nTHE CONVERSATION SO FAR\n" + "\n".join(f"{m['role'].upper()}: {m['content']}" for m in turns)
-    text += "\n\nTHE QUESTION\n" + question + "\n\nAnswer the question in plain words, a few short paragraphs, and nothing else (or the one NEED line, if a screen you were not handed is needed). Do not run commands, edit files or ask for permissions; answer from the data above, and say plainly when the data does not carry the answer."
+    if web:
+        text += "\n\nTHE QUESTION\n" + question + "\n\n" + WEB_LINE + " Answer in plain words, a few short paragraphs, and nothing else (or the one NEED line, if a screen you were not handed is needed). Do not edit files; search and read, then answer."
+    else:
+        text += "\n\nTHE QUESTION\n" + question + "\n\nAnswer the question in plain words, a few short paragraphs, and nothing else (or the one NEED line, if a screen you were not handed is needed). Do not run commands, edit files or ask for permissions; answer from the data above, and say plainly when the data does not carry the answer."
     return text
 
 
@@ -189,10 +222,10 @@ def build_prompt(request, screen, agent_page, history=None):
     return text
 
 
-def ask(question, screen, context, profile="", history=None, s=None, desk_map=""):
+def ask(question, screen, context, profile="", history=None, s=None, desk_map="", web=False):
     """The Ask box. `context` is the screen's data as text; `history` the last few
     turns as [{'role','content'}]. Returns {'ok', 'answer'} or {'ok': False, 'error'}."""
-    system = ASK_SYSTEM + "\n\nSCREEN: " + screen
+    system = ASK_SYSTEM + ("\n\n" + WEB_LINE if web else "") + "\n\nSCREEN: " + screen
     if profile:
         system += "\n\nHOW THIS READER INVESTS (from their Settings screen; shape answers to it)\n" + profile
     if desk_map:
@@ -200,9 +233,9 @@ def ask(question, screen, context, profile="", history=None, s=None, desk_map=""
     system += "\n\nTHE DATA (this screen first, then the screens the question points at)\n" + context
     messages = [m for m in (history or []) if m.get("role") in ("user", "assistant") and isinstance(m.get("content"), str)][-6:]
     messages.append({"role": "user", "content": question})
-    out = complete(messages, system=system, max_tokens=1200, timeout=120, s=s)
+    out = complete(messages, system=system, max_tokens=2000 if web else 1200, timeout=240 if web else 120, s=s, web=web)
     if not out["ok"]:
         return out
     if out.get("refused"):
         return {"ok": True, "answer": "The model declined to answer that one."}
-    return {"ok": True, "answer": out["text"] or "(the model sent an empty answer)"}
+    return {"ok": True, "answer": out["text"] or "(the model sent an empty answer)", "sources": out.get("sources") or []}

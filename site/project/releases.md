@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.58. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.59. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.59
+
+*16 September 2026, release 59.* SuperAnalyst can research the web too. A third choice in the Ask box's scope picker: Research the web too. The desk's own screens still go first; then the app or model searches the web for what they do not hold (a filing outside the desk's window, a company page, a regulator's record) and cites every page it read, links and all; a figure it could not verify is said to be unverified. It works through Claude Code, Codex and Gemini CLI on this computer, and through an Anthropic key on Settings; an app or key that cannot search is named as such when picked. Answers now show links and bold as the app wrote them, and the pages read are kept with the conversation.
 
 ## 2026-09-16.58
 

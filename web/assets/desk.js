@@ -748,7 +748,7 @@
       '<select id="askmodel" title="Which model answers. The first choice is the app\'s own default; the last lets you type a name the app accepts."></select>' +
       '<input id="askmodelin" placeholder="model name, as the app spells it" hidden></div>' +
       '<div class="arow"><select id="askmode" title="Research reads the desk and changes nothing. Build asks the app on this computer to change the desk itself.">' +
-      '<option value="research">Research · reads the desk, changes nothing</option><option value="build">Build · changes this desk through the app above</option></select>' +
+      '<option value="research">Research · reads the desk, changes nothing</option><option value="web">Research the web too · the desk first, then the web, with sources</option><option value="build">Build · changes this desk through the app above</option></select>' +
       '<select id="askthread" title="Your conversations, kept on this desk. Pick one to reopen it."></select>' +
       '<button class="ax at" id="asknew" title="New conversation">+</button>' +
       '<button class="ax at" id="askdel" title="Delete this conversation">' + svg(HIDE_ICON) + '</button></div></div>' +
@@ -787,12 +787,19 @@
     window.addEventListener("resize", () => apply(frac));
     // Research or Build: Build only through an app on this computer, and the box says so
     const mode = document.getElementById("askmode");
-    try { mode.value = store.getItem("ask_mode") === "build" ? "build" : "research"; } catch (e) { /* fine */ }
+    try { mode.value = ["build", "web"].includes(store.getItem("ask_mode")) ? store.getItem("ask_mode") : "research"; } catch (e) { /* fine */ }
     mode.onchange = () => {
       try { store.setItem("ask_mode", mode.value); } catch (e) { /* fine */ }
       el.classList.toggle("build", mode.value === "build");
       const ta = document.getElementById("askin");
       ta.placeholder = mode.value === "build" ? "What to change on the desk. The app edits this desk's own files as you ask and says what it changed." : "Ask about what is on this screen. Enter sends, Shift+Enter for a new line.";
+      if (mode.value === "web") {
+        const via = document.getElementById("askvia");
+        const d = askDoors.find(x => x.name === via.value);
+        const can = d ? d.web : askSt.web;
+        askNote(can ? `<p><b>Research the web too.</b> The desk's own screens go first, then ${d ? esc(d.label) : "the model"} searches the web for what they do not hold and cites every page it read. A figure it could not verify is said to be unverified. It takes longer.</p>`
+                    : `<p><b>Research the web too</b> needs an app that can search: Claude Code, Codex or Gemini CLI on this computer, or an Anthropic key on Settings. ${d ? esc(d.label) + " cannot yet." : esc(askSt.web_why || "")} Pick one of those above, or Research, which reads the desk alone.</p>`, "hint");
+      }
       if (mode.value === "build") {
         const via = document.getElementById("askvia");
         const d = askDoors.find(x => x.name === via.value);
@@ -863,13 +870,20 @@
     if (st.ready || askDoors.some(d => d.ready)) {
       const dd = askDoors.find(d => d.name === via.value);
       const who = dd ? `<b>${esc(dd.label)}</b> on this computer${dd.pays ? ", on " + esc(dd.pays) : ""}` : st.ready ? `<b>${esc(st.label || st.provider)}</b>, model <span class="mono">${esc(st.model)}</span>` : "the app you pick above";
-      askNote(`<p>SuperAnalyst is an AI. Ask anything: this screen's numbers go first, then the screens the question leads to (a name you mention, the short interest, the 13F holders, the calendar, your notes), all to ${who}, and nowhere else. The pickers above choose who answers and which model; Research or Build, whether it may change the desk. Every conversation is kept on this desk until you delete it. An answer worth keeping has a Save as note button under it.</p>`, "hint");
+      askNote(`<p>SuperAnalyst is an AI. Ask anything: this screen's numbers go first, then the screens the question leads to (a name you mention, the short interest, the 13F holders, the calendar, your notes), all to ${who}, and nowhere else. The pickers above choose who answers and which model; Research, Research the web too, or Build, what it may read and what it may change. Every conversation is kept on this desk until you delete it. An answer worth keeping has a Save as note button under it.</p>`, "hint");
     } else {
       askNote(`<p>SuperAnalyst is an AI, and nothing answers for it yet. ${esc(st.why || "")} Three ways: sign in to an app you already pay for (the greyed names in the picker above; <a href="/settings">Settings</a>, under Your AI, opens the sign-in), paste a key from any lab there, or run a model on this computer, which needs no key.</p>`, "hint");
     }
   }
   function askRenderAnswer(box, msg) {
-    box.innerHTML = msg.content.split(/\n{2,}/).map(p => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("") +
+    // links in the answer open as links (the web mode cites its pages that way)
+    // an app answers in light markdown: [title](url) and **bold** are the two shapes worth honouring
+    const linkify = t => esc(t)
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (m, a, u) => `<a href="${u}" target="_blank" rel="noopener">${a}</a>`)
+      .replace(/(^|[\s(])(https?:\/\/[^\s<)\]]+)/g, (m, pre, u) => `${pre}<a href="${u}" target="_blank" rel="noopener">${u}</a>`)
+      .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+    box.innerHTML = msg.content.split(/\n{2,}/).map(p => `<p>${linkify(p).replace(/\n/g, "<br>")}</p>`).join("") +
+      (msg.sources && msg.sources.length ? `<div class="rd">sources: ${msg.sources.map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title || x.url)}</a>`).join(" · ")}</div>` : "") +
       (msg.read && msg.read.length ? `<div class="rd">read ${msg.read.map(esc).join(" · ")} · ${esc(msg.model || "")}</div>` : "");
   }
   function askRenderThread() {
@@ -991,7 +1005,8 @@
     const qd = document.createElement("div"); qd.className = "q"; qd.textContent = question;
     const m = document.getElementById("askmsgs"); m.appendChild(qd);
     const building = (document.getElementById("askmode") || {}).value === "build";
-    const wait = askNote(`<p class="wait">${building ? "Working on the desk. This can take a few minutes…" : "Reading " + esc(label) + " and the screens the question points at, and asking…"} Stop ends it.</p>`);
+    const webbing = (document.getElementById("askmode") || {}).value === "web";
+    const wait = askNote(`<p class="wait">${building ? "Working on the desk. This can take a few minutes…" : "Reading " + esc(label) + " and the screens the question points at" + (webbing ? ", then the web" : "") + ", and asking…"} Stop ends it.</p>`);
     const history = askThread.msgs.map(x => ({ role: x.role, content: x.content })).slice(-6);
     askId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
     askAbort = new AbortController();
@@ -1005,7 +1020,7 @@
         wait.innerHTML = `<p>${esc(out.error || "The model did not answer.")}` +
           (out.settings ? ` Set it on <a href="/settings">Settings</a>, under Your AI.` : "") + `</p>`;
       } else {
-        const msg = { role: "assistant", content: out.answer, model: out.model || "", read: out.read || [] };
+        const msg = { role: "assistant", content: out.answer, model: out.model || "", read: out.read || [], sources: out.sources || [] };
         askRenderAnswer(wait, msg);
         askThread.msgs.push({ role: "user", content: question }, msg);
         offerSave(wait, question, out, query, label);
