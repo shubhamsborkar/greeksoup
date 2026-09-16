@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calendar · GreekSoup</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
+<link rel="stylesheet" href="/assets/desk.css">
+<script src="/assets/desk.js" defer></script>
+<style>
+main{max-width:1180px;margin:0 auto;padding:18px 22px}
+.sub{color:var(--muted);font-size:12px;margin-bottom:18px;line-height:1.5;max-width:900px}
+.sub b{color:var(--ink2)}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2);margin:26px 0 4px;display:flex;justify-content:space-between;align-items:baseline}
+h2:first-of-type{margin-top:0}
+h2 span{font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);text-align:left;font-weight:600;padding:8px 12px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 12px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+tr.day td{padding-top:14px;padding-bottom:4px;border-bottom:0;font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-weight:700}
+tr.day td small{color:var(--muted);letter-spacing:0;text-transform:none;font-weight:400;font-size:10.5px;margin-left:8px}
+td.d{font-family:Menlo,monospace;font-size:11.5px;color:var(--muted);white-space:nowrap;width:86px}
+td.n a{font-family:Menlo,monospace;font-weight:700;color:var(--ink);text-decoration:none} td.n a:hover{color:var(--accent)}
+td.n small{display:block;color:var(--muted);font-size:11px;margin-top:1px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td.w{color:var(--ink)} td.w small{display:block;color:var(--muted);font-size:11.5px;margin-top:1px}
+td.t{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);white-space:nowrap;text-align:right}
+td.t.held{color:var(--accent);font-weight:700}
+td.f a{color:var(--accent);text-decoration:none;font-size:12px;white-space:nowrap}
+.k{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;vertical-align:1px;background:var(--muted)}
+.k.results{background:var(--accent)} .k.ex_dividend,.k.dividend{background:var(--pos)} .k.filing{background:var(--ink2)}
+.empty{padding:18px 0;color:var(--muted);font-size:12.5px;line-height:1.6}
+.empty b{color:var(--ink2)}
+.foot{font-size:11.5px;color:var(--muted);line-height:1.6;padding:22px 0 0;max-width:900px}
+.foot b{color:var(--ink2);font-weight:600}
+.warn{color:var(--muted);font-size:11.5px;margin:6px 0 0}
+.imp{font-size:10px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap} .imp.High{color:var(--neg);font-weight:700} .imp.Medium{color:var(--ink2)}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">RESEARCH <span>DESK</span></div>
+  <nav></nav>
+  <div class="right"><span id="asof"></span></div>
+</header>
+<main>
+  <div class="sub" id="sub">Every dated event on every name you hold or watch, from the free record, kept fresh by the desk on its own.</div>
+  <div id="body"><div class="empty">Reading the calendar…</div></div>
+  <div class="foot"><b>Where it comes from.</b> Results dates and dividend dates from Yahoo's free summary for any exchange, with Nasdaq's own site as the second source for a US listing on the days Yahoo says too many requests; filings from the SEC's own index (EDGAR) for US listings; the home market's results calendar from its exchange where the desk has one; and the macro calendar when a data provider is connected. A results date is the company's own once it has announced it, and an estimate from past reporting dates until then; the row says which. The desk rereads all of it every six hours, and every fifteen minutes while any name could not be read, so nothing here needs a refresh from you. A results date also lands on Tasks by itself.</div>
+</main>
+<script>
+"use strict";
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+function longDate(d){ const [y,m,dd]=d.split("-").map(Number); const dt=new Date(y,m-1,dd); return `${DAYS[dt.getDay()]}, ${dd} ${MONTHS[m-1]} ${y}`; }
+function rel(d){ const t=new Date(); t.setHours(0,0,0,0); const [y,m,dd]=d.split("-").map(Number); const n=Math.round((new Date(y,m-1,dd)-t)/86400000); return n===0?"today":n===1?"tomorrow":n>1?`in ${n} days`:n===-1?"yesterday":`${-n} days ago`; }
+const tick=(sym)=>`<a href="/t?symbol=${encodeURIComponent(sym)}">${esc(sym)}</a>`;
+function rows(list,withDay){
+  let h="", last="";
+  for(const r of list){
+    if(withDay && r.date!==last){ h+=`<tr class="day"><td colspan="4">${longDate(r.date)}<small>${rel(r.date)}</small></td></tr>`; last=r.date; }
+    h+=`<tr>${withDay?"":`<td class="d">${esc(r.date)}</td>`}<td class="n">${tick(r.symbol)}${r.name?`<small>${esc(r.name)}</small>`:""}</td><td class="w"><span class="k ${esc(r.kind)}"></span>${esc(r.what)}${r.form?` · ${esc(r.form)}`:""}${r.detail?`<small>${esc(r.detail)}</small>`:""}</td>${r.url?`<td class="f"><a href="${esc(r.url)}" target="_blank" rel="noopener">open at the SEC</a></td>`:`<td class="t ${r.tag==="held"?"held":""}">${r.tag==="held"?"held":"watching"}</td>`}</tr>`;
+  }
+  return h;
+}
+async function load(){
+  let d; try{ d=await (await fetch("/api/calendar",{cache:"no-store"})).json(); }catch(e){ document.getElementById("body").innerHTML=`<div class="empty">The desk did not answer. Reload in a moment.</div>`; return; }
+  document.getElementById("asof").textContent=`read ${d.ts||""} · rereads itself every six hours`;
+  document.getElementById("sub").innerHTML=`Every dated event on the <b>${d.names} name${d.names===1?"":"s"}</b> you hold or watch (${d.held} held), from the free record, kept fresh by the desk on its own: results dates, dividend dates, and the filings that landed. A results date shows up on Tasks by itself.`;
+  const up=d.upcoming||[], la=d.landed||[], ma=d.macro||[];
+  let h=`<h2>The next ${d.ahead_days} days<span>${up.length} event${up.length===1?"":"s"}</span></h2>`;
+  h+=up.length?`<table><tbody>${rows(up,true)}</tbody></table>`:`<div class="empty">${d.names?"No results or dividend date inside the window on these names yet. The desk rereads the record on its own; a date appears here as soon as the feed carries it.":"No names yet. A line on <b>Desk · Book</b>, a broker connected on Settings, or a name on any watchlist puts it on this calendar."}</div>`;
+  if(d.failed&&d.failed.length) h+=`<div class="warn">Could not be read this time and will be retried within fifteen minutes: ${d.failed.map(esc).join(", ")}.</div>`;
+  h+=`<h2>Landed at the SEC, the last ${d.back_days} days<span>${la.length} filing${la.length===1?"":"s"} on US listings</span></h2>`;
+  h+=la.length?`<table><thead><tr><th>Filed</th><th>Name</th><th>What</th><th></th></tr></thead><tbody>${rows(la,false)}</tbody></table>`:`<div class="empty">Nothing landed on a US listing you hold or watch in the window.</div>`;
+  if(ma.length){ h+=`<h2>Macro<span>${ma.length} print${ma.length===1?"":"s"} ahead, high and medium impact</span></h2><table><thead><tr><th>Date</th><th>Country</th><th>Print</th><th>Expected</th><th>Previous</th></tr></thead><tbody>`+ma.map(r=>`<tr><td class="d">${esc(r.date)}${r.time?" "+esc(r.time):""}</td><td>${esc(r.country)}</td><td class="w">${esc(r.event)} <span class="imp ${esc(r.impact)}">${esc(r.impact)}</span></td><td class="d">${r.estimate??"—"}</td><td class="d">${r.previous??"—"}</td></tr>`).join("")+`</tbody></table>`; }
+  document.getElementById("body").innerHTML=h;
+}
+load(); setInterval(load,15*60*1000);
+</script>
+</body>
+</html>

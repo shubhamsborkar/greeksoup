@@ -49,7 +49,8 @@ import notes as desk_notes   # the research vault: notes and files in data/resea
 import plugins as desk_plugins   # folders in data/research/plugins that add a screen, blocks or a door
 import chains as desk_chains     # the reader's own value chains in data/research/chains, starters beside the code
 import migrate as desk_migrate   # reader-owned files carry a format number; an update brings them up, a copy kept aside
-import lists as desk_lists       # the reader's own lists (funds, members, macro series, commodities, the tape) in the vault, starters beside the code
+import lists as desk_lists
+import calendar_desk                 # the Calendar: results, dividends, filings on every name held or watched, from the free record       # the reader's own lists (funds, members, macro series, commodities, the tape) in the vault, starters beside the code
 
 PORT = int(os.getenv("DESK_PORT", "8765"))
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -96,7 +97,7 @@ _cache = {"snap": (0.0, None), "tape": (0.0, None),
           "pulse": (0.0, None), "insiders": (0.0, None),
           "risk": (0.0, None), "act13d": (0.0, None), "flow": (0.0, None),
           "short": (0.0, None), "commods": (0.0, None), "chain": (0.0, None),
-          "book": (0.0, None)}
+          "book": (0.0, None), "calendar": (0.0, None)}
 _locks = {k: threading.Lock() for k in _cache}
 EARN_TTL, MACRO_TTL, FUNDS_TTL, CAPITOL_TTL = 12 * 3600, 6 * 3600, 24 * 3600, 6 * 3600
 COMMODS_TTL = 10 * 60   # Yahoo tail + TE sentence refresh; histories cache 12h inside
@@ -460,15 +461,67 @@ def note_moment(note):
 
 
 def calendar_rows():
-    """Results dates the desk already holds (the US earnings countdown and the home market's
-    calendar), from the cache only: tasks never wait on a feed."""
+    """Results dates the desk already holds (the Calendar on every name, the US earnings
+    countdown and the home market's calendar), from the cache only: tasks never wait on a feed."""
     rows = []
     for kind in ("earn", "results_home"):
         try:
             rows.extend((cache_peek(kind) or {}).get("rows") or [])
         except Exception:  # noqa: BLE001
             pass
+    try:
+        rows.extend(r for r in (cache_peek("calendar") or {}).get("upcoming") or [] if r.get("kind") == "results")
+    except Exception:  # noqa: BLE001
+        pass
     return rows
+
+
+def calendar_universe():
+    """Every name the reader holds or watches, keyed by Yahoo's symbol: Desk · Book in
+    any market, the broker book through the market file, and the three watchlists."""
+    uni = {}
+    def put(ysym, shown, tag, name=""):
+        ysym = (ysym or "").upper().strip()
+        if not ysym or ysym.startswith("^") or "=" in ysym or ysym.endswith(("-USD", "-EUR", "-INR", "-GBP")):
+            return          # an index, a future, a currency pair or a coin has no results date
+        cur = uni.get(ysym)
+        uni[ysym] = {"symbol": shown or ysym, "name": name or (cur or {}).get("name", ""),
+                     "tag": "held" if (tag == "held" or (cur or {}).get("tag") == "held") else "watch"}
+    for p in load_book().get("positions", []):
+        try:
+            if float(p.get("shares") or 0) and p.get("symbol") and not p.get("example"):
+                put(p["symbol"], p["symbol"], "held", p.get("name") or "")
+        except (TypeError, ValueError):
+            continue
+    snap = load_last_snapshot() or {}
+    accounts = (snap.get("data") or {}).get("accounts") or {}
+    for acct in (accounts.values() if isinstance(accounts, dict) else accounts):
+        for e in acct.get("equity") or []:
+            if e.get("code") and e.get("value"):
+                try:
+                    r = _resolve(e["code"], e.get("exch") or None)
+                    put(r.get("ysym") or e["code"], e["code"], "held", e.get("name") or r.get("name") or "")
+                except Exception:  # noqa: BLE001
+                    put(e["code"], e["code"], "held")
+    for n in load_watchlist():
+        try:
+            r = _resolve(n["code"], n.get("exch") or None)
+            put(r.get("ysym") or n["code"], n["code"], "watch", r.get("name") or "")
+        except Exception:  # noqa: BLE001
+            put(n["code"], n["code"], "watch")
+    for n in load_watchlist_us():
+        put(n["code"], n["code"], "watch", n.get("name") or "")
+    for n in load_watchlist_global():
+        put(n["code"], n["code"], "watch", n.get("name") or "")
+    return uni
+
+
+def build_calendar():
+    """The Calendar screen: results, dividends and landed filings on every name held or
+    watched, plus the home market's results calendar and the macro calendar the desk holds."""
+    home = (cache_peek("results_home") or {}).get("rows") or []
+    macro = (cache_peek("econcal") or {}).get("rows") or []
+    return calendar_desk.build(calendar_universe(), home_results=home, macro=macro)
 
 
 def task_alerts():
@@ -2954,6 +3007,15 @@ def _spawn(kind, builder):
     return True
 
 
+def _ttl_of(data, ttl):
+    """A build that could not reach part of its feed asks to be retried sooner
+    (a "_ttl" in the answer); otherwise the kind's own TTL."""
+    try:
+        return min(ttl, float(data.get("_ttl") or ttl)) if isinstance(data, dict) else ttl
+    except (TypeError, ValueError):
+        return ttl
+
+
 def _cached(kind, ttl, builder):
     """Serve what we have and refresh behind the page. Once a kind has been
     built once (or has a disk copy from an earlier run), a click never waits
@@ -2972,7 +3034,7 @@ def _cached(kind, ttl, builder):
             except (OSError, ValueError, KeyError):
                 pass
         if data is not None:
-            if time.time() - stamp >= ttl:
+            if time.time() - stamp >= _ttl_of(data, ttl):
                 _spawn(kind, builder)
             return data
     _spawn(kind, builder)
@@ -3081,6 +3143,7 @@ SCREENS = [
     ("risk", "/risk", "Risk"), ("watch", "/watch", "Watch · Home"), ("watchus", "/watch?list=us", "Watch · US"),
     ("global", "/watch?list=global", "Global"), ("funds", "/funds", "Funds"), ("flow", "/flow", "Flow"),
     ("short", "/short", "Short"), ("capitol", "/capitol", "Capitol"), ("macro", "/macro", "Macro"),
+    ("calendar", "/calendar", "Calendar"),
     ("commods", "/commods", "Commodities"), ("chain", "/chain", "Chain"), ("notes", "/notes", "Notes"),
     ("settings", "/settings", "Settings"),
 ]
@@ -3151,6 +3214,7 @@ ASK_READS = {
     "/flow": ("Flow", ["/api/flow"]),
     "/short": ("Short", ["/api/short"]),
     "/capitol": ("Capitol", ["/api/capitol"]),
+    "/calendar": ("Calendar", ["/api/calendar"]),
     "/macro": ("Macro", ["/api/macro", "/api/econcal", "/api/research/context?kind=macro"]),
     "/commods": ("Commodities", ["/api/commods", "/api/research/context?kind=commodity"]),
     "/chain": ("Chain", ["/api/chain"]),
@@ -3603,6 +3667,11 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/flow":
                 self._send(json.dumps(_cached("flow", FLOW_TTL, build_flow)).encode(), "application/json")
+            elif path == "/calendar":
+                with open(os.path.join(HERE, "web", "calendar.html"), "rb") as fh:
+                    self._send(fh.read(), "text/html; charset=utf-8")
+            elif path == "/api/calendar":
+                self._send(json.dumps(_cached("calendar", calendar_desk.TTL, build_calendar)).encode(), "application/json")
             elif path == "/short":
                 with open(os.path.join(HERE, "web", "short.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
@@ -4202,6 +4271,7 @@ def main():
                ("act13d", ACT_TTL, build_activist),
                ("flow", FLOW_TTL, build_flow),
                ("short", SHORT_TTL, build_short),
+               ("calendar", calendar_desk.TTL, build_calendar),
                ("commods", COMMODS_TTL, build_commods),
                ("chain", CHAIN_TTL, build_chain))
 
@@ -4212,7 +4282,7 @@ def main():
         while True:
             for kind, ttl, builder in REFRESH:
                 stamp, data = _cache[kind]
-                if data is None or time.time() - stamp >= ttl:
+                if data is None or time.time() - stamp >= _ttl_of(data, ttl):
                     try:
                         _cached(kind, ttl, builder)
                     except Exception:  # noqa: BLE001

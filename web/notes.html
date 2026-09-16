@@ -9,93 +9,98 @@
 <script src="/assets/desk.js" defer></script>
 <script src="/assets/blocks.js" defer></script>
 <style>
-main{max-width:1420px;margin:0 auto;padding:18px 22px}
-.sub{color:var(--muted);font-size:12px;margin-bottom:14px;line-height:1.5}
-.sub b{color:var(--ink2)}
-.lay{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:16px;align-items:start}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.panel-h{padding:11px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.panel-h h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2)}
-.vmode{cursor:pointer;color:var(--muted)} .vmode.on{color:var(--ink)} .vmode:hover{color:var(--accent)} .vsep{color:var(--muted);margin:0 7px}
-/* the explorer: folders per subject, with everything about it inside */
-.tree{max-height:calc(100vh - 230px);overflow:auto;padding:6px 6px 12px;font-size:12.5px}
-.tree details{margin:0} .tree summary{list-style:none;cursor:pointer;padding:5px 8px;border-radius:7px;display:flex;align-items:center;gap:7px;color:var(--ink2);user-select:none}
-.tree summary::-webkit-details-marker{display:none}
-.tree summary:hover{background:var(--panel2);color:var(--ink)}
-.tree summary .car{display:inline-block;width:10px;color:var(--muted);font-size:10px;transition:transform .12s}
-.tree details[open]>summary .car{transform:rotate(90deg)}
-.tree summary .cnt{margin-left:auto;font-size:10.5px;color:var(--muted)}
-.tree .grp>summary{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:9px 8px 4px}
-.tree .grp>summary:hover{background:none;color:var(--ink2)}
-.tree .fld>summary{font-weight:600;color:var(--ink)}
-.tree .fld>summary .sy{font-family:Menlo,monospace}
-.tree .fld>summary .stt{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700}
-.tree .fld>summary .tl{font-size:10px;color:var(--muted);opacity:0;margin-left:4px} .tree .fld>summary:hover .tl{opacity:1}
-.tree .lf{display:flex;align-items:baseline;gap:7px;padding:4px 8px 4px 30px;border-radius:7px;color:var(--ink);text-decoration:none;cursor:pointer}
-.tree .lf:hover,.tree .lf.on{background:var(--panel2)}
-.tree .lf .ty{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;flex:0 0 auto;width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tree .lf .nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tree .lf .per{font-size:10.5px;color:var(--muted);flex:0 0 auto} .tree .lf .fx{font-size:9.5px;color:var(--muted);flex:0 0 auto}
-.tree .lf.loose .nm{color:var(--ink2);font-style:italic}
-.tree .empty{padding:8px 8px 8px 30px;font-size:11.5px;color:var(--muted)}
-.start{padding:22px 24px;line-height:1.6;font-size:13px;color:var(--ink2)}
-.start h2{font-size:16px;color:var(--ink);margin:0 0 8px}
-.start .ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0 6px}
-.start .way{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--panel2);cursor:pointer}
-.start .way b{display:block;color:var(--ink);margin-bottom:3px} .start .way:hover{border-color:var(--accent)}
-.start .way.static{cursor:default} .start .way.static:hover{border-color:var(--line)}
-.panel-h .s{font-size:11px;color:var(--muted)}
-.tools{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.tools input{flex:1 1 140px;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:6px 10px;font-size:12px;font-family:inherit;min-width:0}
-.chip{font-size:10.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink2);cursor:pointer;user-select:none;white-space:nowrap}
-.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
-select.chip{font-family:inherit;padding:3px 6px}
-.chip.sym{font-family:Menlo,monospace;font-weight:700}
-.list{max-height:calc(100vh - 290px);overflow:auto}
-.nc{display:block;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;color:inherit;text-decoration:none}
-.nc:hover,.nc.on{background:var(--panel2)}
-.nc .t{font-size:13px;font-weight:600;display:flex;gap:8px;align-items:baseline}
-.nc .t .ty{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700}
-.nc .t .pin{color:var(--muted);font-size:10px}
-.nc .m{font-size:10.5px;color:var(--muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
-.nc .m .sy{font-family:Menlo,monospace;color:var(--ink2)}
-.nc .sn{font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.empty{padding:26px 15px;color:var(--muted);font-size:12.5px;line-height:1.6}
-.ed{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+main{max-width:1220px;margin:0 auto;padding:18px 22px}
+/* the top line: what the vault is, and the two ways in */
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.top .q{flex:1 1 360px;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:0 12px}
+.top .q svg{width:15px;height:15px;fill:none;stroke:var(--muted);stroke-width:1.6;flex:0 0 auto}
+.top .q input{flex:1;background:none;border:0;color:var(--ink);font:inherit;font-size:13px;padding:10px 0;outline:none;min-width:0}
+.top .q input::placeholder{color:var(--muted)}
+.top button{border-radius:9px;padding:9px 14px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;border:1px solid var(--line2);background:var(--panel);color:var(--ink)}
+.top button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.top button:hover{border-color:var(--ink2)} .top button.pri:hover{border-color:var(--accent);filter:brightness(1.06)}
+.lay{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start}
+/* the index of the vault: what is in it, by name, project and subject */
+.rail{position:sticky;top:14px;max-height:calc(100vh - 28px);overflow:auto;padding-right:4px}
+.rail h3{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0;padding:14px 0 6px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;font-weight:600}
+.rail h3 span{font-weight:400;letter-spacing:0;text-transform:none;font-size:11px}
+.rail h3:first-child{padding-top:2px}
+.rail .r{display:flex;align-items:baseline;gap:8px;padding:6px 6px;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none;cursor:pointer;font-size:12.5px;border-radius:0}
+.rail .r:hover,.rail .r.on{background:var(--panel2)}
+.rail .r .sy{font-family:Menlo,monospace;font-weight:700;flex:0 0 auto}
+.rail .r .nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rail .r .st{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;flex:0 0 auto}
+.rail .r .n{font-family:Menlo,monospace;font-size:11px;color:var(--muted);flex:0 0 auto}
+.rail .r .n b{color:var(--neg);font-weight:700}
+.rail .r.loose .nm{color:var(--ink2);font-style:italic}
+.rail .none{padding:8px 6px;font-size:11.5px;color:var(--muted);line-height:1.5}
+.rail .more{display:block;padding:6px;font-size:11px;color:var(--accent);cursor:pointer}
+/* the right side: the table of notes, or one note, or the editor */
+.pane{min-width:0}
+.bar{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:0 0 10px;border-bottom:1px solid var(--line);margin-bottom:2px}
+.bar h2{font-size:15px;margin:0;color:var(--ink)}
+.bar .cnt{font-size:11.5px;color:var(--muted)}
+.bar select{margin-left:auto;background:var(--panel);color:var(--ink2);border:1px solid var(--line2);border-radius:7px;padding:4px 8px;font:inherit;font-size:11.5px}
+.bar select+select{margin-left:0}
+.bar select.on{color:var(--ink);border-color:var(--ink2)}
+.bar a.back{font-size:12px;color:var(--accent);text-decoration:none;margin-right:auto}
+table.nt{width:100%;border-collapse:collapse;font-size:13px}
+.nt th{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);text-align:left;font-weight:600;padding:8px 10px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.nt td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.nt tr:hover td{background:var(--panel2)}
+.nt tr{cursor:pointer}
+.nt .d{font-family:Menlo,monospace;font-size:11.5px;color:var(--muted);white-space:nowrap}
+.nt .ty{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;white-space:nowrap}
+.nt .t b{font-weight:600;color:var(--ink)} .nt .t small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:560px}
+.nt .t small i{color:var(--accent);font-style:normal}
+.nt .w{font-size:11.5px;color:var(--ink2);white-space:nowrap} .nt .w .sy{font-family:Menlo,monospace;font-weight:700;margin-right:6px}
+.nt .w .per{color:var(--muted)} .nt .fx{font-size:10px;color:var(--muted);text-align:right;white-space:nowrap}
+.nt .fx.miss{color:var(--neg)}
+.empty{padding:26px 0;color:var(--muted);font-size:12.5px;line-height:1.6}
+.empty b{color:var(--ink2)}
+.foot{font-size:11.5px;color:var(--muted);line-height:1.6;padding:16px 0 0}
+.foot b{color:var(--ink2);font-weight:600}
+/* the editor */
+.ed{padding:0;display:flex;flex-direction:column;gap:10px}
 .ed .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.ed input,.ed select,.ed textarea{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:inherit}
-.ed input.title{flex:1 1 320px;font-size:16px;font-weight:600;padding:9px 12px}
+.ed input,.ed select,.ed textarea{background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:inherit}
+.ed input.title{flex:1 1 320px;font-size:18px;font-weight:600;padding:9px 12px}
 .ed select{min-width:120px}
-.ed textarea{width:100%;min-height:320px;font-family:Menlo,monospace;font-size:12.5px;line-height:1.55;resize:vertical}
+.ed textarea{width:100%;min-height:340px;font-family:Menlo,monospace;font-size:12.5px;line-height:1.55;resize:vertical}
 .ed .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);min-width:70px}
-.ed button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:12.5px}
-.ed button.ghost{background:var(--panel2);color:var(--ink2);border:1px solid var(--line2)}
+.ed button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:12.5px;font-family:inherit}
+.ed button.ghost{background:var(--panel);color:var(--ink2);border:1px solid var(--line2)}
 .ed button.danger{background:none;color:var(--neg);border:1px solid var(--line2)}
 .ed .msg{font-size:11.5px;color:var(--muted)}
 .ed.drop{outline:2px dashed var(--accent);outline-offset:-6px}
-.fchip{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:5px 10px}
+.ed .bkchip{background:var(--panel);color:var(--ink2);border:1px solid var(--line2);font-weight:600;font-size:11px;padding:4px 9px}
+.chip{font-size:11px;padding:3px 9px;border-radius:7px;border:1px solid var(--line2);background:var(--panel);color:var(--ink2);cursor:pointer;user-select:none;white-space:nowrap;font-family:inherit}
+.chip.sym{font-family:Menlo,monospace;font-weight:700}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chips .chip .x{margin-left:6px;opacity:.7}
+.fchip{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);background:var(--panel);border:1px solid var(--line2);border-radius:8px;padding:5px 10px}
 .fchip .x{cursor:pointer;opacity:.7} .fchip .x:hover{opacity:1;color:var(--neg)}
-.fcard{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:10px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2)}
+.fcard{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:10px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--panel)}
 .fcard .fi{width:34px;height:34px;border-radius:8px;background:var(--accent);color:#fff;font-size:9.5px;font-weight:800;letter-spacing:.06em;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 .fcard .fn{flex:1 1 auto;min-width:0} .fcard .fn b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .fcard .fn small{color:var(--muted);font-size:11px}
 .fcard a.op{font-size:12px;font-weight:700;color:#fff;background:var(--accent);border-radius:7px;padding:6px 12px;text-decoration:none}
-.fcard button{background:none;color:var(--ink2);border:1px solid var(--line2);border-radius:7px;padding:5px 10px;font-size:11.5px;cursor:pointer}
+.fcard button{background:none;color:var(--ink2);border:1px solid var(--line2);border-radius:7px;padding:5px 10px;font-size:11.5px;cursor:pointer;font-family:inherit}
 .fcard.miss{border-color:var(--neg)} .fcard.miss .fi{background:var(--neg)}
 .ftext{font-size:11.5px;color:var(--muted);margin:-8px 0 14px;line-height:1.5}
 .ftext b{color:var(--ink2);font-weight:600}
-.ftext .op{margin-top:6px;padding:8px 10px;border-left:2px solid var(--line2);color:var(--ink2);font-size:12px;white-space:pre-wrap;max-height:120px;overflow:hidden}
 .fimg{max-width:100%;border-radius:10px;border:1px solid var(--line);margin:0 0 14px;display:block}
 .ask{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--ink2)}
-.ask button{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer}
+.ask button{background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:inherit}
 .ask button.danger{color:var(--neg)}
+/* journal, tasks, timeline */
 .jday{margin:0 0 18px} .jday h3{font-size:12px;color:var(--ink2);margin:0 0 6px;display:flex;justify-content:space-between;align-items:baseline} .jday h3 small{font-family:Menlo,monospace;color:var(--muted);font-weight:400;font-size:10.5px}
 .je{display:grid;grid-template-columns:44px 1fr;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:12.5px;align-items:baseline}
 .je .t{font-family:Menlo,monospace;color:var(--muted);font-size:11px}
 .je .sy{font-family:Menlo,monospace;font-weight:700;color:var(--ink2);margin-right:6px}
 .je .why{display:block;color:var(--ink2);font-size:12px;margin-top:3px;padding-left:10px;border-left:2px solid var(--line2)}
 .je .addwhy{display:inline-block;color:var(--muted);font-size:11px;cursor:pointer;margin:3px 0 0 8px} .je .addwhy:hover{color:var(--accent)}
-.je input{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:5px 9px;font:inherit;font-size:12px;margin-top:4px}
-.jpend{border:1px solid var(--accent);border-radius:10px;padding:10px 12px;margin:0 0 14px}
+.je input{width:100%;background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:5px 9px;font:inherit;font-size:12px;margin-top:4px}
+.jpend{border-left:2px solid var(--accent);padding:4px 0 4px 12px;margin:0 0 14px}
 .jpend .l{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:6px}
 .tk{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line);font-size:12.5px}
 .tk input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;vertical-align:-2px}
@@ -104,12 +109,12 @@ select.chip{font-family:inherit;padding:3px 6px}
 .tk .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:12px} .tk .x:hover{color:var(--neg)}
 .tk.done .t{color:var(--muted);text-decoration:line-through}
 .tb{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:14px 0 4px} .tb.over{color:var(--neg)} .tb.today{color:var(--accent)}
-.tadd{display:grid;grid-template-columns:1fr 130px 130px 120px auto;gap:6px;margin:0 0 12px}
-.tadd input,.tadd select{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font:inherit;font-size:12.5px;min-width:0}
-.tadd button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer}
+.tadd{display:grid;grid-template-columns:1fr 130px 140px 120px auto;gap:6px;margin:0 0 12px}
+.tadd input,.tadd select{background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font:inherit;font-size:12.5px;min-width:0}
+.tadd button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
 @media(max-width:1100px){.tadd{grid-template-columns:1fr 1fr}}
-.jown{display:flex;gap:8px;margin:0 0 16px} .jown input{flex:1;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font:inherit;font-size:12.5px}
-.jown button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer}
+.jown{display:flex;gap:8px;margin:0 0 16px} .jown input{flex:1;background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font:inherit;font-size:12.5px}
+.jown button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
 .ed .msg.ok{color:var(--pos)} .ed .msg.err{color:var(--neg)}
 .symwrap{position:relative;display:inline-block}
 .sugg{position:absolute;left:0;top:calc(100% + 4px);z-index:20;min-width:340px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);overflow:hidden;display:none}
@@ -120,13 +125,12 @@ select.chip{font-family:inherit;padding:3px 6px}
 .sugg .sy{font-family:Menlo,monospace;font-weight:700}
 .sugg .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink2)}
 .sugg .e{color:var(--muted);font-size:10.5px}
-.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.chips .chip .x{margin-left:6px;opacity:.7}
-.view{padding:16px 18px}
+/* one note */
+.view{padding:0}
 .view h1{font-size:22px;margin:0 0 6px}
 .view .meta{font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .view .meta .ty{color:var(--accent);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
-.md{font-size:13.5px;line-height:1.65;color:var(--ink)}
+.md{font-size:13.5px;line-height:1.65;color:var(--ink);max-width:860px}
 .md h1,.md h2,.md h3{margin:16px 0 6px;font-size:15px}
 .md h2{font-size:14px} .md h3{font-size:13px}
 .md p{margin:0 0 10px} .md ul,.md ol{margin:0 0 10px 20px}
@@ -135,8 +139,7 @@ select.chip{font-family:inherit;padding:3px 6px}
 .md a.sy{font-family:Menlo,monospace;font-weight:700}
 .md blockquote{margin:0 0 10px;padding:4px 12px;border-left:2px solid var(--line2);color:var(--ink2)}
 .md pre{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 10px;overflow:auto;font-family:Menlo,monospace;font-size:12px;line-height:1.5}
-/* live blocks */
-.bk{border:1px solid var(--line2);border-radius:10px;background:var(--panel2);margin:0 0 12px;overflow:hidden}
+.bk{border:1px solid var(--line2);border-radius:10px;background:var(--panel);margin:0 0 12px;overflow:hidden}
 .bk .bk-spec{font-size:10.5px;color:var(--muted);padding:6px 12px;border-bottom:1px solid var(--line);letter-spacing:.02em}
 .bk .bk-body{padding:10px 12px;font-size:12.5px} .bk .bk-err{color:var(--neg);font-size:12px}
 .bk .muted{color:var(--muted)} .bk .pos{color:var(--pos)} .bk .neg{color:var(--neg)} .bk .r{text-align:right}
@@ -148,23 +151,20 @@ select.chip{font-family:inherit;padding:3px 6px}
 .bk .bk-list .r{margin-left:auto} .bk .ty{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700}
 .bk .bk-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px 20px;font-size:12px}
 .bk-spark{width:100%;height:110px;display:block;margin-top:4px}
-.conn{padding:12px 16px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.conn{padding:14px 0 0;margin-top:14px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 .conn .g .l{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
 .conn a{display:inline-block;font-size:11.5px;color:var(--ink2);margin:0 8px 6px 0;text-decoration:none}
 .conn a:hover{color:var(--accent)}
 .conn a.sy{font-family:Menlo,monospace;font-weight:700}
-.stats{display:flex;gap:14px;font-size:11px;color:var(--muted);padding:0 15px 10px}
-.stats b{color:var(--ink2)}
-.loose{border-top:1px solid var(--line);padding:10px 15px 12px}
-.loose .l{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
-.loose .f{display:flex;align-items:center;gap:8px;font-size:11.5px;padding:4px 0;color:var(--ink2)}
-.loose .f b{font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 auto;min-width:0}
-.loose .f a,.loose .f button{font-size:10.5px;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:none;font-family:inherit}
-.loose .f button.danger{color:var(--neg)}
 .view .btns{display:flex;gap:8px;margin-top:14px}
-.view .btns button{background:var(--panel2);color:var(--ink2);border:1px solid var(--line2);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer}
+.view .btns button{background:var(--panel);color:var(--ink2);border:1px solid var(--line2);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit}
 .view .btns button.pri{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
-@media (max-width:900px){.lay{grid-template-columns:1fr}.list{max-height:none}}
+.tl-g{margin:0 0 14px} .tl-g .l{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin:0 0 4px}
+.tl-r{display:flex;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line);font-size:12.5px}
+.tl-r .d{font-family:Menlo,monospace;color:var(--muted);font-size:11.5px;flex:0 0 auto} .tl-r .ty{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;flex:0 0 52px}
+.tl-r a{color:var(--ink);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .tl-r a:hover{color:var(--accent)}
+.tl-r .fx{font-size:10px;color:var(--muted);margin-left:auto;flex:0 0 auto}
+@media (max-width:900px){.lay{grid-template-columns:1fr}.rail{position:static;max-height:none}}
 </style>
 </head>
 <body>
@@ -174,29 +174,26 @@ select.chip{font-family:inherit;padding:3px 6px}
   <div class="right"><span id="asof"></span></div>
 </header>
 <main>
-  <div class="sub">Your research vault: the notes you write and the files you bring in, kept as plain files in the desk's own <b>data/research</b> folder. A note says what it is about (a listing, a commodity, a sector, the macro picture, or nothing in particular), the quarter it is researching, the project it belongs to, and links to other notes with <b>[[double brackets]]</b>, so a company page shows every note about it, a project shows every name and note inside it, and one note leads to the next. An annual report, a model or a screenshot attaches to a note and lives in the vault with it. Open the folder in Obsidian or any editor and the same files are there; your AI agent reads and writes them too. Nothing is saved here unless you save it.</div>
+  <div class="top">
+    <label class="q"><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input id="q" placeholder="Search every note, and inside every file you brought in" autocomplete="off"></label>
+    <button id="attachbtn" title="An annual report, a model, a screenshot: it becomes a note with the file attached, and the desk reads what is inside">Bring a file in</button>
+    <button class="pri" id="newbtn">New note</button>
+  </div>
   <div class="lay">
-    <div class="panel">
-      <div class="panel-h"><h2><span class="vmode on" id="m_list" title="every note, filtered">Notes</span><span class="vsep">·</span><span class="vmode" id="m_tree" title="the vault as folders: one per name, with everything about it inside">Explorer</span></h2><span><button class="chip" id="tbtn" title="what is due: results dates, follow-ups, your own lines">Tasks</button> <button class="chip" id="jbtn" title="the moments the desk saw, and your one-line whys">Journal</button> <button class="chip" id="attachbtn" title="an annual report, a model, a screenshot: it becomes a note with the file attached">+ Attach a file</button> <button class="chip on" id="newbtn">+ New note</button></span></div>
-      <div class="tools">
-        <input id="q" placeholder="search notes and inside their files…" autocomplete="off">
-        <select id="period" class="chip" title="the quarter or year a note is researching"><option value="">any period</option></select>
+    <div class="rail" id="rail"><div class="none">Loading the vault…</div></div>
+    <div class="pane" id="pane">
+      <div id="home">
+        <div class="bar"><h2 id="h_title">Every note</h2><span class="cnt" id="cnt"></span>
+          <select id="f_type"><option value="">any type</option></select>
+          <select id="f_kind"><option value="">about anything</option></select>
+          <select id="f_status"><option value="">any status</option></select>
+          <select id="period"><option value="">any period</option></select></div>
+        <div id="list"><div class="empty">Loading…</div></div>
+        <div class="foot" id="foot"></div>
       </div>
-      <div class="tools"><span class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">About</span><span class="chips" id="kindchips"></span></div>
-      <div class="tools"><span class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Type</span><span class="chips" id="typechips"></span></div>
-      <div class="tools"><span class="lbl" style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)" title="notes on names you have marked with a status">Status</span><span class="chips" id="statuschips"></span></div>
-      <div class="tools" id="ctx" style="display:none"></div>
-      <div class="list" id="list"><div class="empty">Loading…</div></div>
-      <div class="tree" id="tree" style="display:none"></div>
-      <div class="stats" id="stats"></div>
-      <div id="loose"></div>
-    </div>
-    <div class="panel" id="right">
-      <div id="blank"><div class="start"><h2>Your research vault</h2>Everything you write and everything you bring in, as plain files in <span class="mono">data/research</span>, connected to the names, the periods and the projects it belongs to. Nothing is saved unless you save it. Three ways in:
-        <div class="ways"><div class="way" id="w_new"><b>Write a note</b>A call, a risk, an insight, a decision. Say what it is about and which quarter.</div><div class="way" id="w_attach"><b>Bring a file in</b>An annual report, a model, a screenshot. It becomes a note with the file attached, and the desk reads what is inside.</div><div class="way static"><b>Keep an answer</b>Every answer in the Ask box has Save as note and Save as task under it.</div></div>
-        <span style="font-size:12px;color:var(--muted)">Pick a note on the left, or switch to <b style="color:var(--ink2)">Explorer</b> to see the vault as folders, one per name.</span></div></div>
       <div id="view" style="display:none"></div>
       <div class="ed" id="ed" style="display:none">
+        <div class="row"><a class="back" id="e_back" href="/notes" style="font-size:12px;color:var(--accent);text-decoration:none">← every note</a></div>
         <div class="row"><input class="title" id="e_title" placeholder="Title" autocomplete="off">
           <select id="e_type" title="what sort of note"></select>
           <label class="chip" style="cursor:pointer"><input type="checkbox" id="e_pin" style="vertical-align:-2px;margin-right:5px">pinned</label></div>
@@ -209,7 +206,7 @@ select.chip{font-family:inherit;padding:3px 6px}
           <span class="lbl" style="margin-left:8px">Tags</span><input id="e_tags" placeholder="comma, separated" style="width:200px" autocomplete="off"></div>
         <div class="row"><span class="lbl">File</span><span id="e_file"></span><button class="ghost" id="e_attach" type="button">Attach a file</button><input type="file" id="e_fileinput" style="display:none"><span class="msg">An annual report, a model, a screenshot. It goes into the vault when you save the note, and nowhere else.</span></div>
         <textarea id="e_body" placeholder="The note, in Markdown. [[Another note]] links by title. $AAPL names a listing anywhere in the text. A live block: three backticks then desk on one line, chart AAPL 1y on the next, three backticks to close."></textarea>
-        <div class="row" style="gap:6px;flex-wrap:wrap"><span class="lbl">Blocks</span><span class="msg">live, drawn on the note's page:</span>${["quote AAPL","chart AAPL 1y","watch AAPL MSFT","commodity wti","status AAPL","notes AAPL 5","tasks AAPL","timeline AAPL","book"].map(b=>`<button type="button" class="chip bkchip" data-b="${b}">${b.split(" ")[0]}</button>`).join("")}</div>
+        <div class="row" style="gap:6px;flex-wrap:wrap"><span class="lbl">Live blocks</span><span class="msg">the desk's own numbers, drawn on the note's page and kept current:</span><span id="bkchips"></span></div>
         <div class="row"><button id="e_save">Save</button><button class="ghost" id="e_cancel">Cancel</button><span style="flex:1"></span><button class="danger" id="e_del" style="display:none">Delete this note</button></div>
         <div class="msg" id="e_msg"></div>
       </div>
@@ -270,55 +267,86 @@ function md(src){
 async function post(url,body){ const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})}); return r.json(); }
 function say(t,k){ const e=$("e_msg"); e.textContent=t; e.className="msg "+(k||""); }
 
+/* the pane shows one thing at a time: the table, a note, the editor, tasks, the journal or a name's timeline */
+function pane(which){ $("home").style.display=which==="home"?"":"none"; $("view").style.display=which==="view"?"":"none"; $("ed").style.display=which==="ed"?"flex":"none"; }
+const backLink=`<a class="back" href="/notes" data-home="1" style="display:inline-block;font-size:12px;color:var(--accent);text-decoration:none;margin-bottom:10px">← every note</a>`;
+function wireBack(){ document.querySelectorAll("a[data-home]").forEach(a=>a.onclick=e=>{e.preventDefault(); goHome();}); }
+function goHome(){ CUR=null; F.symbol=""; F.project=""; F.about=""; F.kind=F.kind||""; history.replaceState(null,"","/notes"); pane("home"); load(); markRail(""); }
+function markRail(key){ document.querySelectorAll("#rail .r").forEach(r=>r.classList.toggle("on",!!key&&r.dataset.key===key)); }
+function sel(id,val,opts,first){ const s=$(id); s.innerHTML=`<option value="">${first}</option>`+opts.map(([v,l])=>`<option value="${esc(v)}"${val===v?" selected":""}>${esc(l)}</option>`).join(""); s.classList.toggle("on",!!val); }
+
 async function load(){
   const qs=new URLSearchParams(); for(const k of ["type","kind","period","about","symbol","project","status","q"]) if(F[k]) qs.set(k,F[k]);
   const r=await fetch("/api/notes?"+qs); const d=await r.json();
   TYPES=d.types||[]; KINDS=d.kinds||[]; FACETS=d.facets||FACETS; NOTES=d.notes||[];
-  $("asof").textContent="data/research";
-  $("typechips").innerHTML=`<button class="chip${F.type?"":" on"}" data-t="">all</button>`+TYPES.map(t=>`<button class="chip${F.type===t?" on":""}" data-t="${t}">${TYPE_LABEL[t]||t}</button>`).join("");
-  $("typechips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F.type=b.dataset.t;load();});
-  $("kindchips").innerHTML=`<button class="chip${F.kind?"":" on"}" data-t="">all</button>`+KINDS.map(t=>`<button class="chip${F.kind===t?" on":""}" data-t="${t}">${KIND_LABEL[t]||t}</button>`).join("");
-  $("kindchips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F.kind=b.dataset.t;F.about="";load();});
-  $("statuschips").innerHTML=`<button class="chip${F.status?"":" on"}" data-t="">any</button>`+(d.statuses||[]).map(t=>`<button class="chip${F.status===t?" on":""}" data-t="${t}">${STATUS_LABEL[t]||t}</button>`).join("");
-  $("statuschips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F.status=b.dataset.t;load();});
+  $("asof").textContent=(d.folder||"data/research").replace(/^\/Users\/[^/]+|^\/home\/[^/]+|^[A-Z]:\\Users\\[^\\]+/,"~");
+  sel("f_type",F.type,TYPES.map(t=>[t,TYPE_LABEL[t]||t]),"any type");
+  sel("f_kind",F.kind,KINDS.map(t=>[t,"about a "+(KIND_LABEL[t]||t).toLowerCase()]),"about anything");
+  sel("f_status",F.status,(d.statuses||[]).map(t=>[t,STATUS_LABEL[t]||t]),"any status");
   const ps=FACETS.periods||[]; if(F.period&&!ps.includes(F.period)) ps.unshift(F.period);
-  $("period").innerHTML=`<option value="">any period</option>`+ps.map(p=>`<option value="${esc(p)}"${F.period===p?" selected":""}>${esc(p)}</option>`).join("");
-  $("period").className="chip"+(F.period?" on":"");
+  sel("period",F.period,ps.map(p=>[p,p]),"any period");
   $("periodlist").innerHTML=ps.map(p=>`<option value="${esc(p)}">`).join("");
-  const ctx=[]; if(F.symbol)ctx.push(`<span class="chip on sym" data-k="symbol">$${esc(F.symbol)} <span class="x">✕</span></span>`); if(F.about)ctx.push(`<span class="chip on" data-k="about">${esc(F.about)} <span class="x">✕</span></span>`); if(F.project)ctx.push(`<span class="chip on" data-k="project">${esc(F.project)} <span class="x">✕</span></span>`);
-  $("ctx").style.display=ctx.length?"flex":"none"; $("ctx").innerHTML=ctx.length?`<span class="lbl" style="font-size:10.5px;color:var(--muted)">showing</span>`+ctx.join(""):"";
-  $("ctx").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F[b.dataset.k]=""; if(b.dataset.k==="symbol"&&!CUR){$("view").style.display="none";$("blank").style.display="block";} load();});
-  if(!NOTES.length){ $("list").innerHTML=`<div class="empty">${F.symbol||F.project||F.q||F.type||F.kind||F.period||F.about||F.status?"No notes match.":"No notes yet. The first one is one click away: <b>+ New note</b>."}</div>`; }
-  else $("list").innerHTML=NOTES.map(n=>`<a class="nc${CUR&&CUR.id===n.id?" on":""}" href="/notes?id=${encodeURIComponent(n.id)}" data-id="${esc(n.id)}">
-      <div class="t"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span><span>${esc(n.title)}</span>${n.file?`<span class="pin">${n.file_ok?fileExt(n.file):"file missing"}</span>`:""}${n.pinned?'<span class="pin">pinned</span>':""}${n.example?'<span class="pin">example</span>':""}</div>
-      <div class="m"><span>${esc(n.updated)}</span>${n.period?`<span style="color:var(--ink2)">${esc(n.period)}</span>`:""}${subj(n)?`<span>${esc(subj(n))}</span>`:""}${n.symbols.slice(0,4).map(s=>`<span class="sy">$${esc(s)}</span>`).join("")}${n.project?`<span>in ${esc(n.project)}</span>`:""}</div>
-      <div class="sn">${n.hit==="file"?'<span style="color:var(--accent)">in the file · </span>':""}${esc(n.snippet||"")}</div></a>`).join("");
-  $("list").querySelectorAll(".nc").forEach(a=>a.onclick=e=>{e.preventDefault(); open(a.dataset.id);});
-  if(F.symbol&&!CUR&&$("ed").style.display==="none") showTimeline(F.symbol);
-  if(MODE==="tree") loadTree();
+  const what=F.project?`In ${F.project}`:F.about?`${KIND_LABEL[F.kind]||"About"} · ${F.about}`:F.q?`Search: ${F.q}`:"Every note";
+  $("h_title").textContent=what;
+  $("cnt").textContent=`${NOTES.length} note${NOTES.length===1?"":"s"}`;
+  if(!NOTES.length){ $("list").innerHTML=`<div class="empty">${F.q?"Nothing matches, in the notes or inside their files.":F.symbol||F.project||F.type||F.kind||F.period||F.about||F.status?"No notes match.":"No notes yet. <b>New note</b> writes the first; <b>Bring a file in</b> starts one from an annual report, a model or a screenshot."}</div>`; }
+  else $("list").innerHTML=`<table class="nt"><thead><tr><th>Updated</th><th>Type</th><th>Note</th><th>Where it belongs</th><th></th></tr></thead><tbody>`+NOTES.map(n=>`<tr data-id="${esc(n.id)}">
+      <td class="d">${esc(n.updated.slice(0,10))}</td><td class="ty">${TYPE_LABEL[n.type]||n.type}</td>
+      <td class="t"><b>${esc(n.title)}</b>${n.pinned?' <span class="ty" style="color:var(--muted)">pinned</span>':""}${n.example?' <span class="ty" style="color:var(--muted)">example</span>':""}<small>${n.hit==="file"?"<i>in the file · </i>":""}${esc(n.snippet||"")}</small></td>
+      <td class="w">${n.symbols.slice(0,4).map(s=>`<span class="sy">$${esc(s)}</span>`).join("")}${subj(n)?`<span>${esc(subj(n))}</span> `:""}${n.period?`<span class="per"> ${esc(n.period)}</span>`:""}${n.project?`<span class="per"> · in ${esc(n.project)}</span>`:""}</td>
+      <td class="fx${n.file&&!n.file_ok?" miss":""}">${n.file?(n.file_ok?fileExt(n.file):"file missing"):""}</td></tr>`).join("")+`</tbody></table>`;
+  $("list").querySelectorAll("tr[data-id]").forEach(a=>a.onclick=()=>open(a.dataset.id));
   const loose=d.loose||[];
-  $("loose").innerHTML=loose.length?`<div class="loose"><div class="l">In the vault, on no note yet</div>${loose.map(f=>`<div class="f"><b title="${esc(f.file)}">${esc(f.name)}</b><span>${esc(f.subject)}</span><span>${fmtSize(f.size)}</span><a href="/notes?new&file=${encodeURIComponent(f.file)}${f.subject&&/^[A-Z0-9.\-]+$/.test(f.subject)?"&symbol="+encodeURIComponent(f.subject):""}">give it a note</a><button class="danger" data-f="${esc(f.file)}">delete</button></div>`).join("")}</div>`:"";
-  $("loose").querySelectorAll("button").forEach(b=>b.onclick=async()=>{ if(!confirm(`Delete ${b.dataset.f} from the vault?`)) return; await post("/api/research/remove_file",{file:b.dataset.f}); load(); });
-  try{ const g=await (await fetch("/api/notes/graph")).json(); const c=g.counts||{};
-    $("stats").innerHTML=`<span><b>${c.notes||0}</b> notes</span><span><b>${c.projects||0}</b> projects</span><span><b>${c.symbols||0}</b> names</span>`;
+  $("foot").innerHTML=(loose.length?`<div style="margin-bottom:10px"><b>${loose.length} file${loose.length===1?"":"s"} in the vault on no note yet:</b> ${loose.map(f=>`<a href="/notes?new&file=${encodeURIComponent(f.file)}${f.subject&&/^[A-Z0-9.\-]+$/.test(f.subject)?"&symbol="+encodeURIComponent(f.subject):""}" style="color:var(--accent);text-decoration:none">${esc(f.name)}</a> (${fmtSize(f.size)}, give it a note)`).join(" · ")}</div>`:"")+
+    `<b>What this is.</b> Every note and every file you bring in is a plain file in the desk's own research folder, and the folder is yours: open it in Obsidian or any editor and the same files are there; your AI agent reads and writes them too. A note says what it is about (a listing, a commodity, a sector, a theme), the quarter it is researching and the project it belongs to, and links to other notes with [[double brackets]]. The index on the left is the same vault by name, project and subject; a name's line opens its timeline, twelve months back and more. Nothing is saved here unless you save it.`;
+  try{ const g=await (await fetch("/api/notes/graph")).json();
     $("projlist").innerHTML=(g.nodes||[]).filter(n=>n.kind==="project").map(n=>`<option value="${esc(n.label)}">`).join("");
     $("aboutlist").innerHTML=(FACETS.abouts||[]).map(a=>`<option value="${esc(a.about)}">`).join("");
   }catch(e){}
+  loadRail();
 }
-$("q").addEventListener("input",()=>{clearTimeout(window._qt);window._qt=setTimeout(()=>{F.q=$("q").value.trim(); if(F.q&&MODE==="tree") setMode("list"); load();},200);});
+$("q").addEventListener("input",()=>{clearTimeout(window._qt);window._qt=setTimeout(()=>{F.q=$("q").value.trim(); if(F.q){ CUR=null; F.symbol=""; pane("home"); } load();},200);});
 $("period").addEventListener("change",()=>{F.period=$("period").value;load();});
+$("f_type").addEventListener("change",()=>{F.type=$("f_type").value;load();});
+$("f_kind").addEventListener("change",()=>{F.kind=$("f_kind").value;F.about="";load();});
+$("f_status").addEventListener("change",()=>{F.status=$("f_status").value;load();});
+
+/* the index on the left: the vault by name, project and subject, plus what is due and what the desk saw */
+async function loadRail(){
+  let t; try{ t=await (await fetch("/api/research/tree")).json(); }catch(e){ return; }
+  const c=t.counts||{}, tk=t.tasks||{}, jd=t.journal||[];
+  const row=(key,inner,cls)=>`<a class="r${cls?" "+cls:""}" data-key="${esc(key)}">${inner}</a>`;
+  let h=`<h3>The desk<span>${c.notes||0} note${c.notes===1?"":"s"} · ${c.files||0} file${c.files===1?"":"s"}</span></h3>`+
+    row("tasks",`<span class="nm">Tasks</span><span class="n">${tk.open||0} open${tk.due?` · <b>${tk.due} due</b>`:""}</span>`)+
+    row("journal",`<span class="nm">Journal</span><span class="n">${jd.length} day${jd.length===1?"":"s"}</span>`);
+  h+=`<h3>Names<span>${c.names||0}</span></h3>`+((t.names||[]).map(r=>row("n:"+r.symbol,`<span class="sy">$${esc(r.symbol)}</span>${r.status?`<span class="st">${esc(STATUS_LABEL[r.status]||r.status)}</span>`:""}<span class="nm"></span><span class="n">${r.notes.length+r.loose.length}</span>`)).join("")||`<div class="none">No note names a listing yet. A name on a note, or a file dropped on a listing's page, starts its folder here.</div>`);
+  if((t.projects||[]).length) h+=`<h3>Projects<span>${t.projects.length}</span></h3>`+t.projects.map(p=>row("p:"+p.title,`<span class="nm">${esc(p.title)}</span><span class="n">${(p.symbols||[]).length} names</span>`)).join("");
+  for(const g of (t.subjects||[])) h+=`<h3>${esc((KIND_LABEL[g.kind]||g.kind)+(g.rows.length===1?"":"s"))}<span>${g.rows.length}</span></h3>`+g.rows.map(r=>row("s:"+g.kind+":"+r.about,`<span class="nm">${esc(r.about)}</span><span class="n">${r.notes.length+r.loose.length}</span>`)).join("");
+  if((t.general||[]).length) h+=`<h3>General<span>${t.general.length}</span></h3>`+t.general.slice(0,8).map(L=>row("id:"+L.id,`<span class="nm">${esc(L.title)}</span><span class="n">${esc(L.updated.slice(0,10))}</span>`)).join("");
+  if((t.loose_other||[]).length) h+=`<h3>Files on no note yet<span>${t.loose_other.length}</span></h3>`+t.loose_other.map(f=>row("f:"+f.file,`<span class="nm">${esc(f.name)}</span><span class="n">${fmtSize(f.size)}</span>`,"loose")).join("");
+  $("rail").innerHTML=h;
+  $("rail").querySelectorAll(".r").forEach(a=>a.onclick=e=>{ e.preventDefault(); const k=a.dataset.key;
+    if(k==="tasks") return showTasks();
+    if(k==="journal") return showJournal();
+    if(k.startsWith("n:")){ const sy=k.slice(2); CUR=null; F.symbol=sy; F.project=""; F.about=""; markRail(k); return showTimeline(sy); }
+    if(k.startsWith("p:")){ CUR=null; F.symbol=""; F.project=k.slice(2); F.about=""; markRail(k); pane("home"); return load(); }
+    if(k.startsWith("s:")){ const [,kind,about]=k.split(":"); CUR=null; F.symbol=""; F.project=""; F.kind=kind; F.about=about; markRail(k); pane("home"); return load(); }
+    if(k.startsWith("id:")) return open(k.slice(3));
+    if(k.startsWith("f:")){ const f=k.slice(2); location.href="/notes?new&file="+encodeURIComponent(f); }
+  });
+  const cur=F.symbol?"n:"+F.symbol:F.project?"p:"+F.project:F.about?"s:"+F.kind+":"+F.about:""; markRail(cur);
+}
 
 async function open(id){
   const r=await fetch("/api/notes/get?id="+encodeURIComponent(id)); const n=await r.json();
   if(n.error){return;}
   CUR=n; history.replaceState(null,"","/notes?id="+encodeURIComponent(id));
-  $("blank").style.display="none"; $("ed").style.display="none"; $("view").style.display="block";
-  document.querySelectorAll(".nc").forEach(a=>a.classList.toggle("on",a.dataset.id===id));
+  pane("view");
   const links=(n.link_ids||[]).map(i=>NOTES.find(x=>x.id===i)).filter(Boolean), backs=(n.backlinks||[]).map(i=>NOTES.find(x=>x.id===i)).filter(Boolean);
   const syms=[...new Set([...(n.symbols||[]),...(n.implied_symbols||[])])];
   let g=null; try{ if(syms.length===1) g=await (await fetch("/api/notes/graph?symbol="+encodeURIComponent(syms[0]))).json(); }catch(e){}
   const related=g?(g.related_symbols||[]).filter(s=>!syms.includes(s)).slice(0,12):[];
-  $("view").innerHTML=`<div class="view">
+  $("view").innerHTML=backLink+`<div class="view">
       <h1>${esc(n.title)}</h1>
       <div class="meta"><span class="ty">${TYPE_LABEL[n.type]||n.type}</span>${subj(n)?`<span style="color:var(--ink2)">${esc(subj(n))}</span>`:""}${n.period?`<span style="color:var(--ink2)">${esc(n.period)}</span>`:""}<span>updated ${esc(n.updated)}</span><span>created ${esc(n.created)}</span>${n.pinned?"<span>pinned</span>":""}${(n.tags||[]).map(t=>`<span>#${esc(t)}</span>`).join("")}<span class="mono" style="opacity:.7">${esc(n.path)}</span></div>
       ${n.file?(n.file_ok?`<div class="fcard"><div class="fi">${esc(fileExt(n.file))}</div><div class="fn"><b>${esc(n.file.split("/").pop())}</b><small>${fmtSize(n.file_size)} · ${esc(n.file)}</small></div><a class="op" href="${fileUrl(n.file)}" target="_blank" rel="noopener">Open</a><button id="v_detach">Remove file</button></div><div class="ftext" id="v_text">${textLine(n.text)}</div>${n.file_image?`<img class="fimg" src="${fileUrl(n.file)}" alt="">`:""}`:`<div class="fcard miss"><div class="fi">?</div><div class="fn"><b>${esc(n.file.split("/").pop())}</b><small>This file is not in the vault any more (${esc(n.file)}). Put it back in that folder, or take it off the note.</small></div><button id="v_detach">Take it off the note</button></div>`):""}
@@ -335,6 +363,7 @@ async function open(id){
       <div class="g"><div class="l">Linked from</div>${backs.length?backs.map(x=>`<a href="/notes?id=${encodeURIComponent(x.id)}" data-id="${esc(x.id)}" class="nl">${esc(x.title)}</a>`).join(""):'<span style="font-size:11.5px;color:var(--muted)">none yet</span>'}</div>
       ${related.length?`<div class="g"><div class="l">Also connected, through your notes</div>${related.map(s=>`<a class="sy" href="/t?symbol=${encodeURIComponent(s)}">$${esc(s)}</a>`).join("")}</div>`:""}
     </div>`;
+  wireBack(); markRail("id:"+id);
   if(window.deskBlocks) deskBlocks.hydrate($("view"));
   $("v_edit").onclick=()=>edit(n);
   if(n.text&&n.text.state==="reading"){ const poll=async()=>{ if(!CUR||CUR.id!==n.id) return; const t=await (await fetch("/api/research/text?path="+encodeURIComponent(n.file))).json(); if(t.state==="reading") return setTimeout(poll,2500); const el=$("v_text"); if(el) el.innerHTML=textLine(t); }; setTimeout(poll,2500); }
@@ -346,44 +375,11 @@ async function open(id){
     $("d_keep").onclick=async()=>{ await post("/api/notes/detach",{id:n.id}); await load(); open(n.id); };
     const dd=$("d_del"); if(dd) dd.onclick=async()=>{ await post("/api/notes/detach",{id:n.id,delete_file:true}); await load(); open(n.id); };
   };
-  const vp=$("v_proj"); if(vp) vp.onclick=()=>{F.project=n.title;load();};
+  const vp=$("v_proj"); if(vp) vp.onclick=()=>{CUR=null; F.project=n.title; F.symbol=""; pane("home"); load();};
   $("view").querySelectorAll("a.nl, a.wl[data-id]").forEach(a=>a.onclick=e=>{e.preventDefault();open(a.dataset.id);});
 }
 
-/* the Explorer: the vault as folders, one per name and subject, with everything about it inside */
-let MODE="list"; try{ MODE=localStorage.getItem("gs.notesmode")||"list"; }catch(e){}
-let OPEN=new Set(["g:names"]); try{ const sv=localStorage.getItem("gs.treeopen"); if(sv) OPEN=new Set(JSON.parse(sv)); }catch(e){}
-function setMode(m){ MODE=m; try{ localStorage.setItem("gs.notesmode",m); }catch(e){} $("m_list").classList.toggle("on",m==="list"); $("m_tree").classList.toggle("on",m==="tree"); $("list").style.display=m==="list"?"":"none"; $("typechips").parentElement.style.display=m==="list"?"":"none"; $("kindchips").parentElement.style.display=m==="list"?"":"none"; $("statuschips").parentElement.style.display=m==="list"?"":"none"; $("tree").style.display=m==="tree"?"":"none"; if(m==="tree") loadTree(); }
-$("m_list").onclick=()=>setMode("list"); $("m_tree").onclick=()=>setMode("tree");
-function remember(key,open){ if(open) OPEN.add(key); else OPEN.delete(key); try{ localStorage.setItem("gs.treeopen",JSON.stringify([...OPEN])); }catch(e){} }
-const leafHtml=L=>`<a class="lf${CUR&&CUR.id===L.id?" on":""}" href="/notes?id=${encodeURIComponent(L.id)}" data-id="${esc(L.id)}"><span class="ty">${TYPE_LABEL[L.type]||L.type}</span><span class="nm">${esc(L.title)}</span>${L.period?`<span class="per">${esc(L.period)}</span>`:""}${L.file?`<span class="fx">${esc(fileExt(L.file))}</span>`:""}</a>`;
-const looseHtml=f=>`<a class="lf loose" href="/notes?new&file=${encodeURIComponent(f.file)}${/^[A-Z0-9.\-]+$/.test(f.subject)?"&symbol="+encodeURIComponent(f.subject):""}" title="a file on no note yet: click to give it one"><span class="ty">file</span><span class="nm">${esc(f.name)}</span><span class="fx">${fmtSize(f.size)}</span></a>`;
-function folder(key,head,inner,cls){ const o=OPEN.has(key); return `<details class="${cls||"fld"}" data-k="${esc(key)}"${o?" open":""}><summary><span class="car">▶</span>${head}</summary>${inner}</details>`; }
-async function loadTree(){
-  let t; try{ t=await (await fetch("/api/research/tree")).json(); }catch(e){ return; }
-  const c=t.counts||{};
-  const namesInner=(t.names||[]).map(r=>folder("n:"+r.symbol,`<span class="sy">$${esc(r.symbol)}</span>${r.status?`<span class="stt">${esc(STATUS_LABEL[r.status]||r.status)}</span>`:""}<span class="tl" data-sym="${esc(r.symbol)}">timeline</span><span class="cnt">${r.notes.length+r.loose.length}</span>`,(r.notes.map(leafHtml).join("")+r.loose.map(looseHtml).join(""))||`<div class="empty">nothing yet</div>`)).join("")||`<div class="empty">No note names a listing yet.</div>`;
-  const subjInner=(t.subjects||[]).map(g=>folder("k:"+g.kind,`<span>${esc(KIND_LABEL[g.kind]||g.kind)}</span><span class="cnt">${g.rows.length}</span>`,g.rows.map(r=>folder("s:"+g.kind+":"+r.about,`<span>${esc(r.about)}</span><span class="cnt">${r.notes.length+r.loose.length}</span>`,r.notes.map(leafHtml).join("")+r.loose.map(looseHtml).join(""))).join(""),"grp")).join("");
-  const projInner=(t.projects||[]).map(p=>folder("p:"+p.id,`<span>${esc(p.title)}</span><span class="cnt">${(p.symbols||[]).length} names</span>`,leafHtml(p)+(p.symbols||[]).map(sy=>`<a class="lf" href="/notes?symbol=${encodeURIComponent(sy)}" data-sym="${esc(sy)}"><span class="ty">name</span><span class="nm mono">$${esc(sy)}</span></a>`).join(""))).join("")||`<div class="empty">No project yet. A project is a note whose type is Project.</div>`;
-  const genInner=(t.general||[]).map(leafHtml).join("")||`<div class="empty">none</div>`;
-  const jInner=(t.journal||[]).map(d=>`<a class="lf" href="/notes?journal" data-journal="1"><span class="ty">day</span><span class="nm">${esc(d.title)}</span><span class="per">${d.count}</span></a>`).join("")||`<div class="empty">nothing written yet</div>`;
-  $("tree").innerHTML=
-    folder("g:names",`<span>Names</span><span class="cnt">${c.names||0}</span>`,namesInner,"grp")+
-    (subjInner?folder("g:subjects",`<span>Commodities, sectors, themes</span>`,subjInner,"grp"):"")+
-    folder("g:projects",`<span>Projects</span><span class="cnt">${c.projects||0}</span>`,projInner,"grp")+
-    folder("g:general",`<span>General notes</span><span class="cnt">${(t.general||[]).length}</span>`,genInner,"grp")+
-    folder("g:journal",`<span>Journal</span><span class="cnt">${(t.journal||[]).length} days</span>`,jInner,"grp")+
-    `<a class="lf" href="/notes?tasks" data-tasks="1" style="padding-left:8px;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)"><span class="nm" style="color:var(--muted)">Tasks</span><span class="cnt" style="font-size:10.5px">${t.tasks?`${t.tasks.open} open${t.tasks.due?", "+t.tasks.due+" due":""}`:""}</span></a>`+
-    ((t.loose_other||[]).length?folder("g:loose",`<span>Files on no note yet</span><span class="cnt">${t.loose_other.length}</span>`,t.loose_other.map(looseHtml).join(""),"grp"):"");
-  $("tree").querySelectorAll("details").forEach(d=>d.addEventListener("toggle",()=>remember(d.dataset.k,d.open)));
-  $("tree").querySelectorAll("a.lf[data-id]").forEach(a=>a.onclick=e=>{e.preventDefault(); open(a.dataset.id); $("tree").querySelectorAll(".lf").forEach(x=>x.classList.toggle("on",x.dataset.id===a.dataset.id));});
-  $("tree").querySelectorAll("a.lf[data-sym]").forEach(a=>a.onclick=e=>{e.preventDefault(); CUR=null; F.symbol=a.dataset.sym; $("ed").style.display="none"; load(); showTimeline(a.dataset.sym);});
-  $("tree").querySelectorAll(".tl").forEach(x=>x.onclick=e=>{e.preventDefault(); e.stopPropagation(); CUR=null; F.symbol=x.dataset.sym; $("ed").style.display="none"; load(); showTimeline(x.dataset.sym);});
-  $("tree").querySelectorAll("a.lf[data-journal]").forEach(a=>a.onclick=e=>{e.preventDefault(); showJournal();});
-  $("tree").querySelectorAll("a.lf[data-tasks]").forEach(a=>a.onclick=e=>{e.preventDefault(); showTasks();});
-}
 $("attachbtn").onclick=()=>{ edit(null); setTimeout(()=>$("e_fileinput").click(),50); };
-$("w_new").onclick=()=>edit(null); $("w_attach").onclick=()=>$("attachbtn").click();
 /* Tasks: what is due, from the calendar, from answers, from notes and from the reader */
 const CAT_LABEL={results:"Results",filing:"Filing","follow-up":"Follow-up",model:"Model",reading:"Reading",call:"Call",other:"Other"};
 function taskRow(t,over){
@@ -391,16 +387,16 @@ function taskRow(t,over){
   return `<div class="tk${t.done?" done":""}${over?" over":""}" data-line="${t.line}" data-note="${esc(t.note_id||"")}"><input type="checkbox"${t.done?" checked":""}><span><span class="t">${esc(t.text)}</span><span class="m">${meta}</span></span>${t.source==="note"||t.line<0?"<span></span>":`<button class="x" title="remove this task">✕</button>`}</div>`;
 }
 async function showTasks(){
-  CUR=null; $("blank").style.display="none"; $("ed").style.display="none"; $("view").style.display="block"; history.replaceState(null,"","/notes?tasks");
-  document.querySelectorAll(".nc").forEach(a=>a.classList.remove("on"));
+  CUR=null; pane("view"); history.replaceState(null,"","/notes?tasks"); markRail("tasks");
   let v; try{ v=await (await fetch("/api/research/tasks"+(F.symbol?"?symbol="+encodeURIComponent(F.symbol):""))).json(); }catch(e){ return; }
   const o=v.open||{}, B=[["overdue","Overdue","over"],["today","Due today","today"],["week","This week",""],["later","Later",""],["undated","No date",""]];
-  $("view").innerHTML=`<div class="view"><h1>Tasks${F.symbol?" · $"+esc(F.symbol):""}</h1>
+  $("view").innerHTML=backLink+`<div class="view"><h1>Tasks${F.symbol?" · $"+esc(F.symbol):""}</h1>
     <div class="meta"><span><b style="color:var(--ink2)">${v.counts.open}</b> open${v.counts.due?`, <b style="color:var(--neg)">${v.counts.due}</b> due`:""}</span><span>results dates for the names you hold, watch or are researching arrive on their own; ticking one keeps it ticked</span><span class="mono" style="opacity:.7">${esc(v.path)}</span></div>
     <div class="tadd"><input id="t_text" placeholder="A task: check the segment split before the call…" maxlength="200"><input id="t_sym" placeholder="symbol" value="${esc(F.symbol||"")}" style="text-transform:uppercase"><input id="t_due" type="date" title="due"><select id="t_cat"><option value="">category</option>${(v.categories||[]).map(c=>`<option value="${c}">${CAT_LABEL[c]||c}</option>`).join("")}</select><button id="t_add">Add</button></div>
     ${v.counts.open?B.map(([k,label,cls])=>o[k]&&o[k].length?`<div class="tb ${cls}">${label} · ${o[k].length}</div>${o[k].map(t=>taskRow(t,k==="overdue")).join("")}`:"").join(""):`<div style="font-size:12.5px;color:var(--muted);line-height:1.6">Nothing open. A results date for a name you hold or watch shows up here on its own; an answer in the Ask box has Save as task under it; and a line typed above, or a checkbox in any note, lands here too.</div>`}
     ${v.done&&v.done.length?`<div class="tb">Done lately · ${v.done.length}</div>${v.done.map(t=>taskRow(t)).join("")}`:""}
   </div>`;
+  wireBack();
   $("t_add").onclick=async()=>{ const text=$("t_text").value.trim(); if(!text) return; const r=await post("/api/research/tasks/add",{text,symbol:$("t_sym").value.trim(),due:$("t_due").value,category:$("t_cat").value}); if(r.ok) showTasks(); };
   $("t_text").addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault();$("t_add").click();} });
   $("view").querySelectorAll(".tk").forEach(el=>{
@@ -411,20 +407,19 @@ async function showTasks(){
   });
   function findCal(el){ const text=el.querySelector(".t").textContent; for(const k in o) for(const t of o[k]) if(t.line<0&&t.text===text) return t; return null; }
 }
-$("tbtn").onclick=showTasks;
 /* the Journal: the moments the desk saw (held, or written), the reader's own lines, and the whys */
 async function showJournal(){
-  CUR=null; $("blank").style.display="none"; $("ed").style.display="none"; $("view").style.display="block"; history.replaceState(null,"","/notes?journal");
-  document.querySelectorAll(".nc").forEach(a=>a.classList.remove("on"));
+  CUR=null; pane("view"); history.replaceState(null,"","/notes?journal"); markRail("journal");
   let j; try{ j=await (await fetch("/api/research/journal")).json(); }catch(e){ return; }
   const MODE={ask:"asks you about each moment",always:"writes every moment on its own",never:"is off; your own lines still go in"};
   const pend=j.pending||[], days=j.days||[];
-  $("view").innerHTML=`<div class="view"><h1>Journal</h1>
+  $("view").innerHTML=backLink+`<div class="view"><h1>Journal</h1>
     <div class="meta"><span>The journal ${MODE[j.mode]||""}. <a href="/settings" style="color:var(--accent);text-decoration:none">Change that on Settings</a>.</span></div>
     <div class="jown"><input id="j_own" placeholder="Your own line for today: what you did, what you thought. Enter writes it." maxlength="300"><button id="j_add">Write</button></div>
     ${pend.length?`<div class="jpend"><div class="l">Held for you · ${pend.length}</div>${pend.map(e=>`<div class="je" data-id="${esc(e.id)}"><span class="t">${esc(e.at.slice(5))}</span><span><span class="sy">${e.symbol?"$"+esc(e.symbol):""}</span>${esc(e.text)}${e.decision?`<input class="pw" placeholder="why? one line, or leave it">`:""}<div class="ask" style="margin-top:6px"><button class="pw1">write it</button><button class="pw0 danger">let it go</button></div></span></div>`).join("")}</div>`:""}
     ${days.length?days.map(d=>`<div class="jday"><h3><span>${esc(d.title)}</span><small>${esc(d.path)}</small></h3>${d.entries.map(e=>`<div class="je" data-date="${esc(d.date)}" data-line="${e.line}"><span class="t">${esc(e.time)}</span><span><span class="sy">${e.symbol?"$"+esc(e.symbol):""}</span>${esc(e.text)}${e.why?`<span class="why">${esc(e.why)}</span>`:""}<span class="addwhy">${e.why?"change the why":"add a why"}</span></span></div>`).join("")}</div>`).join(""):`<div style="font-size:12.5px;color:var(--muted);line-height:1.6">Nothing written yet. ${j.mode==="never"?"The journal is off; your own lines above still go in.":"The first moment the desk sees (a name added to the book, a status set, a note saved) lands here"+(j.mode==="ask"?" once you say so":"")+"."}</div>`}
   </div>`;
+  wireBack();
   $("j_add").onclick=async()=>{ const t=$("j_own").value.trim(); if(!t) return; const r=await post("/api/research/journal/add",{text:t,symbol:F.symbol||""}); if(r.ok) showJournal(); };
   $("j_own").addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault();$("j_add").click();} });
   $("view").querySelectorAll(".jpend .je").forEach(el=>{ const id=el.dataset.id; const w=el.querySelector(".pw");
@@ -434,20 +429,26 @@ async function showJournal(){
     const done=async(save)=>{ if(save){ await post("/api/research/journal/why",{date:el.dataset.date,line:+el.dataset.line,why:inp.value}); } showJournal(); };
     inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault();done(true);} if(e.key==="Escape") done(false); }); inp.addEventListener("blur",()=>done(true)); }; });
 }
-$("jbtn").onclick=showJournal;
-/* the Timeline: everything about one name by period and date, in the right panel while a name is being looked at */
+/* the Timeline: everything about one name by period and date */
 async function showTimeline(sym){
   let tl; try{ tl=await (await fetch("/api/research/timeline?symbol="+encodeURIComponent(sym))).json(); }catch(e){ return; }
   if(CUR||$("ed").style.display!=="none"||F.symbol!==sym) return;
   const st=tl.status||{};
-  $("blank").style.display="none"; $("view").style.display="block";
-  $("view").innerHTML=`<div class="view"><h1 style="font-family:Menlo,monospace">$${esc(sym)}</h1>
-    <div class="meta"><span>${st.status?`status <b style="color:var(--ink2)">${esc(STATUS_LABEL[st.status]||st.status)}</b>${st.set_by==="you"&&st.since?" since "+esc(st.since):st.set_by==="the desk"?" (what the desk can see)":""}`:"no status yet; set one on the listing's page"}</span><a href="/t?symbol=${encodeURIComponent(sym)}" style="color:var(--accent);text-decoration:none">the listing's page</a></div>
-    <div class="conn" style="border-top:0;padding:0;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">${tl.count?(tl.groups||[]).map(gp=>`<div class="g"><div class="l" style="color:var(--accent)">${esc(gp.period||"no period")}</div>${gp.items.map(it=>it.what==="status"?`<div style="font-size:11.5px;color:var(--muted);padding:3px 0"><span class="mono">${esc(it.date)}</span> · status <b style="color:var(--ink2)">${esc(STATUS_LABEL[it.status]||it.status)}</b></div>`:`<div style="font-size:12px;padding:3px 0;display:flex;gap:8px;align-items:baseline"><span class="mono" style="color:var(--muted);flex:0 0 auto">${esc(it.date)}</span><span class="ty" style="font-size:9.5px;flex:0 0 auto">${TYPE_LABEL[it.type]||it.type}</span><a href="/notes?id=${encodeURIComponent(it.id)}" data-id="${esc(it.id)}" class="nl" style="margin:0;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.title)}</a>${it.file?`<span style="font-size:9.5px;color:var(--muted)">${it.file_ok?esc((it.file.split(".").pop()||"").toUpperCase()):"file missing"}</span>`:""}</div>`).join("")}</div>`).join(""):`<div style="font-size:12.5px;color:var(--muted)">Nothing about ${esc(sym)} yet. The first note or file lands here, by the period it belongs to.</div>`}</div></div>`;
+  pane("view"); history.replaceState(null,"","/notes?symbol="+encodeURIComponent(sym)); markRail("n:"+sym);
+  $("view").innerHTML=backLink+`<div class="view"><h1 style="font-family:Menlo,monospace">$${esc(sym)}</h1>
+    <div class="meta"><span>${st.status?`status <b style="color:var(--ink2)">${esc(STATUS_LABEL[st.status]||st.status)}</b>${st.set_by==="you"&&st.since?" since "+esc(st.since):st.set_by==="the desk"?" (what the desk can see)":""}`:"no status yet; set one on the listing's page"}</span><span>${tl.count||0} item${tl.count===1?"":"s"}, by the period each belongs to</span><a href="/t?symbol=${encodeURIComponent(sym)}" style="color:var(--accent);text-decoration:none">the listing's page</a></div>
+    <div class="btns" style="margin:0 0 16px"><button class="pri" id="tl_new">New note on $${esc(sym)}</button><button id="tl_file">Bring a file in</button><button id="tl_tasks">Tasks on $${esc(sym)}</button></div>
+    ${tl.count?(tl.groups||[]).map(gp=>`<div class="tl-g"><div class="l">${esc(gp.period||"no period")}</div>${gp.items.map(it=>it.what==="status"?`<div class="tl-r"><span class="d">${esc(it.date)}</span><span class="ty">status</span><span style="color:var(--ink2)">${esc(STATUS_LABEL[it.status]||it.status)}</span></div>`:`<div class="tl-r"><span class="d">${esc(it.date)}</span><span class="ty">${TYPE_LABEL[it.type]||it.type}</span><a href="/notes?id=${encodeURIComponent(it.id)}" data-id="${esc(it.id)}" class="nl">${esc(it.title)}</a>${it.file?`<span class="fx${it.file_ok?"":" miss"}">${it.file_ok?esc((it.file.split(".").pop()||"").toUpperCase()):"file missing"}</span>`:""}</div>`).join("")}</div>`).join(""):`<div class="empty">Nothing about $${esc(sym)} yet. The first note or file lands here, by the period it belongs to, and stays: a note from twelve months back is one line down, never gone.</div>`}</div>`;
+  wireBack();
   $("view").querySelectorAll("a.nl").forEach(a=>a.onclick=e=>{e.preventDefault();open(a.dataset.id);});
+  $("tl_new").onclick=()=>{ P.set("symbol",sym); edit(null); };
+  $("tl_file").onclick=()=>{ P.set("symbol",sym); edit(null); setTimeout(()=>$("e_fileinput").click(),50); };
+  $("tl_tasks").onclick=()=>showTasks();
 }
 function edit(n){
-  CUR=n||null; $("blank").style.display="none"; $("view").style.display="none"; $("ed").style.display="flex";
+  CUR=n||null; pane("ed");
+  $("bkchips").innerHTML=["quote AAPL","chart AAPL 1y","watch AAPL MSFT","commodity wti","status AAPL","notes AAPL 5","tasks AAPL","timeline AAPL","book"].map(b=>`<button type="button" class="chip bkchip" data-b="${b}">${b.split(" ")[0]}</button>`).join(" ");
+  wireBlocks();
   $("e_type").innerHTML=TYPES.map(t=>`<option value="${t}">${TYPE_LABEL[t]||t}</option>`).join("");
   $("e_kind").innerHTML=KINDS.map(t=>`<option value="${t}">${KIND_LABEL[t]||t}</option>`).join("");
   $("e_title").value=n?n.title:""; $("e_type").value=n?n.type:(P.get("type")||"general"); $("e_pin").checked=!!(n&&n.pinned);
@@ -475,7 +476,7 @@ function pickFile(f){
   if($("e_type").value==="general"){ const ext=(f.name.split(".").pop()||"").toLowerCase(); $("e_type").value=/^(xlsx|xls|xlsm|csv|numbers|ods)$/.test(ext)?"model":/^(png|jpe?g|gif|webp)$/.test(ext)?"clipping":"document"; }
 }
 $("e_attach").onclick=()=>$("e_fileinput").click();
-document.querySelectorAll(".bkchip").forEach(b=>b.onclick=()=>{ const ta=$("e_body"); const sym=EDIT.syms[0]||"AAPL"; const spec=b.dataset.b.replace(/AAPL/g,sym).replace(/MSFT/g,EDIT.syms[1]||"MSFT"); const ins="\n```desk\n"+spec+"\n```\n"; const p=ta.selectionStart||ta.value.length; ta.value=ta.value.slice(0,p)+ins+ta.value.slice(p); ta.focus(); ta.selectionStart=ta.selectionEnd=p+ins.length; });
+function wireBlocks(){ document.querySelectorAll(".bkchip").forEach(b=>b.onclick=()=>{ const ta=$("e_body"); const sym=EDIT.syms[0]||"AAPL"; const spec=b.dataset.b.replace(/AAPL/g,sym).replace(/MSFT/g,EDIT.syms[1]||"MSFT"); const ins="\n```desk\n"+spec+"\n```\n"; const p=ta.selectionStart||ta.value.length; ta.value=ta.value.slice(0,p)+ins+ta.value.slice(p); ta.focus(); ta.selectionStart=ta.selectionEnd=p+ins.length; }); }
 $("e_fileinput").addEventListener("change",()=>{ pickFile($("e_fileinput").files[0]); $("e_fileinput").value=""; });
 $("ed").addEventListener("dragover",e=>{ e.preventDefault(); $("ed").classList.add("drop"); });
 $("ed").addEventListener("dragleave",()=>$("ed").classList.remove("drop"));
@@ -484,7 +485,8 @@ function kindChanged(){ const k=$("e_kind").value; $("e_about").style.display=k=
 $("e_kind").addEventListener("change",kindChanged);
 function drawSyms(){ $("e_syms").innerHTML=EDIT.syms.map(s=>`<span class="chip sym" data-s="${esc(s)}">$${esc(s)}<span class="x">✕</span></span>`).join(""); $("e_syms").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{EDIT.syms=EDIT.syms.filter(x=>x!==c.dataset.s);drawSyms();}); }
 $("newbtn").onclick=()=>edit(null);
-$("e_cancel").onclick=()=>{ if(CUR&&CUR.body!==undefined) open(CUR.id); else {$("ed").style.display="none";$("blank").style.display="block";} };
+$("e_cancel").onclick=()=>{ if(CUR&&CUR.body!==undefined) open(CUR.id); else goHome(); };
+$("e_back").onclick=e=>{ e.preventDefault(); goHome(); };
 $("e_save").onclick=async()=>{
   const body={id:CUR?CUR.id:"", title:$("e_title").value.trim(), kind:$("e_kind").value, type:$("e_type").value, pinned:$("e_pin").checked, symbols:EDIT.syms, about:$("e_about").value.trim(), period:$("e_period").value.trim(), project:$("e_project").value.trim(), tags:$("e_tags").value.split(",").map(s=>s.trim()).filter(Boolean), body:$("e_body").value, file:EDIT.file||""};
   if(!body.title) return say("A title first.","err");
@@ -506,7 +508,7 @@ $("e_del").onclick=()=>{
   m.className="msg";
   m.innerHTML=CUR.file&&CUR.file_ok?`<span class="ask">Delete "${esc(CUR.title)}"? <button id="x_note">the note only, keep its file</button><button id="x_both" class="danger">the note and its file</button><button id="x_no">keep it</button></span>`
                                     :`<span class="ask">Delete "${esc(CUR.title)}"? <button id="x_note" class="danger">delete</button><button id="x_no">keep it</button></span>`;
-  const go=async(withFile)=>{ await post("/api/notes/delete",{id:CUR.id,with_file:withFile}); CUR=null; $("ed").style.display="none"; $("blank").style.display="block"; history.replaceState(null,"","/notes"); load(); };
+  const go=async(withFile)=>{ await post("/api/notes/delete",{id:CUR.id,with_file:withFile}); CUR=null; goHome(); };
   $("x_note").onclick=()=>go(false); $("x_no").onclick=()=>say("");
   const xb=$("x_both"); if(xb) xb.onclick=()=>go(true);
 };
@@ -522,7 +524,8 @@ symIn.addEventListener("input",()=>{ clearTimeout(sugT); const q=symIn.value.tri
 symIn.addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault(); if(hits.length) pick(0); else { const s=symIn.value.trim().toUpperCase(); if(s&&!EDIT.syms.includes(s)){EDIT.syms.push(s);drawSyms();} symIn.value=""; } } if(e.key==="Escape") showSugg([]); });
 symIn.addEventListener("blur",()=>setTimeout(()=>showSugg([]),150));
 
-(async()=>{ try{ const pl=await (await fetch("/api/plugins")).json(); for(const src of (pl.blocks||[])){ const sc=document.createElement("script"); sc.src=src; document.head.appendChild(sc); } }catch(e){} setMode(MODE); await load(); if(P.get("id")) open(P.get("id")); else if(P.has("new")) edit(null); else if(P.has("journal")) showJournal(); else if(P.has("tasks")) showTasks(); })();
+(async()=>{ try{ const pl=await (await fetch("/api/plugins")).json(); for(const src of (pl.blocks||[])){ const sc=document.createElement("script"); sc.src=src; document.head.appendChild(sc); } }catch(e){}
+  await load(); if(P.get("id")) open(P.get("id")); else if(P.has("new")) edit(null); else if(P.has("journal")) showJournal(); else if(P.has("tasks")) showTasks(); else if(P.get("symbol")) showTimeline(P.get("symbol")); })();
 </script>
 </body>
 </html>

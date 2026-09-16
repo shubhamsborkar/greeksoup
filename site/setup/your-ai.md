@@ -37,7 +37,7 @@ Ollama and LM Studio are two of the presets and need no key. A question to one o
 
 ## The Ask box
 
-Click **Ask · your AI** at the bottom of the sidebar, or press ⌘I (Ctrl+I on Windows and Linux). A box opens on the right of whichever screen you are on. Type a question and press Enter. The question goes to the AI you chose together with that screen's own numbers, the same numbers the screen is showing you, and the answer comes back in the box with a line saying which addresses it read. The box remembers the conversation while the screen is open, so a second question can build on the first.
+Click **Ask AI** at the bottom of the sidebar, or press ⌘I (Ctrl+I on Windows and Linux). A box opens on the right of whichever screen you are on. Type a question and press Enter. The question goes to the AI you chose together with that screen's own numbers, the same numbers the screen is showing you, and the answer comes back in the box with a line saying which addresses it read. The box remembers the conversation while the screen is open, so a second question can build on the first.
 
 A picker at the top of the box names who answers: the app you chose, or the key on Settings. It can be changed for one question.
 
@@ -50,7 +50,7 @@ An answer worth keeping has **Save as note** and **Save as task** under it. Noth
 ## Where else the AI works
 
 - **Chain**: describe an industry, a product or a company and **Draft it** fills the map, upstream to downstream, for you to keep, change or drop line by line. [Chains](/docs/setup/chains/).
-- **The ⋯ on any name**: *Ask your AI about it* opens the box with the name already in the question.
+- **The ⋯ on any name**: *Ask AI about it* opens the box with the name already in the question.
 
 ## The page your AI app reads
 

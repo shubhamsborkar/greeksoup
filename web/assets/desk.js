@@ -19,6 +19,7 @@
     deskin: '<path d="M2.5 2.5h11v11h-11z"/><path d="M8 2.5v11M2.5 8h11"/>',
     deskus: '<path d="M8 1.5v13"/><path d="M11 3.5H6.8a2 2 0 000 4h2.4a2 2 0 010 4H5"/>',
     risk: '<path d="M2.5 11.5a5.5 5.5 0 0111 0"/><path d="M8 11.5l2.6-3.6"/>',
+    calendar: '<rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/><path d="M5.5 9.5h1M8 9.5h1M10.5 9.5h1"/>',
     watch: '<path d="M1.8 8s2.3-4.2 6.2-4.2S14.2 8 14.2 8s-2.3 4.2-6.2 4.2S1.8 8 1.8 8z"/><circle cx="8" cy="8" r="1.9"/>',
     list: '<path d="M5.4 4h9M5.4 8h9M5.4 12h9"/><path d="M2 4h.01M2 8h.01M2 12h.01"/>',
     globe: '<circle cx="8" cy="8" r="6.2"/><path d="M1.8 8h12.4"/><path d="M8 1.8c1.9 1.7 2.7 3.9 2.7 6.2S9.9 12.5 8 14.2c-1.9-1.7-2.7-3.9-2.7-6.2S6.1 3.5 8 1.8z"/>',
@@ -45,6 +46,7 @@
     ["/flow", "Flow", "Intelligence", I.flow, "flow"],
     ["/short", "Short", "Intelligence", I.short, "short"],
     ["/capitol", "Capitol", "Intelligence", I.capitol, "capitol"],
+    ["/calendar", "Calendar", "Intelligence", I.calendar, "calendar"],
     ["/macro", "Macro", "Market", I.macro, "macro"],
     ["/commods", "Commodities", "Market", I.commods, "commods"],
     ["/chain", "Chain", "Market", I.chain, "chain"],
@@ -62,6 +64,8 @@
   let hidden = new Set();
   try { hidden = new Set(JSON.parse(store.getItem("desk_hidden") || "[]")); } catch (e) { /* first visit */ }
   const HIDE_ICON = '<path d="M4 4l8 8M12 4l-8 8"/>';
+  const EXPAND_ICON = '<path d="M9.5 2.5h4v4M13.5 2.5L9 7M6.5 13.5h-4v-4M2.5 13.5L7 9"/>';
+  const SHRINK_ICON = '<path d="M13.5 6.5h-4v-4M9.5 6.5L14 2M2.5 9.5h4v4M6.5 9.5L2 14"/>';
   function current() {
     const p = location.pathname;
     if (p === "/watch") {
@@ -107,7 +111,7 @@
       (gone.length ? `<div class="rhiddenbox"><div class="rgt rgt-hidden">Hidden</div>` + gone.map(([href, label, , icon, key]) =>
         `<button class="rlink rgone" data-key="${key}" title="Show ${label} in the sidebar again">${svg(icon)}<span>${label}</span><em>show</em></button>`).join("") + '</div>' : "") +
       '<div class="rfoot">' +
-      '<button id="askbtn" title="Ask your AI about this screen (⌘I)"><span class="rk">✦</span><span>Ask · your AI</span></button>' +
+      '<button id="askbtn" title="Ask AI about this screen (⌘I)"><span class="rk">✦</span><span>Ask AI</span></button>' +
       '<button id="cmdkbtn" title="Jump anywhere (⌘K)"><span class="rk">⌘</span><span>Command · K</span></button>' +
       '<button id="fbbtn" title="Tell us what is wrong, missing or unsupported on this screen"><span class="rk">✎</span><span>Feedback</span></button>' +
       '<button id="themebtn" title="Cycle theme"><span class="rk">◐</span><span>Theme · <b id="themename"></b></span></button>' +
@@ -273,7 +277,7 @@
         });
         b.replaceWith(sub);
       }));
-      pop.appendChild(item("Ask your AI about it", () => {
+      pop.appendChild(item("Ask AI about it", () => {
         hide(); openAsk(true);
         setTimeout(() => { const i = document.getElementById("askin"); if (i) { i.value = `What does this screen show for ${n.symbol}, and what would you look at next?`; i.focus(); } }, 250);
       }));
@@ -723,12 +727,12 @@
     if (document.getElementById("askdock")) return;
     const el = document.createElement("aside");
     el.id = "askdock";
-    el.setAttribute("aria-label", "Ask your AI");
+    el.setAttribute("aria-label", "Ask AI");
     el.innerHTML =
-      '<div class="ah"><div><b>Ask your AI</b><small id="asksub">reading this screen</small></div>' +
+      '<div class="ah"><div><b>Ask AI</b><small id="asksub">an AI, reading this screen</small></div>' +
       '<select id="askvia" title="who answers: the AI on Settings, or a door a plugin opened" hidden></select>' +
-      '<button class="ax" id="askwide" title="Full width, and back">⤢</button>' +
-      '<button class="ax" id="askclose" title="Close (Esc)">×</button></div>' +
+      '<button class="ax" id="askwide" title="Full width, and back">' + svg(EXPAND_ICON) + '</button>' +
+      '<button class="ax" id="askclose" title="Close (Esc)">' + svg(HIDE_ICON) + '</button></div>' +
       '<div class="am" id="askmsgs"></div>' +
       '<div class="af"><textarea id="askin" placeholder="Ask about what is on this screen. Enter sends, Shift+Enter for a new line."></textarea>' +
       '<div class="ab"><button id="asksend">Ask</button><small id="askfoot">Your AI, reading this screen. Verify against the source the screen names.</small></div></div>';
@@ -738,10 +742,13 @@
     let wide = false;
     try { wide = store.getItem("ask_wide") === "1"; } catch (e) { /* fine */ }
     el.classList.toggle("wide", wide);
+    if (wide) document.getElementById("askwide").innerHTML = svg(SHRINK_ICON);
     document.getElementById("askwide").onclick = () => {
       wide = !el.classList.contains("wide");
       el.classList.toggle("wide", wide);
-      document.getElementById("askwide").title = wide ? "Back beside the screen" : "Full width, and back";
+      const wb = document.getElementById("askwide");
+      wb.title = wide ? "Back beside the screen" : "Full width, and back";
+      wb.innerHTML = svg(wide ? SHRINK_ICON : EXPAND_ICON);
       try { store.setItem("ask_wide", wide ? "1" : "0"); } catch (e) { /* fine */ }
     };
     document.getElementById("asksend").onclick = sendAsk;
@@ -763,7 +770,7 @@
     document.getElementById("askdock").classList.toggle("open", open);
     if (!open) return;
     const { label } = askPage();
-    document.getElementById("asksub").textContent = "reading " + label;
+    document.getElementById("asksub").textContent = "an AI, reading " + label;
     const m = document.getElementById("askmsgs");
     try {
       const st = await (await fetch("/api/ask", { cache: "no-store" })).json();

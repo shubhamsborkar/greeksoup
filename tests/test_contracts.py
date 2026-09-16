@@ -976,3 +976,32 @@ def test_every_country_is_a_home_market():
     ke = markets.load("ke")
     assert ke.META["exchanges"] == [] and ke.ysym("SCOM") == "SCOM" and ke.META["benchmark"] == "ACWI" and not ke.is_open()
     assert markets.load("zz") is None
+
+
+def test_the_calendar_reads_every_name_from_the_free_record(monkeypatch):
+    """Every name held or watched, in any market: results and dividend dates from the free
+    summary, Nasdaq as the second source for a US listing when Yahoo has backed off, the
+    filings that landed at the SEC, the home market's own results calendar folded in, and a
+    short retry when any name could not be read."""
+    import calendar_desk
+    from datetime import datetime, timedelta
+    soon = (datetime.now() + timedelta(days=20)).strftime("%Y-%m-%d")
+    later = (datetime.now() + timedelta(days=40)).strftime("%Y-%m-%d")
+    monkeypatch.setattr(calendar_desk, "yahoo_events", lambda sym: None if sym == "HGV" else
+                        ([{"date": soon, "kind": "results", "what": "Results", "detail": "EPS expected 1.10"}] if sym == "RELIANCE.NS" else []))
+    monkeypatch.setattr(calendar_desk, "nasdaq_events", lambda sym: [{"date": later, "kind": "results", "what": "Results (expected)", "detail": ""}])
+    monkeypatch.setattr(calendar_desk, "edgar_filings", lambda sym, back_days=30: [{"date": "2026-09-10", "kind": "filing", "form": "8-K", "what": "Current report", "detail": "", "url": "https://www.sec.gov/x"}] if sym == "HGV" else [])
+    uni = {"HGV": {"symbol": "HGV", "name": "Hilton Grand Vacations", "tag": "held"},
+           "RELIANCE.NS": {"symbol": "RELIANCE", "name": "", "tag": "watch"},
+           "TALABAT.AE": {"symbol": "TALABAT.AE", "name": "", "tag": "held"}}
+    home = [{"code": "TCS", "symbol": "TCS.NS", "company": "Tata Consultancy", "date": soon, "purpose": "Financial Results"},
+            {"code": "RELIANCE", "symbol": "RELIANCE.NS", "date": soon, "purpose": "Financial Results"}]      # already on the list from Yahoo
+    d = calendar_desk.build(uni, home_results=home)
+    kinds = [(r["symbol"], r["kind"], r["date"]) for r in d["upcoming"]]
+    assert ("RELIANCE", "results", soon) in kinds and ("TCS", "results", soon) in kinds and ("HGV", "results", later) in kinds
+    assert sum(1 for k in kinds if k[0] == "RELIANCE") == 1                    # the exchange's row does not double Yahoo's
+    assert d["upcoming"][0]["symbol"] in ("RELIANCE", "TCS") and d["landed"][0]["symbol"] == "HGV" and d["landed"][0]["url"]
+    assert d["names"] == 3 and d["held"] == 2 and d["failed"] == [] and "_ttl" not in d
+    monkeypatch.setattr(calendar_desk, "nasdaq_events", lambda sym: None)
+    d = calendar_desk.build(uni)
+    assert d["failed"] == ["HGV"] and d["_ttl"] == 900                          # a name the feeds refused: retry soon, say which

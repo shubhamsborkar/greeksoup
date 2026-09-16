@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.48. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.49. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.49
+
+*16 September 2026, release 49.* The Calendar, and the Notes screen rebuilt. A new screen under Intelligence, Calendar: every dated event on every name you hold or watch, in any market, from the free record and reread by the desk on its own every six hours: results dates (the company's own once announced, an estimate from past reporting dates until then, and the row says which), ex-dividend and payment dates, the filings that landed at the SEC on your US names in the last thirty days with a link to each, the home market's results calendar where the desk has one, and the macro prints ahead when a provider is connected. Yahoo's free summary serves any exchange; Nasdaq's own site is the second source for a US listing on the days Yahoo says too many requests; a name that could not be read is named on the screen and retried within fifteen minutes. A results date lands on Tasks by itself, as before. Notes is one screen again, laid out like a document: on the left the index of the vault (what is due, what the desk saw, every name with its status and count, every project and subject), on the right every note as a table with four plain filters, or the note you opened, or the editor with its live blocks; a name's line opens its timeline with New note, Bring a file in and Tasks on it one click away. The row of filter pills, the Explorer toggle and the welcome cards are gone. The sidebar button says Ask AI, the box says an AI is reading the screen, and its two header controls are drawn icons that read at a glance.
 
 ## 2026-09-16.48
 

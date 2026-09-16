@@ -24,6 +24,7 @@ lead: One line per screen, in the order the sidebar lists them. Every number on 
 - **Flow**: the options tape on every US name from CBOE's free delayed chains: put/call, open-interest walls, expected move, unusual strikes, day-over-day builds.
 - **Short**: FINRA short interest and the daily short-volume ratio.
 - **Capitol**: Senate and House trading disclosures on your names, plus the members you track.
+- **Calendar**: every dated event on every name you hold or watch, from the free record and reread by the desk on its own: results dates (the company's own once announced, an estimate until then), ex-dividend and payment dates, the filings that landed at the SEC on your US names with a link to each, the home market's results calendar, and the macro prints ahead when a provider is connected. A results date lands on Tasks by itself.
 
 ## Market
 
@@ -52,5 +53,5 @@ Every screen except Desk · Home and Settings can be hidden: hover it in the sid
 
 ## Research
 
-- **Notes**: the research you write, kept as plain Markdown files in the desk folder and connected to the listings they name, the projects they belong to and the notes they link to. [How notes connect](/docs/get-started/notes/).
+- **Notes**: your research vault as one screen. On the left, the index: what is due (Tasks), what the desk saw (the Journal), and every name, project and subject with a count; a name's line opens its timeline, everything about it by period, twelve months back and more. On the right, every note as a table with four filters, or the note you opened, or the editor with its live blocks. Search reads the notes and inside the files you brought in. [How notes connect](/docs/get-started/notes/).
 
