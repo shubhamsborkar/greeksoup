@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.38. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.39. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.39
+
+*16 September 2026, release 39.* Ask · your AI is the one lit button in the sidebar's foot, orange, so the desk's centre is the first thing a new reader's eye lands on. The recording on the landing page is thirteen seconds on a loop, no voice: ten screens with a crossfade and a slow push into each, playing on its own where the page allows it, mp4 and webm, three megabytes each.
 
 ## 2026-09-16.38
 

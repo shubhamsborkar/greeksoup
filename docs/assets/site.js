@@ -45,14 +45,9 @@
     });
   });
 
-  /* the recording: one button starts it, the controls take over */
-  var vid = d.getElementById("deskvid"), playb = d.querySelector("[data-play]");
-  if (vid && playb) {
-    var fig = vid.closest(".shot-video");
-    playb.addEventListener("click", function () { vid.play(); });
-    vid.addEventListener("play", function () { fig.classList.add("playing"); });
-    vid.addEventListener("ended", function () { fig.classList.remove("playing"); });
-  }
+  /* the recording: it loops on its own; a reader who asked for less motion gets the poster */
+  var vid = d.getElementById("deskvid");
+  if (vid && reduced) { vid.removeAttribute("autoplay"); vid.pause(); vid.controls = true; }
 
   /* the screens: the list drives the frame */
   var show = d.getElementById("showimg"), showcap = d.getElementById("showcap"), showurl = d.getElementById("showurl");

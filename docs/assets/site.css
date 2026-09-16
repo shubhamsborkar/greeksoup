@@ -156,11 +156,6 @@ h1 .acc{color:var(--accent)}
 /* the recording */
 .shot-video{margin-top:40px}
 .shot-video video{display:block;width:100%;height:100%;object-fit:cover;background:var(--frame)}
-.shot-video .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 22px 0 18px;border-radius:999px;background:var(--accent);color:#fff;font-weight:600;font-size:15px;box-shadow:0 10px 30px -10px rgba(0,0,0,.6)}
-.shot-video .play svg.i{width:20px;height:20px}
-.shot-video.playing .play{display:none}
-.shot-video .shot-body::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.18);pointer-events:none}
-.shot-video.playing .shot-body::after{content:none}
 
 /* sections */
 .sec{padding:112px 0 0}

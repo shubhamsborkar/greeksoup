@@ -111,6 +111,12 @@ html[data-rail="min"] #siderail button.rgone span,html[data-rail="min"] #siderai
   border-radius:7px;cursor:pointer;white-space:nowrap;letter-spacing:.04em;text-align:left}
 #siderail .rfoot button:hover{color:var(--ink);background:var(--panel2)}
 #siderail .rfoot .rk{flex:0 0 auto;width:16px;text-align:center;font-size:12px}
+/* the Ask box is the desk's centre: its button is the one lit thing in the rail's foot */
+#siderail .rfoot #askbtn{color:#fff;background:var(--accent);font-weight:700;font-size:12px;letter-spacing:.03em;padding:9px 11px;margin-bottom:6px;
+  box-shadow:0 1px 0 rgba(255,255,255,.15) inset,0 8px 20px -10px rgba(237,90,36,.8)}
+#siderail .rfoot #askbtn:hover{color:#fff;background:var(--accent);filter:brightness(1.08)}
+#siderail .rfoot #askbtn .rk{color:#fff}
+html[data-rail="min"] #siderail .rfoot #askbtn{padding:9px 0;justify-content:center}
 /* collapsed: icons only */
 html[data-rail="min"] #siderail .rname,
 html[data-rail="min"] #siderail .rgt,
