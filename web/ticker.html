@@ -138,6 +138,7 @@ document.getElementById("go").addEventListener("keydown",e=>{
     location.href="/t?symbol="+encodeURIComponent(e.target.value.trim().toUpperCase())+(HOME?"&region=home":"");});
 
 const F=(x,dp=2)=>x==null||isNaN(x)?"—":Number(x).toFixed(dp).replace(/\B(?=(\d{3})+(?!\d))/g,",");
+const esc=x=>String(x??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let CUR = "$";               // the home market's currency symbol arrives with the page data
 const money=(x,dp=2)=>x==null||isNaN(x)?"—":(x<0?"−"+CUR:CUR)+F(Math.abs(x),dp);
 const usd=money;
@@ -454,6 +455,8 @@ async function load(){
   const app=document.getElementById("app");
   loadNotes();   // your notes on the name show even when the quote does not
   if(d.error){app.innerHTML=`<div class="loading">${d.error}</div>`;return;}
+  // the free feed matched the name to its exchange symbol: the page is that symbol's
+  if(d.matched_from&&(HOME||d.symbol!==SYM)){ location.replace("/t?symbol="+encodeURIComponent(d.symbol)+"&from="+encodeURIComponent(d.matched_from)); return; }
   document.title=SYM+" · GreekSoup";
   HIST=[...(d.history||[])].reverse();
   INTRA=d.intraday||{};
@@ -685,7 +688,7 @@ function renderUS(d,app){
     <span class="px mono">${usd(px)}</span>
     <span class="chg mono ${cls(q.changePercentage)}">${(q.change>=0?"+":"−")+F(Math.abs(q.change??0))} (${pct(q.changePercentage)})</span>
   </div>
-  <div class="sub">${p.industry||""}${p.ceo?" · CEO "+p.ceo:""}${p.fullTimeEmployees?" · "+F(p.fullTimeEmployees,0)+" employees":""} · data as of ${d.ts}</div>
+  <div class="sub">${p.industry||""}${p.ceo?" · CEO "+p.ceo:""}${p.fullTimeEmployees?" · "+F(p.fullTimeEmployees,0)+" employees":""} · data as of ${d.ts}${P.get("from")?` · the closest match on the free feed for "${esc(P.get("from"))}"`:""}</div>
   <div class="grid">
     <div>
       ${chartPanel()}
@@ -724,7 +727,7 @@ function renderUS(d,app){
         </div>
       </section>
       <section class="panel" id="finpanel">
-        <div class="panel-h"><h2>Financials</h2><span class="s">FMP, as filed · fiscal years</span>
+        <div class="panel-h"><h2>Financials</h2><span class="s">as filed · fiscal years</span>
           <span style="flex:1"></span>
           <div class="seg" id="fin-period">
             <button data-p="annual" class="on" onclick="finPeriod('annual')">Annual</button>
@@ -1079,7 +1082,10 @@ function renderFin(){
   document.querySelectorAll("#fin-period button").forEach(b=>b.classList.toggle("on",b.dataset.p===FS.period));
   document.querySelectorAll("#fin-unit button").forEach(b=>b.classList.toggle("on",b.dataset.u===FS.unit));
   const cb=document.getElementById("fin-chgbtn"); if(cb) cb.classList.toggle("on",FS.chg);
-  if(FIN.error){ el.innerHTML=`<div class="fin-note">${FIN.error}</div>`; return; }
+  if(FIN.error){
+    // no provider: the tabs that cannot fill go away, and the note says where a provider is set
+    if(FIN.no_provider) document.querySelectorAll("#fin-tabs,#fin-period,#fin-unit,#fin-chgbtn").forEach(x=>x.style.display="none");
+    el.innerHTML=`<div class="fin-note">${esc(FIN.error)}${FIN.no_provider?` A provider is set on <a href="/settings" style="color:var(--accent)">Settings</a>, under Data.`:""}</div>`; return; }
   const m=FS.mode;
   el.innerHTML = m==="inc"||m==="bs"||m==="cf" ? finStmtHTML(m)
     : m==="ratios" ? finRatiosHTML()

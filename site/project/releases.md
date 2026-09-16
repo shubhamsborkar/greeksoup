@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.55. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.56. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.56
+
+*16 September 2026, release 56.* The ticker page for a name the desk has no market file for. A name typed as its home code (HDFCBANK, INFY) or as words (HDFC Bank) now finds its exchange symbol on the free feed (HDFCBANK.NS) and opens that page, saying which name it matched; before, the page said no quote. And on a desk with no data provider, the Financials block no longer talks about a provider it does not have: it says the statements, ratio history, segments, estimates and peers need one, that the quote, chart, valuation and quality above come from the free record, and where a provider is set; the tabs that cannot fill are gone.
 
 ## 2026-09-16.55
 

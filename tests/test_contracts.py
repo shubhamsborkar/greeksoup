@@ -1062,3 +1062,26 @@ def test_superanalyst_reads_the_whole_desk_and_builds_only_through_a_door(monkey
     finally:
         desk_notes.RESEARCH_DIR = keep
         desk_plugins.installed(force=True)
+
+
+def test_ticker_falls_through_to_the_free_feed_match(monkeypatch):
+    """A name typed as its home code (HDFCBANK) or as words (HDFC BANK) on a desk with no
+    market file for it: the free feed's search names the exchange symbol and the page shows
+    that one, saying which name it matched. A miss on both stays a miss, never cached."""
+    import server
+    import freefeed
+    calls = []
+    def fake_build(sym):
+        calls.append(sym)
+        return {"symbol": sym, "quote": {"price": 1}} if sym == "HDFCBANK.NS" else {"symbol": sym, "error": "no quote"}
+    monkeypatch.setattr(server, "build_ticker", fake_build)
+    monkeypatch.setattr(server, "build_ticker_home", lambda sym: {"symbol": sym, "region": "home", "error": "no quote"})
+    monkeypatch.setattr(freefeed, "search", lambda q, n=8: [{"code": "HDFCBANK.NS", "name": "HDFC BANK LTD", "exch": "NSE"}] if "HDFC" in q else [])
+    server._ticker_cache.clear()
+    out = server.cached_ticker("HDFCBANK", "us")
+    assert out["symbol"] == "HDFCBANK.NS" and out["matched_from"] == "HDFCBANK" and out["region"] == "us"
+    out = server.cached_ticker("HDFC BANK", "home")
+    assert out["symbol"] == "HDFCBANK.NS" and out["matched_from"] == "HDFC BANK"
+    out = server.cached_ticker("ZZZZ", "us")
+    assert out["error"] and "us:ZZZZ" not in server._ticker_cache
+    server._ticker_cache.clear()

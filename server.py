@@ -1008,6 +1008,21 @@ def cached_ticker(symbol, region="us"):
     if hit and now - hit[0] < TICKER_TTL:
         return hit[1]
     data = build_ticker(symbol) if region == "us" else build_ticker_home(symbol)
+    if data.get("error"):
+        # a name typed as its home code (HDFCBANK, INFY), as words (HDFC Bank), or on a desk
+        # with no market file for it: the free feed's search finds the exchange symbol
+        # (HDFCBANK.NS) and the page shows that one, saying which name it matched
+        try:
+            hits = freefeed.search(symbol, 4)
+        except Exception:  # noqa: BLE001
+            hits = []
+        pick = next((h for h in hits if h["code"].upper() != symbol), None)
+        if pick:
+            alt = build_ticker(pick["code"].upper())
+            if not alt.get("error"):
+                alt["matched_from"] = symbol
+                alt["region"] = "us"
+                data = alt
     if not data.get("error"):        # never cache a failure; retry next click
         _ticker_cache[key] = (now, data)
     return data
@@ -1051,7 +1066,10 @@ def build_fin(symbol):
             except Exception:  # noqa: BLE001
                 res[k] = None
     if not (res.get("inc_a") or []):
-        return {"symbol": symbol, "error": f"no FMP financials for {symbol}"}
+        if not os.getenv("FMP_API_KEY", "").strip():
+            return {"symbol": symbol, "no_provider": True,
+                    "error": "The statements, ratio history, segments, estimates and peers need a data provider, and none is set. The quote, the chart, valuation and quality above come from the free record."}
+        return {"symbol": symbol, "error": f"The data provider carries no statements for {symbol}."}
 
     # peer comparison rows: the name itself first, then up to 8 FMP peers,
     # each priced from quote + TTM ratios (single-symbol calls)
