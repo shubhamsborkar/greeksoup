@@ -11,7 +11,7 @@ Open the desk and click **Settings** at the bottom of the sidebar. Three tabs.
 
 **Connect**
 
-- **Broker.** Pick yours from the list, paste the keys it asks for, and click *Save and connect*. *Check the connection* tells you what the broker answered. For a broker with a daily login, today's token has its own box here. Below it, a **home market** choice for a reader with no broker.
+- **Broker.** Pick yours from the list, paste the keys it asks for, and click *Save and connect*. *Check the connection* tells you what the broker answered. For a broker with a daily login, today's token has its own box here. Below it, **home market**: your country, from a list of every one; a connected broker sets it for you. Under *Another broker*, a box to name a broker the desk does not know yet, which opens a ticket with the details filled in.
 - **Data provider.** Financial Modeling Prep today, or the name of a provider file your agent wrote. *Check what it allows* runs every endpoint against your plan and shows what answered. [Data providers](/docs/setup/data-providers/).
 - **Your AI.** First the apps you already pay for on this computer (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code, Cursor), each with *Use it for Ask* and *Sign in*; then fourteen presets for a key from a lab or a model on this computer. *Test it* sends one small request. [Your AI](/docs/setup/your-ai/).
 - **Connect your AI app.** The address of the page any AI app on your computer can read, with a Copy button.

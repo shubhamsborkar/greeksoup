@@ -3124,7 +3124,9 @@ def settings_state():
     st["brokers"] = [{k: v for k, v in m.items() if k != "fields"} | {"fields": m["fields"]} for m in brokers.all_meta()]
     st["others"] = [{"name": n, "path": p} for n, p in brokers.OTHERS]
     st["market"] = _market_info()
-    st["markets"] = [{"id": mm["id"], "label": mm["label"]} for mm in markets.all_meta()]
+    st["markets"] = [{"id": mm["id"], "label": mm["label"], "record": mm.get("record", "full"),
+                      "currency": mm["currency"], "exchanges": mm["exchanges"], "benchmark_label": mm["benchmark_label"]}
+                     for mm in markets.all_meta()]
     st["ai"]["providers"] = desk_ai.PROVIDERS
     st["ai"]["formats"] = desk_ai.FORMATS
     st["desk"] = {"port": PORT, "folder": HERE, "version": updater.local_version(),

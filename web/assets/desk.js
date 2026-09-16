@@ -109,6 +109,7 @@
       '<div class="rfoot">' +
       '<button id="askbtn" title="Ask your AI about this screen (⌘I)"><span class="rk">✦</span><span>Ask · your AI</span></button>' +
       '<button id="cmdkbtn" title="Jump anywhere (⌘K)"><span class="rk">⌘</span><span>Command · K</span></button>' +
+      '<button id="fbbtn" title="Tell us what is wrong, missing or unsupported on this screen"><span class="rk">✎</span><span>Feedback</span></button>' +
       '<button id="themebtn" title="Cycle theme"><span class="rk">◐</span><span>Theme · <b id="themename"></b></span></button>' +
       '<button id="railbtn" title="Collapse sidebar ( [ )"><span class="rk" id="railglyph">⟨</span><span>Collapse</span></button>' +
       '</div>' +
@@ -123,6 +124,7 @@
     el.querySelectorAll(".rgone").forEach(b => b.onclick = e => { e.preventDefault(); setShown(b.dataset.key, true); });
     document.getElementById("railbtn").onclick = toggleRail;
     document.getElementById("railedge").onclick = toggleRail;
+    document.getElementById("fbbtn").onclick = () => window.open(feedbackUrl("", ""), "_blank", "noopener");
     document.getElementById("cmdkbtn").onclick = () => openCmdk(true);
     document.getElementById("askbtn").onclick = () => openAsk(true);
     const tb = document.getElementById("themebtn");
@@ -574,10 +576,12 @@
     for (const e of mg.errors || []) rows.push(`could not bring one file up: ${esc(e)}`);
     return rows.length ? `<div class="ukept">${rows.join("<br>")}</div>` : "";
   }
+  let deskVersion = "";
   function renderUpdate(st) {
     if (st.started) lastBoot = st.started;
     const el = updateBar();
     const c = st.check || {};
+    deskVersion = c.local || st.local || deskVersion;
     const res = st.last_result;
     const dismissedAvail = store.getItem("desk_update_dismissed");
     const dismissedDone = store.getItem("desk_update_seen");
@@ -703,6 +707,18 @@
     const label = hit ? hit[1] : (p === "/t" ? "Ticker " + (sp.get("symbol") || "") : document.title);
     return { page: p, query, label };
   }
+  // The feedback loop: a broker the desk does not know, a market row that is
+  // wrong, a screen that misreads. Every ticket opens prefilled on the desk's
+  // public tracker with the screen and the version, and nothing is sent until
+  // the reader presses the button there.
+  const TRACKER = "https://gitlab.com/shikshan-nivesh/greeksoup/-/issues/new";
+  function feedbackUrl(title, body) {
+    const where = (askPage().label || document.title) + (deskVersion ? " · " + deskVersion : "");
+    const t = title || ("On " + where);
+    const b = (body || "What happened, and what you expected:\n\n") + "\n\nScreen: " + where;
+    return TRACKER + "?issue[title]=" + encodeURIComponent(t) + "&issue[description]=" + encodeURIComponent(b);
+  }
+  window.deskFeedback = feedbackUrl;
   function buildAsk() {
     if (document.getElementById("askdock")) return;
     const el = document.createElement("aside");
@@ -711,12 +727,23 @@
     el.innerHTML =
       '<div class="ah"><div><b>Ask your AI</b><small id="asksub">reading this screen</small></div>' +
       '<select id="askvia" title="who answers: the AI on Settings, or a door a plugin opened" hidden></select>' +
+      '<button class="ax" id="askwide" title="Full width, and back">⤢</button>' +
       '<button class="ax" id="askclose" title="Close (Esc)">×</button></div>' +
       '<div class="am" id="askmsgs"></div>' +
       '<div class="af"><textarea id="askin" placeholder="Ask about what is on this screen. Enter sends, Shift+Enter for a new line."></textarea>' +
       '<div class="ab"><button id="asksend">Ask</button><small id="askfoot">Your AI, reading this screen. Verify against the source the screen names.</small></div></div>';
     document.body.appendChild(el);
     document.getElementById("askclose").onclick = () => openAsk(false);
+    // the box starts narrow beside the screen; one click makes it the screen, one more brings it back
+    let wide = false;
+    try { wide = store.getItem("ask_wide") === "1"; } catch (e) { /* fine */ }
+    el.classList.toggle("wide", wide);
+    document.getElementById("askwide").onclick = () => {
+      wide = !el.classList.contains("wide");
+      el.classList.toggle("wide", wide);
+      document.getElementById("askwide").title = wide ? "Back beside the screen" : "Full width, and back";
+      try { store.setItem("ask_wide", wide ? "1" : "0"); } catch (e) { /* fine */ }
+    };
     document.getElementById("asksend").onclick = sendAsk;
     document.getElementById("askin").addEventListener("keydown", e => {
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendAsk(); }

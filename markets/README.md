@@ -2,11 +2,11 @@
 
 A broker file says which market its accounts trade in (`META["region"]`). The matching file in this folder supplies what that market's public record offers, and the desk shows it on Desk · Home, Watch · Home, Risk, Macro and the home ticker page: the session hours, the index Risk measures against, the currency, the Yahoo symbol for an exchange symbol, and where the file has them, the exchange's results calendar, its filings, and the market's own macro cards.
 
-Shipped: India (`in.py`) and the United States (`us.py`). With no broker connected, `HOME_MARKET=in` (or `us`) in `.env` picks one by hand; otherwise the home screens stay global.
+Shipped: India (`in.py`) and the United States (`us.py`) with the full record, and every other country from the table in `world.py` (currency; where Yahoo carries the exchange, its suffixes, the session in the exchange's own time zone and the benchmark; else the world index). `HOME_MARKET=<iso2>` in `.env` picks one by hand; a broker's `region` overrides it. A file in this folder, named in `FILES`, takes over from the country's table row.
 
 ## Writing one for another market
 
-Copy `us.py`, fill in `META`, and add the file's name to `REGISTRY` in `__init__.py`. Then give the broker file for that market the same `region`.
+Copy `us.py`, fill in `META`, and add the file's name to `FILES` in `__init__.py` (it takes over from the country's table row). Then give the broker file for that market the same `region`.
 
 ```
 META

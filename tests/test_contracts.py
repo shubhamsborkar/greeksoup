@@ -48,7 +48,9 @@ def test_no_broker_places_orders():
 
 
 def test_every_market_keeps_the_contract():
-    for key, mod in _modules("markets").items():
+    markets = importlib.import_module("markets")
+    for key in markets.REGISTRY:          # the files and every table-built country alike
+        mod = markets.load(key)
         meta = getattr(mod, "META", None)
         assert isinstance(meta, dict), f"{key}: META missing"
         for field in ("id", "label", "currency", "exchanges", "benchmark"):
@@ -951,3 +953,26 @@ def test_the_us_book_folds_into_desk_book(tmp_path, monkeypatch):
     rep2 = {"migrated": [], "errors": []}
     desk_migrate.fold_us_book("test", rep2)
     assert rep2 == {"migrated": [], "errors": []}
+
+
+def test_every_country_is_a_home_market():
+    """A reader anywhere picks their own country. The two files come first, a
+    country the free feed carries an exchange for gets its suffix, session and
+    index, and a country without one keeps its currency, never reads as open,
+    and measures Risk against the world index."""
+    import markets
+    from datetime import datetime, timezone
+    assert markets.REGISTRY[:2] == ["in", "us"] and len(markets.REGISTRY) > 150
+    assert [m["label"] for m in markets.all_meta()[:2]] == ["India", "United States"]
+    for rid in markets.REGISTRY:
+        m = markets.load(rid)
+        assert m.META["currency"] and m.META["label"] and m.META["benchmark"], rid
+    gb = markets.load("gb")
+    assert gb.ysym("RR") == "RR.L" and gb.ysym("RR.L") == "RR.L" and gb.META["benchmark"] == "^FTSE"
+    assert gb.is_open(datetime(2026, 9, 16, 10, 0, tzinfo=timezone.utc))            # Wednesday 11:00 London
+    assert not gb.is_open(datetime(2026, 9, 19, 10, 0, tzinfo=timezone.utc))        # Saturday
+    sa = markets.load("sa")                                                          # Sunday to Thursday
+    assert sa.is_open(datetime(2026, 9, 20, 8, 0, tzinfo=timezone.utc)) and not sa.is_open(datetime(2026, 9, 18, 8, 0, tzinfo=timezone.utc))
+    ke = markets.load("ke")
+    assert ke.META["exchanges"] == [] and ke.ysym("SCOM") == "SCOM" and ke.META["benchmark"] == "ACWI" and not ke.is_open()
+    assert markets.load("zz") is None

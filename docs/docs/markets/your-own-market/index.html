@@ -43,10 +43,12 @@
     <div class="crumb">Markets</div>
     <article class="prose">
       <h1>Your own market</h1>
-      <p class="lead">One short file, written to a contract in the repository, and every home screen takes your market's shape. An agent writes it from the exchange's public pages in a few minutes.</p>
-      <h2 id="the-paste">The paste</h2>
+      <p class="lead">Every country is already on the Home market list, with its currency, and where the free feed carries the exchange, its quotes, session and index. The deeper record (a results calendar, filings, the market's own macro cards) is one short file written to a contract, which an agent writes from the exchange's public pages in a few minutes.</p>
+      <h2 id="what-every-country-has-already">What every country has already</h2>
+<p>Pick your country under <strong>Home market</strong> on Settings. The list has three parts: India and the United States with the full public record; the countries whose exchange the free feed carries (the United Kingdom, Japan, Germany, Brazil, Australia and about fifty more), with quotes, the session hours in the exchange's own time zone and the index Risk measures against; and every other country with its currency, Risk against the world index, and the session dot off. A row that is wrong for your market goes through the Feedback door in the sidebar, and a row that does not exist yet is the file below.</p>
+<h2 id="the-paste">The paste</h2>
 <p>Open the desk folder in your agent and paste, with your market's name:</p>
-<pre><code>Read markets/README.md in this folder. Write markets/&lt;region&gt;.py for &lt;market&gt; to that contract: the session hours, the benchmark index and its Yahoo symbol, the currency and its symbol and locale, the exchanges and the Yahoo suffix for each, and the economic calendar's country code. If the exchange publishes a results calendar or company filings a program can read, add results_calendar and fundamentals from its public pages, date-stamped, with the last good value kept when a fetch fails. Add the region to REGISTRY in markets/__init__.py, and set my broker file's region to it. Then restart the desk.
+<pre><code>Read markets/README.md in this folder. Write markets/&lt;region&gt;.py for &lt;market&gt; to that contract: the session hours, the benchmark index and its Yahoo symbol, the currency and its symbol and locale, the exchanges and the Yahoo suffix for each, and the economic calendar's country code. If the exchange publishes a results calendar or company filings a program can read, add results_calendar and fundamentals from its public pages, date-stamped, with the last good value kept when a fetch fails. Add the region to FILES in markets/__init__.py, and set my broker file's region to it. Then restart the desk.
 </code></pre>
 <p>Pick <strong>Home market</strong> on Settings if no broker sets it, and the home screens change on their next refresh.</p>
 <h2 id="what-the-file-supplies-and-what-is-optional">What the file supplies, and what is optional</h2>
@@ -78,11 +80,11 @@
     </nav>
     <footer class="foot">
       <span>GreekSoup: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. For investors who refuse to settle.</span>
-      <span class="mono">version 2026-09-16.47 · built 2026-09-16 · <a href="https://github.com/shubhamsborkar/greeksoup/edit/main/site/markets/your-own-market.md">edit this page</a></span>
+      <span class="mono">version 2026-09-16.48 · built 2026-09-16 · <a href="https://github.com/shubhamsborkar/greeksoup/edit/main/site/markets/your-own-market.md">edit this page</a></span>
     </footer>
   </main>
   <aside class="rail">
-    <div class="rail-t">On this page</div><ul><li><a href="#the-paste">The paste</a></li><li><a href="#what-the-file-supplies-and-what-is-optional">What the file supplies, and what is optional</a></li><li><a href="#two-rules-for-the-file">Two rules for the file</a></li><li><a href="#keeping-it-through-updates">Keeping it through updates</a></li></ul>
+    <div class="rail-t">On this page</div><ul><li><a href="#what-every-country-has-already">What every country has already</a></li><li><a href="#the-paste">The paste</a></li><li><a href="#what-the-file-supplies-and-what-is-optional">What the file supplies, and what is optional</a></li><li><a href="#two-rules-for-the-file">Two rules for the file</a></li><li><a href="#keeping-it-through-updates">Keeping it through updates</a></li></ul>
   </aside>
 </div>
 <div class="modal" id="modal" hidden>

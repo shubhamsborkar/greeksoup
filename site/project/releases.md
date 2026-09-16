@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.47. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.48. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.48
+
+*16 September 2026, release 48.* Every country is a home market. The Home market list on Settings now carries every country: India and the United States with the full public record, about fifty countries whose exchange the free feed carries with their quotes, session hours in the exchange's own time zone and the index Risk measures against (the United Kingdom, Japan, Germany, Brazil, Australia, the Gulf and more), and every other country with its currency and the world index. A connected broker still sets the country for you. Under Another broker, a reader whose broker the desk does not know names it and opens a ticket with the details filled in; nothing is sent until they press the button there. A Feedback door sits in the sidebar of every screen for the same reason: a wrong row, a misread number, a broker or a market the desk should know, one ticket each, with the screen and the version already written in. The Ask box takes the whole screen on one click and comes back on the next, and remembers which you chose.
 
 ## 2026-09-16.47
 

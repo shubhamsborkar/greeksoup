@@ -1,15 +1,19 @@
 ---
 title: Your own market
 description: Add a market GreekSoup does not ship, with one short file written by an AI agent to the markets contract.
-lead: One short file, written to a contract in the repository, and every home screen takes your market's shape. An agent writes it from the exchange's public pages in a few minutes.
+lead: Every country is already on the Home market list, with its currency, and where the free feed carries the exchange, its quotes, session and index. The deeper record (a results calendar, filings, the market's own macro cards) is one short file written to a contract, which an agent writes from the exchange's public pages in a few minutes.
 ---
+
+## What every country has already
+
+Pick your country under **Home market** on Settings. The list has three parts: India and the United States with the full public record; the countries whose exchange the free feed carries (the United Kingdom, Japan, Germany, Brazil, Australia and about fifty more), with quotes, the session hours in the exchange's own time zone and the index Risk measures against; and every other country with its currency, Risk against the world index, and the session dot off. A row that is wrong for your market goes through the Feedback door in the sidebar, and a row that does not exist yet is the file below.
 
 ## The paste
 
 Open the desk folder in your agent and paste, with your market's name:
 
 ```
-Read markets/README.md in this folder. Write markets/<region>.py for <market> to that contract: the session hours, the benchmark index and its Yahoo symbol, the currency and its symbol and locale, the exchanges and the Yahoo suffix for each, and the economic calendar's country code. If the exchange publishes a results calendar or company filings a program can read, add results_calendar and fundamentals from its public pages, date-stamped, with the last good value kept when a fetch fails. Add the region to REGISTRY in markets/__init__.py, and set my broker file's region to it. Then restart the desk.
+Read markets/README.md in this folder. Write markets/<region>.py for <market> to that contract: the session hours, the benchmark index and its Yahoo symbol, the currency and its symbol and locale, the exchanges and the Yahoo suffix for each, and the economic calendar's country code. If the exchange publishes a results calendar or company filings a program can read, add results_calendar and fundamentals from its public pages, date-stamped, with the last good value kept when a fetch fails. Add the region to FILES in markets/__init__.py, and set my broker file's region to it. Then restart the desk.
 ```
 
 Pick **Home market** on Settings if no broker sets it, and the home screens change on their next refresh.

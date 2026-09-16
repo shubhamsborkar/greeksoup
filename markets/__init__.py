@@ -32,14 +32,22 @@ optional
 import importlib
 import os
 
-REGISTRY = ["in", "us"]
+from markets import world
+
+FILES = ["in", "us"]                      # markets with a file of their own (full record)
+REGISTRY = FILES + [r for r in world.ids() if r not in FILES]   # every country
+_built = {}
 
 
 def load(region):
     region = (region or "").strip().lower()
     if region not in REGISTRY:
         return None
-    return importlib.import_module(f"markets.{region}")
+    if region in FILES:
+        return importlib.import_module(f"markets.{region}")
+    if region not in _built:
+        _built[region] = world.Market(region)
+    return _built[region]
 
 
 def active(broker_region=None):
@@ -51,7 +59,8 @@ def active(broker_region=None):
 
 
 def all_meta():
-    out = []
-    for rid in REGISTRY:
-        out.append(dict(load(rid).META))
-    return out
+    """Every market's META, the files first, then every other country by name."""
+    out = [dict(load(rid).META) | {"record": "full"} for rid in FILES]
+    rest = [dict(load(rid).META) for rid in REGISTRY if rid not in FILES]
+    rest.sort(key=lambda m: m["label"])
+    return out + rest

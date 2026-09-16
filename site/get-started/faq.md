@@ -20,7 +20,7 @@ No. A data key adds six years of statements, ratio history, estimates, peers and
 Alpaca, ICICI Direct, Interactive Brokers, Tradier, Trading 212 and Zerodha, read-only, as the desk comes. Any other broker that lets a program read your account is one file an AI agent writes to [the written contract](/docs/brokers/another-broker/).
 
 **Which markets?**
-The market follows the broker. India and the United States ship today, and another market is one short file to a written contract. Global takes any symbol from any exchange, and a reader with no broker names a home market in Settings.
+Every country is on the Home market list in Settings. India and the United States carry the full public record (the results calendar, the filings, the market's own macro cards); about fifty more get their quotes, session hours and index from the free feed; every other country keeps its currency and measures Risk against the world index. A connected broker sets the country for you, and the deeper record for any market is one short file to a written contract. Global takes any symbol from any exchange.
 
 **What does it run on?**
 Mac, Windows and Linux. It needs Python 3.10 or newer, which the one-line install finds or installs for you, and a browser. We build and use it on a Mac; the Windows install line was written from Microsoft's documented commands and we would like to hear how it goes on your PC.

@@ -96,7 +96,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
     </div>
     <div class="body" style="border-top:1px solid var(--line)">
       <div class="row"><label for="m_pick">Home market</label><select id="m_pick"></select></div>
-      <div class="row"><span></span><div class="hint" id="m_how">The home screens take the shape of the market your broker trades in: its session hours, its index on Risk, its currency, its exchanges, and where the public record has them, the results calendar, the filings and the market's own macro cards. With no broker connected, pick one here.</div></div>
+      <div class="row"><span></span><div class="hint" id="m_how">Pick your country. The home screens take its shape: its session hours, its index on Risk, its currency, its exchanges, and where the public record has them, the results calendar, the filings and the market's own macro cards. A connected broker sets the country for you. A country whose exchange the free feed does not carry keeps its currency and measures against the world index; if a row is wrong for your market, the Feedback door in the sidebar is the way to say so.</div></div>
       <div class="msg" id="m_msg"></div>
     </div>
     <div class="body" id="b_tokenblock" style="border-top:1px solid var(--line);display:none">
@@ -317,12 +317,20 @@ function renderMarket(s){
   const pick=$("m_pick"); const b=s.broker; const mk=s.market||{};
   const brokerRegion = b.id ? (b.region||"") : "";
   const brokerLabel = brokerRegion ? ((s.markets||[]).find(m=>m.id===brokerRegion)||{}).label : "";
+  // every country, the two with a full public record first, then the ones the
+  // free feed carries an exchange for, then the rest with their currency alone
+  const ms=s.markets||[];
+  const grp=(title,rows)=>rows.length?`<optgroup label="${esc(title)}">`+rows.map(m=>`<option value="${m.id}">${esc(m.label)} · ${esc(m.currency)}${m.exchanges.length?" · "+esc(m.exchanges.join(", ")):""}</option>`).join("")+`</optgroup>`:"";
   pick.innerHTML = (brokerRegion
     ? `<option value="">Follows the broker: ${esc(brokerLabel||brokerRegion)}</option>`
     : `<option value="">None: the home screens stay global</option>`)
-    + (s.markets||[]).map(m=>`<option value="${m.id}">${esc(m.label)}</option>`).join("");
+    + grp("Full public record: calendar, filings, macro", ms.filter(m=>m.record==="full"))
+    + grp("Quotes, the session and the index from the free feed", ms.filter(m=>m.record==="quotes"))
+    + grp("Currency and the world index; no exchange on the free feed yet", ms.filter(m=>m.record==="currency"));
   pick.value = brokerRegion ? "" : (s.home_market||"");
   pick.disabled = !!brokerRegion;
+  const cur=ms.find(m=>m.id===(brokerRegion||s.home_market));
+  if(cur && !brokerRegion) say("m_msg",`${esc(cur.label)}: ${esc(cur.currency)}${cur.exchanges.length?", "+esc(cur.exchanges.join(" and ")):", no exchange on the free feed"}, Risk against ${esc(cur.benchmark_label)}.`);
   if(brokerRegion && s.home_market && s.home_market!==brokerRegion) say("m_msg",`The broker sets the market while it is connected; your own choice (${esc(s.home_market)}) applies when no broker is chosen.`);
 }
 $("m_pick").onchange=async()=>{
@@ -336,7 +344,15 @@ function onPick(silent){
   brokerFields(id);
   $("b_others").style.display = id==="other" ? "" : "none";
   $("b_btns").style.display = id==="other" ? "none" : "";
-  if(id==="other") $("b_others").innerHTML=`<b>Brokers the desk knows about without a file of their own, and the way in for each:</b><table class="others">${(S.others||[]).map(o=>`<tr><td>${esc(o.name)}</td><td>${esc(o.path)}</td></tr>`).join("")}</table><div style="margin-top:8px">Any broker file your agent writes appears in the list above the next time this page loads.</div>`;
+  if(id==="other"){
+    const home=((S.markets||[]).find(m=>m.id===((S.broker&&S.broker.id&&S.broker.region)||S.home_market||""))||{}).label||"";
+    $("b_others").innerHTML=`<b>Brokers the desk knows about without a file of their own, and the way in for each:</b><table class="others">${(S.others||[]).map(o=>`<tr><td>${esc(o.name)}</td><td>${esc(o.path)}</td></tr>`).join("")}</table><div style="margin-top:8px">Any broker file your agent writes appears in the list above the next time this page loads.</div>`+
+      `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><b>Your broker is not here?</b> There are thousands of brokers across every market, and the desk grows one at a time from what readers ask for. Name yours and we look at its way in; until then <a href="/book" style="color:var(--accent)">Desk · Book</a> takes an export.`+
+      `<div class="btns" style="margin-top:8px"><input id="fb_broker" placeholder="broker name" style="width:220px" autocomplete="off"><input id="fb_country" placeholder="country" value="${esc(home)}" style="width:160px" autocomplete="off"><button class="ghost" id="fb_ask">Ask for this broker</button></div><div class="msg" id="fb_msg"></div></div>`;
+    $("fb_ask").onclick=()=>{ const n=$("fb_broker").value.trim(), c=$("fb_country").value.trim(); if(!n) return say("fb_msg","The broker's name is needed.","err");
+      window.open(window.deskFeedback(`Broker: ${n}${c?" ("+c+")":""}`,`Broker: ${n}\nCountry: ${c||"?"}\nDoes it publish an API for individuals? \nWhat does its holdings export look like? \n`),"_blank","noopener");
+      say("fb_msg","A ticket opened in a new tab with the details filled in; nothing is sent until you press the button there.","ok"); };
+  }
   const daily = m && m.daily_login && id===b.id;
   $("b_tokenblock").style.display = daily ? "" : "none";
   if(daily){
