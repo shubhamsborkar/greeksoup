@@ -23,7 +23,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 from updater import bytes_hash, parse_version_text  # noqa: E402
 
-SKIP = {"MANIFEST.json", ".gitignore"}
+SKIP = {"MANIFEST.json", ".gitignore", ".gitlab-ci.yml", "netlify.toml"}   # hosting files, not the desk
 # The website (the landing page's docs and their source) is served by GitHub
 # Pages, not by the desk, so a reader's copy never needs it in an update.
 SKIP_DIRS = ("site/", "docs/docs/")

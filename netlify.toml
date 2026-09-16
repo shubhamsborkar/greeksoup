@@ -1,0 +1,5 @@
+# Netlify used to publish docs/ on every push and now charges 15 credits a deploy; the site
+# moved to GitLab Pages (.gitlab-ci.yml). This tells Netlify to skip every build it is sent.
+[build]
+  publish = "docs"
+  ignore = "exit 0"
