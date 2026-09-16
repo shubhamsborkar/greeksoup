@@ -15,6 +15,8 @@ set -e
 
 REPO="shubhamsborkar/greeksoup"
 ZIP_URL="https://codeload.github.com/$REPO/zip/refs/heads/main"
+# the same repository, mirrored on GitLab with every push; used when GitHub does not answer
+MIRROR_ZIP_URL="https://gitlab.com/shikshan-nivesh/greeksoup/-/archive/main/greeksoup-main.zip"
 DEST="${GREEKSOUP_HOME:-$HOME/GreekSoup}"
 PORT="${GREEKSOUP_PORT:-8765}"
 NO_SERVICE="${GREEKSOUP_NO_SERVICE:-}"
@@ -59,7 +61,7 @@ if [ -f "$DEST/server.py" ]; then
 else
   say "Downloading the desk into $DEST ..."
   TMP="$(mktemp -d)"
-  curl -fsSL "$ZIP_URL" -o "$TMP/desk.zip"
+  curl -fsSL "$ZIP_URL" -o "$TMP/desk.zip" || curl -fsSL "$MIRROR_ZIP_URL" -o "$TMP/desk.zip"
   ( cd "$TMP" && unzip -q desk.zip )
   SRC="$(find "$TMP" -maxdepth 1 -mindepth 1 -type d | head -1)"
   mkdir -p "$(dirname "$DEST")"

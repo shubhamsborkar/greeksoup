@@ -24,7 +24,7 @@ GreekSoup is a research desk that runs on your own computer: fifteen screens wit
 
 You do not write any of it. One line pasted into a terminal installs it (below), and an AI coding agent can install it for you instead and change it later when you ask. It is open source under the MIT licence and it updates itself. The edition that walks through every screen and the build is [How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity); the screenshots there show the author's own copy, and this repository is that desk without the author's positions.
 
-[Website](https://greeksoup.ai) · [Docs](https://greeksoup.ai/docs/) · [Install](https://greeksoup.ai/docs/install/) · [The first ten minutes](https://greeksoup.ai/docs/get-started/first-ten-minutes/) · [The screens](https://greeksoup.ai/docs/get-started/the-screens/) · [Security](https://greeksoup.ai/docs/project/security/) · [Releases](https://greeksoup.ai/docs/project/releases/) · [FAQ](https://greeksoup.ai/docs/get-started/faq/) · [Newsletter](https://ai.shikshannivesh.com)
+[Website](https://greeksoup.ai) · [Mirror on GitLab](https://gitlab.com/shikshan-nivesh/greeksoup) · [Docs](https://greeksoup.ai/docs/) · [Install](https://greeksoup.ai/docs/install/) · [The first ten minutes](https://greeksoup.ai/docs/get-started/first-ten-minutes/) · [The screens](https://greeksoup.ai/docs/get-started/the-screens/) · [Security](https://greeksoup.ai/docs/project/security/) · [Releases](https://greeksoup.ai/docs/project/releases/) · [FAQ](https://greeksoup.ai/docs/get-started/faq/) · [Newsletter](https://ai.shikshannivesh.com)
 
 ## How it works, in plain words
 

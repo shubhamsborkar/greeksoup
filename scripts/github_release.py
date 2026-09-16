@@ -36,6 +36,14 @@ def main():
         sys.exit(f"origin is not an https GitHub remote: {remote}")
     user, owner, repo = rm.group(1) or rm.group(2), rm.group(2), rm.group(3)
 
+    # the tag goes on the commit that carries this VERSION, never on an older one:
+    # a release chain that stopped before its commit once tagged the previous
+    # version's code with the new notes (2026-09-16.44, undone by hand)
+    head_version = git("show", "HEAD:VERSION").splitlines()[0].split()[0]
+    if head_version != version:
+        sys.exit(f"HEAD carries VERSION {head_version}; commit and push {version} first")
+    if git("status", "--porcelain", "--", "VERSION", "MANIFEST.json"):
+        sys.exit("VERSION or MANIFEST.json is not committed; finish the release order first")
     if git("tag", "-l", version) != version:
         git("tag", "-a", version, "-m", notes)
         print("tagged", version)

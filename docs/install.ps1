@@ -10,6 +10,12 @@
 $ErrorActionPreference = "Stop"
 $Repo = "shubhamsborkar/greeksoup"
 $ZipUrl = "https://codeload.github.com/$Repo/zip/refs/heads/main"
+# the same repository, mirrored on GitLab with every push; used when GitHub does not answer
+$MirrorZipUrl = "https://gitlab.com/shikshan-nivesh/greeksoup/-/archive/main/greeksoup-main.zip"
+function Get-Desk($Out) {
+  try { Invoke-WebRequest -Uri $ZipUrl -OutFile $Out }
+  catch { Invoke-WebRequest -Uri $MirrorZipUrl -OutFile $Out }
+}
 $Dest = if ($env:GREEKSOUP_HOME) { $env:GREEKSOUP_HOME } else { Join-Path $env:USERPROFILE "GreekSoup" }
 $Port = if ($env:GREEKSOUP_PORT) { $env:GREEKSOUP_PORT } else { "8765" }
 
@@ -53,7 +59,7 @@ if (Test-Path (Join-Path $Dest "server.py")) {
     } else {
       $Tmp = Join-Path $env:TEMP ("greeksoup-" + [guid]::NewGuid().ToString())
       New-Item -ItemType Directory -Path $Tmp | Out-Null
-      Invoke-WebRequest -Uri $ZipUrl -OutFile (Join-Path $Tmp "desk.zip")
+      Get-Desk (Join-Path $Tmp "desk.zip")
       Expand-Archive -Path (Join-Path $Tmp "desk.zip") -DestinationPath $Tmp
       $Src = (Get-ChildItem -Path $Tmp -Directory | Select-Object -First 1).FullName
       Get-ChildItem -Path $Src -Force | Where-Object { $_.Name -notin @(".env", "data", "logs", "cache", ".venv") } |
@@ -65,7 +71,7 @@ if (Test-Path (Join-Path $Dest "server.py")) {
   Write-Host "`n  Downloading the desk into $Dest ..."
   $Tmp = Join-Path $env:TEMP ("greeksoup-" + [guid]::NewGuid().ToString())
   New-Item -ItemType Directory -Path $Tmp | Out-Null
-  Invoke-WebRequest -Uri $ZipUrl -OutFile (Join-Path $Tmp "desk.zip")
+  Get-Desk (Join-Path $Tmp "desk.zip")
   Expand-Archive -Path (Join-Path $Tmp "desk.zip") -DestinationPath $Tmp
   $Src = Get-ChildItem -Path $Tmp -Directory | Select-Object -First 1
   New-Item -ItemType Directory -Path (Split-Path $Dest) -Force | Out-Null

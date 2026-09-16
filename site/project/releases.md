@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.44. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.45. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.45
+
+*16 September 2026, release 45.* The desk has a second home. The repository is mirrored on GitLab (gitlab.com/shikshan-nivesh/greeksoup) with every push, and the install line and the update check read from the mirror whenever GitHub does not answer, so an outage or a review on one side never stops a new install or an update. The release script refuses to tag a commit that does not carry the version it is publishing.
 
 ## 2026-09-16.44
 

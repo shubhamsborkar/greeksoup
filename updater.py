@@ -101,12 +101,37 @@ def local_version():
     return rel[0]["version"] if rel else ""
 
 
+# The desk's home is GitHub; the same repository is mirrored on GitLab with every
+# push, and the desk reads from the mirror when GitHub does not answer (an outage,
+# or an account review that hid the repository for a day, as on 2026-09-16).
+MIRROR = "shikshan-nivesh/greeksoup"
+
+
 def _urls():
-    ver = os.getenv("DESK_UPDATE_VERSION_URL", "").strip() or \
-        f"https://raw.githubusercontent.com/{REPO}/main/VERSION"
-    zip_ = os.getenv("DESK_UPDATE_ZIP_URL", "").strip() or \
-        f"https://codeload.github.com/{REPO}/zip/refs/heads/main"
-    return ver, zip_
+    """[(version url, zip url), ...] in the order to try."""
+    ver = os.getenv("DESK_UPDATE_VERSION_URL", "").strip()
+    zip_ = os.getenv("DESK_UPDATE_ZIP_URL", "").strip()
+    if ver or zip_:
+        return [(ver or f"https://raw.githubusercontent.com/{REPO}/main/VERSION",
+                 zip_ or f"https://codeload.github.com/{REPO}/zip/refs/heads/main")]
+    return [(f"https://raw.githubusercontent.com/{REPO}/main/VERSION",
+             f"https://codeload.github.com/{REPO}/zip/refs/heads/main"),
+            (f"https://gitlab.com/{MIRROR}/-/raw/main/VERSION",
+             f"https://gitlab.com/{MIRROR}/-/archive/main/greeksoup-main.zip")]
+
+
+def _get_first(kind, timeout, agent):
+    """The first source that answers; the last error when none does."""
+    last = None
+    for ver_url, zip_url in _urls():
+        url = ver_url if kind == "version" else zip_url
+        try:
+            r = requests.get(url, timeout=timeout, headers={"User-Agent": agent})
+            r.raise_for_status()
+            return r
+        except Exception as exc:  # noqa: BLE001 - try the next source
+            last = exc
+    raise last if last else RuntimeError("no update source")
 
 
 def _read_json(path):
@@ -132,16 +157,14 @@ def check(force=False):
         cached["local"] = local_version()
         cached["available"] = bool(cached.get("remote")) and cached["remote"] > cached["local"]
         return cached
-    ver_url, _ = _urls()
     local = local_version()
     out = {"at": time.time(), "checked": datetime.now().strftime("%Y-%m-%d %H:%M"),
            "local": local, "remote": None, "notes": [], "available": False, "error": None}
     try:
-        r = requests.get(ver_url, timeout=12, headers={"User-Agent": "research-desk update check"})
-        r.raise_for_status()
+        r = _get_first("version", 12, "research-desk update check")
         rel = parse_version_text(r.text)
         if not rel:
-            raise ValueError("VERSION file on GitHub is empty")
+            raise ValueError("the VERSION file at the source is empty")
         out["remote"] = rel[0]["version"]
         out["notes"] = [x for x in rel if x["version"] > local][:4]
         out["available"] = out["remote"] > local
@@ -186,9 +209,7 @@ def _safe_extract(zf, dest):
 
 
 def _download(tmp):
-    _, zip_url = _urls()
-    r = requests.get(zip_url, timeout=120, headers={"User-Agent": "research-desk update"})
-    r.raise_for_status()
+    r = _get_first("zip", 120, "research-desk update")
     with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
         _safe_extract(zf, tmp)
     roots = [d for d in os.listdir(tmp) if os.path.isdir(os.path.join(tmp, d))]
