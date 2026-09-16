@@ -3848,6 +3848,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(json.dumps(_cached("short", SHORT_TTL, build_short)).encode(), "application/json")
             elif path == "/api/guide":
                 self._send(json.dumps(build_guide()).encode(), "application/json")
+            elif path == "/api/ai/app/check":
+                self._send(json.dumps(desk_plugins.signed_in((qs.get("app", [""])[0] or "").strip())).encode(), "application/json")
             elif path == "/api/ai/apps":
                 self._send(json.dumps({"apps": desk_plugins.apps_known(), "default_door": ask_ready()["default_door"]}).encode(), "application/json")
             elif path == "/api/lists":

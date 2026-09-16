@@ -184,6 +184,53 @@ def doors():
     return out
 
 
+# how the desk asks an app whether it is signed in: the app's own status command where it
+# has one (cheap, no model call); otherwise one tiny question through the door
+STATUS_CMD = {
+    "claude": ["auth", "status"],
+    "codex": ["login", "status"],
+    "cursor-agent": ["status"],
+}
+
+
+def signed_in(app):
+    """{"state": "in" | "out" | "unknown", "text": the app's own words}. Reads the app's status
+    command when it has one; an app without one is asked a one-word question through its door,
+    which is the only way to know its login holds."""
+    a = APPS.get(app)
+    path = _which(app) if a else None
+    if not a or not path:
+        return {"state": "unknown", "text": "not on this computer"}
+    env = dict(os.environ)
+    env.pop("CLAUDECODE", None)
+    if app in STATUS_CMD:
+        try:
+            r = subprocess.run([path] + STATUS_CMD[app], capture_output=True, text=True, timeout=20, env=env)
+        except (subprocess.TimeoutExpired, OSError) as exc:
+            return {"state": "unknown", "text": f"the status command did not answer ({type(exc).__name__})"}
+        text = ((r.stdout or "") + "\n" + (r.stderr or "")).strip()
+        low = text.lower()
+        if app == "claude":
+            try:
+                j = json.loads(r.stdout or "{}")
+                ok, how = bool(j.get("loggedIn")), str(j.get("authMethod") or "")
+            except ValueError:
+                ok, how = "loggedin\": true" in low.replace(" ", ""), ""
+            return {"state": "in" if ok else "out", "text": (f"through {how}" if ok and how else "")}
+        if "not logged in" in low or "not signed in" in low or "no credentials" in low or "unauthenticated" in low:
+            return {"state": "out", "text": text.splitlines()[0][:160] if text else "not signed in"}
+        if r.returncode == 0 and ("logged in" in low or "signed in" in low or "authenticated" in low or "@" in low):
+            return {"state": "in", "text": text.splitlines()[0][:160] if text else "signed in"}
+        return {"state": "unknown", "text": (text.splitlines()[0][:160] if text else f"exit {r.returncode}")}
+    door = next((d["name"] for d in doors() if d["app"] == app and d["ready"]), "")
+    if not door:
+        return {"state": "unknown", "text": "no door reaches it yet; the Terminal door plugin brings one"}
+    out = run_door(door, "Reply with the single word: ok", timeout=90)
+    if out.get("ok"):
+        return {"state": "in", "text": "signed in; it answered"}
+    return {"state": "out", "text": (out.get("error") or "it did not answer")[:200]}
+
+
 def apps_known():
     """Every app the desk knows how to talk to, found on this computer or not, for the Your AI
     card. Found is read from the computer itself, so it is right before any door plugin is in;
@@ -193,7 +240,8 @@ def apps_known():
     for key, a in APPS.items():
         d = seen.get(key)
         rows.append({"app": key, "label": a["label"], "pays": a["pays"], "site": a["site"], "signin": a["signin"],
-                     "found": bool(_which(key)), "door": d["name"] if d else "", "installed": bool(d)})
+                     "found": bool(_which(key)), "door": d["name"] if d else "", "installed": bool(d),
+                     "cheap_check": key in STATUS_CMD})
     return rows
 
 

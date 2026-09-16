@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.53. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.54. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.54
+
+*16 September 2026, release 54.* Settings, Your AI: each app card now says whether you are signed in, in the app's own words. Claude Code, Codex and Cursor are read from their own status command when the screen opens and every few seconds after you press Sign in, so the card turns to Signed in on its own once the browser sign-in completes. Gemini CLI, Kimi Code, Grok Build and Qwen Code have no status command, so a Check button on every card asks the app a one-word question and reports what came back.
 
 ## 2026-09-16.53
 

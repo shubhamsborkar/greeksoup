@@ -20,6 +20,9 @@
 .app .ab button:hover,.app .ab a:hover{border-color:var(--accent);color:var(--accent)}
 .app .ab button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 .app .msg{font-size:11.5px;color:var(--ink2);margin-top:6px;line-height:1.5}
+.app .login{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.5;min-height:0}
+.app .login.in{color:var(--pos)}
+.app .login.out{color:var(--neg)}
 .stabs{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
 .stabs button{background:var(--panel);color:var(--ink2);border:1px solid var(--line2);border-radius:10px;padding:9px 16px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;text-align:left}
 .stabs button span{display:block;font-weight:400;font-size:11px;color:var(--muted);margin-top:2px}
@@ -506,14 +509,42 @@ $("g_again").onclick=()=>{ if(window.deskGuide) window.deskGuide.show(); };
 /* the apps you already pay for: found on this computer or not, use one for Ask, sign in through its own window */
 async function loadApps(){
   let d; try{ d=await (await fetch("/api/ai/apps",{cache:"no-store"})).json(); }catch(e){ $("a_apps").textContent="The apps could not be read."; return; }
+  APPS_CHEAP=Object.fromEntries(d.apps.map(a=>[a.app,!!a.cheap_check]));
   $("a_apps").innerHTML=d.apps.map(a=>`<div class="app ${a.found&&d.default_door===a.door?"on":""}" data-app="${esc(a.app)}">
     <b>${esc(a.label)}</b><div class="pays">on ${esc(a.pays)}</div>
     <div class="found ${a.found?"yes":""}">${a.found?(d.default_door===a.door?"answers the Ask box":"on this computer"):"not on this computer"}</div>
-    <div class="ab">${a.found?(a.door&&d.default_door===a.door?`<button class="ghost" data-use="" data-app="${esc(a.app)}">Stop using it</button>`:`<button class="primary" data-use="${esc(a.door)}" data-app="${esc(a.app)}">Use it for Ask</button>`)+`<button data-signin="${esc(a.app)}">Sign in</button>`:`<a href="${esc(a.site)}" target="_blank" rel="noopener">Get ${esc(a.label)}</a>`}</div>
+    <div class="ab">${a.found?(a.door&&d.default_door===a.door?`<button class="ghost" data-use="" data-app="${esc(a.app)}">Stop using it</button>`:`<button class="primary" data-use="${esc(a.door)}" data-app="${esc(a.app)}">Use it for Ask</button>`)+`<button data-signin="${esc(a.app)}">Sign in</button><button class="ghost" data-check="${esc(a.app)}">Check</button>`:`<a href="${esc(a.site)}" target="_blank" rel="noopener">Get ${esc(a.label)}</a>`}</div>
+    <div class="login" data-login="${esc(a.app)}"></div>
     <div class="msg"></div></div>`).join("");
   $("a_apps").querySelectorAll("[data-use]").forEach(b=>b.onclick=async()=>{ const r=await post("/api/ai/app/use",{door:b.dataset.use,app:b.dataset.use?"":(b.textContent.startsWith("Stop")?"":b.dataset.app)}); if(!r.ok){ alert(r.error||"That did not save."); return; } loadApps(); loadPlugins(); if(window.deskRefreshNav) window.deskRefreshNav(); });
-  $("a_apps").querySelectorAll("[data-signin]").forEach(b=>b.onclick=async()=>{ const r=await post("/api/ai/app/signin",{app:b.dataset.signin}); b.closest(".app").querySelector(".msg").textContent=r.ok?r.text:(r.error||"That did not work."); });
+  $("a_apps").querySelectorAll("[data-signin]").forEach(b=>b.onclick=async()=>{ const r=await post("/api/ai/app/signin",{app:b.dataset.signin}); b.closest(".app").querySelector(".msg").textContent=r.ok?r.text:(r.error||"That did not work."); if(r.ok) watchLogin(b.dataset.signin); });
+  $("a_apps").querySelectorAll("[data-check]").forEach(b=>b.onclick=()=>checkLogin(b.dataset.check,true));
+  // the apps with a status command of their own are read on load (no model call); the rest
+  // are checked when the reader presses Check, since the only test is a one-word question
+  for(const a of d.apps) if(a.found&&a.cheap_check) checkLogin(a.app,false);
 }
+/* signed in or not, in the app's own words; a probe (one tiny question) only when asked */
+async function checkLogin(app,probe){
+  const el=document.querySelector(`[data-login="${app}"]`); if(!el) return null;
+  el.className="login"; el.textContent=probe?"Checking… a one-word question goes to it.":"Checking…";
+  let r; try{ r=await (await fetch("/api/ai/app/check?app="+encodeURIComponent(app),{cache:"no-store"})).json(); }catch(e){ el.textContent="The desk did not answer."; return null; }
+  el.className="login "+(r.state==="in"?"in":r.state==="out"?"out":"");
+  const more=(r.text&&!/^(not )?(signed|logged) in$/i.test(r.text.trim()))?" · "+r.text:"";
+  el.textContent=(r.state==="in"?"Signed in":r.state==="out"?"Not signed in":"Could not tell")+more;
+  return r.state;
+}
+/* after Sign in opened its window: the card reads the app's status every few seconds until it
+   says you are in, for five minutes; an app without a status command waits for Check */
+const loginWatch={};
+function watchLogin(app){
+  clearInterval(loginWatch[app]);
+  const el=document.querySelector(`[data-login="${app}"]`);
+  const cheap=(APPS_CHEAP||{})[app];
+  if(!cheap){ if(el){ el.className="login"; el.textContent="When the window says you are in, press Check."; } return; }
+  let n=0;
+  loginWatch[app]=setInterval(async()=>{ n++; const st=await checkLogin(app,false); if(st==="in"||n>60) clearInterval(loginWatch[app]); },5000);
+}
+let APPS_CHEAP={};
 loadApps();
 $("e_save").onclick=async()=>{ const v=$("e_mail").value.trim(); if(!v) return say("s_msg","Type the address first.","err"); const r=await post("/api/settings/save",{EDGAR_CONTACT:v}); if(r.ok){ $("e_mail").value=""; say("s_msg","Saved.","ok"); render(r.state);} };
 
