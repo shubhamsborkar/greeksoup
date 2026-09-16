@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.65. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.66. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.66
+
+*16 September 2026, release 66.* TradingView's chart where their embed carries the exchange, checked name by name on 2026-09-17: NASDAQ, NYSE, AMEX, BSE, Euronext, Xetra, Frankfurt, Toronto, Sydney, Sao Paulo, Abu Dhabi, Jakarta, the Nordic exchanges, Zurich, Vienna, Warsaw, Tel Aviv, Milan and Madrid open on TradingView's chart; an NSE name still opens as its BSE listing; London, Tokyo, Hong Kong, Seoul, Taipei, Mexico, Johannesburg, Riyadh, Dubai, Singapore, Kuala Lumpur, Bangkok and Istanbul open on the desk's own chart, and the panel says why in one line (their embed does not carry the exchange; their own site does). The camera on TradingView's toolbar is on, so the chart can be saved with the reader's own drawings and studies. The full-screen button now says Full screen. A page opening on its default no longer remembers that default as the reader's choice.
 
 ## 2026-09-16.65
 

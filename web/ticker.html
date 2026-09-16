@@ -437,8 +437,13 @@ function renderRangeSeg(){
 /* The chart itself: TradingView's own chart by default (their embedded chart, their data,
    with their name on it), the desk's chart drawn from the free feed a click away and the
    fallback whenever the embed cannot load. The choice is remembered. */
-// TradingView's embed shows NSE names only on tradingview.com itself and then falls back to Apple,
-// so an NSE listing is handed over as its BSE twin (same company, same price to the paisa)
+// Their embed answers "permission denied" for some exchanges (NSE's group is nse_dly) and shows
+// "This symbol is only available on TradingView"; an NSE listing is handed over as its BSE twin
+// (same company, same price to the paisa). Checked 2026-09-17 on the widget's own data socket,
+// one or two names per exchange: TV_CARRIES lists the exchanges that drew bars; the rest open on
+// the desk's own chart by default, and the switch says why.
+const TV_CARRIES=new Set(["NASDAQ","NYSE","AMEX","BATS","BSE","EURONEXT","XETR","FWB","TSX","TSXV","ASX","BMFBOVESPA","ADX","IDX","OMXSTO","OMXCOP","OSL","OMXHEX","SIX","VIE","GPW","TASE","MIL","BME"]);
+// refused in the embed (only on tradingview.com): NSE LSE TSE HKEX KRX TWSE BMV JSE TADAWUL DFM SGX MYX SET BIST
 const TV_EXCH={NASDAQGS:"NASDAQ",NASDAQGM:"NASDAQ",NASDAQCM:"NASDAQ",NASDAQ:"NASDAQ",NMS:"NASDAQ",NGM:"NASDAQ",NCM:"NASDAQ",NYSE:"NYSE",NYQ:"NYSE",NYSEARCA:"AMEX",PCX:"AMEX",NYSEAMERICAN:"AMEX",ASE:"AMEX",BATS:"BATS",BTS:"BATS",
   NSE:"BSE",NSI:"BSE",BSE:"BSE",LSE:"LSE",AMSTERDAM:"EURONEXT",AMS:"EURONEXT",PARIS:"EURONEXT",PAR:"EURONEXT",BRUSSELS:"EURONEXT",BRU:"EURONEXT",LISBON:"EURONEXT",XETRA:"XETR",GER:"XETR",FRANKFURT:"FWB",FRA:"FWB",TOKYO:"TSE",JPX:"TSE",HKSE:"HKEX",HKG:"HKEX",TORONTO:"TSX",TOR:"TSX",TSXV:"TSXV",VAN:"TSXV",ASX:"ASX",
   KSE:"KRX",KSC:"KRX",TAIWAN:"TWSE",TAI:"TWSE",SAOPAULO:"BMFBOVESPA",SAO:"BMFBOVESPA",MEXICO:"BMV",MEX:"BMV",JOHANNESBURG:"JSE",JNB:"JSE",SAUDI:"TADAWUL",SAU:"TADAWUL",DUBAI:"DFM",DFM:"DFM",ABUDHABI:"ADX",ADX:"ADX",SINGAPORE:"SGX",SES:"SGX",KUALALUMPUR:"MYX",KLS:"MYX",THAILAND:"SET",SET:"SET",JAKARTA:"IDX",JKT:"IDX",
@@ -449,7 +454,10 @@ function tvSymbol(){
   const ex=TV_EXCH[(TVEXCH||"").toUpperCase().replace(/[^A-Z]/g,"")];
   return ex ? ex+":"+bare : bare;
 }
-function chartSource(){ try{ return localStorage.getItem("gs.chart")==="desk"?"desk":"tv"; }catch(e){ return "tv"; } }
+// a bare symbol (exchange unknown) is handed over as is; TradingView picks the primary listing
+function tvCarried(){ const s=tvSymbol(); return !s.includes(":")||TV_CARRIES.has(s.split(":")[0]); }
+// the desk's chart when the reader chose it; otherwise TradingView where their embed carries the exchange, the desk's chart where it does not
+function chartSource(){ try{ if(localStorage.getItem("gs.chart")==="desk") return "desk"; }catch(e){} return tvCarried()?"tv":"desk"; }
 function mountTV(){
   const wrap=document.getElementById("tvwrap"); if(!wrap) return;
   wrap.innerHTML=`<div class="tradingview-widget-container" style="height:100%"><div id="tvchart" style="height:calc(100% - 22px)"></div></div>`;
@@ -457,18 +465,21 @@ function mountTV(){
   sc.type="text/javascript"; sc.async=true;
   sc.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
   sc.text=JSON.stringify({autosize:true,symbol:tvSymbol(),interval:"D",timezone:"Etc/UTC",theme:"dark",style:"1",locale:"en",
-    allow_symbol_change:false,hide_side_toolbar:false,withdateranges:true,calendar:false,save_image:false,support_host:"https://www.tradingview.com"});
+    allow_symbol_change:false,hide_side_toolbar:false,withdateranges:true,calendar:false,save_image:true,support_host:"https://www.tradingview.com"});
   wrap.firstChild.appendChild(sc);
   // no iframe within a few seconds means the embed could not load (no network, or blocked): the desk's chart takes over
   setTimeout(()=>{ if(chartSource()==="tv"&&!wrap.querySelector("iframe")){ setChartSource("desk",true); } },6000);
 }
-function setChartSource(src,fallback){
-  try{ if(!fallback) localStorage.setItem("gs.chart",src); }catch(e){}
+function setChartSource(src,fallback,quiet){   // quiet: the page opening on its default, nothing is remembered
+  try{ if(!fallback&&!quiet) localStorage.setItem("gs.chart",src); }catch(e){}
   const tv=src==="tv";
   document.getElementById("tvwrap").style.display=tv?"":"none";
   for(const id of ["modeseg","rangeseg","intseg","chart","tip","chartret"]){ const el=document.getElementById(id); if(el) el.style.display=tv?"none":""; }
   document.querySelectorAll("#srcseg button").forEach(b=>b.classList.toggle("on",b.dataset.s===(fallback?"desk":src)));
-  const note=document.getElementById("srcnote"); if(note) note.textContent=fallback?"TradingView's chart could not load here; this is the desk's own.":(tv?"TradingView · "+tvSymbol()+" · if it shows another name, their embed does not carry this exchange; DESK does":"");
+  const note=document.getElementById("srcnote");
+  if(note) note.textContent=fallback?"TradingView's chart could not load here; this is the desk's own."
+    :tv?"TradingView · "+tvSymbol()+(tvCarried()?" · the camera on their toolbar saves the chart with your drawings":" · their embed does not carry this exchange, only their own site does")
+    :tvCarried()?"":"TradingView's embed does not carry "+tvSymbol().split(":")[0]+" listings (their own site does), so this is the desk's own chart.";
   if(tv){ if(!document.querySelector("#tvwrap iframe")) mountTV(); } else drawChart();
 }
 function chartPanel(){
@@ -487,7 +498,7 @@ function chartPanel(){
       </div>
       <div class="seg" id="rangeseg"></div>
       <div class="seg" id="intseg" title="Bar size"></div>
-      <button class="fsbtn" id="fsbtn" title="Full screen">⛶</button>
+      <button class="fsbtn" id="fsbtn" title="Full screen (Esc closes)">⛶ Full screen</button>
     </div>
     <div class="panel-b" id="chartwrap"><div id="tvwrap" style="height:480px;display:none"></div><div id="chart"></div><div id="tip"></div></div>
   </section>`;
@@ -510,13 +521,13 @@ function bindChart(){
   document.getElementById("fsbtn").onclick=toggleFS;
   window.addEventListener("resize",()=>drawChart());
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&isFS)toggleFS();});
-  setChartSource(chartSource());
+  setChartSource(chartSource(),false,true);
 }
 function toggleFS(){
   isFS=!isFS;
   document.getElementById("chartpanel").classList.toggle("fs",isFS);
   document.body.style.overflow=isFS?"hidden":"";
-  document.getElementById("fsbtn").textContent=isFS?"✕":"⛶";
+  document.getElementById("fsbtn").textContent=isFS?"✕ Close":"⛶ Full screen";
   const tv=document.getElementById("tvwrap"); if(tv) tv.style.height=isFS?"calc(100vh - 90px)":"480px";
   if(chartSource()!=="tv"||document.getElementById("srcnote").textContent.startsWith("TradingView's chart could not")) drawChart();
 }
