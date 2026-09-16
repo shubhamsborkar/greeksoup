@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.40. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.41. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.41
+
+*16 September 2026, release 41.* The docs wear the landing page's system: Geist and JetBrains Mono only, the serif and the italic eyebrows gone, hairlines in place of cards, chips and shadows, the section index as a list that opens on a hairline, the broker facts as a two-column table, the steps numbered in mono, and the same top bar as the front page, with Install, Security, the theme switch, the GitHub mark and the Install button; the tagline is off the docs home and the footer.
 
 ## 2026-09-16.40
 

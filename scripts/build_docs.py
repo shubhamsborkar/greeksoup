@@ -34,7 +34,6 @@ OUT = os.path.join(ROOT, "docs", "docs")
 REPO = "https://github.com/shubhamsborkar/greeksoup"
 SITE_NAME = "GreekSoup"
 SITE_URL = "https://greeksoup.ai"
-TAGLINE = "For analysts who refuse to settle."
 
 
 def version():
@@ -137,7 +136,7 @@ SHELL = """<!DOCTYPE html>
 <link rel="icon" href="{rel}../img/greeksoup-favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="{rel}../img/greeksoup-favicon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Source+Serif+4:ital,opsz,wght@1,8..60,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{rel}assets/docs.css">
 <script>try{{var t=localStorage.getItem("gs-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;}}catch(e){{}}</script>
 </head>
@@ -145,14 +144,15 @@ SHELL = """<!DOCTYPE html>
 <a class="skip" href="#content">Skip to content</a>
 <header class="top">
   <button class="menu" id="menu" aria-label="Open the contents"><span></span><span></span><span></span></button>
-  <a class="brand" href="{rel}../"><svg class="gsm" style="width:22px;height:22px;vertical-align:-5px;margin-right:8px;fill:currentColor" viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l16 22-16 22" stroke="#ED5A24" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><rect x="48" y="66" width="12" height="20"/><rect x="66" y="50" width="12" height="36"/><rect x="84" y="34" width="12" height="52"/></svg>greeksoup<b style="color:#ED5A24">/</b></a>
-  <a class="docs-tag" href="{rel}">Docs</a>
+  <a class="brand" href="{rel}../" aria-label="GreekSoup, home"><svg class="gsm" viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l16 22-16 22" stroke="#ED5A24" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><rect x="48" y="66" width="12" height="20"/><rect x="66" y="50" width="12" height="36"/><rect x="84" y="34" width="12" height="52"/></svg><span>greeksoup<b>/</b></span></a>
+  <a class="docs-tag" href="{rel}">docs</a>
   <button class="search" id="search-open" aria-label="Search the docs"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4.6"/><path d="M10.5 10.5L14 14"/></svg><span>Search</span><kbd>⌘K</kbd></button>
   <nav class="links">
     <a href="{rel}../#install">Install</a>
-    <a href="{rel}../#updates">Updates</a>
+    <a href="{rel}project/security/">Security</a>
     <button class="theme" id="theme" aria-label="Switch between light and dark"><svg class="sun" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg><svg class="moon" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13.5 10.2A6 6 0 015.8 2.5a6 6 0 107.7 7.7z"/></svg></button>
-    <a class="gh" href="{repo}"><svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    <a class="gh" href="{repo}" aria-label="GreekSoup on GitHub" title="GitHub"><svg viewBox="0 0 16 16"  fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+    <a class="btn" href="{rel}../#install">Install</a>
   </nav>
 </header>
 <div class="frame">
@@ -172,7 +172,7 @@ SHELL = """<!DOCTYPE html>
       {next}
     </nav>
     <footer class="foot">
-      <span>{site}: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. {tagline}</span>
+      <span>{site}: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product.</span>
       <span class="mono">version {version} · built {built} · <a href="{edit}">edit this page</a></span>
     </footer>
   </main>
@@ -235,7 +235,7 @@ def build():
             canonical=SITE_URL + p["url"],
             rel=rel, repo=REPO, sidebar=sidebar_html(sections, pages, p["url"], rel), section=html.escape(p["section"]),
             lead=relativise(lead, rel), body=relativise(p["body"], rel), prev=link(prev_, "prev", "Previous"),
-            next=link(next_, "next", "Next"), tagline=TAGLINE, version=ver, built=built,
+            next=link(next_, "next", "Next"), version=ver, built=built,
             edit=f"{REPO}/edit/main/{p['src']}", toc_block=toc_block)
         dest = out_path(p["dir"], p["page"])
         os.makedirs(os.path.dirname(dest), exist_ok=True)
@@ -255,7 +255,7 @@ def build():
         rel="", repo=REPO, sidebar=sidebar_html(sections, pages, "/docs/", ""), section="Documentation",
         lead=(f'<p class="lead">{meta["lead"]}</p>' if meta.get("lead") else ""), body=relativise(body, ""),
         prev="<span></span>", next=(f'<a class="next" href="{order[0]["url"][len("/docs/"):]}"><small>Next</small><b>{html.escape(order[0]["title"])}</b></a>' if order else "<span></span>"),
-        tagline=TAGLINE, version=ver, built=built, edit=f"{REPO}/edit/main/site/index.md", toc_block="")
+        version=ver, built=built, edit=f"{REPO}/edit/main/site/index.md", toc_block="")
     with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as fh:
         fh.write(home)
     with open(os.path.join(OUT, "search.json"), "w", encoding="utf-8") as fh:

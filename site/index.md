@@ -1,7 +1,7 @@
 ---
 title: GreekSoup documentation
 description: Everything about GreekSoup, the one-person equity research desk that runs on your own computer. Install it, connect your broker, read every screen, keep it running.
-lead: The one-person equity research desk that runs on your own computer, written up for a reader who has never seen it. For analysts who refuse to settle.
+lead: The one-person equity research desk that runs on your own computer, written up for a reader who has never seen it.
 ---
 
 <div class="cards" markdown="0">
