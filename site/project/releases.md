@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.39. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.40. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.40
+
+*16 September 2026, release 40.* The landing page's top bar is down to three words, Install, Security and Docs, with GitHub as its own mark beside the Install button; the Screens, Data and Keys links are gone, since the page reads top to bottom on its own.
 
 ## 2026-09-16.39
 

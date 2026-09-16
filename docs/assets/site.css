@@ -57,6 +57,9 @@ h3{font-size:22px;line-height:1.2;letter-spacing:-.02em}
 .nav-right{display:flex;align-items:center;gap:10px;justify-self:end}
 .theme{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line2);border-radius:8px;color:var(--fg2)}
 .theme svg.i{width:15px;height:15px}
+.gh{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line2);border-radius:8px;color:var(--fg2)}
+.gh:hover{color:var(--fg)}
+.gh svg.i{width:16px;height:16px}
 .theme svg.i:first-child{display:none} html[data-theme="dark"] .theme svg.i:first-child{display:block} html[data-theme="dark"] .theme svg.i:last-child{display:none}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border-radius:8px;font-weight:600;font-size:14px;white-space:nowrap;background:var(--accent);color:#fff;transition:filter .15s var(--ease)}
 .btn:hover{filter:brightness(1.08)}
