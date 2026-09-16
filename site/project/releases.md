@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.64. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.65. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.65
+
+*16 September 2026, release 65.* TradingView's chart: an NSE name is handed over as its BSE listing (their embed shows NSE names only on their own site and fell back to Apple); the full-screen button works on their chart too; the panel names the symbol it handed over, and says the desk's own chart has the name when their embed does not carry the exchange.
 
 ## 2026-09-16.64
 

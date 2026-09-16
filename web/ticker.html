@@ -437,8 +437,10 @@ function renderRangeSeg(){
 /* The chart itself: TradingView's own chart by default (their embedded chart, their data,
    with their name on it), the desk's chart drawn from the free feed a click away and the
    fallback whenever the embed cannot load. The choice is remembered. */
+// TradingView's embed shows NSE names only on tradingview.com itself and then falls back to Apple,
+// so an NSE listing is handed over as its BSE twin (same company, same price to the paisa)
 const TV_EXCH={NASDAQGS:"NASDAQ",NASDAQGM:"NASDAQ",NASDAQCM:"NASDAQ",NASDAQ:"NASDAQ",NMS:"NASDAQ",NGM:"NASDAQ",NCM:"NASDAQ",NYSE:"NYSE",NYQ:"NYSE",NYSEARCA:"AMEX",PCX:"AMEX",NYSEAMERICAN:"AMEX",ASE:"AMEX",BATS:"BATS",BTS:"BATS",
-  NSE:"NSE",NSI:"NSE",BSE:"BSE",LSE:"LSE",AMSTERDAM:"EURONEXT",AMS:"EURONEXT",PARIS:"EURONEXT",PAR:"EURONEXT",BRUSSELS:"EURONEXT",BRU:"EURONEXT",LISBON:"EURONEXT",XETRA:"XETR",GER:"XETR",FRANKFURT:"FWB",FRA:"FWB",TOKYO:"TSE",JPX:"TSE",HKSE:"HKEX",HKG:"HKEX",TORONTO:"TSX",TOR:"TSX",TSXV:"TSXV",VAN:"TSXV",ASX:"ASX",
+  NSE:"BSE",NSI:"BSE",BSE:"BSE",LSE:"LSE",AMSTERDAM:"EURONEXT",AMS:"EURONEXT",PARIS:"EURONEXT",PAR:"EURONEXT",BRUSSELS:"EURONEXT",BRU:"EURONEXT",LISBON:"EURONEXT",XETRA:"XETR",GER:"XETR",FRANKFURT:"FWB",FRA:"FWB",TOKYO:"TSE",JPX:"TSE",HKSE:"HKEX",HKG:"HKEX",TORONTO:"TSX",TOR:"TSX",TSXV:"TSXV",VAN:"TSXV",ASX:"ASX",
   KSE:"KRX",KSC:"KRX",TAIWAN:"TWSE",TAI:"TWSE",SAOPAULO:"BMFBOVESPA",SAO:"BMFBOVESPA",MEXICO:"BMV",MEX:"BMV",JOHANNESBURG:"JSE",JNB:"JSE",SAUDI:"TADAWUL",SAU:"TADAWUL",DUBAI:"DFM",DFM:"DFM",ABUDHABI:"ADX",ADX:"ADX",SINGAPORE:"SGX",SES:"SGX",KUALALUMPUR:"MYX",KLS:"MYX",THAILAND:"SET",SET:"SET",JAKARTA:"IDX",JKT:"IDX",
   STOCKHOLM:"OMXSTO",STO:"OMXSTO",COPENHAGEN:"OMXCOP",CPH:"OMXCOP",OSLO:"OSL",OSL:"OSL",HELSINKI:"OMXHEX",HEL:"OMXHEX",SWISS:"SIX",EBS:"SIX",VIENNA:"VIE",VIE:"VIE",WARSAW:"GPW",WSE:"GPW",ISTANBUL:"BIST",IST:"BIST",TELAVIV:"TASE",TLV:"TASE",MILAN:"MIL",MIL:"MIL",MADRID:"BME",MCE:"BME"};
 let TVEXCH="";     // the exchange the loaded page names, set by the layout that has it
@@ -464,9 +466,9 @@ function setChartSource(src,fallback){
   try{ if(!fallback) localStorage.setItem("gs.chart",src); }catch(e){}
   const tv=src==="tv";
   document.getElementById("tvwrap").style.display=tv?"":"none";
-  for(const id of ["modeseg","rangeseg","intseg","fsbtn","chart","tip","chartret"]){ const el=document.getElementById(id); if(el) el.style.display=tv?"none":""; }
+  for(const id of ["modeseg","rangeseg","intseg","chart","tip","chartret"]){ const el=document.getElementById(id); if(el) el.style.display=tv?"none":""; }
   document.querySelectorAll("#srcseg button").forEach(b=>b.classList.toggle("on",b.dataset.s===(fallback?"desk":src)));
-  const note=document.getElementById("srcnote"); if(note) note.textContent=fallback?"TradingView's chart could not load here; this is the desk's own.":"";
+  const note=document.getElementById("srcnote"); if(note) note.textContent=fallback?"TradingView's chart could not load here; this is the desk's own.":(tv?"TradingView · "+tvSymbol()+" · if it shows another name, their embed does not carry this exchange; DESK does":"");
   if(tv){ if(!document.querySelector("#tvwrap iframe")) mountTV(); } else drawChart();
 }
 function chartPanel(){
@@ -515,7 +517,8 @@ function toggleFS(){
   document.getElementById("chartpanel").classList.toggle("fs",isFS);
   document.body.style.overflow=isFS?"hidden":"";
   document.getElementById("fsbtn").textContent=isFS?"✕":"⛶";
-  drawChart();
+  const tv=document.getElementById("tvwrap"); if(tv) tv.style.height=isFS?"calc(100vh - 90px)":"480px";
+  if(chartSource()!=="tv"||document.getElementById("srcnote").textContent.startsWith("TradingView's chart could not")) drawChart();
 }
 
 function rangeBar(cap,lo,hi,px,loD,hiD){
