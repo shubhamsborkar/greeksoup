@@ -3278,21 +3278,87 @@ def open_signin_window(app):
     return {"ok": True, "text": f"A terminal window opened with {a['label']}. Its sign-in runs in your browser; when it says you are in, close that window and come back here."}
 
 
-def ask_context(page, query):
-    """The screen's own numbers, read from the desk's own addresses, as text the model can read."""
-    page = page if page in ASK_READS else "/"
-    label, reads = ASK_READS[page]
-    q = {k: re.sub(r"[^A-Za-z0-9._&=-]", "", str(v))[:40] for k, v in (query or {}).items() if isinstance(v, str)}
-    fill = {"list": q.get("list") or "home", "symbol": q.get("symbol") or "", "region": q.get("region") or "us"}
-    if page == "/watch" and fill["list"] != "home":
-        label = {"us": "Watch · US", "global": "Global"}.get(fill["list"], "Watch")
-    if page == "/t":
-        label = "Ticker " + fill["symbol"]
-    parts, used, budget = [], [], ASK_CAP
-    for ep in reads:
-        url = ep.format(**fill)
-        if page == "/t" and not fill["symbol"]:
+# What the whole desk holds, one line per screen, so SuperAnalyst knows where an answer
+# lives when the screen the reader is on does not carry it. A question is routed to the
+# screens its words point at, and the model may ask for more by name (a NEED line).
+DESK_MAP = [
+    ("/api/snapshot", "Desk · Home", "the broker book: holdings, open futures, cash, margin, day change", ("book", "holding", "position", "portfolio", "cash", "margin", "futures", "account", "own", "hold")),
+    ("/api/usbook", "Desk · Home", "the US names on Desk · Book, priced", ("us book", "us names", "hand-kept")),
+    ("/api/earnings", "Desk · Home", "the US earnings countdown", ("earnings", "results", "report", "quarter")),
+    ("/api/insiders", "Desk · Home", "insider buying and cluster buys (Form 4)", ("insider", "form 4", "cluster", "director", "officer", "bought", "buying")),
+    ("/api/book", "Desk · Book", "the hand-kept book: positions, cost, value, P&L by currency", ("book", "holding", "position", "portfolio", "p&l", "pnl", "cost", "weight", "own", "hold")),
+    ("/api/risk", "Risk", "beta, volatility, drawdown, sector concentration, correlation, per book and per name", ("risk", "beta", "volatil", "drawdown", "concentrat", "correlat", "hedge", "exposure", "sector")),
+    ("/api/watch?list=home", "Watch · Home", "the home-market watchlist, priced, with levels", ("watch", "watchlist", "level", "home market")),
+    ("/api/watch?list=us", "Watch · US", "the US watchlist, priced", ("watch", "watchlist", "us list")),
+    ("/api/watch?list=global", "Global", "the global watchlist, any exchange", ("global", "watchlist", "index", "indices")),
+    ("/api/results_home", "Watch · Home", "upcoming results dates in the home market", ("results", "board meeting", "quarter")),
+    ("/api/calendar", "Calendar", "results, dividend dates and landed filings on every name held or watched", ("calendar", "when", "date", "upcoming", "dividend", "ex-div", "filing", "10-k", "10-q", "8-k", "proxy", "results", "earnings", "event", "next")),
+    ("/api/funds", "Funds", "the followed funds' 13F holdings and changes", ("fund", "13f", "hedge", "manager", "holder", "institution", "burry", "berkshire")),
+    ("/api/flow", "Flow", "the options tape on US names: put/call, walls, expected move, unusual strikes", ("option", "put", "call", "strike", "expected move", "flow", "gamma", "open interest")),
+    ("/api/short", "Short", "short interest and daily short volume", ("short", "squeeze", "borrow")),
+    ("/api/capitol", "Capitol", "congressional trading disclosures on the names", ("congress", "senate", "house", "capitol", "politician", "pelosi", "ptr")),
+    ("/api/macro", "Macro", "the macro cards: rates, inflation, growth, the home market's own", ("macro", "rate", "inflation", "cpi", "fed", "rbi", "gdp", "yield", "bond", "repo", "unemployment", "economy")),
+    ("/api/econcal", "Macro", "the economic calendar ahead", ("calendar", "print", "fomc", "cpi", "payroll", "jobs")),
+    ("/api/commods", "Commodities", "the commodity board and who is exposed to each", ("commodit", "oil", "crude", "gold", "silver", "copper", "gas", "rubber", "steel", "wheat", "coal", "metal")),
+    ("/api/chain", "Chain", "the reader's value chains: who sells to whom, priced", ("chain", "supplier", "customer", "upstream", "downstream", "value chain", "supply")),
+    ("/api/notes", "Notes", "the research vault: every note, filtered", ("note", "vault", "wrote", "research", "thesis", "journal", "task", "document", "file", "project")),
+    ("/api/research/tasks", "Notes", "what is due: results dates, follow-ups, the reader's own lines", ("task", "due", "todo", "follow")),
+]
+
+
+def _desk_map_text():
+    return "\n".join(f"{u:28s} {lab:14s} {what}" for u, lab, what in ((m[0], m[1], m[2]) for m in DESK_MAP))
+
+
+def _known_symbols():
+    """Every symbol the desk holds or watches, so a bare AAPL in a question is recognised."""
+    syms = set()
+    try:
+        syms |= {str(p.get("symbol") or "").upper() for p in load_book().get("positions", [])}
+        for n in load_watchlist() + load_watchlist_us() + load_watchlist_global():
+            syms.add(str(n.get("code") or "").upper())
+        snap = load_last_snapshot() or {}
+        accounts = (snap.get("data") or {}).get("accounts") or {}
+        for acct in (accounts.values() if isinstance(accounts, dict) else accounts):
+            syms |= {str(e.get("code") or "").upper() for e in acct.get("equity") or []}
+    except Exception:  # noqa: BLE001
+        pass
+    syms.discard("")
+    return syms
+
+
+def ask_route(question, page, fill):
+    """Which other screens a question points at: the names it mentions get their ticker page
+    and the reader's notes on them; the words it uses get the screens whose subject they are."""
+    q = (question or "").lower()
+    urls = []
+    known = _known_symbols()
+    mentioned = []
+    for tok in re.findall(r"\$?([A-Z][A-Z0-9]{0,9}(?:[.\-][A-Z0-9]{1,6})?)", question or ""):
+        if (tok in known or ("$" + tok) in (question or "")) and tok not in mentioned and tok != fill.get("symbol"):
+            mentioned.append(tok)
+    for sym in mentioned[:3]:
+        region = "home" if "." in sym and not sym.endswith((".US",)) else "us"
+        urls.append(f"/api/ticker?symbol={sym}&region={region}")
+        urls.append(f"/api/research/context?symbol={sym}")
+    _, own = ASK_READS.get(page, ("", []))
+    own_bases = {u.split("?")[0] for u in own}
+    scored = []
+    for url, lab, what, words in DESK_MAP:
+        if url.split("?")[0] in own_bases or url in urls:
             continue
+        hits = sum(1 for w in words if w in q)
+        if hits:
+            scored.append((hits, url))
+    scored.sort(key=lambda x: -x[0])
+    urls += [u for _, u in scored[:4]]
+    return urls, mentioned
+
+
+def ask_fetch(urls, budget, extra=False):
+    """Read the desk's own addresses as text for the model, inside a character budget."""
+    parts, used = [], []
+    for url in urls:
         try:
             r = requests.get(f"http://127.0.0.1:{PORT}{url}", timeout=90)
             data = r.json()
@@ -3300,11 +3366,9 @@ def ask_context(page, query):
             parts.append(f"{url}: could not be read ({type(exc).__name__})")
             continue
         if url.startswith("/api/research/context"):
-            # the reader's own notes and documents are text by nature and already cut to a budget
-            # by the vault; the slimmer's 160-character cut must not touch them
             text = json.dumps(data, separators=(",", ":"), default=str, ensure_ascii=False)
         else:
-            text = json.dumps(_slim(data), separators=(",", ":"), default=str)
+            text = json.dumps(_slim(data, BULKY if extra else frozenset()), separators=(",", ":"), default=str)
         if len(text) > budget and not url.startswith("/api/research/context"):
             text = json.dumps(_slim(data, BULKY), separators=(",", ":"), default=str)
         if len(text) > budget:
@@ -3314,6 +3378,42 @@ def ask_context(page, query):
         used.append(url.split("?")[0])
         if budget <= 0:
             break
+    return parts, used, budget
+
+
+def ask_more(answer, already):
+    """A NEED line in the answer names addresses from the desk map the model wants next:
+    the ones it may have are fetched once and the question is asked again with them."""
+    m = re.match(r"^\s*NEED:\s*(.+?)\s*$", (answer or "").strip(), re.S)
+    if not m or "\n" in m.group(1).strip():
+        return []
+    allowed = {u.split("?")[0] for u, *_ in DESK_MAP} | {"/api/ticker", "/api/research/context", "/api/notes/get", "/api/research/timeline", "/api/research/status"}
+    want = []
+    for tok in re.split(r"[,\s]+", m.group(1)):
+        tok = tok.strip().strip(".;")
+        if tok.startswith("/api/") and tok.split("?")[0] in allowed and tok not in already and re.fullmatch(r"[A-Za-z0-9/?&=._%\-^]+", tok):
+            want.append(tok)
+    return want[:5]
+
+
+def ask_context(page, query, question=""):
+    """The screen's own numbers first, then the screens the question points at, read from the
+    desk's own addresses, as text the model can read."""
+    page = page if page in ASK_READS else "/"
+    label, reads = ASK_READS[page]
+    q = {k: re.sub(r"[^A-Za-z0-9._&=-]", "", str(v))[:40] for k, v in (query or {}).items() if isinstance(v, str)}
+    fill = {"list": q.get("list") or "home", "symbol": q.get("symbol") or "", "region": q.get("region") or "us"}
+    if page == "/watch" and fill["list"] != "home":
+        label = {"us": "Watch · US", "global": "Global"}.get(fill["list"], "Watch")
+    if page == "/t":
+        label = "Ticker " + fill["symbol"]
+    own = [ep.format(**fill) for ep in reads if not (page == "/t" and not fill["symbol"])]
+    parts, used, budget = ask_fetch(own, ASK_CAP)
+    routed, _ = ask_route(question, page, fill)
+    if routed and budget > 4000:
+        more, used2, budget = ask_fetch(routed, budget, extra=True)
+        parts += more
+        used += used2
     return label, "\n\n".join(parts) if parts else "(this screen has no numbers of its own)", used
 
 
@@ -3957,15 +4057,41 @@ class Handler(BaseHTTPRequestHandler):
         if not door and not rd["ready"]:
             return self._send(json.dumps({"ok": False, "error": rd["why"], "settings": True}).encode(), "application/json")
         page = str(body.get("page", "/"))
-        label, context, used = ask_context(page, body.get("query") or {})
         history = body.get("history") if isinstance(body.get("history"), list) else []
-        if door:
-            # a door plugin: the same brief, handed to a command on this computer (the reader's coding agent)
-            out = desk_plugins.run_door(door, desk_ai.door_prompt(question, label, context, desk_settings.profile_text(), history))
+        mode = "build" if str(body.get("mode", "")) == "build" else "research"
+        if mode == "build":
+            # Build: the reader asked the app on this computer to change the desk itself. Only a
+            # door can (a key answers, it cannot act); the app runs in the desk's own folder
+            # with its edits allowed, and says what it changed.
+            if not door:
+                return self._send(b'{"ok":false,"error":"Changing the desk needs an app on this computer (Claude Code, Codex, Gemini CLI); a key can only answer. Pick one above."}', "application/json")
+            label, _, _ = ask_context(page, body.get("query") or {}, "")
+            out = desk_plugins.run_door(door, desk_ai.build_prompt(question, label, AGENT_PAGE.format(port=PORT), history), mode="build", timeout=900)
             out["model"] = out.pop("via", door)
-        else:
-            out = desk_ai.ask(question, label, context, desk_settings.profile_text(), history)
-            out["model"] = rd["model"]
+            out["read"] = ["the desk's own folder"]
+            out["screen"] = label
+            out["mode"] = "build"
+            return self._send(json.dumps(out).encode(), "application/json")
+        label, context, used = ask_context(page, body.get("query") or {}, question)
+        desk_map = _desk_map_text()
+        def _ask(ctx):
+            if door:
+                # a door: the same brief, handed to a command on this computer (the reader's coding agent)
+                o = desk_plugins.run_door(door, desk_ai.door_prompt(question, label, ctx, desk_settings.profile_text(), history, desk_map))
+                o["model"] = o.pop("via", door)
+            else:
+                o = desk_ai.ask(question, label, ctx, desk_settings.profile_text(), history, desk_map=desk_map)
+                o["model"] = rd["model"]
+            return o
+        out = _ask(context)
+        # a second round when the model names the screens it still needs, once
+        more = ask_more(out.get("answer", ""), set(used)) if out.get("ok") else []
+        if more:
+            parts, used2, _ = ask_fetch(more, ASK_CAP // 2, extra=True)
+            out = _ask(context + "\n\nMORE OF THE DESK, AS YOU ASKED\n" + "\n\n".join(parts))
+            used += used2
+        if out.get("ok") and re.match(r"^\s*NEED:", out.get("answer", "")):
+            out["answer"] = "I would need " + out["answer"].strip()[5:].strip() + " for that, and could not read it this time. Try the question once more, or ask on that screen."
         out["read"] = used
         out["screen"] = label
         return self._send(json.dumps(out).encode(), "application/json")

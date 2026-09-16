@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.50. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.51. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.51
+
+*16 September 2026, release 51.* SuperAnalyst reads the whole desk, sizes to taste, and can build. Three changes to the Ask box. It is any width now: drag its left edge, or step through a third, half and the whole screen with one control, and the width is remembered, so the screen behind stays in view while you ask. It reads the whole desk, not one screen: the screen you are on goes first, then the screens the question points at (a name you mention brings its ticker page and your notes on it; the words you use bring short interest, the 13F holders, the calendar, the macro cards, the book), and SuperAnalyst holds a map of every screen and can ask the desk for one more before answering, so a question asked on Risk about a name's filings is answered from the Calendar rather than with "ask on that screen". And a second picker, Research or Build: Research, the default, reads the desk and changes nothing; Build hands your request to the app on this computer, run in the desk's own folder with its edits allowed, so it can change the desk itself (a column, a screen, a plugin, a chain) and says what it changed, file by file, and whether a restart is needed. Build works through Claude Code, Codex, Gemini CLI and Qwen Code; a key can only answer, and the box says so. The book, the watchlists, the keys and the vault are the reader's and are never rewritten beyond the edit asked for.
 
 ## 2026-09-16.50
 

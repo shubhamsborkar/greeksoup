@@ -1,9 +1,9 @@
 {
   "name": "terminal",
   "label": "Terminal door",
-  "version": "3",
+  "version": "4",
   "author": "Shikshan Nivesh",
-  "what": "Lets the Ask box answer through an app already on this computer that you pay for another way (Claude Code on a Claude subscription, Codex on ChatGPT, Gemini CLI on a Google account, Kimi Code, Grok Build, Qwen Code, Cursor), with the same screen data and your notes, so no separate AI key is needed. It has no screen of its own: the apps it found, and the buttons to use one for Ask or sign in, are on Settings under Your AI.",
+  "what": "Lets the Ask box answer through an app already on this computer that you pay for another way (Claude Code on a Claude subscription, Codex on ChatGPT, Gemini CLI on a Google account, Kimi Code, Grok Build, Qwen Code, Cursor), with the same screen data and your notes, so no separate AI key is needed. It has no screen of its own: the apps it found, and the buttons to use one for Ask or sign in, are on Settings under Your AI. In Build mode the Ask box hands the app the reader's request to change the desk itself, run in the desk's own folder with the app's own edit flags (Claude Code, Codex, Gemini CLI, Qwen Code).",
   "talks_to": [
     "the coding agent on this computer, which reaches its own provider with its own login"
   ],
@@ -17,6 +17,10 @@
           "-p",
           "--output-format",
           "text"
+        ],
+        "build": [
+          "--permission-mode",
+          "acceptEdits"
         ]
       },
       {
@@ -26,6 +30,9 @@
           "exec",
           "--skip-git-repo-check",
           "-"
+        ],
+        "build": [
+          "--full-auto"
         ]
       },
       {
@@ -34,6 +41,10 @@
           "gemini",
           "-p",
           "Read the text on standard input and answer as it asks."
+        ],
+        "build": [
+          "--approval-mode",
+          "auto_edit"
         ]
       },
       {
@@ -60,7 +71,11 @@
           "text",
           "-p"
         ],
-        "prompt": "arg"
+        "prompt": "arg",
+        "build": [
+          "--approval-mode",
+          "auto_edit"
+        ]
       },
       {
         "label": "Cursor",

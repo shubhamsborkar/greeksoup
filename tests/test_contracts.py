@@ -1009,3 +1009,41 @@ def test_the_calendar_reads_every_name_from_the_free_record(monkeypatch):
     monkeypatch.setattr(calendar_desk, "nasdaq_events", lambda sym: None)
     d = calendar_desk.build(uni)
     assert d["failed"] == ["HGV"] and d["_ttl"] == 900                          # a name the feeds refused: retry soon, say which
+
+
+def test_superanalyst_reads_the_whole_desk_and_builds_only_through_a_door(monkeypatch, tmp_path):
+    """A question on one screen is routed to the screens its words and names point at; a
+    NEED line from the model names more addresses from the map, once, and only ones the
+    desk has; Build mode runs the app in the desk's own folder with its edit flags, and an
+    app without them stays research-only."""
+    import server, plugins as desk_plugins, notes as desk_notes
+    monkeypatch.setattr(server, "_known_symbols", lambda: {"AAPL", "HGV", "RELIANCE"})
+    urls, mentioned = server.ask_route("Is HGV a risk to the book given the short interest and $MSFT?", "/risk", {"symbol": ""})
+    assert mentioned == ["HGV", "MSFT"] and "/api/ticker?symbol=HGV&region=us" in urls and "/api/research/context?symbol=MSFT" in urls
+    assert "/api/short" in urls and "/api/book" in urls and "/api/risk" not in urls        # the screen's own address is never repeated
+    assert server.ask_more("NEED: /api/funds /api/ticker?symbol=AAPL&region=us /api/evil /etc/passwd", {"/api/risk"}) == ["/api/funds", "/api/ticker?symbol=AAPL&region=us"]
+    assert server.ask_more("Here is the answer.\nNEED: /api/funds", set()) == []            # only a bare NEED line counts
+    assert "/api/calendar" in server._desk_map_text() and "Notes" in server._desk_map_text()
+    keep = desk_notes.RESEARCH_DIR
+    desk_notes.RESEARCH_DIR = str(tmp_path / "research")
+    try:
+        desk_plugins.installed(force=True)
+        doors = desk_plugins.doors()
+        assert next(d for d in doors if d["label"] == "Claude Code")["build"] and not next(d for d in doors if d["label"] == "Kimi Code")["build"]
+        seen = {}
+        class R:  # what subprocess.run returns
+            returncode, stdout, stderr = 0, "changed web/x.html; no restart needed", ""
+        def fake_run(cmd, **kw):
+            seen["cmd"], seen["cwd"] = cmd, kw.get("cwd"); return R()
+        monkeypatch.setattr(desk_plugins.subprocess, "run", fake_run)
+        monkeypatch.setattr(desk_plugins, "_which", lambda name: "/usr/local/bin/" + name)
+        desk_plugins.installed(force=True)
+        out = desk_plugins.run_door("terminal:0", "add a column", mode="build")
+        assert out["ok"] and seen["cwd"] == desk_plugins.HERE and "--permission-mode" in seen["cmd"] and "acceptEdits" in seen["cmd"]
+        out = desk_plugins.run_door("terminal:0", "what is beta", mode="research")
+        assert out["ok"] and "--permission-mode" not in seen["cmd"] and seen["cwd"] == desk_notes.RESEARCH_DIR or seen["cwd"] == desk_plugins.HERE
+        kimi = next(i for i, d in enumerate(doors) if d["label"] == "Kimi Code")
+        assert "research-only" in desk_plugins.run_door(f"terminal:{kimi}", "x", mode="build")["error"] or "does not know how to let it edit" in desk_plugins.run_door(f"terminal:{kimi}", "x", mode="build")["error"]
+    finally:
+        desk_notes.RESEARCH_DIR = keep
+        desk_plugins.installed(force=True)

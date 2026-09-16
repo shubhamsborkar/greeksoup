@@ -239,12 +239,19 @@ html[data-rail="min"] #alertbar{left:var(--railc)}
   box-shadow:-24px 0 60px rgba(0,0,0,.45);display:none;flex-direction:column;
   animation:vrise .18s ease both}
 #askdock.open{display:flex}
-#askdock.wide{width:auto;left:0;box-shadow:none;border-left:0}
+#askdock .agrip{position:absolute;left:0;top:0;bottom:0;width:7px;cursor:col-resize;z-index:2}
+#askdock .agrip:hover,#askdock .agrip:active{background:linear-gradient(90deg,var(--accent),transparent)}
+#askdock #askmode{order:10;flex:1 1 100%;margin:6px 0 0;background:var(--panel2);color:var(--ink2);border:1px solid var(--line2);border-radius:7px;padding:7px 9px;font:inherit;font-size:12px;cursor:pointer}
+#askdock.build #askmode{color:var(--accent);border-color:var(--accent)}
+#askdock.build textarea:focus{border-color:var(--accent)}
+#askdock.wide{box-shadow:none}
+#askdock[style*="100%"]{left:0;border-left:0}
 #askdock.wide .ah,#askdock.wide .am,#askdock.wide .af{width:100%;max-width:920px;margin:0 auto;box-sizing:border-box}
 #askdock.wide .ah,#askdock.wide .af{border-color:transparent}
 #askdock.wide .am{font-size:14px}
 #askdock .ah{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 #askdock .ah>div:first-child{flex:1 1 auto;min-width:0}
+#askdock .ah>div:first-child+.ax{margin-left:auto}
 #askdock .ah b{font-size:13px;color:var(--ink)}
 #askdock .ah small{display:block;font-size:11px;color:var(--ink2);margin-top:2px}
 #askdock #askvia{order:9;flex:1 1 100%;margin:10px 0 0;max-width:none;min-width:0;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:7px 9px;font:inherit;font-size:12px;cursor:pointer}

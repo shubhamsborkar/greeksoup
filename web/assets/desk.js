@@ -729,28 +729,63 @@
     el.id = "askdock";
     el.setAttribute("aria-label", "Ask SuperAnalyst");
     el.innerHTML =
+      '<div class="agrip" title="Drag to set the width"></div>' +
       '<div class="ah"><div><b>SuperAnalyst</b><small id="asksub">an AI, reading this screen</small></div>' +
+      '<button class="ax" id="askwide" title="Wider: a third, half, the whole screen, and back">' + svg(EXPAND_ICON) + '</button>' +
+      '<button class="ax" id="askclose" title="Close (Esc)">' + svg(HIDE_ICON) + '</button>' +
       '<select id="askvia" title="Who answers: an app you already pay for on this computer, or the key on Settings"></select>' +
-      '<button class="ax" id="askwide" title="Full width, and back">' + svg(EXPAND_ICON) + '</button>' +
-      '<button class="ax" id="askclose" title="Close (Esc)">' + svg(HIDE_ICON) + '</button></div>' +
+      '<select id="askmode" title="Research reads the desk and changes nothing. Build asks the app on this computer to change the desk itself.">' +
+      '<option value="research">Research · reads the desk, changes nothing</option><option value="build">Build · changes this desk through the app above</option></select></div>' +
       '<div class="am" id="askmsgs"></div>' +
       '<div class="af"><textarea id="askin" placeholder="Ask about what is on this screen. Enter sends, Shift+Enter for a new line."></textarea>' +
-      '<div class="ab"><button id="asksend">Ask</button><small id="askfoot">SuperAnalyst is an AI reading this screen through the app or key you pick above. Verify against the source the screen names.</small></div></div>';
+      '<div class="ab"><button id="asksend">Ask</button><small id="askfoot">SuperAnalyst is an AI reading this screen and the rest of the desk through the app or key you pick above. Verify against the source the screen names.</small></div></div>';
     document.body.appendChild(el);
     document.getElementById("askclose").onclick = () => openAsk(false);
-    // the box starts narrow beside the screen; one click makes it the screen, one more brings it back
-    let wide = false;
-    try { wide = store.getItem("ask_wide") === "1"; } catch (e) { /* fine */ }
-    el.classList.toggle("wide", wide);
-    if (wide) document.getElementById("askwide").innerHTML = svg(SHRINK_ICON);
-    document.getElementById("askwide").onclick = () => {
-      wide = !el.classList.contains("wide");
-      el.classList.toggle("wide", wide);
+    // the width is the reader's: drag the left edge, or step through a third, half and the
+    // whole screen with the button; the last width is remembered
+    const STEPS = [0.34, 0.5, 1];
+    const minW = 360;
+    let frac = 0.34;
+    try { frac = parseFloat(store.getItem("ask_frac")) || 0.34; } catch (e) { /* fine */ }
+    const apply = f => {
+      frac = Math.min(1, Math.max(minW / window.innerWidth, f));
+      el.style.width = frac >= 0.995 ? "100%" : Math.round(frac * window.innerWidth) + "px";
+      el.classList.toggle("wide", frac >= 0.6);
       const wb = document.getElementById("askwide");
-      wb.title = wide ? "Back beside the screen" : "Full width, and back";
-      wb.innerHTML = svg(wide ? SHRINK_ICON : EXPAND_ICON);
-      try { store.setItem("ask_wide", wide ? "1" : "0"); } catch (e) { /* fine */ }
+      wb.innerHTML = svg(frac >= 0.995 ? SHRINK_ICON : EXPAND_ICON);
+      try { store.setItem("ask_frac", String(frac)); } catch (e) { /* fine */ }
     };
+    apply(frac);
+    document.getElementById("askwide").onclick = () => {
+      const next = STEPS.find(s => s > frac + 0.02);
+      apply(next === undefined ? STEPS[0] : next);
+    };
+    const grip = el.querySelector(".agrip");
+    grip.addEventListener("mousedown", e => {
+      e.preventDefault();
+      const move = ev => apply((window.innerWidth - ev.clientX) / window.innerWidth);
+      const up = () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); document.body.style.userSelect = ""; };
+      document.body.style.userSelect = "none";
+      window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+    });
+    window.addEventListener("resize", () => apply(frac));
+    // Research or Build: Build only through an app on this computer, and the box says so
+    const mode = document.getElementById("askmode");
+    try { mode.value = store.getItem("ask_mode") === "build" ? "build" : "research"; } catch (e) { /* fine */ }
+    mode.onchange = () => {
+      try { store.setItem("ask_mode", mode.value); } catch (e) { /* fine */ }
+      el.classList.toggle("build", mode.value === "build");
+      const ta = document.getElementById("askin");
+      ta.placeholder = mode.value === "build" ? "What to change on the desk. The app edits this desk's own files as you ask and says what it changed." : "Ask about what is on this screen. Enter sends, Shift+Enter for a new line.";
+      if (mode.value === "build") {
+        const via = document.getElementById("askvia");
+        const d = askDoors.find(x => x.name === via.value);
+        askNote(d ? (d.build ? `<p><b>Build.</b> ${esc(d.label)} will run in the desk's own folder and may change its files as you ask: a column, a screen, a plugin, a chain. It says what it changed when done; a change to the desk's own code needs a restart. The book, the watchlists and the vault are yours and stay yours.</p>`
+                            : `<p><b>Build</b> needs an app the desk can let edit files: Claude Code, Codex, Gemini CLI or Qwen Code. ${esc(d.label)} answers questions only.</p>`)
+                      : `<p><b>Build</b> needs an app on this computer (Claude Code, Codex, Gemini CLI, Qwen Code); a key can only answer. Pick one above.</p>`, "hint");
+      }
+    };
+    el.classList.toggle("build", mode.value === "build");
     document.getElementById("asksend").onclick = sendAsk;
     document.getElementById("askin").addEventListener("keydown", e => {
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendAsk(); }
@@ -789,7 +824,7 @@
         if (st.ready || askDoors.some(d => d.ready)) {
           const dd = askDoors.find(d => d.name === via.value);
           const who = dd ? `<b>${esc(dd.label)}</b> on this computer${dd.pays ? ", on " + esc(dd.pays) : ""}` : st.ready ? `<b>${esc(st.label || st.provider)}</b>, model <span class="mono">${esc(st.model)}</span>` : "the app you pick above";
-          askNote(`<p>SuperAnalyst is an AI. Ask anything about what is on this screen: the question goes with the screen's own numbers to ${who}, and nowhere else. The picker above chooses who answers. An answer worth keeping has a Save as note button under it; nothing is kept unless you press it.</p>`, "hint");
+          askNote(`<p>SuperAnalyst is an AI. Ask anything: this screen's numbers go first, then the screens the question leads to (a name you mention, the short interest, the 13F holders, the calendar, your notes), all to ${who}, and nowhere else. The picker above chooses who answers; the second one, Research or Build, chooses whether it may change the desk. An answer worth keeping has a Save as note button under it; nothing is kept unless you press it.</p>`, "hint");
         } else {
           askNote(`<p>SuperAnalyst is an AI, and nothing answers for it yet. ${esc(st.why || "")} Three ways: sign in to an app you already pay for (the greyed names in the picker above; <a href="/settings">Settings</a>, under Your AI, opens the sign-in), paste a key from any lab there, or run a model on this computer, which needs no key.</p>`, "hint");
         }
@@ -807,10 +842,11 @@
     ta.value = "";
     const qd = document.createElement("div"); qd.className = "q"; qd.textContent = question;
     const m = document.getElementById("askmsgs"); m.appendChild(qd);
-    const wait = askNote(`<p class="wait">Reading ${esc(label)} and asking…</p>`);
+    const building = (document.getElementById("askmode") || {}).value === "build";
+    const wait = askNote(`<p class="wait">${building ? "Working on the desk. This can take a few minutes…" : "Reading " + esc(label) + " and the screens the question points at, and asking…"}</p>`);
     try {
       const r = await fetch("/api/ask", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, page, query, history: askHistory.slice(-6), door: (document.getElementById("askvia") || {}).value || "" }) });
+        body: JSON.stringify({ question, page, query, history: askHistory.slice(-6), door: (document.getElementById("askvia") || {}).value || "", mode: (document.getElementById("askmode") || {}).value || "research" }) });
       const out = await r.json();
       if (!out.ok) {
         wait.className = "a err";

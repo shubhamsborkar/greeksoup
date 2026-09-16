@@ -103,8 +103,9 @@ def _read(name, folder=None):
         for c in door.get("commands") or []:
             if isinstance(c, dict) and isinstance(c.get("command"), list) and c["command"] and all(isinstance(x, str) for x in c["command"]):
                 found = _which(c["command"][0])
+                build = c.get("build") if isinstance(c.get("build"), list) and all(isinstance(x, str) for x in c.get("build")) else []
                 cmds.append({"label": str(c.get("label") or c["command"][0])[:40], "command": c["command"][:12], "found": bool(found), "path": found or "",
-                             "prompt": "arg" if c.get("prompt") == "arg" else "stdin"})
+                             "prompt": "arg" if c.get("prompt") == "arg" else "stdin", "build": build[:6]})
         out["door"] = {"label": str(door.get("label") or out["label"])[:40], "commands": cmds,
                        "ready": next((c for c in cmds if c["found"]), None)}
         out["adds"].append("a door")
@@ -167,7 +168,8 @@ def doors():
             app = APPS.get(os.path.basename(c["command"][0]), {})
             out.append({"name": f"{p['name']}:{i}", "plugin": p["name"], "label": app.get("label") or c["label"],
                         "pays": app.get("pays", ""), "site": app.get("site", ""), "signin": app.get("signin", ""),
-                        "ready": bool(c["found"]), "via": c["label"], "app": os.path.basename(c["command"][0])})
+                        "ready": bool(c["found"]), "via": c["label"], "app": os.path.basename(c["command"][0]),
+                        "build": bool(c.get("build"))})
     return out
 
 
@@ -304,9 +306,12 @@ def remove(name):
     return True
 
 
-def run_door(name, prompt, timeout=240):
+def run_door(name, prompt, timeout=240, mode="research"):
     """Hand the Ask box's prompt to the door's command on this computer and return what it
-    says. The command is the plugin's own, found on PATH; nothing else is run."""
+    says. The command is the plugin's own, found on PATH; nothing else is run. In Build mode
+    the app runs in the desk's own folder with the edit flags its plugin.json names, so it
+    can change the desk as the reader asked; an app whose command has no build flags stays
+    research-only."""
     pname, _, idx = str(name or "").partition(":")
     p = next((p for p in installed() if p["name"] == _safe_name(pname) and p.get("door")), None)
     if not p:
@@ -324,6 +329,10 @@ def run_door(name, prompt, timeout=240):
         return {"ok": False, "error": f"{p['door']['label']}: none of {want} is installed on this computer, or not on the path the desk sees"}
     cmd = list(ready["command"])
     cmd[0] = ready["path"]
+    if mode == "build":
+        if not ready.get("build"):
+            return {"ok": False, "error": f"{ready['label']} answers questions here but the desk does not know how to let it edit files yet; pick Claude Code, Codex, Gemini CLI or Qwen Code for Build, or ask on Settings for it to be added."}
+        cmd = [cmd[0]] + list(ready["build"]) + cmd[1:]
     # Most apps read the question on standard input; an app whose command says
     # "prompt": "arg" takes it as its last argument instead (Kimi Code has no stdin mode).
     as_arg = ready.get("prompt") == "arg"
@@ -332,8 +341,8 @@ def run_door(name, prompt, timeout=240):
     env = dict(os.environ)
     env.pop("CLAUDECODE", None)                       # a nested session refuses to start
     try:
-        r = subprocess.run(cmd, input="" if as_arg else prompt, capture_output=True, text=True, timeout=timeout, env=env,
-                           cwd=desk_notes.RESEARCH_DIR if os.path.isdir(desk_notes.RESEARCH_DIR) else HERE)
+        cwd = HERE if mode == "build" else (desk_notes.RESEARCH_DIR if os.path.isdir(desk_notes.RESEARCH_DIR) else HERE)
+        r = subprocess.run(cmd, input="" if as_arg else prompt, capture_output=True, text=True, timeout=timeout, env=env, cwd=cwd)
     except subprocess.TimeoutExpired:
         return {"ok": False, "error": f"{ready['label']} did not answer within {timeout // 60} minutes"}
     except OSError as exc:
