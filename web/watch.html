@@ -88,6 +88,7 @@ footer{max-width:1500px;margin:14px auto 40px;padding:0 22px;color:var(--muted);
 <main>
   <div class="tokenbar" id="tokenbar"><b>Broker session expired.</b> Prices below froze at the
   last live tick. Log in again on <a href="/settings" style="color:var(--accent)">Settings</a> to reconnect.</div>
+  <div class="tokenbar" id="brokerbar" style="display:none"></div>
   <div class="toolbar">
     <input id="filter" placeholder="Filter list…">
     <span style="width:14px"></span>
@@ -110,7 +111,7 @@ footer{max-width:1500px;margin:14px auto 40px;padding:0 22px;color:var(--muted);
 <footer>Quotes cycle continuously through the list (each name refreshes roughly once a
 minute on a big list; faster on a short one). LTP flashing green/red = ticked up/down since
 the last look. HI/LO badge = trading at the day's high or low. Remove a name with the ×
-that appears on hover. Read-only: this page cannot place orders.</footer>
+that appears on hover. Read-only: this page cannot place orders.<span id="feednote"></span></footer>
 
 <script>
 "use strict";
@@ -212,6 +213,7 @@ function render(){
       : r.code;
     const exLabel = REGION==="global"
       ? (gGroup(r.code)==="STOCKS" ? (r.currency||r.exch||"") : (r.name||r.currency||""))
+      : r.broker_only ? (r.exch||"")+" · broker code, no broker connected"
       : (r.exch||"");
     const sym=`<td class="sym" title="${r.name||""}">${codeHtml}<span class="ex">${exLabel}</span>
         ${atHigh?'<span class="hl">HI</span>':""}${atLow?'<span class="ll">LO</span>':""}</td>
@@ -289,6 +291,17 @@ function render(){
       +(data.stream?" · LIVE TICKS":"");
   document.getElementById("tokenbar").style.display=
     (REGION==="home" && data.session_dead) ? "block" : "none";
+  // names that only a broker can price, on a desk with none connected
+  const bb=document.getElementById("brokerbar");
+  if(REGION==="home" && data.broker_only){
+    const n=data.broker_only;
+    bb.innerHTML=`<b>${n} name${n>1?"s":""} came through a broker that is not connected</b> (the ones marked "broker code"). Prices for them come only from that broker: connect it on <a href="/settings" style="color:var(--accent)">Settings</a>, or remove the row and add the name again by company name, which picks its listing on the free feed (HDFC Bank becomes HDFCBANK.NS).`;
+    bb.style.display="block";
+  } else bb.style.display="none";
+  const fn=document.getElementById("feednote");
+  if(fn) fn.textContent = (REGION==="home" && !data.broker)
+    ? " With no broker connected, the free feed prices this list: add a name by company name and pick its listing; the suffix is the exchange (HDFCBANK.NS is HDFC Bank on the NSE, .BO the BSE). Set your home market on Settings and the picker shows that market's exchanges only."
+    : "";
 }
 
 async function pull(){
@@ -314,7 +327,7 @@ function renderSugg(){
   suggEl.innerHTML=suggItems.map((r,i)=>
     `<div class="sg ${i===suggSel?"sel":""}" data-i="${i}">
       <span class="c mono">${r.code}</span><span class="n">${r.name||""}</span>
-      <span class="e">${r.exch||""}</span></div>`).join("");
+      <span class="e">${r.exch||""}${REGION==="home"&&data&&!data.broker&&r.code.includes(".")?" · free feed":""}</span></div>`).join("");
   suggEl.style.display="block";
   suggEl.querySelectorAll(".sg").forEach(el=>{
     el.onmousedown=e=>{e.preventDefault(); pickSugg(+el.dataset.i);};

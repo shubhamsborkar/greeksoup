@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.56. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.57. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.57
+
+*16 September 2026, release 57.* Watch · Home without a broker. A name that came in through a broker is that broker's own code (RELIND, HDFBAN), which only the broker can price; on a desk with no broker connected those rows sat blank. Now the row says broker code, no broker connected, a line above the list counts them and gives the two ways out (connect the broker on Settings, or remove the row and add the name again by company name, which picks its listing on the free feed), the add box marks each free-feed listing, and the footer explains the suffix: HDFCBANK.NS is HDFC Bank on the NSE, .BO the BSE.
 
 ## 2026-09-16.56
 

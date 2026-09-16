@@ -3939,13 +3939,22 @@ class Handler(BaseHTTPRequestHandler):
                                 "names": load_watchlist_global(),
                                 "market_open": True}
                     else:
+                        names = load_watchlist()
+                        has_broker = _hook("quote") is not None
+                        # a name that came through a broker is a broker code (RELIND), which only
+                        # that broker can price; on a desk with no broker connected the row says
+                        # so instead of sitting blank
+                        for n in names:
+                            n["broker_only"] = _is_broker_name(n) and not has_broker
                         data = {"region": "home", "quotes": WATCH,
-                                "names": load_watchlist(),
+                                "names": names,
                                 "market_open": home_market_open(),
                                 "market": _market_info(),
-                                "has_book": _hook("quote") is not None,
+                                "has_book": has_broker,
+                                "broker": has_broker,
+                                "broker_only": sum(1 for n in names if n["broker_only"]),
                                 "stream": _stream_healthy(),
-                                "session_dead": broker_health["dead"] and _hook("quote") is not None}
+                                "session_dead": broker_health["dead"] and has_broker}
                 self._send(json.dumps(data).encode(), "application/json")
             elif path == "/api/snapshot":
                 data = _cached("snap", SNAP_TTL, build_snapshot)
