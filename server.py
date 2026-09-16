@@ -3252,7 +3252,72 @@ def ask_ready():
         default_door = ""
     return {"ready": why is None, "why": why, "provider": s["provider"],
             "label": desk_ai.PROVIDERS.get(s["provider"], {}).get("label", ""), "model": s["model"],
-            "doors": doors, "default_door": default_door}
+            "doors": doors, "default_door": default_door,
+            # the names the box offers for the key on Settings: Anthropic's own list when that is the
+            # provider; any other provider takes the name typed, as the provider's page spells it
+            "models": desk_plugins.APPS["claude"]["models"] if s["provider"] == "anthropic" else []}
+
+
+# The Ask box's conversations, kept on this desk (data/ask_threads.json, never the vault)
+# so closing the box, changing screens or reloading does not lose them. The box shows the
+# latest one on open; the reader starts a new one, picks an old one, or deletes any of them.
+ASK_THREADS_PATH = os.path.join(DATA_DIR, "ask_threads.json")
+ASK_THREADS_KEEP = 40
+_ask_threads_lock = threading.Lock()
+
+
+def _ask_threads_read():
+    try:
+        with open(ASK_THREADS_PATH) as fh:
+            rows = json.load(fh).get("threads") or []
+    except (OSError, ValueError):
+        rows = []
+    return [r for r in rows if isinstance(r, dict) and r.get("id")]
+
+
+def _ask_threads_write(rows):
+    rows = sorted(rows, key=lambda r: r.get("at", ""), reverse=True)[:ASK_THREADS_KEEP]
+    tmp = ASK_THREADS_PATH + ".tmp"
+    with open(tmp, "w") as fh:
+        json.dump({"threads": rows}, fh)
+    os.replace(tmp, ASK_THREADS_PATH)
+    return rows
+
+
+def ask_threads_list():
+    return [{"id": r["id"], "title": r.get("title", ""), "screen": r.get("screen", ""), "at": r.get("at", ""),
+             "n": len(r.get("msgs") or [])} for r in sorted(_ask_threads_read(), key=lambda r: r.get("at", ""), reverse=True)]
+
+
+def ask_thread_get(tid):
+    return next((r for r in _ask_threads_read() if r["id"] == tid), None)
+
+
+def ask_thread_save(body):
+    """The whole thread as the box holds it: id (new when empty), title, screen, msgs."""
+    tid = re.sub(r"[^a-z0-9]", "", str(body.get("id", "")))[:24] or f"{int(time.time() * 1000):x}"
+    msgs = [{"role": m.get("role"), "content": str(m.get("content", ""))[:20000], "model": str(m.get("model", ""))[:80],
+             "read": [str(x)[:80] for x in (m.get("read") or [])][:20]}
+            for m in (body.get("msgs") or []) if isinstance(m, dict) and m.get("role") in ("user", "assistant")][:200]
+    row = {"id": tid, "title": str(body.get("title", ""))[:120], "screen": str(body.get("screen", ""))[:80],
+           "at": datetime.now().strftime("%Y-%m-%d %H:%M"), "msgs": msgs}
+    with _ask_threads_lock:
+        rows = [r for r in _ask_threads_read() if r["id"] != tid]
+        if msgs:
+            rows.append(row)
+        _ask_threads_write(rows)
+    return row
+
+
+def ask_thread_delete(tid):
+    with _ask_threads_lock:
+        rows = _ask_threads_read()
+        if tid == "all":
+            _ask_threads_write([])
+            return True
+        keep = [r for r in rows if r["id"] != tid]
+        _ask_threads_write(keep)
+        return len(keep) != len(rows)
 
 
 def open_signin_window(app):
@@ -3711,6 +3776,10 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/ask":
                 self._send(json.dumps(ask_ready()).encode(), "application/json")
+            elif path == "/api/ask/threads":
+                self._send(json.dumps({"threads": ask_threads_list()}).encode(), "application/json")
+            elif path == "/api/ask/thread":
+                self._send(json.dumps({"thread": ask_thread_get((qs.get("id", [""])[0] or "").strip())}).encode(), "application/json")
             elif path == "/agent":
                 self._send(agent_page().encode(), "text/plain; charset=utf-8")
             elif path == "/api/settings/backup":
@@ -4059,6 +4128,8 @@ class Handler(BaseHTTPRequestHandler):
         page = str(body.get("page", "/"))
         history = body.get("history") if isinstance(body.get("history"), list) else []
         mode = "build" if str(body.get("mode", "")) == "build" else "research"
+        model = str(body.get("model", "") or "").strip()[:80]
+        ask_id = re.sub(r"[^a-z0-9]", "", str(body.get("id", "")))[:24]
         if mode == "build":
             # Build: the reader asked the app on this computer to change the desk itself. Only a
             # door can (a key answers, it cannot act); the app runs in the desk's own folder
@@ -4066,7 +4137,7 @@ class Handler(BaseHTTPRequestHandler):
             if not door:
                 return self._send(b'{"ok":false,"error":"Changing the desk needs an app on this computer (Claude Code, Codex, Gemini CLI); a key can only answer. Pick one above."}', "application/json")
             label, _, _ = ask_context(page, body.get("query") or {}, "")
-            out = desk_plugins.run_door(door, desk_ai.build_prompt(question, label, AGENT_PAGE.format(port=PORT), history), mode="build", timeout=900)
+            out = desk_plugins.run_door(door, desk_ai.build_prompt(question, label, AGENT_PAGE.format(port=PORT), history), mode="build", timeout=900, model=model, ask_id=ask_id)
             out["model"] = out.pop("via", door)
             out["read"] = ["the desk's own folder"]
             out["screen"] = label
@@ -4077,11 +4148,14 @@ class Handler(BaseHTTPRequestHandler):
         def _ask(ctx):
             if door:
                 # a door: the same brief, handed to a command on this computer (the reader's coding agent)
-                o = desk_plugins.run_door(door, desk_ai.door_prompt(question, label, ctx, desk_settings.profile_text(), history, desk_map))
+                o = desk_plugins.run_door(door, desk_ai.door_prompt(question, label, ctx, desk_settings.profile_text(), history, desk_map), model=model, ask_id=ask_id)
                 o["model"] = o.pop("via", door)
             else:
-                o = desk_ai.ask(question, label, ctx, desk_settings.profile_text(), history, desk_map=desk_map)
-                o["model"] = rd["model"]
+                s = desk_ai.settings()
+                if model:
+                    s["model"] = model     # the model the reader picked in the box, over the one on Settings
+                o = desk_ai.ask(question, label, ctx, desk_settings.profile_text(), history, s=s, desk_map=desk_map)
+                o["model"] = s["model"]
             return o
         out = _ask(context)
         # a second round when the model names the screens it still needs, once
@@ -4261,6 +4335,12 @@ class Handler(BaseHTTPRequestHandler):
                 return self._settings_post(body)
             if self.path == "/api/ask":
                 return self._ask_post(body)
+            if self.path == "/api/ask/stop":
+                return self._send(json.dumps({"ok": desk_plugins.stop_door(str(body.get("id", "")))}).encode(), "application/json")
+            if self.path == "/api/ask/thread/save":
+                return self._send(json.dumps({"ok": True, "thread": ask_thread_save(body)}).encode(), "application/json")
+            if self.path == "/api/ask/thread/delete":
+                return self._send(json.dumps({"ok": ask_thread_delete(str(body.get("id", "")))}).encode(), "application/json")
             if self.path == "/api/update/apply":
                 # The one click. Writes program files inside this folder only,
                 # then the process restarts itself; the page reconnects.

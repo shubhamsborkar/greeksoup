@@ -145,15 +145,25 @@ APPS = {
     # The apps the desk knows how to hand a question to. Each one is the maker's own command-line
     # app, run as the reader would run it; the desk never sees the login. `signin` is what a
     # terminal window runs so the reader can sign in inside the app itself.
+    # `model_flag` is the app's own switch for picking a model; `models` the names the desk
+    # offers in the Ask box (the app's default always comes first, and any name the reader
+    # types is passed through as typed). An app without a flag picks its own model.
     "claude": {"label": "Claude Code", "pays": "your Claude subscription", "site": "https://claude.com/product/claude-code",
-               "signin": "claude"},
-    "codex": {"label": "Codex", "pays": "your ChatGPT subscription", "site": "https://openai.com/codex/", "signin": "codex login"},
-    "gemini": {"label": "Gemini CLI", "pays": "your Google account", "site": "https://github.com/google-gemini/gemini-cli", "signin": "gemini"},
+               "signin": "claude", "model_flag": "--model",
+               "models": [["claude-opus-5", "Opus 5"], ["claude-fable-5-1", "Fable 5.1"], ["claude-fable-5", "Fable 5"],
+                          ["claude-opus-4-8", "Opus 4.8"], ["claude-opus-4-7", "Opus 4.7"], ["claude-opus-4-6", "Opus 4.6"],
+                          ["claude-sonnet-5", "Sonnet 5"], ["claude-sonnet-4-6", "Sonnet 4.6"], ["claude-haiku-4-5", "Haiku 4.5"]]},
+    "codex": {"label": "Codex", "pays": "your ChatGPT subscription", "site": "https://openai.com/codex/", "signin": "codex login",
+              "model_flag": "-m", "models": []},
+    "gemini": {"label": "Gemini CLI", "pays": "your Google account", "site": "https://github.com/google-gemini/gemini-cli", "signin": "gemini",
+               "model_flag": "-m", "models": []},
     "kimi": {"label": "Kimi Code", "pays": "your Kimi account", "site": "https://www.kimi.com/code", "signin": "kimi"},
-    "grok": {"label": "Grok Build", "pays": "your xAI account", "site": "https://x.ai/build", "signin": "grok"},
-    "qwen": {"label": "Qwen Code", "pays": "your Qwen account", "site": "https://qwen.ai/qwencode", "signin": "qwen"},
+    "grok": {"label": "Grok Build", "pays": "your xAI account", "site": "https://x.ai/build", "signin": "grok",
+             "model_flag": "-m", "models": []},
+    "qwen": {"label": "Qwen Code", "pays": "your Qwen account", "site": "https://qwen.ai/qwencode", "signin": "qwen",
+             "model_flag": "-m", "models": []},
     "cursor-agent": {"label": "Cursor", "pays": "your Cursor subscription", "site": "https://cursor.com/docs/cli/overview",
-                     "signin": "cursor-agent login"},
+                     "signin": "cursor-agent login", "model_flag": "--model", "models": []},
 }
 
 
@@ -169,7 +179,8 @@ def doors():
             out.append({"name": f"{p['name']}:{i}", "plugin": p["name"], "label": app.get("label") or c["label"],
                         "pays": app.get("pays", ""), "site": app.get("site", ""), "signin": app.get("signin", ""),
                         "ready": bool(c["found"]), "via": c["label"], "app": os.path.basename(c["command"][0]),
-                        "build": bool(c.get("build"))})
+                        "build": bool(c.get("build")), "model_flag": app.get("model_flag", ""),
+                        "models": app.get("models", [])})
     return out
 
 
@@ -306,7 +317,26 @@ def remove(name):
     return True
 
 
-def run_door(name, prompt, timeout=240, mode="research"):
+# the door runs in flight, by the Ask box's own id, so a Stop press can end it
+_running = {}
+_stopped = set()
+
+
+def stop_door(ask_id):
+    """End the app run the Ask box started under this id, if it is still going."""
+    ask_id = str(ask_id or "")
+    proc = _running.get(ask_id)
+    if not proc:
+        return False
+    _stopped.add(ask_id)
+    try:
+        proc.terminate()
+    except OSError:
+        return False
+    return True
+
+
+def run_door(name, prompt, timeout=240, mode="research", model="", ask_id=""):
     """Hand the Ask box's prompt to the door's command on this computer and return what it
     says. The command is the plugin's own, found on PATH; nothing else is run. In Build mode
     the app runs in the desk's own folder with the edit flags its plugin.json names, so it
@@ -336,18 +366,37 @@ def run_door(name, prompt, timeout=240, mode="research"):
     # Most apps read the question on standard input; an app whose command says
     # "prompt": "arg" takes it as its last argument instead (Kimi Code has no stdin mode).
     as_arg = ready.get("prompt") == "arg"
+    # the model the reader picked in the Ask box, through the app's own switch; an app
+    # without one picks its own model and the box says so
+    app = APPS.get(os.path.basename(ready["command"][0]), {})
+    model = re.sub(r"[^A-Za-z0-9._:/-]", "", str(model or ""))[:80]
+    if model and app.get("model_flag"):
+        cmd = [cmd[0], app["model_flag"], model] + cmd[1:]
     if as_arg:
         cmd.append(prompt)
     env = dict(os.environ)
     env.pop("CLAUDECODE", None)                       # a nested session refuses to start
+    ask_id = str(ask_id or "")
     try:
         cwd = HERE if mode == "build" else (desk_notes.RESEARCH_DIR if os.path.isdir(desk_notes.RESEARCH_DIR) else HERE)
-        r = subprocess.run(cmd, input="" if as_arg else prompt, capture_output=True, text=True, timeout=timeout, env=env, cwd=cwd)
-    except subprocess.TimeoutExpired:
-        return {"ok": False, "error": f"{ready['label']} did not answer within {timeout // 60} minutes"}
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env, cwd=cwd)
+        if ask_id:
+            _running[ask_id] = proc
+        try:
+            out, err = proc.communicate("" if as_arg else prompt, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.communicate()
+            return {"ok": False, "error": f"{ready['label']} did not answer within {timeout // 60} minutes"}
+        finally:
+            _running.pop(ask_id, None)
     except OSError as exc:
         return {"ok": False, "error": f"{ready['label']} could not be started ({exc})"}
-    text = (r.stdout or "").strip()
-    if r.returncode != 0 and not text:
-        return {"ok": False, "error": f"{ready['label']} returned an error: " + ((r.stderr or "").strip()[-400:] or f"exit {r.returncode}")}
-    return {"ok": True, "answer": text or "(the agent sent an empty answer)", "via": ready["label"]}
+    text = (out or "").strip()
+    if ask_id in _stopped:
+        _stopped.discard(ask_id)
+        return {"ok": False, "error": "Stopped.", "stopped": True}
+    if proc.returncode != 0 and not text:
+        return {"ok": False, "error": f"{ready['label']} returned an error: " + ((err or "").strip()[-400:] or f"exit {proc.returncode}")}
+    label = ready["label"] + (f" · {model}" if model else "")
+    return {"ok": True, "answer": text or "(the agent sent an empty answer)", "via": label}

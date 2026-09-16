@@ -699,8 +699,11 @@
 
   /* ---- the Ask box: the reader's question, with this screen's numbers, to the
      AI they set in Settings. Reads the desk; writes nothing. ------------------- */
-  let askOpen = false, askBusy = false, askDoors = [];
-  const askHistory = [];
+  let askOpen = false, askBusy = false, askDoors = [], askSt = {};
+  // the conversation in the box: kept on this desk (not the vault) so closing the box, changing
+  // screens or reloading brings it back; New starts another, the picker reopens an old one
+  let askThread = { id: "", title: "", screen: "", msgs: [] };
+  let askAbort = null, askId = "";
   function askDoor() { try { return store.getItem("gs.door") || ""; } catch (e) { return ""; } }
   function askPage() {
     const p = location.pathname === "/index.html" ? "/" : location.pathname;
@@ -733,9 +736,14 @@
       '<div class="ah"><div><b>SuperAnalyst</b><small id="asksub">an AI, reading this screen</small></div>' +
       '<button class="ax" id="askwide" title="Wider: a third, half, the whole screen, and back">' + svg(EXPAND_ICON) + '</button>' +
       '<button class="ax" id="askclose" title="Close (Esc)">' + svg(HIDE_ICON) + '</button>' +
-      '<select id="askvia" title="Who answers: an app you already pay for on this computer, or the key on Settings"></select>' +
-      '<select id="askmode" title="Research reads the desk and changes nothing. Build asks the app on this computer to change the desk itself.">' +
-      '<option value="research">Research · reads the desk, changes nothing</option><option value="build">Build · changes this desk through the app above</option></select></div>' +
+      '<div class="arow"><select id="askvia" title="Who answers: an app you already pay for on this computer, or the key on Settings"></select>' +
+      '<select id="askmodel" title="Which model answers. The first choice is the app\'s own default; the last lets you type a name the app accepts."></select>' +
+      '<input id="askmodelin" placeholder="model name, as the app spells it" hidden></div>' +
+      '<div class="arow"><select id="askmode" title="Research reads the desk and changes nothing. Build asks the app on this computer to change the desk itself.">' +
+      '<option value="research">Research · reads the desk, changes nothing</option><option value="build">Build · changes this desk through the app above</option></select>' +
+      '<select id="askthread" title="Your conversations, kept on this desk. Pick one to reopen it."></select>' +
+      '<button class="ax at" id="asknew" title="New conversation">+</button>' +
+      '<button class="ax at" id="askdel" title="Delete this conversation">' + svg(HIDE_ICON) + '</button></div></div>' +
       '<div class="am" id="askmsgs"></div>' +
       '<div class="af"><textarea id="askin" placeholder="Ask about what is on this screen. Enter sends, Shift+Enter for a new line."></textarea>' +
       '<div class="ab"><button id="asksend">Ask</button><small id="askfoot">SuperAnalyst is an AI reading this screen and the rest of the desk through the app or key you pick above. Verify against the source the screen names.</small></div></div>';
@@ -786,10 +794,53 @@
       }
     };
     el.classList.toggle("build", mode.value === "build");
-    document.getElementById("asksend").onclick = sendAsk;
+    // the model: the app's own default first, then the names it accepts, then one typed
+    const ms = document.getElementById("askmodel"), mi = document.getElementById("askmodelin");
+    ms.onchange = () => {
+      mi.hidden = ms.value !== "__type";
+      if (ms.value === "__type") { mi.focus(); return; }
+      try { store.setItem("gs.model." + askModelKey(), ms.value); } catch (e) { /* fine */ }
+    };
+    mi.onchange = () => { try { store.setItem("gs.model." + askModelKey(), "__type:" + mi.value.trim()); } catch (e) { /* fine */ } };
+    // the conversations: pick one, start one, delete one
+    document.getElementById("askthread").onchange = e => {
+      const v = e.target.value;
+      if (v === "__all") { askDeleteAll(); return; }
+      askLoadThread(v);
+    };
+    document.getElementById("asknew").onclick = () => { if (askBusy) stopAsk(); askNewThread(true); };
+    document.getElementById("askdel").onclick = askDeleteThread;
+    document.getElementById("asksend").onclick = () => askBusy ? stopAsk() : sendAsk();
     document.getElementById("askin").addEventListener("keydown", e => {
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendAsk(); }
     });
+  }
+  function askModelKey() { return (document.getElementById("askvia") || {}).value || "key"; }
+  function askModelValue() {
+    const ms = document.getElementById("askmodel"), mi = document.getElementById("askmodelin");
+    if (!ms) return "";
+    return ms.value === "__type" ? mi.value.trim() : ms.value;
+  }
+  function fillModels() {
+    const ms = document.getElementById("askmodel"), mi = document.getElementById("askmodelin");
+    const via = document.getElementById("askvia").value;
+    const d = askDoors.find(x => x.name === via);
+    let list = [], head, canPick = true;
+    if (d) {
+      list = d.models || [];
+      canPick = !!d.model_flag;
+      head = canPick ? `${d.label} decides (its default)` : `${d.label} picks its own model`;
+    } else {
+      list = askSt.models || [];
+      head = askSt.model ? `${askSt.model} (on Settings)` : "the model on Settings";
+    }
+    ms.innerHTML = `<option value="">${esc(head)}</option>` + list.map(([id, label]) => `<option value="${esc(id)}">${esc(label)}</option>`).join("") +
+      (canPick ? `<option value="__type">Another model name…</option>` : "");
+    ms.disabled = !canPick;
+    let want = "";
+    try { want = store.getItem("gs.model." + askModelKey()) || ""; } catch (e) { /* fine */ }
+    if (want.startsWith("__type:")) { ms.value = "__type"; mi.value = want.slice(7); mi.hidden = false; }
+    else { mi.hidden = true; ms.value = list.some(([id]) => id === want) ? want : ""; }
   }
   function askNote(html, cls) {
     const m = document.getElementById("askmsgs");
@@ -798,6 +849,88 @@
     d.innerHTML = html;
     m.appendChild(d); m.scrollTop = m.scrollHeight;
     return d;
+  }
+  function askIntro() {
+    const st = askSt, via = document.getElementById("askvia");
+    if (st.ready || askDoors.some(d => d.ready)) {
+      const dd = askDoors.find(d => d.name === via.value);
+      const who = dd ? `<b>${esc(dd.label)}</b> on this computer${dd.pays ? ", on " + esc(dd.pays) : ""}` : st.ready ? `<b>${esc(st.label || st.provider)}</b>, model <span class="mono">${esc(st.model)}</span>` : "the app you pick above";
+      askNote(`<p>SuperAnalyst is an AI. Ask anything: this screen's numbers go first, then the screens the question leads to (a name you mention, the short interest, the 13F holders, the calendar, your notes), all to ${who}, and nowhere else. The pickers above choose who answers and which model; Research or Build, whether it may change the desk. Every conversation is kept on this desk until you delete it. An answer worth keeping has a Save as note button under it.</p>`, "hint");
+    } else {
+      askNote(`<p>SuperAnalyst is an AI, and nothing answers for it yet. ${esc(st.why || "")} Three ways: sign in to an app you already pay for (the greyed names in the picker above; <a href="/settings">Settings</a>, under Your AI, opens the sign-in), paste a key from any lab there, or run a model on this computer, which needs no key.</p>`, "hint");
+    }
+  }
+  function askRenderAnswer(box, msg) {
+    box.innerHTML = msg.content.split(/\n{2,}/).map(p => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("") +
+      (msg.read && msg.read.length ? `<div class="rd">read ${msg.read.map(esc).join(" · ")} · ${esc(msg.model || "")}</div>` : "");
+  }
+  function askRenderThread() {
+    const m = document.getElementById("askmsgs");
+    m.innerHTML = "";
+    askIntro();
+    const { query, label } = askPage();
+    let lastQ = "";
+    for (const msg of askThread.msgs) {
+      if (msg.role === "user") {
+        lastQ = msg.content;
+        const qd = document.createElement("div"); qd.className = "q"; qd.textContent = msg.content; m.appendChild(qd);
+      } else {
+        const box = askNote("");
+        askRenderAnswer(box, msg);
+        offerSave(box, lastQ, { answer: msg.content, model: msg.model, read: msg.read }, query, label);
+      }
+    }
+    m.scrollTop = m.scrollHeight;
+  }
+  async function askRefreshThreads() {
+    const sel = document.getElementById("askthread");
+    let rows = [];
+    try { rows = (await (await fetch("/api/ask/threads", { cache: "no-store" })).json()).threads || []; } catch (e) { /* the box works without the list */ }
+    const cur = askThread.id;
+    const opts = [];
+    if (!cur) opts.push(`<option value="">New conversation</option>`);
+    for (const r of rows) opts.push(`<option value="${esc(r.id)}"${r.id === cur ? " selected" : ""}>${esc(r.title || "(untitled)")} · ${esc(r.at.slice(5, 16))}</option>`);
+    if (rows.length) opts.push(`<option value="__all">Delete every conversation…</option>`);
+    sel.innerHTML = opts.join("");
+    if (cur) sel.value = cur;
+    return rows;
+  }
+  async function askLoadThread(id) {
+    if (askBusy) stopAsk();
+    if (!id) { askNewThread(false); return; }
+    try {
+      const t = (await (await fetch("/api/ask/thread?id=" + encodeURIComponent(id), { cache: "no-store" })).json()).thread;
+      if (t) { askThread = { id: t.id, title: t.title, screen: t.screen, msgs: t.msgs || [] }; askRenderThread(); }
+    } catch (e) { /* fine */ }
+    askRefreshThreads();
+  }
+  function askNewThread(refresh) {
+    askThread = { id: "", title: "", screen: "", msgs: [] };
+    askRenderThread();
+    if (refresh) askRefreshThreads();
+    document.getElementById("askin").focus();
+  }
+  async function askSaveThread() {
+    if (!askThread.msgs.length) return;
+    try {
+      const r = await (await fetch("/api/ask/thread/save", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: askThread.id, title: askThread.title, screen: askThread.screen, msgs: askThread.msgs }) })).json();
+      if (r.ok && r.thread) askThread.id = r.thread.id;
+    } catch (e) { /* the thread lives in the box until the desk answers again */ }
+    askRefreshThreads();
+  }
+  async function askDeleteThread() {
+    if (askBusy) stopAsk();
+    if (askThread.id) {
+      try { await fetch("/api/ask/thread/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: askThread.id }) }); } catch (e) { /* fine */ }
+    }
+    askNewThread(true);
+  }
+  async function askDeleteAll() {
+    if (!window.confirm("Delete every conversation kept on this desk?")) { askRefreshThreads(); return; }
+    if (askBusy) stopAsk();
+    try { await fetch("/api/ask/thread/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: "all" }) }); } catch (e) { /* fine */ }
+    askNewThread(true);
   }
   async function openAsk(open) {
     buildAsk();
@@ -809,6 +942,7 @@
     const m = document.getElementById("askmsgs");
     try {
       const st = await (await fetch("/api/ask", { cache: "no-store" })).json();
+      askSt = st;
       askDoors = st.doors || [];
       // who answers, always in view: the key on Settings first, then every app the desk can
       // hand a question to, the ones not on this computer greyed so the reader sees what
@@ -819,18 +953,22 @@
       const want = askDoor() || st.default_door || "";     // the reader's last pick, else the app chosen on Settings
       if (askDoors.some(d => d.name === want && d.ready)) via.value = want;
       else if (!st.ready) { const first = askDoors.find(d => d.ready); if (first) via.value = first.name; }
-      via.onchange = () => { try { store.setItem("gs.door", via.value); } catch (e) { /* fine */ } };
+      via.onchange = () => { try { store.setItem("gs.door", via.value); } catch (e) { /* fine */ } fillModels(); };
+      fillModels();
       if (!m.childElementCount) {
-        if (st.ready || askDoors.some(d => d.ready)) {
-          const dd = askDoors.find(d => d.name === via.value);
-          const who = dd ? `<b>${esc(dd.label)}</b> on this computer${dd.pays ? ", on " + esc(dd.pays) : ""}` : st.ready ? `<b>${esc(st.label || st.provider)}</b>, model <span class="mono">${esc(st.model)}</span>` : "the app you pick above";
-          askNote(`<p>SuperAnalyst is an AI. Ask anything: this screen's numbers go first, then the screens the question leads to (a name you mention, the short interest, the 13F holders, the calendar, your notes), all to ${who}, and nowhere else. The picker above chooses who answers; the second one, Research or Build, chooses whether it may change the desk. An answer worth keeping has a Save as note button under it; nothing is kept unless you press it.</p>`, "hint");
-        } else {
-          askNote(`<p>SuperAnalyst is an AI, and nothing answers for it yet. ${esc(st.why || "")} Three ways: sign in to an app you already pay for (the greyed names in the picker above; <a href="/settings">Settings</a>, under Your AI, opens the sign-in), paste a key from any lab there, or run a model on this computer, which needs no key.</p>`, "hint");
-        }
+        // the latest conversation comes back on open; nothing kept means a fresh box
+        const rows = await askRefreshThreads();
+        if (rows.length && !askThread.id) await askLoadThread(rows[0].id);
+        else askRenderThread();
       }
     } catch (e) { /* the send will say */ }
     document.getElementById("askin").focus();
+  }
+  function stopAsk() {
+    if (!askBusy) return;
+    const id = askId;
+    try { fetch("/api/ask/stop", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) }); } catch (e) { /* fine */ }
+    if (askAbort) askAbort.abort();
   }
   async function sendAsk() {
     if (askBusy) return;
@@ -838,31 +976,39 @@
     const question = ta.value.trim();
     if (!question) return;
     const { page, query, label } = askPage();
-    askBusy = true; document.getElementById("asksend").disabled = true;
+    askBusy = true;
+    const send = document.getElementById("asksend");
+    send.textContent = "Stop"; send.classList.add("stop");
     ta.value = "";
     const qd = document.createElement("div"); qd.className = "q"; qd.textContent = question;
     const m = document.getElementById("askmsgs"); m.appendChild(qd);
     const building = (document.getElementById("askmode") || {}).value === "build";
-    const wait = askNote(`<p class="wait">${building ? "Working on the desk. This can take a few minutes…" : "Reading " + esc(label) + " and the screens the question points at, and asking…"}</p>`);
+    const wait = askNote(`<p class="wait">${building ? "Working on the desk. This can take a few minutes…" : "Reading " + esc(label) + " and the screens the question points at, and asking…"} Stop ends it.</p>`);
+    const history = askThread.msgs.map(x => ({ role: x.role, content: x.content })).slice(-6);
+    askId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    askAbort = new AbortController();
+    if (!askThread.title) { askThread.title = question.replace(/\s+/g, " ").slice(0, 60); askThread.screen = label; }
     try {
-      const r = await fetch("/api/ask", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, page, query, history: askHistory.slice(-6), door: (document.getElementById("askvia") || {}).value || "", mode: (document.getElementById("askmode") || {}).value || "research" }) });
+      const r = await fetch("/api/ask", { method: "POST", headers: { "Content-Type": "application/json" }, signal: askAbort.signal,
+        body: JSON.stringify({ question, page, query, history, id: askId, model: askModelValue(), door: (document.getElementById("askvia") || {}).value || "", mode: (document.getElementById("askmode") || {}).value || "research" }) });
       const out = await r.json();
       if (!out.ok) {
         wait.className = "a err";
         wait.innerHTML = `<p>${esc(out.error || "The model did not answer.")}` +
           (out.settings ? ` Set it on <a href="/settings">Settings</a>, under Your AI.` : "") + `</p>`;
       } else {
-        wait.innerHTML = out.answer.split(/\n{2,}/).map(p => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("") +
-          (out.read && out.read.length ? `<div class="rd">read ${out.read.map(esc).join(" · ")} · ${esc(out.model || "")}</div>` : "");
-        askHistory.push({ role: "user", content: question }, { role: "assistant", content: out.answer });
+        const msg = { role: "assistant", content: out.answer, model: out.model || "", read: out.read || [] };
+        askRenderAnswer(wait, msg);
+        askThread.msgs.push({ role: "user", content: question }, msg);
         offerSave(wait, question, out, query, label);
+        askSaveThread();
       }
     } catch (e) {
       wait.className = "a err";
-      wait.innerHTML = "<p>The desk did not answer. Is it still running?</p>";
+      wait.innerHTML = e && e.name === "AbortError" ? "<p>Stopped.</p>" : "<p>The desk did not answer. Is it still running?</p>";
     }
-    askBusy = false; document.getElementById("asksend").disabled = false;
+    askBusy = false; askAbort = null; askId = "";
+    send.textContent = "Ask"; send.classList.remove("stop");
     m.scrollTop = m.scrollHeight; ta.focus();
   }
 

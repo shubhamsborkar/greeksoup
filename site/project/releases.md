@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.52. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.53. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.53
+
+*16 September 2026, release 53.* The Ask box: Stop, conversations kept, and a model picker. Ask turns into Stop while an answer is on its way, and Stop ends the app run on this computer, so a question to an app that is not signed in no longer locks the box. Every conversation is kept on this desk (never in the vault) and comes back when you reopen the box, change screens or reload; a picker in the box reopens an old one, + starts a new one, × deletes the one open, and the list's last line deletes them all. A third picker chooses the model: the app's own default, the names it accepts (Claude Code carries the Anthropic list), or a name you type; an app without a model switch says it picks its own.
 
 ## 2026-09-16.52
 

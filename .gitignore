@@ -23,3 +23,6 @@ data/research/*
 !data/research/notes/
 data/research/notes/*
 !data/research/notes/example-*.md
+
+# the Ask box conversations, kept on this desk only
+data/ask_threads.json

@@ -1031,17 +1031,32 @@ def test_superanalyst_reads_the_whole_desk_and_builds_only_through_a_door(monkey
         doors = desk_plugins.doors()
         assert next(d for d in doors if d["label"] == "Claude Code")["build"] and not next(d for d in doors if d["label"] == "Kimi Code")["build"]
         seen = {}
-        class R:  # what subprocess.run returns
-            returncode, stdout, stderr = 0, "changed web/x.html; no restart needed", ""
-        def fake_run(cmd, **kw):
-            seen["cmd"], seen["cwd"] = cmd, kw.get("cwd"); return R()
-        monkeypatch.setattr(desk_plugins.subprocess, "run", fake_run)
+        class P:  # what subprocess.Popen returns: the door reads stdout, stderr and the exit code
+            returncode = 0
+            def communicate(self, inp=None, timeout=None):
+                return "changed web/x.html; no restart needed", ""
+            def terminate(self):
+                self.returncode = 1
+        def fake_popen(cmd, **kw):
+            seen["cmd"], seen["cwd"] = cmd, kw.get("cwd"); return P()
+        monkeypatch.setattr(desk_plugins.subprocess, "Popen", fake_popen)
         monkeypatch.setattr(desk_plugins, "_which", lambda name: "/usr/local/bin/" + name)
         desk_plugins.installed(force=True)
         out = desk_plugins.run_door("terminal:0", "add a column", mode="build")
         assert out["ok"] and seen["cwd"] == desk_plugins.HERE and "--permission-mode" in seen["cmd"] and "acceptEdits" in seen["cmd"]
         out = desk_plugins.run_door("terminal:0", "what is beta", mode="research")
         assert out["ok"] and "--permission-mode" not in seen["cmd"] and seen["cwd"] == desk_notes.RESEARCH_DIR or seen["cwd"] == desk_plugins.HERE
+        # the model the reader picked goes through the app's own switch, and only a plain name
+        out = desk_plugins.run_door("terminal:0", "what is beta", model="claude-haiku-4-5; rm -rf /")
+        assert out["ok"] and seen["cmd"][1:3] == ["--model", "claude-haiku-4-5rm-rf/"] and out["via"].endswith("claude-haiku-4-5rm-rf/")
+        # a Stop pressed while the app runs comes back as stopped, not as an answer
+        class Slow(P):
+            def communicate(self, inp=None, timeout=None):
+                desk_plugins.stop_door("abc123"); return "", ""
+        monkeypatch.setattr(desk_plugins.subprocess, "Popen", lambda cmd, **kw: Slow())
+        out = desk_plugins.run_door("terminal:0", "what is beta", ask_id="abc123")
+        assert out.get("stopped") and not out["ok"] and "abc123" not in desk_plugins._running
+        monkeypatch.setattr(desk_plugins.subprocess, "Popen", fake_popen)
         kimi = next(i for i, d in enumerate(doors) if d["label"] == "Kimi Code")
         assert "research-only" in desk_plugins.run_door(f"terminal:{kimi}", "x", mode="build")["error"] or "does not know how to let it edit" in desk_plugins.run_door(f"terminal:{kimi}", "x", mode="build")["error"]
     finally:
