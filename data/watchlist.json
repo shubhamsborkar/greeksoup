@@ -1,5 +1,56 @@
 {
-  "_comment": "Watch · Home. Add names in the page (search-as-you-type confirms each one). A code is whatever your broker calls the share when the broker serves quotes, else the exchange symbol in your home market, else a Yahoo symbol.",
-  "names": [],
+  "_comment": "Watch \u00b7 Home. Add names in the page (search-as-you-type confirms each one). A code is whatever your broker calls the share when the broker serves quotes, else the exchange symbol in your home market, else a Yahoo symbol. The names here are starters from several exchanges, priced by the free feed; remove any, add your own.",
+  "names": [
+    {
+      "code": "RELIANCE.NS",
+      "exch": "NSE",
+      "source": "yahoo"
+    },
+    {
+      "code": "HDFCBANK.NS",
+      "exch": "NSE",
+      "source": "yahoo"
+    },
+    {
+      "code": "INFY.NS",
+      "exch": "NSE",
+      "source": "yahoo"
+    },
+    {
+      "code": "TCS.NS",
+      "exch": "NSE",
+      "source": "yahoo"
+    },
+    {
+      "code": "SHEL.L",
+      "exch": "LSE",
+      "source": "yahoo"
+    },
+    {
+      "code": "HSBA.L",
+      "exch": "LSE",
+      "source": "yahoo"
+    },
+    {
+      "code": "AZN.L",
+      "exch": "LSE",
+      "source": "yahoo"
+    },
+    {
+      "code": "ASML.AS",
+      "exch": "Amsterdam",
+      "source": "yahoo"
+    },
+    {
+      "code": "SAP.DE",
+      "exch": "XETRA",
+      "source": "yahoo"
+    },
+    {
+      "code": "7203.T",
+      "exch": "Tokyo",
+      "source": "yahoo"
+    }
+  ],
   "format": 1
 }

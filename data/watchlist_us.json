@@ -24,6 +24,22 @@
     {
       "code": "META",
       "source": "fmp"
+    },
+    {
+      "code": "JPM",
+      "source": "fmp"
+    },
+    {
+      "code": "COST",
+      "source": "fmp"
+    },
+    {
+      "code": "LLY",
+      "source": "fmp"
+    },
+    {
+      "code": "XOM",
+      "source": "fmp"
     }
   ],
   "format": 1

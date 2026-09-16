@@ -497,8 +497,40 @@ async function loadNotes(){
   }catch(e){ dock.innerHTML=""; }
 }
 
+/* the Financials block, the same on the US and the home layout: the free record fills the
+   three statements for any listed company; a data provider adds the rest */
+function finPanelHTML(){
+  return `      <section class="panel" id="finpanel">
+        <div class="panel-h"><h2>Financials</h2><span class="s">as filed · fiscal years</span>
+          <span style="flex:1"></span>
+          <div class="seg" id="fin-period">
+            <button data-p="annual" class="on" onclick="finPeriod('annual')">Annual</button>
+            <button data-p="quarter" onclick="finPeriod('quarter')">Quarterly</button>
+          </div>
+          <div class="seg" id="fin-unit">
+            <button data-u="B" onclick="finUnit('B')">B</button>
+            <button data-u="M" class="on" onclick="finUnit('M')">M</button>
+            <button data-u="K" onclick="finUnit('K')">K</button>
+          </div>
+          <div class="seg"><button id="fin-chgbtn" onclick="finChg()">% Chg</button></div>
+        </div>
+        <div class="seg fin-tabs" id="fin-tabs">
+          <button data-m="inc" class="on" onclick="finTab('inc')">Income</button>
+          <button data-m="bs" onclick="finTab('bs')">Balance Sheet</button>
+          <button data-m="cf" onclick="finTab('cf')">Cash Flow</button>
+          <button data-m="ratios" onclick="finTab('ratios')">Ratios</button>
+          <button data-m="seg" onclick="finTab('seg')">Segments</button>
+          <button data-m="est" onclick="finTab('est')">Estimates</button>
+          <button data-m="peers" onclick="finTab('peers')">Peers</button>
+          <button data-m="div" onclick="finTab('div')">Dividends</button>
+          <button data-m="dcf" onclick="finTab('dcf')">DCF</button>
+        </div>
+        <div id="finbody"><div class="fin-note">Loading financials…</div></div>
+      </section>`;
+}
 function renderHome(d,app){
   const q=d.quote, m=d.meta||{};
+  FINSYM=d.ysym||"";     // a broker code's statements are read under its free-feed symbol
   const px=q.ltp;
   if(d.currency_symbol) CUR=d.currency_symbol;
   // position cards — labelled by account number; futures detected by shape
@@ -571,6 +603,7 @@ function renderHome(d,app){
       <section class="panel"><div class="panel-h"><h2>Corporate filings</h2><span class="s">last 90 days</span></div>
         <div class="panel-b" id="if-ann"><div class="desc">Loading…</div></div>
       </section>`:""}
+      ${finPanelHTML()}
     </div>
     <div>
       ${posCards}
@@ -587,6 +620,7 @@ function renderHome(d,app){
     </div>
   </div>`;
   if(filings) loadInfund(filings);
+  loadFin();
 }
 
 async function loadInfund(filings){
@@ -726,33 +760,7 @@ function renderUS(d,app){
           ${st("SBC/Rev",pc(m.stockBasedCompensationToRevenueTTM))}
         </div>
       </section>
-      <section class="panel" id="finpanel">
-        <div class="panel-h"><h2>Financials</h2><span class="s">as filed · fiscal years</span>
-          <span style="flex:1"></span>
-          <div class="seg" id="fin-period">
-            <button data-p="annual" class="on" onclick="finPeriod('annual')">Annual</button>
-            <button data-p="quarter" onclick="finPeriod('quarter')">Quarterly</button>
-          </div>
-          <div class="seg" id="fin-unit">
-            <button data-u="B" onclick="finUnit('B')">B</button>
-            <button data-u="M" class="on" onclick="finUnit('M')">M</button>
-            <button data-u="K" onclick="finUnit('K')">K</button>
-          </div>
-          <div class="seg"><button id="fin-chgbtn" onclick="finChg()">% Chg</button></div>
-        </div>
-        <div class="seg fin-tabs" id="fin-tabs">
-          <button data-m="inc" class="on" onclick="finTab('inc')">Income</button>
-          <button data-m="bs" onclick="finTab('bs')">Balance Sheet</button>
-          <button data-m="cf" onclick="finTab('cf')">Cash Flow</button>
-          <button data-m="ratios" onclick="finTab('ratios')">Ratios</button>
-          <button data-m="seg" onclick="finTab('seg')">Segments</button>
-          <button data-m="est" onclick="finTab('est')">Estimates</button>
-          <button data-m="peers" onclick="finTab('peers')">Peers</button>
-          <button data-m="div" onclick="finTab('div')">Dividends</button>
-          <button data-m="dcf" onclick="finTab('dcf')">DCF</button>
-        </div>
-        <div id="finbody"><div class="fin-note">Loading financials…</div></div>
-      </section>
+      ${finPanelHTML()}
       <section class="panel">
         <div class="panel-h"><h2>Earnings</h2><span class="s">EPS vs street</span></div>
         <table><thead><tr><th>Date</th><th>EPS act</th><th>EPS est</th><th>Result</th><th>Revenue</th></tr></thead>
@@ -801,10 +809,10 @@ function renderUS(d,app){
 }
 
 // ---------- Financials layer (lazy /api/fin bundle) ----------
-let FIN=null, FINPX=null, FINCO="", FS={mode:"inc",period:"annual",unit:"M",chg:false,sk:"mktCap",sd:-1};
+let FINSYM="", FIN=null, FINPX=null, FINCO="", FS={mode:"inc",period:"annual",unit:"M",chg:false,sk:"mktCap",sd:-1};
 async function loadFin(){
   if(!document.getElementById("finbody")) return;
-  try{ const r=await fetch("/api/fin?symbol="+SYM); FIN=await r.json(); }
+  try{ const r=await fetch("/api/fin?symbol="+encodeURIComponent(FINSYM||SYM)); FIN=await r.json(); }
   catch(e){ FIN={error:"fetch failed; reload to retry"}; }
   renderFin();
 }
@@ -1085,9 +1093,9 @@ function renderFin(){
   document.querySelectorAll("#fin-unit button").forEach(b=>b.classList.toggle("on",b.dataset.u===FS.unit));
   const cb=document.getElementById("fin-chgbtn"); if(cb) cb.classList.toggle("on",FS.chg);
   // the free record fills the three statements only: the other tabs go away, and the currency is the filer's
-  if(FIN.free){
-    document.querySelectorAll("#fin-tabs button").forEach(b=>{ if(!["inc","bs","cf"].includes(b.dataset.m)) b.style.display="none"; });
-    if(!["inc","bs","cf"].includes(FS.mode)) FS.mode="inc";
+  if(FIN.free && !["inc","bs","cf"].includes(FS.mode)){
+    const what={ratios:"Ratio history comes",seg:"Segments come",est:"Street estimates come",peers:"A peer set comes",div:"Dividend history comes",dcf:"The DCF workspace comes"}[FS.mode]||"This comes";
+    el.innerHTML=`<div class="fin-note">${what} with a data provider (FMP, for one); the free record carries the three statements. <a href="/settings" style="color:var(--accent)">Settings</a>, under Data.</div>`; return;
   }
   if(FIN.error){
     // no provider: the tabs that cannot fill go away, and the note says where a provider is set

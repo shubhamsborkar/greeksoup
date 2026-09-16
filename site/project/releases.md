@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.59. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.60. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.60
+
+*16 September 2026, release 60.* Financials on every ticker page, and starter watchlists. The home-market layout (a name opened from Watch · Home) now carries the same Financials block as the US layout, so HDFC Bank opened from the watchlist shows its statements from the free record. The tabs the free record cannot fill (ratios, segments, estimates, peers, dividends, DCF) stay in view and each says in one line that it comes with a data provider. Watch · Home starts with ten names from six exchanges (NSE, LSE, Amsterdam, XETRA, Tokyo), priced by the free feed, so a desk with no broker shows the free record working in any market; Watch · US gains JPM, COST, LLY and XOM. A list you have edited is yours and is not touched.
 
 ## 2026-09-16.59
 
