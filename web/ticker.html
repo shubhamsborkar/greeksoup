@@ -162,23 +162,29 @@ function rangeList(){
   const base=Object.keys(DAYRANGES);
   return (INTRA["1D"]?.length||INTRA["5D"]?.length) ? ["1D","5D",...base] : base;
 }
+/* One bar size per range, so every range draws candles: 1D five-minute bars,
+   5D fifteen-minute (the five-minute feed folded three into one), 1M to 1Y
+   daily, longer ranges weekly or monthly (drawChart folds those). */
 function sliced(){
-  if(range==="1D"||range==="5D") return INTRA[range]||[];
+  if(range==="1D") return INTRA["1D"]||[];
+  if(range==="5D") return resampleOHLC(INTRA["5D"]||[],"15");
   const n=DAYRANGES[range]; return n>=HIST.length?HIST:HIST.slice(HIST.length-n);
 }
-/* Aggregate daily bars to weekly/monthly so CANDLES stays candles on long
-   ranges (the Koyfin/TradingView behaviour) instead of falling back to a line. */
+/* Aggregate bars to a wider bucket so CANDLES stays candles on long ranges
+   (the Koyfin/TradingView behaviour) instead of falling back to a line. */
 function resampleOHLC(pts,bucket){
   const out=[]; let cur=null, key="";
   for(const p of pts){
     const k = bucket==="M" ? (p.date||"").slice(0,7)
       : bucket==="Q" ? (p.date||"").slice(0,4)+"Q"+Math.ceil(+(p.date||"").slice(5,7)/3)
+      : bucket==="15" ? (p.date||"").slice(0,13)+Math.floor(+(p.date||"").slice(14,16)/15)
       : String(Math.floor((Date.parse(p.date)/864e5+4)/7));   // ISO-ish week bucket
     if(k!==key){ if(cur)out.push(cur); key=k;
       cur={date:p.date,o:p.o??p.price,h:p.h??p.price,l:p.l??p.price,price:p.price,v:p.v||0};
     }else{
       cur.h=Math.max(cur.h,p.h??p.price); cur.l=Math.min(cur.l,p.l??p.price);
-      cur.price=p.price; cur.v+=(p.v||0); cur.date=p.date;    // stamp = period end
+      cur.price=p.price; cur.v+=(p.v||0);
+      if(bucket!=="15") cur.date=p.date;    // stamp = period end; intraday keeps the bar's open time
     }
   }
   if(cur)out.push(cur);
@@ -224,7 +230,7 @@ function drawChart(){
   let pts=sliced();
   if(pts.length<2){el.innerHTML='<div class="dim" style="padding:30px">No data for this range.</div>';return;}
   const intra=(range==="1D"||range==="5D");
-  let barNote="";
+  let barNote=intra?(range==="1D"?"5-min bars":"15-min bars"):"";
   // the free history is daily for ten years and quarterly before that; a chart
   // that spaces bars by index would give one quarter the width of one day, so
   // a range that reaches into the quarterly stretch is drawn as quarterly bars
@@ -275,11 +281,12 @@ function drawChart(){
   // marks: candles or line
   let marks="";
   const cw=plotW/S.length;
-  if(useCandles && cw>=2.2 && mode==="candles"){
-    // body fills ~72% of its slot (capped) so sparse ranges read as real
-    // candles, not skinny bars floating in space; wick scales with the body
-    const bw=Math.max(1.6,Math.min(30,cw*0.72));
-    const wickW=Math.max(1,Math.min(2.4,bw*0.12));
+  if(useCandles && cw>=1.8 && mode==="candles"){
+    // body follows the bar count: ~62% of its slot, never wider than 14px, so
+    // a 22-bar month reads as candles rather than slabs and a 130-bar week
+    // still reads as candles rather than a line; wick scales with the body
+    const bw=Math.max(1.2,Math.min(14,cw*0.62));
+    const wickW=Math.max(0.8,Math.min(2,bw*0.14));
     for(let i=0;i<pts.length;i++){
       const p=pts[i]; if(p.o==null)continue;
       const close=p.price;
@@ -329,7 +336,7 @@ function drawChart(){
   if(showVol){
     const vmax=Math.max(...pts.map(p=>p.v||0))||1;
     const vT=pB+8, vB2=h-B;
-    const vw=Math.max(1,Math.min(30,cw*0.72));
+    const vw=Math.max(1,Math.min(14,cw*0.62));
     for(let i=0;i<pts.length;i++){
       const p=pts[i]; if(!p.v)continue;
       const vhgt=Math.max(1,(p.v/vmax)*(vB2-vT));

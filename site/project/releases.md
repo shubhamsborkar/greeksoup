@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.51. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.52. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.52
+
+*16 September 2026, release 52.* Ticker page chart: every range draws candles. 1D is five-minute bars, 5D fifteen-minute, 1M to 1Y daily, longer ranges weekly or monthly, and the candle width follows the bar count, so a month no longer shows twenty-two slabs and a week no longer falls back to a line. The bar size is written next to the range.
 
 ## 2026-09-16.51
 
