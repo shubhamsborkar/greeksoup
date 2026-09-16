@@ -319,3 +319,72 @@ def search(q, limit=8):
             out.append({"code": x["symbol"], "name": x.get("shortname") or x.get("longname") or "",
                         "exch": x.get("exchDisp") or x.get("exchange") or ""})
     return out[:limit]
+
+
+# The three statements from Yahoo's fundamentals record, keyless and without the crumb, for
+# any listed company in any market: four annual and four quarterly periods, fewer line items
+# than a paid provider. Each Yahoo item is mapped to the field name the ticker page already
+# reads, so the same table draws either source. A line Yahoo does not carry (gross profit for
+# a bank) stays empty and the page skips it.
+STATEMENT_ITEMS = {
+    "inc": [("TotalRevenue", "revenue"), ("CostOfRevenue", "costOfRevenue"), ("GrossProfit", "grossProfit"),
+            ("NetInterestIncome", "netInterestIncome"), ("TotalExpenses", "totalExpenses"),
+            ("SellingGeneralAndAdministration", "sellingGeneralAndAdministrativeExpenses"),
+            ("ResearchAndDevelopment", "researchAndDevelopmentExpenses"), ("OperatingExpense", "operatingExpenses"),
+            ("OperatingIncome", "operatingIncome"), ("EBITDA", "ebitda"), ("ReconciledDepreciation", "depreciationAndAmortization"),
+            ("InterestIncome", "interestIncome"), ("InterestExpense", "interestExpense"), ("PretaxIncome", "incomeBeforeTax"),
+            ("TaxProvision", "incomeTaxExpense"), ("NetIncome", "netIncome"), ("BasicEPS", "eps"), ("DilutedEPS", "epsDiluted")],
+    "bs": [("CashCashEquivalentsAndShortTermInvestments", "cashAndShortTermInvestments"), ("CashAndCashEquivalents", "cashAndCashEquivalents"),
+           ("AccountsReceivable", "netReceivables"), ("Inventory", "inventory"), ("CurrentAssets", "totalCurrentAssets"),
+           ("NetPPE", "propertyPlantEquipmentNet"), ("GoodwillAndOtherIntangibleAssets", "goodwillAndIntangibleAssets"),
+           ("TotalAssets", "totalAssets"), ("CurrentDebt", "shortTermDebt"), ("LongTermDebt", "longTermDebt"), ("TotalDebt", "totalDebt"),
+           ("NetDebt", "netDebt"), ("CurrentLiabilities", "totalCurrentLiabilities"), ("TotalLiabilitiesNetMinorityInterest", "totalLiabilities"),
+           ("StockholdersEquity", "totalStockholdersEquity"), ("RetainedEarnings", "retainedEarnings")],
+    "cf": [("NetIncomeFromContinuingOperations", "netIncome"), ("DepreciationAndAmortization", "depreciationAndAmortization"),
+           ("StockBasedCompensation", "stockBasedCompensation"), ("ChangeInWorkingCapital", "changeInWorkingCapital"),
+           ("OperatingCashFlow", "operatingCashFlow"), ("CapitalExpenditure", "capitalExpenditure"), ("FreeCashFlow", "freeCashFlow"),
+           ("PurchaseOfBusiness", "acquisitionsNet"), ("InvestingCashFlow", "netCashProvidedByInvestingActivities"),
+           ("NetIssuancePaymentsOfDebt", "netDebtIssuance"), ("RepurchaseOfCapitalStock", "commonStockRepurchased"),
+           ("CashDividendsPaid", "netDividendsPaid"), ("FinancingCashFlow", "netCashProvidedByFinancingActivities"),
+           ("ChangesInCash", "netChangeInCash")],
+}
+
+
+def statements(symbol, years=6):
+    """-> {"inc_a", "inc_q", "bs_a", "bs_q", "cf_a", "cf_q", "currency"}; each list is oldest
+    first, rows shaped {date, fiscalYear, period, <fields>}. Empty lists when Yahoo has nothing."""
+    pairs = [(kind, y, f) for kind, items in STATEMENT_ITEMS.items() for y, f in items]
+    types = ",".join(p + y for p in ("annual", "quarterly") for _, y, _ in pairs)
+    now = int(time.time())
+    try:
+        r = requests.get(f"https://query2.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/{symbol}",
+                         params={"type": types, "period1": now - years * 365 * 86400, "period2": now},
+                         headers={"User-Agent": "Mozilla/5.0"}, timeout=20)
+        res = (r.json().get("timeseries") or {}).get("result") or []
+    except Exception:  # noqa: BLE001
+        return {}
+    by = {}     # (kind, period) -> {date -> row}
+    currency = ""
+    field_of = {(kind, y): f for kind, y, f in pairs}
+    for x in res:
+        t = (x.get("meta") or {}).get("type", [""])[0]
+        per = "a" if t.startswith("annual") else "q"
+        y = t[len("annual"):] if per == "a" else t[len("quarterly"):]
+        for kind in STATEMENT_ITEMS:
+            f = field_of.get((kind, y))
+            if not f:
+                continue
+            for v in x.get(t) or []:
+                d = v.get("asOfDate") or ""
+                val = _num((v.get("reportedValue") or {}).get("raw"))
+                if not d or val is None:
+                    continue
+                currency = currency or v.get("currencyCode") or ""
+                row = by.setdefault((kind, per), {}).setdefault(d, {"date": d, "fiscalYear": d[:4], "period": "Q" + str((int(d[5:7]) - 1) // 3 + 1)})
+                row[f] = val
+    out = {"currency": currency}
+    for kind in STATEMENT_ITEMS:
+        for per in ("a", "q"):
+            rows = sorted(by.get((kind, per), {}).values(), key=lambda r: r["date"])
+            out[f"{kind}_{per}"] = rows[-4:] if per == "q" else rows[-6:]
+    return out

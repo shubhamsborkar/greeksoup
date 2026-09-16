@@ -177,6 +177,9 @@ function gGroup(code){
 }
 const G_ORDER=["INDICES","STOCKS","FX","COMMODITIES","CRYPTO"];
 
+// the free feed names exchanges by its own codes; the reader sees the exchange's name
+const EXN={NSI:"NSE",BSE:"BSE",NYQ:"NYSE",NMS:"NASDAQ",NGM:"NASDAQ",NCM:"NASDAQ",PCX:"NYSE Arca",ASE:"NYSE American",BTS:"BATS",LSE:"LSE",FRA:"Frankfurt",GER:"XETRA",PAR:"Paris",AMS:"Amsterdam",MIL:"Milan",MCE:"Madrid",TOR:"TSX",VAN:"TSXV",ASX:"ASX",HKG:"HKEX",JPX:"Tokyo",TAI:"Taipei",KSC:"KRX",SAO:"B3",MEX:"BMV",JNB:"JSE",SAU:"Tadawul",DFM:"DFM",ADX:"ADX",SES:"SGX",KLS:"Bursa",SET:"SET",JKT:"IDX",STO:"Stockholm",CPH:"Copenhagen",OSL:"Oslo",HEL:"Helsinki",EBS:"SIX",VIE:"Vienna",WSE:"Warsaw",IST:"Borsa Istanbul",TLV:"TASE"};
+const exName=e=>EXN[(e||"").toUpperCase()]||e||"";
 function render(){
   if(!data) return;
   COLS = cols(); fillExchanges();
@@ -213,8 +216,8 @@ function render(){
       : r.code;
     const exLabel = REGION==="global"
       ? (gGroup(r.code)==="STOCKS" ? (r.currency||r.exch||"") : (r.name||r.currency||""))
-      : r.broker_only ? (r.exch||"")+" · broker code, no broker connected"
-      : (r.exch||"");
+      : r.broker_only ? exName(r.exch)+" · broker code, no broker connected"
+      : exName(r.exch);
     const sym=`<td class="sym" title="${r.name||""}">${codeHtml}<span class="ex">${exLabel}</span>
         ${atHigh?'<span class="hl">HI</span>':""}${atLow?'<span class="ll">LO</span>':""}</td>
       <td class="arrow ${cls(r.day_pct)}">${up==null?"·":(up?"▲":"▼")}</td>`;
@@ -327,7 +330,7 @@ function renderSugg(){
   suggEl.innerHTML=suggItems.map((r,i)=>
     `<div class="sg ${i===suggSel?"sel":""}" data-i="${i}">
       <span class="c mono">${r.code}</span><span class="n">${r.name||""}</span>
-      <span class="e">${r.exch||""}${REGION==="home"&&data&&!data.broker&&r.code.includes(".")?" · free feed":""}</span></div>`).join("");
+      <span class="e">${exName(r.exch)}${REGION==="home"&&data&&!data.broker&&r.code.includes(".")?" · free feed":""}</span></div>`).join("");
   suggEl.style.display="block";
   suggEl.querySelectorAll(".sg").forEach(el=>{
     el.onmousedown=e=>{e.preventDefault(); pickSugg(+el.dataset.i);};

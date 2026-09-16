@@ -824,18 +824,19 @@ function stmtRows(kind){
   const R=(f,l,t)=>({f,l,t});     // t: n=money p=percent e=per-share
   if(kind==="inc") return [
     R(r=>r.revenue,"Revenue","n"), R(r=>r.costOfRevenue,"Cost of Revenue","n"),
-    R(r=>r.grossProfit,"Gross Profit","n"), R(r=>r.revenue?r.grossProfit/r.revenue*100:null,"Gross Margin","p"),
+    R(r=>r.grossProfit,"Gross Profit","n"), R(r=>r.revenue&&r.grossProfit!=null?r.grossProfit/r.revenue*100:null,"Gross Margin","p"),
+    R(r=>r.netInterestIncome,"Net Interest Income","n"), R(r=>r.totalExpenses,"Total Expenses","n"),
     R(r=>r.sellingGeneralAndAdministrativeExpenses,"SG&A Expenses","n"),
     R(r=>r.researchAndDevelopmentExpenses,"R&D Expenses","n"),
     R(r=>r.operatingExpenses,"Operating Expenses","n"),
-    R(r=>r.operatingIncome,"Operating Income","n"), R(r=>r.revenue?r.operatingIncome/r.revenue*100:null,"Operating Margin","p"),
+    R(r=>r.operatingIncome,"Operating Income","n"), R(r=>r.revenue&&r.operatingIncome!=null?r.operatingIncome/r.revenue*100:null,"Operating Margin","p"),
     R(r=>r.ebitda,"EBITDA","n"), R(r=>r.depreciationAndAmortization,"D&A","n"),
     R(r=>r.interestIncome,"Interest Income","n"), R(r=>r.interestExpense,"Interest Expense","n"),
     R(r=>r.incomeBeforeTax,"Income Before Tax","n"), R(r=>r.incomeTaxExpense,"Income Tax Expense","n"),
-    R(r=>r.netIncome,"Net Income","n"), R(r=>r.revenue?r.netIncome/r.revenue*100:null,"Net Margin","p"),
+    R(r=>r.netIncome,"Net Income","n"), R(r=>r.revenue&&r.netIncome!=null?r.netIncome/r.revenue*100:null,"Net Margin","p"),
     R(r=>r.eps,"EPS (Basic)","e"), R(r=>r.epsDiluted,"EPS (Diluted)","e")];
   if(kind==="bs") return [
-    R(r=>r.cashAndShortTermInvestments,"Cash & ST Investments","n"),
+    R(r=>r.cashAndShortTermInvestments,"Cash & ST Investments","n"), R(r=>r.cashAndShortTermInvestments==null?r.cashAndCashEquivalents:null,"Cash & Equivalents","n"),
     R(r=>r.netReceivables,"Receivables","n"), R(r=>r.inventory,"Inventory","n"),
     R(r=>r.totalCurrentAssets,"Total Current Assets","n"),
     R(r=>r.propertyPlantEquipmentNet,"PP&E (net)","n"),
@@ -865,9 +866,10 @@ function stmtRows(kind){
 function finStmtHTML(kind){
   const key=(kind==="inc"?"inc":kind==="bs"?"bs":"cf")+(FS.period==="quarter"?"_q":"_a");
   const cols=(FIN[key]||[]).slice().reverse();
-  if(!cols.length) return `<div class="fin-note">No ${FS.period} data on this tier.</div>`;
+  if(!cols.length) return `<div class="fin-note">No ${FS.period} statements for this name on this record.</div>`;
   const rows=stmtRows(kind);
-  let h=`<div class="finwrap"><table class="fintab"><thead><tr><th class="grp">$ in ${FS.unit}</th>`+
+  const cur=FIN.free?(FIN.currency||""):"$";
+  let h=`<div class="finwrap"><table class="fintab"><thead><tr><th class="grp">${cur} in ${FS.unit}</th>`+
     cols.map(c=>`<th>${colLabel(c)}</th>`).join("")+`</tr></thead><tbody>`;
   for(const r of rows){
     const vals=cols.map(c=>{try{return r.f(c);}catch(e){return null;}});
@@ -883,7 +885,7 @@ function finStmtHTML(kind){
         const g=(pv!=null&&pv!==0&&v!=null)?(v-pv)/Math.abs(pv)*100:null;
         return `<td class="mono ${g==null?"dim":g>=0?"pos":"neg"}">${g==null?"—":(g>=0?"+":"−")+Math.abs(g).toFixed(1)+"%"}</td>`;}).join("")+"</tr>";
   }
-  h+=`</tbody></table></div><div class="fin-note">As filed with the SEC, via FMP. ${FS.chg?"% Chg is the change vs the previous column, under each line. ":""}Margins and EPS ignore the unit toggle.</div>`;
+  h+=`</tbody></table></div><div class="fin-note">${FIN.free?esc(FIN.note||"From the free record."):"As filed, from the data provider."} ${FS.chg?"% Chg is the change vs the previous column, under each line. ":""}Margins and EPS ignore the unit toggle.</div>`;
   return h;
 }
 function finRatiosHTML(){
@@ -1082,6 +1084,11 @@ function renderFin(){
   document.querySelectorAll("#fin-period button").forEach(b=>b.classList.toggle("on",b.dataset.p===FS.period));
   document.querySelectorAll("#fin-unit button").forEach(b=>b.classList.toggle("on",b.dataset.u===FS.unit));
   const cb=document.getElementById("fin-chgbtn"); if(cb) cb.classList.toggle("on",FS.chg);
+  // the free record fills the three statements only: the other tabs go away, and the currency is the filer's
+  if(FIN.free){
+    document.querySelectorAll("#fin-tabs button").forEach(b=>{ if(!["inc","bs","cf"].includes(b.dataset.m)) b.style.display="none"; });
+    if(!["inc","bs","cf"].includes(FS.mode)) FS.mode="inc";
+  }
   if(FIN.error){
     // no provider: the tabs that cannot fill go away, and the note says where a provider is set
     if(FIN.no_provider) document.querySelectorAll("#fin-tabs,#fin-period,#fin-unit,#fin-chgbtn").forEach(x=>x.style.display="none");

@@ -1066,10 +1066,20 @@ def build_fin(symbol):
             except Exception:  # noqa: BLE001
                 res[k] = None
     if not (res.get("inc_a") or []):
+        # no provider, or a name the provider does not carry: the three statements from the
+        # free record, four annual and four quarterly periods, for any listed company anywhere
+        free = freefeed.statements(symbol)
+        if free.get("inc_a") or free.get("bs_a"):
+            return {"symbol": symbol, "free": True, "currency": free.get("currency") or "",
+                    "inc_a": free["inc_a"], "inc_q": free["inc_q"], "bs_a": free["bs_a"], "bs_q": free["bs_q"],
+                    "cf_a": free["cf_a"], "cf_q": free["cf_q"],
+                    "note": ("The statements come from the free record: the last four years and four quarters, fewer lines than a data provider gives. "
+                             + ("Ratio history, segments, estimates and peers need a data provider; none is set." if not os.getenv("FMP_API_KEY", "").strip()
+                                else "The data provider does not carry this name; ratio history, segments, estimates and peers need one that does."))}
         if not os.getenv("FMP_API_KEY", "").strip():
             return {"symbol": symbol, "no_provider": True,
-                    "error": "The statements, ratio history, segments, estimates and peers need a data provider, and none is set. The quote, the chart, valuation and quality above come from the free record."}
-        return {"symbol": symbol, "error": f"The data provider carries no statements for {symbol}."}
+                    "error": "The free record carries no statements for this name, and the ratio history, segments, estimates and peers need a data provider, which is not set. The quote, the chart, valuation and quality above come from the free record."}
+        return {"symbol": symbol, "error": f"Neither the data provider nor the free record carries statements for {symbol}."}
 
     # peer comparison rows: the name itself first, then up to 8 FMP peers,
     # each priced from quote + TTM ratios (single-symbol calls)

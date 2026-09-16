@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.57. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.58. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.58
+
+*16 September 2026, release 58.* Financial statements from the free record, for any listed company in any market. With no data provider, or for a name the provider does not carry, the Financials block on the ticker page now fills the income statement, balance sheet and cash flow from the free record: the last four years and four quarters, in the filer's own currency, with the lines that filer reports (a bank shows net interest income and total expenses; a retailer shows gross profit). The tabs the free record cannot fill (ratio history, segments, estimates, peers) are gone rather than empty, and the note under the table says where the numbers came from. Watch · Home names exchanges by their names rather than the free feed's codes (NSE, not NSI).
 
 ## 2026-09-16.57
 
