@@ -567,7 +567,9 @@
     /* a release changed the shape of a file the reader owns: say which, and where the copy from before is */
     if (!mg) return "";
     const rows = [];
-    for (const m of mg.migrated || []) rows.push(`<b>${esc(m.label)}</b> (${esc(m.path.split("/").slice(-2).join("/"))}) was brought up to this version's shape; the copy from before is at <span class="mono">${esc(m.kept.replace(/^.*cache\//, "cache/"))}</span>`);
+    for (const m of mg.migrated || []) rows.push(m.note
+      ? `<b>${esc(m.label)}</b> was ${esc(m.note)}; the copy from before is at <span class="mono">${esc(m.kept.replace(/^.*cache\//, "cache/"))}</span>`
+      : `<b>${esc(m.label)}</b> (${esc(m.path.split("/").slice(-2).join("/"))}) was brought up to this version's shape; the copy from before is at <span class="mono">${esc(m.kept.replace(/^.*cache\//, "cache/"))}</span>`);
     for (const n of mg.newer || []) rows.push(`<b>${esc(n.label)}</b> (${esc(n.path.split("/").slice(-2).join("/"))}) was written by a newer desk and is left as it is; update this desk to read it fully`);
     for (const e of mg.errors || []) rows.push(`could not bring one file up: ${esc(e)}`);
     return rows.length ? `<div class="ukept">${rows.join("<br>")}</div>` : "";
@@ -580,7 +582,7 @@
     const dismissedAvail = store.getItem("desk_update_dismissed");
     const dismissedDone = store.getItem("desk_update_seen");
     const mg = st.migrations;
-    if (mg && mg.at && store.getItem("desk_migration_seen") !== String(mg.at) && !(res && res.ok && res.to && dismissedDone !== res.to)) {
+    if (mg && mg.at && store.getItem("desk_migration_seen") !== String(mg.at) && !(res && res.ok && res.to && (!c.local || c.local === res.to) && dismissedDone !== res.to)) {
       el.className = "done";
       el.innerHTML = `<div class="uin"><span class="utag">Your files</span><span class="utxt">This version changed the shape of a file you own. Nothing was lost.</span>` +
         `<button class="ubtn ghost" id="umok">OK</button></div>${migratedHtml(mg)}`;
@@ -588,7 +590,10 @@
       document.getElementById("umok").onclick = () => { store.setItem("desk_migration_seen", String(mg.at)); el.style.display = "none"; };
       return;
     }
-    if (res && res.ok && res.to && dismissedDone !== res.to) {
+    // the Updated strip belongs to the version now running: a browser that never
+    // saw an old update's strip is not shown it weeks later on a newer desk
+    const fresh = res && res.ok && res.to && (!c.local || c.local === res.to) && (!res.at || Date.now() / 1000 - res.at < 7 * 86400);
+    if (fresh && dismissedDone !== res.to) {
       el.className = "done";
       el.innerHTML = `<div class="uin"><span class="utag">Updated</span>` +
         `<span class="utxt">The desk was brought up to the <b>${esc(longDate(res.to))}</b> version` +

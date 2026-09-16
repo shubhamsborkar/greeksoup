@@ -150,7 +150,7 @@ The desk reads every `data/exposure_*.json` on the next rebuild. The figures in 
 
 Everything is a plain sentence to the agent. *Add Nvidia to my US watchlist. Follow Pershing Square on the Funds tab. Alert me when any holding moves 5 percent in a day. Add a tab that shows my dividend calendar.*
 
-Every list a screen runs on has a **Your list** button (Funds, Capitol, Macro, Commodities, the options tape): add, edit, remove with Undo, bring the starters back; your rows live in your research vault. The shipped lists also sit as plain text files in the `data/` folder if you prefer to edit them yourself: your US positions (`us_book.json`), the three watch grids, the names for the options tape, the funds you follow, the Congress members you track, the alert rules, and optional price levels per holding. Each file has a comment at the top saying what goes in it.
+Every list a screen runs on has a **Your list** button (Funds, Capitol, Macro, Commodities, the options tape): add, edit, remove with Undo, bring the starters back; your rows live in your research vault. The shipped lists also sit as plain text files in the `data/` folder if you prefer to edit them yourself: your hand-kept book (`book.json`), the three watch grids, the names for the options tape, the funds you follow, the Congress members you track, the alert rules, and optional price levels per holding. Each file has a comment at the top saying what goes in it.
 
 The desk can hold several accounts at the same broker, and a US book next to a home account; the agent adds an account when you ask.
 

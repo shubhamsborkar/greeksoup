@@ -49,8 +49,6 @@ KINDS = [
      "format": lambda: desk_lists.FORMAT, "migrations": lambda: desk_lists.MIGRATIONS, "owner": "lists.py"},
     {"kind": "book", "label": "Desk · Book", "paths": _data("book.json"),
      "format": lambda: 1, "migrations": lambda: {}, "owner": "server.py"},
-    {"kind": "us_book", "label": "the hand-kept US book", "paths": _data("us_book.json"),
-     "format": lambda: 1, "migrations": lambda: {}, "owner": "server.py"},
     {"kind": "watch", "label": "your watchlists", "paths": _data("watchlist.json", "watchlist_us.json", "watchlist_global.json"),
      "format": lambda: 1, "migrations": lambda: {}, "owner": "server.py"},
     {"kind": "alerts", "label": "your alert rules", "paths": _data("alerts.json"),
@@ -102,11 +100,64 @@ def _keep(path, version):
     return dst
 
 
+def fold_us_book(version, rep):
+    """Until 2026-09-16 the desk kept two books by hand: Desk · Book and a US file behind
+    the panel on Desk · Home. There is one now. A US file that still exists is read into
+    Desk · Book (a line already there wins, US cash joins the USD cash), a copy is kept
+    under cache/previous, and the file goes."""
+    src = os.path.join(DATA_DIR, "us_book.json")
+    dst = os.path.join(DATA_DIR, "book.json")
+    if not os.path.exists(src):
+        return
+    try:
+        usb, _ = _read(src)
+        book, indent = _read(dst)
+        book = book or {"cash": [], "positions": []}
+        have = {str(p.get("symbol") or "").upper() for p in book.get("positions", [])}
+        added = 0
+        for p in usb.get("positions", []) if usb else []:
+            sym = str(p.get("symbol") or "").upper().strip()
+            try:
+                shares = float(p.get("shares") or 0)
+            except (TypeError, ValueError):
+                continue
+            if not sym or shares == 0 or sym in have:
+                continue
+            book.setdefault("positions", []).append({"symbol": sym, "name": p.get("name") or "",
+                                                      "shares": shares, "avg_cost": float(p.get("avg_cost") or 0)})
+            have.add(sym)
+            added += 1
+        cash = float((usb or {}).get("cash_usd") or 0)
+        if cash:
+            usd = next((c for c in book.setdefault("cash", []) if str(c.get("currency", "")).upper() == "USD"), None)
+            if usd:
+                usd["amount"] = float(usd.get("amount") or 0) + cash
+            else:
+                book["cash"].append({"currency": "USD", "amount": cash})
+        kept = _keep(src, version or "unversioned")
+        if added or cash:
+            book.setdefault("format", 1)
+            tmp = dst + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as fh:
+                json.dump(book, fh, indent=indent or 2, ensure_ascii=False)
+                fh.write("\n")
+            os.replace(tmp, dst)
+        os.remove(src)
+        rep["migrated"].append({"kind": "us_book", "label": "the hand-kept US book", "path": dst,
+                                "from": 0, "to": 1, "kept": kept, "stamped": not (added or cash),
+                                "note": f"folded into Desk · Book: {added} line{'s' if added != 1 else ''}"
+                                        + (f" and ${cash:,.0f} cash" if cash else "")})
+    except Exception as exc:  # noqa: BLE001
+        rep["errors"].append(f"{src}: {exc}")
+
+
 def run(version="", kinds=None, write_report=True):
     """Bring every reader-owned file up to this desk's shape. Returns the report; nothing is
     touched when every file is already current."""
     rep = {"at": time.time(), "when": datetime.now().strftime("%Y-%m-%d %H:%M"), "version": version,
            "migrated": [], "newer": [], "errors": []}
+    if kinds is None:
+        fold_us_book(version, rep)
     for k in kinds or KINDS:
         try:
             cur, mig = k["format"](), k["migrations"]()

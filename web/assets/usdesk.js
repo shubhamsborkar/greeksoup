@@ -1,4 +1,4 @@
-/* The US panels of Desk · Home: the hand-kept US book, upcoming earnings, the US market pulse
+/* The US panels of Desk · Home: the US names on Desk · Book, upcoming earnings, the US market pulse
    and the insider tape. Once Desk · US, a screen of their own that showed only when the home
    market was the United States; since 2026-09-15.20 they sit under the broker book on Desk ·
    Home for every reader, because a reader in any market holds and watches US names. Mount
@@ -12,7 +12,7 @@
     <div id="us_alloc"></div>
     <table><thead><tr>
       <th>Name</th><th>Shares</th><th>Avg cost</th><th>Live</th><th>Day %</th>
-      <th>Value</th><th>P&amp;L</th><th>P&amp;L %</th><th>Weight</th><th>Decided by</th>
+      <th>Value</th><th>P&amp;L</th><th>P&amp;L %</th><th>Weight</th>
     </tr></thead><tbody id="us_rows"><tr><td class="dim" style="padding:26px">Loading…</td></tr></tbody></table>
   </section>
   <section class="panel">
@@ -61,38 +61,33 @@ function allocBar(d){
 
 async function pull(){
   const r = await fetch("/api/usbook"); const d = await r.json();
-  const prog = d.mandate ? (d.total/d.mandate*100) : null;
   document.getElementById("us_tiles").innerHTML =
-    tile("Book value", usd(d.total,0), "", "positions + cash") +
+    tile("Book value", usd(d.total,0), "", "positions + USD cash") +
     tile("Deployed", usd(d.deployed,0), "", (d.total?(d.deployed/d.total*100).toFixed(1):"—")+"% of book") +
-    tile("Cash", usd(d.cash,0), "", d.cash_note||"") +
-    tile("Open P&L", (d.total_pnl>=0?"+":"")+usd(d.total_pnl,0), cls(d.total_pnl), "on deployed capital") +
-    tile("Mandate", usd(d.mandate,0), "", prog!=null?prog.toFixed(1)+"% there · heading to $50k in 2026":"",
-      prog!=null?`<div class="bar"><i style="width:${Math.min(100,prog)}%"></i></div>`:"");
+    tile("Cash", usd(d.cash,0), "", "USD, as kept on Desk · Book") +
+    tile("Open P&L", (d.total_pnl>=0?"+":"")+usd(d.total_pnl,0), cls(d.total_pnl), "on deployed capital");
   let html="";
+  if(!d.positions.length) html=`<tr><td class="dim" colspan="9" style="padding:18px 14px">No US names on <a href="/book" style="color:var(--accent)">Desk · Book</a> yet. Add a line there and it is priced here.</td></tr>`;
   for(const p of d.positions){
     const wt = d.total ? (p.value/d.total*100) : null;
     html+=`<tr>
       <td class="name"><a href="/t?symbol=${p.symbol}">${p.symbol}</a><span class="co">${p.name||""}</span></td>
-      <td class="mono">${p.shares}</td>
+      <td class="mono">${Number.isInteger(p.shares)?p.shares:(+p.shares.toFixed(3)).toString()}</td>
       <td class="mono">${usd(p.avg_cost)}</td>
       <td class="mono" style="font-weight:700">${usd(p.ltp)}</td>
       <td class="mono ${cls(p.day_pct)}">${pct(p.day_pct)}</td>
       <td class="mono">${usd(p.value)}</td>
       <td class="mono ${cls(p.pnl)}">${p.pnl==null?"—":(p.pnl>=0?"+":"−")+usd(Math.abs(p.pnl)).slice(1)}</td>
       <td class="mono ${cls(p.pnl_pct)}">${pct(p.pnl_pct)}</td>
-      <td class="mono dim">${wt!=null?wt.toFixed(1)+"%":"—"}</td>
-      <td class="dim" style="font-size:11px">${p.decided_by||""}</td></tr>`;
+      <td class="mono dim">${wt!=null?wt.toFixed(1)+"%":"—"}</td></tr>`;
   }
   document.getElementById("us_rows").innerHTML=html;
   document.getElementById("us_alloc").innerHTML=allocBar(d);
-  document.getElementById("us_asof").textContent="positions as recorded "+d.as_of+" · prices live via FMP · click a ticker for full research";
+  document.getElementById("us_asof").textContent="the US names on Desk · Book, priced live · click a ticker for full research";
   document.getElementById("us_note").innerHTML =
-    `Positions come from <b>data/us_book.json</b> in the desk folder; prices are live. Edit the file
-     after any trade and this desk follows. <b>Connect a US broker:</b> if yours offers an API
-     (Interactive Brokers, Alpaca, Robinhood and most large brokers do), open the desk folder in your
-     AI agent and ask it to replace the file read with a live pull; its keys then go on
-     <a href="/settings" style="color:var(--accent)">Settings</a> like the others.`;
+    `These are the US names kept by hand on <a href="/book" style="color:var(--accent)">Desk · Book</a>, priced live;
+     change a line there and this panel follows. A US broker connected on
+     <a href="/settings" style="color:var(--accent)">Settings</a> shows its holdings in the account panel above.`;
 }
 async function pullEarnings(){
   try{
@@ -108,7 +103,7 @@ async function pullEarnings(){
         <span class="dd mono ${k}">${dd===0?"today":dd+"d"}</span>
         <div class="tick"><a href="/t?symbol=${e.symbol}">${e.symbol}</a>${e.tag==="held"?'<span class="held">HELD</span>':""}</div>
         <div class="when">${when}</div>
-        <div class="est mono">EPS est <b>${e.eps_est??"—"}</b><br>Rev est <b>${e.rev_est?("$"+(e.rev_est/1e9).toFixed(1)+"B"):"—"}</b></div>
+        <div class="est mono">EPS est <b>${e.eps_est==null?"—":Number(e.eps_est).toFixed(2)}</b><br>Rev est <b>${e.rev_est?("$"+(e.rev_est/1e9).toFixed(1)+"B"):"—"}</b></div>
       </div>`;
     }
     document.getElementById("us_erail").innerHTML=html||'<span class="dim" style="font-size:12px">Nothing scheduled in the next 120 days.</span>';
@@ -167,7 +162,7 @@ async function pullInsiders(){
 
 
   window.mountUSDesk = function (root) {
-    root.innerHTML = `<div class="us-head"><h2>The US desk</h2><span>the hand-kept US book, the earnings ahead, the market pulse and the insider tape, for every reader wherever the home market is</span></div>` + MARKUP;
+    root.innerHTML = `<div class="us-head"><h2>The US desk</h2><span>the US names on Desk · Book, the earnings ahead, the market pulse and the insider tape, for every reader wherever the home market is</span></div>` + MARKUP;
     pull(); pullEarnings(); pullPulse(); pullInsiders();
     setInterval(pull, 30000); setInterval(pullPulse, 900000); setInterval(pullInsiders, 3600000);
   };

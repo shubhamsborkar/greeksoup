@@ -8,7 +8,7 @@ lead: United States. A key ID and a secret from Alpaca's dashboard; a paper acco
 <b>Market</b><span>United States; the home screens take the US shape</span>
 <b>You paste</b><span>API key ID, API secret; the Paper switch on for a paper account</span>
 <b>Daily login</b><span>None; the keys stay valid until you revoke them</span>
-<b>The desk shows</b><span>Holdings and cash, with buying power; every line priced live by the desk</span>
+<b>The desk shows</b><span>Holdings and cash, with buying power; every line at Alpaca's own live mark, which follows extended hours, and the day change against the last close</span>
 </div>
 
 ## Where the keys come from

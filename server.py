@@ -389,18 +389,34 @@ TICKER_TTL = 600
 _ticker_cache = {}
 
 
+def us_book_positions():
+    """The US names on Desk · Book, the one hand-kept book: a symbol Yahoo lists
+    with no market suffix (AAPL, BRK-B), with shares, and not a shipped example.
+    The separate US file was folded into Desk · Book on 2026-09-16."""
+    out = []
+    for p in load_book().get("positions", []):
+        sym = str(p.get("symbol") or "").upper().strip()
+        try:
+            shares = float(p.get("shares") or 0)
+            avg = float(p.get("avg_cost") or 0)
+        except (TypeError, ValueError):
+            continue
+        if not sym or shares == 0 or "." in sym or p.get("example"):
+            continue
+        out.append({"symbol": sym, "name": p.get("name") or "", "shares": shares, "avg_cost": avg})
+    return out
+
+
 def held_sets():
-    """Every name the desk can see the reader holds or watches: Desk · Book, the US book, the
+    """Every name the desk can see the reader holds or watches: Desk · Book, the
     broker's last snapshot, and the three watch grids. Symbols and broker codes, upper case."""
     book, watch = set(), set()
-    for fname in ("book.json", "us_book.json"):
-        try:
-            with open(os.path.join(DATA_DIR, fname)) as fh:
-                for p in json.load(fh).get("positions", []):
-                    if p.get("symbol"):
-                        book.add(str(p["symbol"]).upper())
-        except (OSError, ValueError):
-            pass
+    try:
+        for p in load_book().get("positions", []):
+            if p.get("symbol") and p.get("shares"):
+                book.add(str(p["symbol"]).upper())
+    except (OSError, ValueError):
+        pass
     snap = load_last_snapshot() or {}
     for acc in ((snap.get("data") or {}).get("accounts") or {}).values():
         for row in acc.get("equity") or []:
@@ -632,14 +648,9 @@ def name_status(symbol):
 def _held_context(symbol):
     """Where this name sits across the books: US book position and/or watchlists."""
     ctx = {}
-    try:
-        with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
-            book = json.load(fh)
-        for p in book.get("positions", []):
-            if p["symbol"] == symbol:
-                ctx["us_book"] = p
-    except OSError:
-        pass
+    for p in us_book_positions():
+        if p["symbol"] == symbol:
+            ctx["us_book"] = p
     return ctx
 
 
@@ -1129,11 +1140,10 @@ def global_watch_loop():
 
 
 def build_usbook():
-    """The US book: positions from data/us_book.json, priced live via FMP."""
-    with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
-        book = json.load(fh)
+    """The US side of Desk · Book, priced live: the panel on Desk · Home."""
+    book = load_book()
     rows = []
-    for p in book.get("positions", []):
+    for p in us_book_positions():
         q = None
         with _watch_lock:
             q = WATCH_US.get(p["symbol"])
@@ -1149,11 +1159,11 @@ def build_usbook():
             "pnl_pct": ((value - cost) / cost * 100) if (value is not None and cost) else None,
         })
     deployed = sum(r["value"] for r in rows if r["value"] is not None)
-    cash = book.get("cash_usd") or 0
+    cash = sum(float(c.get("amount") or 0) for c in book.get("cash", [])
+               if str(c.get("currency", "")).upper() == "USD")
     total = deployed + cash
     return {
-        "as_of": book.get("as_of"), "cash": cash, "cash_note": book.get("cash_note"),
-        "mandate": book.get("mandate_target_usd"), "positions": rows,
+        "cash": cash, "positions": rows,
         "deployed": deployed, "total": total,
         "total_pnl": sum(r["pnl"] for r in rows if r["pnl"] is not None),
         "market_open": us_market_open(),
@@ -1289,20 +1299,46 @@ def _market_info():
              "benchmark_label")}
 
 
+_PREV_CLOSE = {}          # ysym -> (at, prev close); a previous close changes once a day
+
+
+def _prev_close_for(ysym, ttl=900):
+    """The last session's close for a Yahoo symbol, kept fifteen minutes, so a
+    thirty-second snapshot does not ask Yahoo for every line every time."""
+    hit = _PREV_CLOSE.get(ysym)
+    now = time.time()
+    if hit and now - hit[0] < ttl:
+        return hit[1]
+    q = fetch_yahoo_quote(ysym)
+    prev = (q or {}).get("prev")
+    if prev:
+        _PREV_CLOSE[ysym] = (now, prev)
+        return prev
+    return hit[1] if hit else None
+
+
 def _fill_marks(rows):
-    """Brokers that hand out no price get every line marked from Yahoo."""
+    """Brokers that hand out no price get every line marked from Yahoo, and every
+    line's day change is the desk's own, against the last session's close: a
+    broker's own field can read zero after the close (Alpaca's change_today) or
+    measure from a different base, and then Desk · Home disagreed with Watch on
+    the same name."""
     for e in rows:
-        if e.get("ltp") is not None or not e.get("ysym"):
-            continue
-        q = fetch_yahoo_quote(e["ysym"])
-        if not q or not q.get("ltp"):
-            if e.get("close_mark") is not None:
-                e["ltp"] = e["close_mark"]
+        if e.get("ltp") is None and e.get("ysym"):
+            q = fetch_yahoo_quote(e["ysym"])
+            if not q or not q.get("ltp"):
+                if e.get("close_mark") is not None:
+                    e["ltp"] = e["close_mark"]
             else:
-                continue
-        else:
-            e["ltp"], e["day_pct"] = q["ltp"], q.get("day_pct")
-        brokers.derive(e)
+                e["ltp"], e["day_pct"] = q["ltp"], q.get("day_pct")
+                if q.get("prev"):
+                    _PREV_CLOSE[e["ysym"]] = (time.time(), q["prev"])
+        if e.get("ltp") is not None and e.get("ysym"):
+            prev = _prev_close_for(e["ysym"])
+            if prev:
+                e["day_pct"] = (e["ltp"] - prev) / prev * 100
+        if e.get("ltp") is not None:
+            brokers.derive(e)
     return rows
 
 
@@ -1508,13 +1544,7 @@ def build_tape():
 def build_earnings():
     """Upcoming earnings for every US name we track (book + watchlist), one
     feed call per name. The home market's results come from its market file."""
-    ours = set()
-    try:
-        with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
-            for p in json.load(fh).get("positions", []):
-                ours.add((p["symbol"], "held"))
-    except OSError:
-        pass
+    ours = {(p["symbol"], "held") for p in us_book_positions()}
     for n in load_watchlist_us():
         ours.add((n["code"], "watch"))
     tag = {}
@@ -2506,13 +2536,7 @@ INSIDERS_TTL = 6 * 3600
 def build_insiders():
     """Cluster buys across the whole US tape + every open-market buy on our
     names. ~30 FMP pages per refresh; None (uncached) when the feed fails."""
-    ours = set()
-    try:
-        with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
-            for p in json.load(fh).get("positions", []):
-                ours.add(p["symbol"])
-    except OSError:
-        pass
+    ours = {p["symbol"] for p in us_book_positions()}
     for n in load_watchlist_us():
         ours.add(n["code"])
     if not os.getenv("FMP_API_KEY", "").strip():
@@ -2677,11 +2701,10 @@ def build_risk():
                        if limit_total else None),
         })
     try:
-        with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
-            usb = json.load(fh)
+        usb = load_book()
         frm = (datetime.now() - timedelta(days=500)).strftime("%Y-%m-%d")
         positions = []
-        for pn in usb.get("positions", []):
+        for pn in us_book_positions():
             sym = pn["symbol"]
             with _watch_lock:
                 q = WATCH_US.get(sym)
@@ -2699,15 +2722,15 @@ def build_risk():
                               "sector": sector_of("US:" + sym,
                                                   lambda s=sym: _fetch_sector_us(s)),
                               "series": series})
-        cash = usb.get("cash_usd") or 0
+        cash = sum(float(c.get("amount") or 0) for c in usb.get("cash", [])
+                   if str(c.get("currency", "")).upper() == "USD")
         if positions:
-            books.append({"key": "us_book", "label": "US book", "currency": "$",
+            books.append({"key": "us_book", "label": "Desk · Book, US names", "currency": "$",
                           "bench": "^GSPC", "bench_label": "S&P 500", "region": "us",
                           "nav": cash + sum(p["exposure"] for p in positions),
                           "cash": cash, "positions": positions, "margin": None,
-                          "note": f"positions as recorded on Desk · Home{(' as of ' + usb['as_of']) if usb.get('as_of') else ''}; "
-                                  "cash account, no margin"})
-    except OSError:
+                          "note": "the US names kept by hand on Desk · Book; cash account, no margin"})
+    except (OSError, ValueError):
         pass
     data = risk.build(books, benches)
     data["session_dead"] = broker_health["dead"]
@@ -2727,12 +2750,8 @@ def build_activist():
     our = {}
     for n in load_watchlist_us():
         our[n["code"]] = "watch"
-    try:
-        with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
-            for p in json.load(fh).get("positions", []):
-                our[p["symbol"]] = "held"
-    except OSError:
-        pass
+    for p in us_book_positions():
+        our[p["symbol"]] = "held"
     return activist.build(our, desk_lists.effective("funds"))
 
 
@@ -2744,12 +2763,7 @@ def build_flow():
     """Options positioning across the US book + watchlist. The daily snapshot
     lands on disk inside options_us.build, so day-over-day OI builds appear
     from the second day a name is covered."""
-    held = set()
-    try:
-        with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
-            held = {p["symbol"] for p in json.load(fh).get("positions", [])}
-    except OSError:
-        pass
+    held = {p["symbol"] for p in us_book_positions()}
     syms = sorted(held | {n["code"] for n in load_watchlist_us()})
     return options_us.build(syms, held)
 
@@ -2772,12 +2786,7 @@ def _float_shares(sym):
 
 
 def build_short():
-    held = set()
-    try:
-        with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
-            held = {p["symbol"] for p in json.load(fh).get("positions", [])}
-    except OSError:
-        pass
+    held = {p["symbol"] for p in us_book_positions()}
     syms = sorted(held | {n["code"] for n in load_watchlist_us()})
     return shortint.build(syms, held, float_lookup=_float_shares)
 
@@ -2848,11 +2857,7 @@ def build_capitol():
     """Congress trading: the disclosure firehose plus every filing that touches
     a name on the book or watchlist. Read-only public PTR data via FMP."""
     ours = set()
-    try:
-        with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
-            held = {p["symbol"] for p in json.load(fh).get("positions", [])}
-    except OSError:
-        held = set()
+    held = {p["symbol"] for p in us_book_positions()}
     ours |= held
     ours |= {n["code"] for n in load_watchlist_us()}
 
@@ -3342,9 +3347,6 @@ def build_guide():
     has_book = False
     try:
         has_book = bool(brokers.active_id()) or any(p.get("shares") for p in load_book().get("positions", []))
-        if not has_book:
-            with open(os.path.join(DATA_DIR, "us_book.json")) as fh:
-                has_book = any(p.get("shares") for p in json.load(fh).get("positions", []))
     except Exception:  # noqa: BLE001
         pass
     rd = ask_ready()

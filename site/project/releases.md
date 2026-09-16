@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.43. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.44. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.44
+
+*16 September 2026, release 44.* Desk · Home, read screen by screen. One hand-kept book: the separate US file behind the US panel is folded into Desk · Book on the first start (a line already on Desk · Book wins, the US cash joins the USD cash, a copy is kept under cache/previous), and the panel, the earnings tags, the insider, options, short-interest, activist and Congress screens and Risk all read the US names on Desk · Book from now on; the author's own mandate line and the decided-by column are gone from the panel. Every holding's day change is the desk's own, against the last session's close: a broker's own field can read zero after the close, so Desk · Home and Watch disagreed on the same name. The running tape names the account only when there are two or more. The Updated strip shows only for the version now running, so a browser that never saw an old update's strip is not shown it weeks later. Earnings estimates carry two decimals, and fractional shares three.
 
 ## 2026-09-16.43
 

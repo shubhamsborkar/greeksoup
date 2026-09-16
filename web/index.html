@@ -181,7 +181,7 @@ footer b{color:var(--ink2)}
   <p><b>Marks:</b> the broker's own live marks where it hands them out, the prices it values the account at; a broker that gives none is marked from Yahoo's free feed.</p>
   <p><b>Margin:</b> where the broker reports a trading limit, the margin-used bar shows what is blocked against it;
   brokers report this differently, so cross-check the exact figures on your broker's own page.</p>
-  <p><b>Orders:</b> this copy reads the account and places no orders. Order routing against your broker's API is your own build.</p>
+  <p><b>Orders:</b> the desk reads the account and places no orders.</p>
 </footer>
 
 <div id="alertbar"></div>
@@ -411,10 +411,11 @@ function tapePanel(tape){
 /* ---------- ticker ---------- */
 function buildTicker(accounts){
   let items="";
+  const many=Object.keys(accounts).length>1;   // the account tag only earns its place with two or more
   for(const [acct,a] of Object.entries(accounts))
     for(const e of a.equity){
       if(e.day_pct==null) continue;
-      items+=`<span class="tk"><span class="sym">${e.code}</span><span class="acct">${(a.label||acct).slice(-4)}</span>
+      items+=`<span class="tk"><span class="sym">${e.code}</span>${many?`<span class="acct">${(a.label||acct).slice(-4)}</span>`:""}
         <span class="${cls(e.day_pct)}">${pct(e.day_pct)}</span></span>`;
     }
   document.getElementById("ticker").innerHTML = items+items; // doubled for seamless loop

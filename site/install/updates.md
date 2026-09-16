@@ -21,7 +21,7 @@ Click the button and the desk brings the new version in, then restarts by itself
 
 ## When a version changes the shape of a file you own
 
-Every file you own carries a format number: your chains, your lists, Desk · Book, the hand-kept US book, your watchlists, your alert rules. A version that changes one of their shapes ships the step that brings the old shape up. At the next start the desk keeps a copy of each such file under `cache/previous`, brings the file up, and says so on the banner: which file, and where the copy is. Nothing is lost; the copy is yours to open. A file written by a newer desk than this one, which happens when two computers share a vault and one is behind, is left as it is and named on the banner, so you know to update this one.
+Every file you own carries a format number: your chains, your lists, Desk · Book, your watchlists, your alert rules. A version that changes one of their shapes ships the step that brings the old shape up. At the next start the desk keeps a copy of each such file under `cache/previous`, brings the file up, and says so on the banner: which file, and where the copy is. Nothing is lost; the copy is yours to open. A file written by a newer desk than this one, which happens when two computers share a vault and one is behind, is left as it is and named on the banner, so you know to update this one.
 
 ## Without the click
 

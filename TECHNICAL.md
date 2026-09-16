@@ -73,7 +73,6 @@ All of them sit in the `data/` folder, plain JSON you can open in any text edito
 
 | File | What it is |
 |---|---|
-| `data/us_book.json` | Your US positions and cash. The desk prices them. |
 | `data/book.json` | The hand-kept book for anyone with no broker: Yahoo symbols from any market, shares, average cost, cash per currency. The Desk · Book page edits it (add, remove, paste-import). |
 | `data/watchlist.json`, `data/watchlist_us.json`, `data/watchlist_global.json` | The three watch grids (also editable in the page). Home codes are your broker's stock codes when the broker serves quotes, else exchange symbols in the home market, else Yahoo symbols. |
 | `data/fno_watchlist.json` | Names for the home options tape (indices and large caps), read by a broker file whose `tape` function serves chains. |

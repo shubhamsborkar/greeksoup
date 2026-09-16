@@ -916,3 +916,32 @@ def test_history_charts_place_points_by_date():
     assert "window.deskTimeScale" in desk and "window.deskTimeTicks" in desk
     ticker = open(os.path.join(HERE, "web", "ticker.html")).read()
     assert 'resampleOHLC(pts,"Q")' in ticker, "a range into the quarterly years is drawn as quarterly bars"
+
+
+def test_the_us_book_folds_into_desk_book(tmp_path, monkeypatch):
+    """One hand-kept book. A US file left from before 2026-09-16 is read into Desk · Book
+    once (a line already there wins, the US cash joins the USD cash), a copy is kept, and
+    the file goes; a second start finds nothing to do."""
+    import migrate as desk_migrate
+    data = tmp_path / "data"; data.mkdir()
+    monkeypatch.setattr(desk_migrate, "DATA_DIR", str(data))
+    monkeypatch.setattr(desk_migrate, "PREVIOUS", str(tmp_path / "cache" / "previous"))
+    (data / "us_book.json").write_text(json.dumps({"cash_usd": 1200, "positions": [
+        {"symbol": "AAPL", "name": "Apple", "shares": 0, "avg_cost": 0},
+        {"symbol": "MSFT", "name": "Microsoft", "shares": 10, "avg_cost": 300},
+        {"symbol": "UBER", "name": "", "shares": 5, "avg_cost": 60}]}))
+    (data / "book.json").write_text(json.dumps({"cash": [{"currency": "USD", "amount": 100}],
+        "positions": [{"symbol": "UBER", "shares": 42, "avg_cost": 72.04}], "format": 1}))
+    rep = {"migrated": [], "errors": []}
+    desk_migrate.fold_us_book("test", rep)
+    assert not rep["errors"] and not (data / "us_book.json").exists()
+    book = json.loads((data / "book.json").read_text())
+    by = {p["symbol"]: p for p in book["positions"]}
+    assert set(by) == {"UBER", "MSFT"}, "the zero-share example line does not come across"
+    assert by["UBER"]["shares"] == 42, "the Desk · Book line wins"
+    assert by["MSFT"]["shares"] == 10 and by["MSFT"]["avg_cost"] == 300
+    assert book["cash"] == [{"currency": "USD", "amount": 1300}]
+    assert rep["migrated"][0]["kind"] == "us_book" and os.path.exists(rep["migrated"][0]["kept"])
+    rep2 = {"migrated": [], "errors": []}
+    desk_migrate.fold_us_book("test", rep2)
+    assert rep2 == {"migrated": [], "errors": []}
