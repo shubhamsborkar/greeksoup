@@ -111,7 +111,7 @@
       (gone.length ? `<div class="rhiddenbox"><div class="rgt rgt-hidden">Hidden</div>` + gone.map(([href, label, , icon, key]) =>
         `<button class="rlink rgone" data-key="${key}" title="Show ${label} in the sidebar again">${svg(icon)}<span>${label}</span><em>show</em></button>`).join("") + '</div>' : "") +
       '<div class="rfoot">' +
-      '<button id="askbtn" title="Ask AI about this screen (⌘I)"><span class="rk">✦</span><span>Ask AI</span></button>' +
+      '<button id="askbtn" title="Ask SuperAnalyst, the desk\'s AI, about this screen (⌘I)"><span class="rk">✦</span><span>Ask SuperAnalyst</span></button>' +
       '<button id="cmdkbtn" title="Jump anywhere (⌘K)"><span class="rk">⌘</span><span>Command · K</span></button>' +
       '<button id="fbbtn" title="Tell us what is wrong, missing or unsupported on this screen"><span class="rk">✎</span><span>Feedback</span></button>' +
       '<button id="themebtn" title="Cycle theme"><span class="rk">◐</span><span>Theme · <b id="themename"></b></span></button>' +
@@ -277,7 +277,7 @@
         });
         b.replaceWith(sub);
       }));
-      pop.appendChild(item("Ask AI about it", () => {
+      pop.appendChild(item("Ask SuperAnalyst about it", () => {
         hide(); openAsk(true);
         setTimeout(() => { const i = document.getElementById("askin"); if (i) { i.value = `What does this screen show for ${n.symbol}, and what would you look at next?`; i.focus(); } }, 250);
       }));
@@ -727,15 +727,15 @@
     if (document.getElementById("askdock")) return;
     const el = document.createElement("aside");
     el.id = "askdock";
-    el.setAttribute("aria-label", "Ask AI");
+    el.setAttribute("aria-label", "Ask SuperAnalyst");
     el.innerHTML =
-      '<div class="ah"><div><b>Ask AI</b><small id="asksub">an AI, reading this screen</small></div>' +
-      '<select id="askvia" title="who answers: the AI on Settings, or a door a plugin opened" hidden></select>' +
+      '<div class="ah"><div><b>SuperAnalyst</b><small id="asksub">an AI, reading this screen</small></div>' +
+      '<select id="askvia" title="Who answers: an app you already pay for on this computer, or the key on Settings"></select>' +
       '<button class="ax" id="askwide" title="Full width, and back">' + svg(EXPAND_ICON) + '</button>' +
       '<button class="ax" id="askclose" title="Close (Esc)">' + svg(HIDE_ICON) + '</button></div>' +
       '<div class="am" id="askmsgs"></div>' +
       '<div class="af"><textarea id="askin" placeholder="Ask about what is on this screen. Enter sends, Shift+Enter for a new line."></textarea>' +
-      '<div class="ab"><button id="asksend">Ask</button><small id="askfoot">Your AI, reading this screen. Verify against the source the screen names.</small></div></div>';
+      '<div class="ab"><button id="asksend">Ask</button><small id="askfoot">SuperAnalyst is an AI reading this screen through the app or key you pick above. Verify against the source the screen names.</small></div></div>';
     document.body.appendChild(el);
     document.getElementById("askclose").onclick = () => openAsk(false);
     // the box starts narrow beside the screen; one click makes it the screen, one more brings it back
@@ -775,22 +775,23 @@
     try {
       const st = await (await fetch("/api/ask", { cache: "no-store" })).json();
       askDoors = st.doors || [];
+      // who answers, always in view: the key on Settings first, then every app the desk can
+      // hand a question to, the ones not on this computer greyed so the reader sees what
+      // else could answer and what a sign-in would add
       const via = document.getElementById("askvia");
-      if (askDoors.length) {
-        via.hidden = false;
-        via.innerHTML = `<option value="">${esc(st.ready ? (st.label || st.provider) + " (Settings)" : "Your AI (not set)")}</option>` +
-          askDoors.map(d => `<option value="${esc(d.name)}"${d.ready ? "" : " disabled"}>${esc(d.label)}${d.pays ? " · " + esc(d.pays) : d.ready ? "" : " (not found)"}</option>`).join("");
-        const want = askDoor() || st.default_door || "";     // the reader's last pick, else the app chosen on Settings
-        if (askDoors.some(d => d.name === want && d.ready)) via.value = want;
-        via.onchange = () => { try { store.setItem("gs.door", via.value); } catch (e) { /* fine */ } };
-      } else via.hidden = true;
+      via.innerHTML = `<option value="">${esc(st.ready ? (st.label || st.provider) + " · key on Settings" : "A key on Settings (none yet)")}</option>` +
+        askDoors.map(d => `<option value="${esc(d.name)}"${d.ready ? "" : " disabled"}>${esc(d.label)}${d.ready ? (d.pays ? " · " + esc(d.pays) : "") : " · not on this computer"}</option>`).join("");
+      const want = askDoor() || st.default_door || "";     // the reader's last pick, else the app chosen on Settings
+      if (askDoors.some(d => d.name === want && d.ready)) via.value = want;
+      else if (!st.ready) { const first = askDoors.find(d => d.ready); if (first) via.value = first.name; }
+      via.onchange = () => { try { store.setItem("gs.door", via.value); } catch (e) { /* fine */ } };
       if (!m.childElementCount) {
         if (st.ready || askDoors.some(d => d.ready)) {
           const dd = askDoors.find(d => d.name === via.value);
           const who = dd ? `<b>${esc(dd.label)}</b> on this computer${dd.pays ? ", on " + esc(dd.pays) : ""}` : st.ready ? `<b>${esc(st.label || st.provider)}</b>, model <span class="mono">${esc(st.model)}</span>` : "the app you pick above";
-          askNote(`<p>Ask anything about what is on this screen. The question goes with the screen's own numbers to ${who}, and nowhere else.${askDoors.length ? " The picker above chooses who answers." : ""} An answer worth keeping has a Save as note button under it; nothing is kept unless you press it.</p>`, "hint");
+          askNote(`<p>SuperAnalyst is an AI. Ask anything about what is on this screen: the question goes with the screen's own numbers to ${who}, and nowhere else. The picker above chooses who answers. An answer worth keeping has a Save as note button under it; nothing is kept unless you press it.</p>`, "hint");
         } else {
-          askNote(`<p>No AI is set yet. ${esc(st.why || "")} Pick a provider and paste a key on <a href="/settings">Settings</a>, under Your AI. A model running on this computer needs no key.</p>`, "hint");
+          askNote(`<p>SuperAnalyst is an AI, and nothing answers for it yet. ${esc(st.why || "")} Three ways: sign in to an app you already pay for (the greyed names in the picker above; <a href="/settings">Settings</a>, under Your AI, opens the sign-in), paste a key from any lab there, or run a model on this computer, which needs no key.</p>`, "hint");
         }
       }
     } catch (e) { /* the send will say */ }

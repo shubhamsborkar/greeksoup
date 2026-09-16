@@ -540,12 +540,16 @@ def test_plugins_load_install_remove(tmp_path, monkeypatch):
     desk_notes.RESEARCH_DIR = str(tmp_path / "research")
     try:
         here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # an empty vault still has the Terminal door, built in, so the Ask box's picker
+        # names every app on every desk; a copy brought into the vault takes its place
+        built = desk_plugins.installed(force=True)
+        assert [p["name"] for p in built] == ["terminal"] and built[0].get("builtin") and len(desk_plugins.doors()) >= 7
         t = desk_plugins.install_folder(os.path.join(here, "plugins", "terminal"))
         assert t["adds"] == ["a door"] and t["door"]["commands"][0]["label"] == "Claude Code"   # the door has no screen; Settings carries it
         assert t["door"]["commands"][0]["prompt"] == "stdin" and next(c for c in t["door"]["commands"] if c["label"] == "Kimi Code")["prompt"] == "arg"
         h = desk_plugins.install_folder(os.path.join(here, "plugins", "hello"))
         assert h["adds"] == ["a screen", "blocks"] and h["blocks"] == ["/plugins/hello/blocks.js"]
-        assert [p["name"] for p in desk_plugins.installed(force=True)] == ["hello", "terminal"]
+        assert [p["name"] for p in desk_plugins.installed(force=True)] == ["hello", "terminal"] and not any(p.get("builtin") for p in desk_plugins.installed())
         assert [s["key"] for s in desk_plugins.screens()] == ["plugin:hello"]
         ds = desk_plugins.doors()                                              # one door per app the plugin names
         assert [d["name"] for d in ds] == [f"terminal:{i}" for i in range(7)] and ds[0]["label"] == "Claude Code" and ds[0]["pays"]
@@ -591,7 +595,7 @@ def test_plugins_load_install_remove(tmp_path, monkeypatch):
         except ValueError:
             pass
         assert desk_plugins.remove("mine") and desk_plugins.remove("mine") is False
-        assert [p["name"] for p in desk_plugins.installed(force=True)] == ["hello", "terminal"]
+        assert [p["name"] for p in desk_plugins.installed(force=True)] == ["hello", "terminal"] and not any(p.get("builtin") for p in desk_plugins.installed())
         assert desk_plugins.run_door("nothing", "x")["ok"] is False
         with open(os.path.join(here, "docs", "plugins", "index.json"), encoding="utf-8") as fh:
             lst = json.load(fh)

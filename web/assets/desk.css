@@ -243,13 +243,13 @@ html[data-rail="min"] #alertbar{left:var(--railc)}
 #askdock.wide .ah,#askdock.wide .am,#askdock.wide .af{width:100%;max-width:920px;margin:0 auto;box-sizing:border-box}
 #askdock.wide .ah,#askdock.wide .af{border-color:transparent}
 #askdock.wide .am{font-size:14px}
-#askdock .ah{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+#askdock .ah{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+#askdock .ah>div:first-child{flex:1 1 auto;min-width:0}
 #askdock .ah b{font-size:13px;color:var(--ink)}
 #askdock .ah small{display:block;font-size:11px;color:var(--ink2);margin-top:2px}
-#askdock #askvia{margin-left:auto;max-width:180px;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:4px 6px;font:inherit;font-size:11.5px}
-#askdock #askvia[hidden]{display:none}
-#askdock #askvia:not([hidden])~.ax{margin-left:6px}
-#askdock .ax{margin-left:auto;width:30px;height:30px;border-radius:7px;background:var(--panel2);
+#askdock #askvia{order:9;flex:1 1 100%;margin:10px 0 0;max-width:none;min-width:0;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:7px 9px;font:inherit;font-size:12px;cursor:pointer}
+#askdock #askvia:hover{border-color:var(--ink2)}
+#askdock .ax{width:30px;height:30px;border-radius:7px;background:var(--panel2);
   border:1px solid var(--line2);color:var(--ink2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0}
 #askdock .ax+.ax{margin-left:6px}
 #askdock .ax svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}

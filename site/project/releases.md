@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.49. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.50. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.50
+
+*16 September 2026, release 50.* SuperAnalyst. The desk's AI has its name back: the sidebar says Ask SuperAnalyst, the box says SuperAnalyst, an AI, reading whichever screen you are on, and its first line says so again in words. The picker that chooses who answers is in view on every desk now, on its own line under the name: the key on Settings, then every app the desk can hand a question to (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code, Cursor), the ones not on this computer greyed with the reason, so a reader sees what else could answer and what a sign-in would add. The Terminal door ships with the desk: a fresh install has every app in the picker without bringing a plugin in, and a copy of the door brought into the vault still takes the shipped one's place.
 
 ## 2026-09-16.49
 

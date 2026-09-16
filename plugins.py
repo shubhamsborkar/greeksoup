@@ -74,8 +74,8 @@ def _safe_name(name):
     return re.sub(r"[^a-z0-9-]", "", (name or "").lower())[:40]
 
 
-def _read(name):
-    folder = os.path.join(plugins_dir(), name)
+def _read(name, folder=None):
+    folder = folder or os.path.join(plugins_dir(), name)
     try:
         with open(os.path.join(folder, "plugin.json"), encoding="utf-8") as fh:
             meta = json.load(fh)
@@ -121,6 +121,11 @@ def installed(force=False):
                 for name in sorted(os.listdir(d)):
                     if _safe_name(name) == name and os.path.isdir(os.path.join(d, name)):
                         rows.append(_read(name))
+            # the Terminal door ships with the desk: every reader can hand a question to
+            # an app they already pay for without installing anything; a copy the reader
+            # brought into the vault (to edit) takes the shipped one's place
+            if not any(p["name"] == "terminal" for p in rows) and os.path.isdir(os.path.join(SHIPPED_DIR, "terminal")):
+                rows.append(_read("terminal", os.path.join(SHIPPED_DIR, "terminal")) | {"builtin": True})
             _cache["rows"], _cache["at"] = rows, time.time()
         return list(_cache["rows"])
 
