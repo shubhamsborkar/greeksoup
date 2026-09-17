@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.69. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.70. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.70
+
+*16 September 2026, release 70.* Drawings on the desk's chart. A strip under the chart: Level (one click at the price), Trendline (the first bar, then the second), Note on a bar (a click, a few words). Each drawing is kept in the vault, one plain file per listing under charts/, comes back on every visit and every range, sits on the picture Save chart to notes keeps, and has its own × in the strip; Clear all takes the file away. Nothing is written until the reader draws. A point drawn on daily bars shows on the day; one drawn on intraday bars shows on that minute, and on the daily chart at its day.
 
 ## 2026-09-16.69
 

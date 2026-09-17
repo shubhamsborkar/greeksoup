@@ -795,6 +795,103 @@ def pictures(symbol=None, kind=None, about=None, limit=4):
     return out
 
 
+# ---- the reader's drawings on a name's chart: levels, trendlines and notes on a bar, one
+# plain JSON file per listing under charts/, kept with the vault so they travel with it and
+# the picture saved to notes carries them. Nothing is written until the reader draws.
+DRAW_KINDS = ("level", "trend", "note")
+
+
+def _draw_path(sym):
+    return os.path.join(RESEARCH_DIR, "charts", sym + ".json")
+
+
+def _draw_sym(symbol):
+    sym = re.sub(r"[^A-Z0-9.\-^=]", "", (symbol or "").upper())[:24]
+    if not sym:
+        raise ValueError("a listing first")
+    return sym
+
+
+def drawings(symbol):
+    """Every drawing on a listing's chart, oldest first: [{id, kind, ...}]."""
+    import json
+    sym = _draw_sym(symbol)
+    try:
+        with open(_draw_path(sym), encoding="utf-8") as fh:
+            d = json.load(fh)
+        items = d.get("items") if isinstance(d, dict) else None
+        return {"symbol": sym, "items": [i for i in (items or []) if isinstance(i, dict) and i.get("kind") in DRAW_KINDS]}
+    except (OSError, ValueError):
+        return {"symbol": sym, "items": []}
+
+
+def _draw_point(p):
+    if not isinstance(p, dict):
+        raise ValueError("a point needs a time and a price")
+    t = str(p.get("t") or "")[:16]
+    price = float(p.get("p"))
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?", t):
+        raise ValueError("a point needs a time and a price")
+    return {"t": t, "p": round(price, 6)}
+
+
+def add_drawing(symbol, item):
+    """One drawing in: a level (price), a trend (two points) or a note (a point and its words).
+    Returns the file as it now stands."""
+    import json
+    import secrets
+    sym = _draw_sym(symbol)
+    kind = str((item or {}).get("kind") or "")
+    if kind not in DRAW_KINDS:
+        raise ValueError("not a drawing the desk knows")
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    out = {"id": secrets.token_hex(4), "kind": kind, "made": now, "text": str(item.get("text") or "").strip()[:120]}
+    if kind == "level":
+        out["price"] = round(float(item.get("price")), 6)
+    elif kind == "trend":
+        out["a"], out["b"] = _draw_point(item.get("a")), _draw_point(item.get("b"))
+        if out["a"]["t"] == out["b"]["t"]:
+            raise ValueError("a trendline needs two different bars")
+        if out["a"]["t"] > out["b"]["t"]:
+            out["a"], out["b"] = out["b"], out["a"]
+    else:
+        out.update(_draw_point(item.get("at")))
+        if not out["text"]:
+            raise ValueError("a note on a bar needs its words")
+    d = drawings(sym)
+    d["items"].append(out)
+    _write_drawings(sym, d)
+    return d
+
+
+def remove_drawing(symbol, drawing_id=None):
+    """One drawing out by id, or every drawing when no id is given (the file is removed)."""
+    sym = _draw_sym(symbol)
+    d = drawings(sym)
+    if drawing_id:
+        d["items"] = [i for i in d["items"] if i.get("id") != drawing_id]
+    else:
+        d["items"] = []
+    if d["items"]:
+        _write_drawings(sym, d)
+    else:
+        try:
+            os.remove(_draw_path(sym))
+        except OSError:
+            pass
+    return d
+
+
+def _write_drawings(sym, d):
+    import json
+    os.makedirs(os.path.dirname(_draw_path(sym)), exist_ok=True)
+    with _lock:
+        tmp = _draw_path(sym) + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump({"symbol": sym, "items": d["items"]}, fh, indent=2)
+        os.replace(tmp, _draw_path(sym))
+
+
 # ---- status on a name: watchlist, researching, thesis built, invested, exited. Two of the
 # five the desk can see for itself (a name on a watch grid; a name in a book); the reader
 # sets the rest from the ticker page. Kept in data/research/status.json with every change

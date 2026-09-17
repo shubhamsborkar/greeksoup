@@ -1121,3 +1121,33 @@ def test_chart_pictures_reach_the_ask_box(tmp_path, monkeypatch):
     assert pics[0]["path"] in text and "open and look at each file" in text
     assert "PICTURES" not in desk_ai.door_prompt("q", "Ticker AAPL", "{}")
     desk_notes._point_at(keep)
+
+
+def test_chart_drawings_live_in_the_vault(tmp_path):
+    """A level, a trendline and a note on a bar go into charts/<SYM>.json in the vault, come back
+    oldest first, a trendline's points are put in time order, a note needs its words, one × takes
+    one drawing out and clearing takes the file away; a bad point is refused, never half-written."""
+    import notes as desk_notes
+    keep = desk_notes.RESEARCH_DIR
+    desk_notes._point_at(str(tmp_path / "data" / "research"))
+    assert desk_notes.drawings("HDFCBANK.NS") == {"symbol": "HDFCBANK.NS", "items": []}
+    d = desk_notes.add_drawing("hdfcbank.ns", {"kind": "level", "price": 1650.5, "text": "support"})
+    d = desk_notes.add_drawing("HDFCBANK.NS", {"kind": "trend", "a": {"t": "2026-06-01", "p": 1700}, "b": {"t": "2026-01-05", "p": 1500}})
+    d = desk_notes.add_drawing("HDFCBANK.NS", {"kind": "note", "at": {"t": "2026-04-20 09:30", "p": 1620}, "text": "Q4 results"})
+    assert [i["kind"] for i in d["items"]] == ["level", "trend", "note"] and d["symbol"] == "HDFCBANK.NS"
+    assert d["items"][1]["a"]["t"] == "2026-01-05" and d["items"][1]["b"]["p"] == 1700
+    assert d["items"][2]["t"] == "2026-04-20 09:30" and d["items"][2]["text"] == "Q4 results"
+    path = tmp_path / "data" / "research" / "charts" / "HDFCBANK.NS.json"
+    assert path.is_file() and json.loads(path.read_text())["items"][0]["price"] == 1650.5
+    for bad in ({"kind": "box"}, {"kind": "trend", "a": {"t": "2026-01-05", "p": 1}, "b": {"t": "2026-01-05", "p": 2}},
+                {"kind": "note", "at": {"t": "2026-04-20", "p": 1}}, {"kind": "trend", "a": {"t": "soon", "p": 1}, "b": {"t": "2026-01-05", "p": 2}}):
+        try:
+            desk_notes.add_drawing("HDFCBANK.NS", bad)
+            assert False, bad
+        except ValueError:
+            pass
+    assert len(desk_notes.drawings("HDFCBANK.NS")["items"]) == 3
+    gone = d["items"][0]["id"]
+    assert [i["id"] for i in desk_notes.remove_drawing("HDFCBANK.NS", gone)["items"]] == [d["items"][1]["id"], d["items"][2]["id"]]
+    assert desk_notes.remove_drawing("HDFCBANK.NS")["items"] == [] and not path.exists()
+    desk_notes._point_at(keep)

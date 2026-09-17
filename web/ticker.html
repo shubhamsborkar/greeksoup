@@ -40,6 +40,8 @@ main{max-width:1280px;margin:0 auto;padding:18px 22px}
 .fsbtn{background:var(--panel2);color:var(--ink2);border:1px solid var(--line2);
   border-radius:7px;padding:4px 10px;font-size:13px;cursor:pointer}
 .fsbtn:hover{color:var(--accent);border-color:var(--accent)}
+.dchip{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line2);border-radius:7px;padding:2px 4px 2px 8px;font-size:11px;color:var(--ink2)}
+.dchip button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:11px;padding:0 3px} .dchip button:hover{color:var(--neg)}
 .panel.fs{position:fixed;inset:14px;z-index:60;margin:0;overflow:auto;
   box-shadow:0 20px 60px rgba(0,0,0,.7)}
 .seg{display:flex;gap:2px;background:var(--panel2);border:1px solid var(--line2);border-radius:7px;padding:2px}
@@ -287,6 +289,7 @@ function ensureChart(){
   });
   // the range is the window: whenever the box changes size (full screen, a narrower window), the bars refill it
   if(window.ResizeObserver) new ResizeObserver(()=>{ if(LDATA.pts.length) LWC.timeScale().fitContent(); }).observe(el);
+  bindDrawClicks(LWC);
   LWC.subscribeCrosshairMove(param=>{
     const tip=document.getElementById("tip"); if(!tip) return;
     if(!param.time||!param.point){ tip.style.display="none"; return; }
@@ -366,6 +369,7 @@ function drawChart(){
     vs.setData(rows.map(r=>({time:r.t,value:r.p.v||0,color:(r.p.o!=null?r.p.price>=r.p.o:true)?pos+"66":neg+"66"})));
     LSERIES.push(vs);
   }
+  renderDrawings(chart,main);
   chart.timeScale().fitContent();
   const ret = mode!=="drawdown" ? (vals[vals.length-1]/vals[0]-1)*100 : null;
   const maxdd = mode!=="drawdown" ? null : Math.min(...vals);
@@ -420,7 +424,7 @@ function setChartSource(src,fallback,quiet){   // quiet: the page opening on its
   try{ if(!fallback&&!quiet) localStorage.setItem("gs.chart",src); }catch(e){}
   const tv=src==="tv";
   document.getElementById("tvwrap").style.display=tv?"":"none";
-  for(const id of ["modeseg","rangeseg","intseg","chart","tip","chartret"]){ const el=document.getElementById(id); if(el) el.style.display=tv?"none":""; }
+  for(const id of ["modeseg","rangeseg","intseg","chart","tip","chartret","drawbar"]){ const el=document.getElementById(id); if(el) el.style.display=tv?"none":""; }
   document.querySelectorAll("#srcseg button").forEach(b=>b.classList.toggle("on",b.dataset.s===(fallback?"desk":src)));
   const note=document.getElementById("srcnote");
   if(note) note.textContent=fallback?"TradingView's chart could not load here; this is the desk's own."
@@ -448,8 +452,92 @@ function chartPanel(){
       <button class="fsbtn" id="fsbtn" title="Full screen (Esc closes)">⛶ Full screen</button>
     </div>
     <div id="snapmsg" style="display:none;padding:8px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--ink2);line-height:1.5"></div>
-    <div class="panel-b" id="chartwrap"><div id="tvwrap" style="height:480px;display:none"></div><div id="chartmsg" class="dim" style="display:none;padding:30px"></div><div id="chart"></div><div id="tip"></div></div>
+    <div class="panel-b" id="chartwrap"><div id="tvwrap" style="height:480px;display:none"></div><div id="chartmsg" class="dim" style="display:none;padding:30px"></div><div id="chart"></div><div id="tip"></div><div id="drawbar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 2px 0;font-size:11.5px"></div></div>
   </section>`;
+}
+/* Drawings on the desk's chart: a level (one click), a trendline (two clicks), a note on a bar
+   (a click and a few words). Kept per listing in the vault (charts/<SYM>.json), drawn again on
+   every visit and every range, and part of the picture Save chart to notes keeps. The reader
+   draws; nothing is written until then; every drawing has its × in the strip under the chart. */
+let DRAW={tool:"",items:[],pending:null,main:null,extra:[]};
+const tStr=t=>typeof t==="number"?new Date(t*1000).toISOString().slice(0,16).replace("T"," "):String(t);
+// a point drawn on daily bars has a day; one drawn on intraday bars has the minute too. On the
+// other kind of bar it is placed at the day (daily) or left out (intraday, no minute to put it on)
+function drawTime(t){ const intra=isIntra(interval); if(intra) return t.length>=16?toTime(t):null; return t.slice(0,10); }
+async function loadDrawings(){
+  try{ const d=await (await fetch("/api/research/drawings?symbol="+encodeURIComponent(SYM))).json(); DRAW.items=d.items||[]; }catch(e){ DRAW.items=[]; }
+  renderDrawBar(); if(LWC&&LDATA.pts.length) drawChart();
+}
+function renderDrawings(chart,main){
+  DRAW.main=main;
+  const pos=tok("--pos"), acc=tok("--accent"), ink=tok("--ink2");
+  const marks=[];
+  for(const it of DRAW.items){
+    if(it.kind==="level"&&mode!=="drawdown"){
+      main.createPriceLine({price:it.price,color:acc,lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:it.text||""});
+    }else if(it.kind==="trend"&&mode!=="drawdown"){
+      const a=drawTime(it.a.t), b=drawTime(it.b.t); if(a==null||b==null||a===b) continue;
+      const ls=chart.addSeries(LightweightCharts.LineSeries,{color:acc,lineWidth:2,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,title:it.text||""});
+      ls.setData([{time:a,value:it.a.p},{time:b,value:it.b.p}]); LSERIES.push(ls);
+    }else if(it.kind==="note"){
+      const t=drawTime(it.t); if(t==null) continue;
+      // a note sits on the bar it was made on; a bar the range does not hold is left out
+      if(!LDATA.times.includes(t)) continue;
+      marks.push({time:t,position:"aboveBar",color:ink,shape:"arrowDown",text:it.text,size:1});
+    }
+  }
+  if(marks.length){ marks.sort((x,y)=>(typeof x.time==="number"?x.time:Date.parse(x.time))-(typeof y.time==="number"?y.time:Date.parse(y.time))); LightweightCharts.createSeriesMarkers(main,marks); }
+}
+function drawLabel(it){
+  if(it.kind==="level") return `level ${F(it.price)}${it.text?" · "+esc(it.text):""}`;
+  if(it.kind==="trend") return `trend ${it.a.t.slice(0,10)} → ${it.b.t.slice(0,10)}${it.text?" · "+esc(it.text):""}`;
+  return `note ${it.t.slice(0,10)} · ${esc(it.text)}`;
+}
+function renderDrawBar(){
+  const bar=document.getElementById("drawbar"); if(!bar) return;
+  const tools=[["","Pointer"],["level","Level"],["trend","Trendline"],["note","Note on a bar"]];
+  bar.innerHTML=`<span class="dim" style="font-size:10.5px;text-transform:uppercase;letter-spacing:.12em">Draw</span>
+    <div class="seg" id="toolseg">${tools.map(([k,l])=>`<button data-t="${k}" class="${DRAW.tool===k?"on":""}">${l}</button>`).join("")}</div>
+    <span id="drawhint" class="dim" style="font-size:11px"></span>
+    <span style="flex:1"></span>
+    ${DRAW.items.map(it=>`<span class="dchip" data-id="${it.id}">${drawLabel(it)}<button title="Remove" data-x="${it.id}">✕</button></span>`).join("")}
+    ${DRAW.items.length>1?`<button class="fsbtn" id="drawclear" style="padding:2px 8px;font-size:11px">Clear all</button>`:""}`;
+  bar.querySelectorAll("#toolseg button").forEach(b=>b.onclick=()=>{ DRAW.tool=b.dataset.t; DRAW.pending=null; renderDrawBar(); });
+  bar.querySelectorAll("button[data-x]").forEach(b=>b.onclick=()=>removeDrawing(b.dataset.x));
+  const cl=bar.querySelector("#drawclear"); if(cl) cl.onclick=()=>removeDrawing("");
+  const el=document.getElementById("chart"); if(el) el.style.cursor=DRAW.tool?"crosshair":"";
+  drawHint(DRAW.tool==="level"?"Click the chart at the price.":DRAW.tool==="trend"?(DRAW.pending?"Now the second bar.":"Click the first bar, then the second."):DRAW.tool==="note"?"Click the bar the note is about.":"");
+}
+function drawHint(t){ const h=document.getElementById("drawhint"); if(h) h.textContent=t||""; }
+async function addDrawing(item){
+  let r; try{ r=await (await fetch("/api/research/drawings/add",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({symbol:SYM,item})})).json(); }catch(e){ r={ok:false,error:"the desk did not answer"}; }
+  if(!r.ok){ drawHint(r.error||"could not save the drawing"); return; }
+  DRAW.items=r.items||[]; DRAW.pending=null; renderDrawBar(); drawChart();
+}
+async function removeDrawing(id){
+  let r; try{ r=await (await fetch("/api/research/drawings/remove",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({symbol:SYM,id})})).json(); }catch(e){ return; }
+  if(r.ok){ DRAW.items=r.items||[]; renderDrawBar(); drawChart(); }
+}
+function bindDrawClicks(chart){
+  chart.subscribeClick(param=>{
+    if(!DRAW.tool||!param.point||!DRAW.main||mode==="drawdown") return;
+    const price=DRAW.main.coordinateToPrice(param.point.y); if(price==null) return;
+    const p=+price.toFixed(price<10?4:2);
+    if(DRAW.tool==="level"){ addDrawing({kind:"level",price:p}); return; }
+    if(!param.time){ drawHint("Click on a bar."); return; }
+    const t=tStr(param.time);
+    if(DRAW.tool==="trend"){
+      if(!DRAW.pending){ DRAW.pending={t,p}; drawHint(`First point ${t.slice(0,10)} at ${F(p)}; now the second bar.`); return; }
+      addDrawing({kind:"trend",a:DRAW.pending,b:{t,p}}); return;
+    }
+    // a note on a bar: the words are asked for in the strip, in place
+    const bar=document.getElementById("drawbar");
+    bar.innerHTML=`<span class="dim" style="font-size:11px">Note on ${esc(t.slice(0,10))} at ${F(p)}:</span> <input id="drawtext" maxlength="120" placeholder="a few words" style="background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:4px 9px;font:inherit;font-size:11.5px;width:280px"> <button class="fsbtn" id="drawok" style="padding:3px 9px;font-size:11px">Save</button> <button class="fsbtn" id="drawno" style="padding:3px 9px;font-size:11px">Cancel</button>`;
+    const inp=bar.querySelector("#drawtext"); inp.focus();
+    const go=()=>{ const text=inp.value.trim(); if(!text) return inp.focus(); addDrawing({kind:"note",at:{t,p},text}); };
+    bar.querySelector("#drawok").onclick=go; bar.querySelector("#drawno").onclick=renderDrawBar;
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter") go(); if(e.key==="Escape") renderDrawBar(); });
+  });
 }
 function bindChart(){
   renderRangeSeg();
@@ -544,6 +632,7 @@ async function load(){
   const d=await r.json();
   const app=document.getElementById("app");
   loadNotes();   // your notes on the name show even when the quote does not
+  loadDrawings();   // and your drawings on its chart
   if(d.error){app.innerHTML=`<div class="loading">${esc(d.error)}</div>`;return;}
   // the feed is resting: the page is the last full read, and says when it was taken
   if(d.stale_since){

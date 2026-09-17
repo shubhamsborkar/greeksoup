@@ -3801,6 +3801,11 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/research/journal":
                 return self._send(json.dumps({"mode": desk_notes.journal_mode(), "pending": desk_notes.journal_pending(),
                                               "days": desk_notes.journal_days()}).encode(), "application/json")
+            elif path == "/api/research/drawings":
+                try:
+                    return self._send(json.dumps(desk_notes.drawings((qs.get("symbol", [""])[0] or "").strip())).encode(), "application/json")
+                except ValueError as exc:
+                    return self._send(json.dumps({"symbol": "", "items": [], "error": str(exc)}).encode(), "application/json")
             elif path == "/api/research/status":
                 sym = (qs.get("symbol", [""])[0] or "").strip()
                 if sym:
@@ -4413,6 +4418,16 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(b'{"ok":false,"error":"Write a line first."}', "application/json")
                 e = {"id": "", "at": datetime.now().strftime("%Y-%m-%d %H:%M"), "what": "you", "symbol": str(body.get("symbol", "")).upper()[:24], "text": text}
                 return self._send(json.dumps({"ok": True, **desk_notes.journal_write(e, str(body.get("why", "")))}).encode(), "application/json")
+            if self.path in ("/api/research/drawings/add", "/api/research/drawings/remove"):
+                # the reader's drawings on a name's chart; add takes the drawing, remove takes an id (none clears the chart)
+                try:
+                    if self.path.endswith("/add"):
+                        d = desk_notes.add_drawing(str(body.get("symbol", "")), body.get("item") or {})
+                    else:
+                        d = desk_notes.remove_drawing(str(body.get("symbol", "")), str(body.get("id", "") or "") or None)
+                    return self._send(json.dumps({"ok": True, **d}).encode(), "application/json")
+                except (ValueError, TypeError) as exc:
+                    return self._send(json.dumps({"ok": False, "error": str(exc) if isinstance(exc, ValueError) else "a drawing needs a time and a price"}).encode(), "application/json")
             if self.path == "/api/research/status":
                 try:
                     before = desk_notes.status_all().get(str(body.get("symbol", "")).upper(), {}).get("status", "")
