@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.88. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.89. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.89
+
+*16 September 2026, release 89.* TradingView's chart sits inside its box. Their embed script puts its frame in place of the child that carries their widget class; the desk's child had no such class, so the frame was added below the box and clipped, which showed as a blank chart with their toolbar at the foot, and a click inside it (an interval change) scrolled the panel's own header out of sight. The child carries their class now and the frame fills the box, header and switch in place.
 
 ## 2026-09-16.88
 

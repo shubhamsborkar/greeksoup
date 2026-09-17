@@ -523,7 +523,9 @@ function tvSymbol(){
 function chartSource(){ try{ return localStorage.getItem("gs.chart")==="tv"?"tv":"desk"; }catch(e){} return "desk"; }
 function mountTV(){
   const wrap=document.getElementById("tvwrap"); if(!wrap) return;
-  wrap.innerHTML=`<div class="tradingview-widget-container" style="height:100%"><div id="tvchart" style="height:calc(100% - 22px)"></div></div>`;
+  // their embed script replaces the child that carries their widget class with its frame; a child
+  // without that class is left alone and the frame is appended after it, below the box, clipped
+  wrap.innerHTML=`<div class="tradingview-widget-container" style="height:100%"><div id="tvchart" class="tradingview-widget-container__widget" style="height:100%"></div></div>`;
   const sc=document.createElement("script");
   sc.type="text/javascript"; sc.async=true;
   sc.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
