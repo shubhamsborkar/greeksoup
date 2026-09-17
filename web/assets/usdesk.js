@@ -161,8 +161,14 @@ async function pullInsiders(){
 }
 
 
-  window.mountUSDesk = function (root) {
-    root.innerHTML = `<div class="us-head"><h2>The US desk</h2><span>the US names on Desk · Book, the earnings ahead, the market pulse and the insider tape, for every reader wherever the home market is</span></div>` + MARKUP;
+  window.mountUSDesk = async function (root) {
+    // the US desk appears where the reader has something in it; elsewhere one line says how it gets here
+    let d = null; try { d = await (await fetch("/api/usbook")).json(); } catch (e) {}
+    if (d && d.show === false) {
+      root.innerHTML = `<div class="dim" style="font-size:12px;padding:14px 2px 6px;line-height:1.55">A US name on <a href="/book" style="color:var(--ink2)">Desk · Book</a> or one of your own on <a href="/watch?list=us" style="color:var(--ink2)">Watch · US</a> brings the US desk here: the book priced live, the earnings ahead, the market pulse and the insider tape.</div>`;
+      return;
+    }
+    root.innerHTML = `<div class="us-head"><h2>The US desk</h2><span>the US names on Desk · Book, the earnings ahead, the market pulse and the insider tape</span></div>` + MARKUP;
     pull(); pullEarnings(); pullPulse(); pullInsiders();
     setInterval(pull, 30000); setInterval(pullPulse, 900000); setInterval(pullInsiders, 3600000);
   };

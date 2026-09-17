@@ -1182,3 +1182,29 @@ def test_econ_calendar_keyless_sixty_days(monkeypatch):
     monkeypatch.setattr(freefeed, "econ_calendar", lambda days=60, high_only=False: [])
     empty = server.build_econcal()
     assert empty["rows"] == [] and "resting" in empty["note"] and empty["_ttl"] == 600
+
+
+def test_us_desk_on_home_only_where_the_reader_has_it(monkeypatch, tmp_path):
+    """Desk · Home carries the US desk only when the home market is the US, a US broker is connected,
+    a US name sits on Desk · Book, or the reader put a name of their own on Watch · US; the ten
+    starters that ship do not make an Indian or British reader's Home a US screen."""
+    import server
+    monkeypatch.setattr(server, "load_book", lambda: {"positions": [], "cash": []})
+    monkeypatch.setattr(server, "us_book_positions", lambda: [])
+    monkeypatch.setattr(server, "us_market_open", lambda: False)
+    monkeypatch.setattr(server, "_market", lambda: type("M", (), {"META": {"id": "in"}})())
+    monkeypatch.setitem(server.ADAPTER, "mod", None)
+    monkeypatch.setattr(server, "load_watchlist_us", lambda: [{"code": c} for c in ("AAPL", "MSFT", "NVDA")])
+    assert server.build_usbook()["show"] is False
+    monkeypatch.setattr(server, "load_watchlist_us", lambda: [{"code": "AAPL"}, {"code": "SNOW"}])
+    assert server.build_usbook()["show"] is True          # a name of the reader's own
+    monkeypatch.setattr(server, "load_watchlist_us", lambda: [])
+    monkeypatch.setattr(server, "_market", lambda: type("M", (), {"META": {"id": "us"}})())
+    assert server.build_usbook()["show"] is True          # the home market is the US
+    monkeypatch.setattr(server, "_market", lambda: type("M", (), {"META": {"id": "gb"}})())
+    monkeypatch.setitem(server.ADAPTER, "mod", type("B", (), {"META": {"region": "us"}})())
+    assert server.build_usbook()["show"] is True          # a US broker
+    monkeypatch.setitem(server.ADAPTER, "mod", None)
+    monkeypatch.setattr(server, "us_book_positions", lambda: [{"symbol": "AAPL", "shares": 1, "avg_cost": 100.0}])
+    monkeypatch.setattr(server, "fetch_us_quote", lambda s: {"ltp": 101.0, "day_pct": 0.1})
+    assert server.build_usbook()["show"] is True          # a US name on Desk · Book

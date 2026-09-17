@@ -185,6 +185,7 @@ def _home_quote(code, exch=None, tries=1):
 
 # ---- US watchlist (FMP) ------------------------------------------------------
 WATCHLIST_US_PATH = os.path.join(DATA_DIR, "watchlist_us.json")
+US_WATCH_STARTERS = {"AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "JPM", "COST", "LLY", "XOM"}   # the names Watch · US ships with
 WATCH_US = {}
 _fmp_backoff = {"until": 0.0}
 
@@ -1282,11 +1283,20 @@ def build_usbook():
     cash = sum(float(c.get("amount") or 0) for c in book.get("cash", [])
                if str(c.get("currency", "")).upper() == "USD")
     total = deployed + cash
+    # The US desk sits on Desk · Home only where it has something of the reader's: the home
+    # market is the US, a US broker is connected, a US name is on Desk · Book, or the reader put a
+    # name of their own on Watch · US (the ten starters that ship do not count). Elsewhere Home
+    # stays the home market's, with one line saying how the US desk gets there.
+    m = _market()
+    mod = ADAPTER["mod"]
+    added = [n["code"] for n in load_watchlist_us() if n["code"] not in US_WATCH_STARTERS]
+    show = bool(rows) or (m is not None and m.META.get("id") == "us") or (mod is not None and str(mod.META.get("region", "")).lower() == "us") or bool(added)
     return {
         "cash": cash, "positions": rows,
         "deployed": deployed, "total": total,
         "total_pnl": sum(r["pnl"] for r in rows if r["pnl"] is not None),
         "market_open": us_market_open(),
+        "show": show,
         "ts": datetime.now().strftime("%H:%M:%S"),
     }
 
