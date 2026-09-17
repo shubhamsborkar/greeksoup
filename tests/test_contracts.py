@@ -1434,3 +1434,13 @@ def test_bank_filing_layout_parses(monkeypatch, tmp_path):
     d = nse_fund._parse_filing("https://x/INTEGRATED_FILING_BANKING_1_iXBRL_WEB.html")
     assert d["revenue_label"] == "Interest earned" and d["revenue"] == 90575.33
     assert d["pbt"] == 27193.16 and d["pat"] == 20382.69 and d["eps"] == 12.5
+
+
+def test_tradingview_never_asked_for_exchange_futures():
+    """TradingView's free embed refuses exchange continuous contracts (CBOT:ZC1!) with a box and no
+    message to the page (his screen, 2026-09-17). The ticker page asks it only for the TVC series it
+    carries and draws every other contract on the desk's chart."""
+    here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    page = open(os.path.join(here, "web", "ticker.html"), encoding="utf-8").read()
+    assert '1!"' not in page and 'CL:"TVC:USOIL"' in page and "tvCarries" in page
+    assert "does not carry this contract" in page

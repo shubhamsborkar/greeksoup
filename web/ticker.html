@@ -514,10 +514,14 @@ const TV_EXCH={NASDAQGS:"NASDAQ",NASDAQGM:"NASDAQ",NASDAQCM:"NASDAQ",NASDAQ:"NAS
   KSE:"KRX",KSC:"KRX",TAIWAN:"TWSE",TAI:"TWSE",SAOPAULO:"BMFBOVESPA",SAO:"BMFBOVESPA",MEXICO:"BMV",MEX:"BMV",JOHANNESBURG:"JSE",JNB:"JSE",SAUDI:"TADAWUL",SAU:"TADAWUL",DUBAI:"DFM",DFM:"DFM",ABUDHABI:"ADX",ADX:"ADX",SINGAPORE:"SGX",SES:"SGX",KUALALUMPUR:"MYX",KLS:"MYX",THAILAND:"SET",SET:"SET",JAKARTA:"IDX",JKT:"IDX",
   STOCKHOLM:"OMXSTO",STO:"OMXSTO",COPENHAGEN:"OMXCOP",CPH:"OMXCOP",OSLO:"OSL",OSL:"OSL",HELSINKI:"OMXHEX",HEL:"OMXHEX",SWISS:"SIX",EBS:"SIX",VIENNA:"VIE",VIE:"VIE",WARSAW:"GPW",WSE:"GPW",ISTANBUL:"BIST",IST:"BIST",TELAVIV:"TASE",TLV:"TASE",MILAN:"MIL",MIL:"MIL",MADRID:"BME",MCE:"BME"};
 let TVEXCH="";     // the exchange the loaded page names, set by the layout that has it
-// a futures contract on the free feed (CL=F) is TradingView's continuous contract (NYMEX:CL1!)
-const TV_FUT={CL:"NYMEX:CL1!",BZ:"NYMEX:BZ1!",NG:"NYMEX:NG1!",HO:"NYMEX:HO1!",RB:"NYMEX:RB1!",GC:"COMEX:GC1!",SI:"COMEX:SI1!",HG:"COMEX:HG1!",PL:"NYMEX:PL1!",PA:"NYMEX:PA1!",ALI:"COMEX:ALI1!",HRC:"NYMEX:HRC1!",
-  ZW:"CBOT:ZW1!",ZC:"CBOT:ZC1!",ZS:"CBOT:ZS1!",ZM:"CBOT:ZM1!",ZL:"CBOT:ZL1!",ZO:"CBOT:ZO1!",ZR:"CBOT:ZR1!",KE:"CBOT:KE1!",KC:"ICEUS:KC1!",SB:"ICEUS:SB1!",CC:"ICEUS:CC1!",CT:"ICEUS:CT1!",OJ:"ICEUS:OJ1!",
-  LE:"CME:LE1!",HE:"CME:HE1!",GF:"CME:GF1!",LBS:"CME:LBR1!",LBR:"CME:LBR1!"};
+// A futures contract on the free feed (CL=F). TradingView's free embed does not carry the exchange
+// continuous contracts (NYMEX:CL1!, CBOT:ZC1!): it opens a box that says the symbol is only on
+// their site, and sends this page no word (seen on his screen 2026-09-17). Their free feed does
+// carry a handful of commodity prices as TVC series; those open there, every other contract
+// stays on the desk's chart and the button says so.
+const TV_FUT={CL:"TVC:USOIL",BZ:"TVC:UKOIL",GC:"TVC:GOLD",SI:"TVC:SILVER",PL:"TVC:PLATINUM",PA:"TVC:PALLADIUM"};
+const isContract=()=>/=F$/.test(FINSYM||SYM);
+const tvCarries=()=>{ const fut=(FINSYM||SYM).match(/^([A-Z]{1,3})=F$/); return !fut||!!TV_FUT[fut[1]]; };
 function tvSymbol(){
   const fut=(FINSYM||SYM).match(/^([A-Z]{1,3})=F$/); if(fut&&TV_FUT[fut[1]]) return TV_FUT[fut[1]];
   const bare=(FINSYM||SYM).replace(/\.[A-Z]{1,3}$/,"").replace(/-/g,".");   // HDFCBANK.NS -> HDFCBANK, BRK-B -> BRK.B
@@ -558,6 +562,8 @@ window.addEventListener("message",e=>{
   else if(name==="tv-widget-no-data"&&document.getElementById("tvwrap").style.display!=="none"){ TVSTATE.got="refused"; setChartSource("desk",true,false,"refused"); }
 });
 function setChartSource(src,fallback,quiet,why){   // quiet: the page opening on its default, nothing is remembered; why: what their frame said
+  // a contract their free chart does not carry never mounts their frame: the desk's chart, and the note says why
+  if(src==="tv"&&!tvCarries()){ src="desk"; fallback=true; why="contract"; }
   try{ if(!fallback&&!quiet) localStorage.setItem("gs.chart",src); }catch(e){}
   const tv=src==="tv";
   document.getElementById("tvwrap").style.display=tv?"":"none";
@@ -565,6 +571,7 @@ function setChartSource(src,fallback,quiet,why){   // quiet: the page opening on
   document.querySelectorAll("#srcseg button").forEach(b=>b.classList.toggle("on",b.dataset.s===(fallback?"desk":src)));
   const note=document.getElementById("srcnote");
   const FELL={refused:"TradingView does not carry "+tvSymbol()+"; the desk's chart instead.",
+    contract:"TradingView's free chart does not carry this contract; the desk's chart instead.",
     nodata:"TradingView's data did not reach this browser; the desk's chart instead.",
     noframe:"TradingView did not load here; the desk's chart instead."};
   if(note) note.textContent=fallback?(FELL[why]||FELL.noframe):tv?"TradingView · "+tvSymbol():"";
@@ -686,6 +693,7 @@ function bindDrawClicks(chart){
 function bindChart(){
   renderRangeSeg();
   document.querySelectorAll("#srcseg button").forEach(b=>b.onclick=()=>setChartSource(b.dataset.s));
+  if(isContract()&&!tvCarries()){ const b=document.querySelector('#srcseg button[data-s="tv"]'); if(b){ b.disabled=true; b.title="TradingView's free chart does not carry exchange futures contracts; the desk's chart draws this one"; b.style.opacity=".45"; } }
   document.getElementById("rangeseg").addEventListener("click",e=>{
     const b=e.target.closest("button"); if(!b)return;
     range=b.dataset.r;
