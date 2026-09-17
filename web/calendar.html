@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
 <style>
-main{max-width:1180px;margin:0 auto;padding:18px 22px}
+main{max-width:1380px;margin:0 auto;padding:18px 22px}
 .sub{color:var(--muted);font-size:12px;margin-bottom:18px;line-height:1.5;max-width:900px}
 .sub b{color:var(--ink2)}
 h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2);margin:26px 0 4px;display:flex;justify-content:space-between;align-items:baseline}
@@ -34,6 +34,33 @@ td.f a{color:var(--accent);text-decoration:none;font-size:12px;white-space:nowra
 .foot b{color:var(--ink2);font-weight:600}
 .warn{color:var(--muted);font-size:11.5px;margin:6px 0 0}
 .imp{font-size:10px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap} .imp.High{color:var(--neg);font-weight:700} .imp.Medium{color:var(--ink2)}
+/* the months, as a calendar reads: seven columns, a row a week, the day's events in the cell */
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin:0 0 10px}
+.top h1{font-size:15px;font-weight:700;letter-spacing:.01em;margin:0}
+.top h1 span{color:var(--muted);font-weight:400;font-size:12px;margin-left:10px}
+.legend{font-size:11px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
+.legend .k{margin-right:6px}
+.months{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:8px}
+@media(max-width:820px){.months{grid-template-columns:1fr}}
+.month{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.month .mh{padding:9px 12px 7px;font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2);border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+.month .mh span{color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400}
+.wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--line);gap:1px}
+.wk .dn{background:var(--panel2);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:center;padding:5px 0}
+.cell{background:var(--panel);min-height:64px;padding:4px 5px;font-size:10.5px;position:relative}
+.cell.out{background:var(--bg);opacity:.55} .cell.past{opacity:.45} .cell.wkend{background:color-mix(in srgb,var(--panel) 85%,var(--bg))}
+.cell .num{font-family:Menlo,monospace;font-size:10.5px;color:var(--muted);display:block;margin-bottom:2px}
+.cell.today .num{color:#fff;background:var(--accent);border-radius:4px;display:inline-block;padding:0 4px;margin-left:-2px}
+.cell a.ev{display:block;font-family:Menlo,monospace;font-size:10.5px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
+.cell a.ev .k{width:6px;height:6px;margin-right:5px} .cell a.ev:hover{color:var(--accent)} .cell a.ev.held{color:var(--accent)}
+.cell .more{font-size:9.5px;color:var(--muted)}
+.twocol{display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start}
+@media(max-width:1000px){.twocol{grid-template-columns:1fr}}
+.side h2{margin-top:26px} .side h2:first-child{margin-top:26px}
+.side .row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12px}
+.side .row .n{font-family:Menlo,monospace;font-weight:700;color:var(--ink);text-decoration:none} .side .row .n:hover{color:var(--accent)}
+.side .row .w{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side .row .d{font-family:Menlo,monospace;color:var(--muted);font-size:11px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -63,14 +90,55 @@ function rows(list,withDay){
   }
   return h;
 }
+const ymd=dt=>`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+const SHORT={results:"results",ex_dividend:"ex-div",dividend:"dividend",filing:"filing"};
+/* this month and the next, each a seven-column grid; a cell lists its names (five, then "+n"),
+   a held name in the accent colour; days already gone and days outside the month are dimmed */
+function months(up){
+  const byDay={}; for(const r of up){ (byDay[r.date]=byDay[r.date]||[]).push(r); }
+  const today=new Date(); today.setHours(0,0,0,0); const t0=ymd(today);
+  let h=`<div class="months">`;
+  for(let k=0;k<2;k++){        // this month and the next; the list below carries the whole window
+    const first=new Date(today.getFullYear(),today.getMonth()+k,1), y=first.getFullYear(), m=first.getMonth();
+    const days=new Date(y,m+1,0).getDate(), lead=(first.getDay()+6)%7;   // weeks start Monday
+    let n=0; for(let dd=1;dd<=days;dd++) n+=(byDay[ymd(new Date(y,m,dd))]||[]).length;
+    h+=`<div class="month"><div class="mh">${MONTHS[m]} ${y}<span>${n?n+" event"+(n===1?"":"s"):"nothing dated yet"}</span></div><div class="wk">`+["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(x=>`<div class="dn">${x}</div>`).join("");
+    const cells=Math.ceil((lead+days)/7)*7;
+    for(let i=0;i<cells;i++){
+      const dd=i-lead+1;
+      if(dd<1||dd>days){ h+=`<div class="cell out"></div>`; continue; }
+      const dt=new Date(y,m,dd), key=ymd(dt), ev=byDay[key]||[], wkend=dt.getDay()===0||dt.getDay()===6;
+      h+=`<div class="cell${key===t0?" today":key<t0?" past":""}${wkend?" wkend":""}"><span class="num">${dd}</span>`;
+      for(const r of ev.slice(0,5)) h+=`<a class="ev${r.tag==="held"?" held":""}" href="/t?symbol=${encodeURIComponent(r.symbol)}" title="${esc(r.symbol)} · ${esc(r.what)}${r.detail?" · "+esc(r.detail):""}"><i class="k ${esc(r.kind)}"></i>${esc(r.symbol.replace(/\.[A-Z]+$/,""))}</a>`;
+      if(ev.length>5) h+=`<div class="more">+${ev.length-5} more</div>`;
+      h+=`</div>`;
+    }
+    h+=`</div></div>`;
+  }
+  return h+`</div>`;
+}
+function sideLists(up){
+  const today=new Date(); today.setHours(0,0,0,0); const in7=new Date(today); in7.setDate(in7.getDate()+7);
+  const week=up.filter(r=>{ const [y,m,d]=r.date.split("-").map(Number); const dt=new Date(y,m-1,d); return dt>=today&&dt<=in7; });
+  const res=up.filter(r=>r.kind==="results");
+  const row=r=>`<div class="row"><a class="n" href="/t?symbol=${encodeURIComponent(r.symbol)}">${esc(r.symbol)}</a><span class="w">${esc(r.what)}${r.detail?" · "+esc(r.detail):""}</span><span class="d">${esc(r.date.slice(5))}</span></div>`;
+  let h=`<h2>This week<span>${week.length}</span></h2>`+(week.length?week.map(row).join(""):`<div class="empty">Nothing dated in the next seven days.</div>`);
+  h+=`<h2>Results ahead<span>${res.length}</span></h2>`+(res.length?res.slice(0,12).map(row).join(""):`<div class="empty">No results date in the window yet.</div>`);
+  return h;
+}
 async function load(){
   let d; try{ d=await (await fetch("/api/calendar",{cache:"no-store"})).json(); }catch(e){ document.getElementById("body").innerHTML=`<div class="empty">The desk did not answer. Reload in a moment.</div>`; return; }
   document.getElementById("asof").textContent=`read ${d.ts||""} · rereads itself every six hours`;
   document.getElementById("sub").innerHTML=`Every dated event on the <b>${d.names} name${d.names===1?"":"s"}</b> you hold or watch (${d.held} held), from the free record, kept fresh by the desk on its own: results dates, dividend dates, and the filings that landed. A results date shows up on Tasks by itself.`;
   const up=d.upcoming||[], la=d.landed||[], ma=d.macro||[];
-  let h=`<h2>The next ${d.ahead_days} days<span>${up.length} event${up.length===1?"":"s"}</span></h2>`;
+  const held=up.filter(r=>r.tag==="held").length, results=up.filter(r=>r.kind==="results").length;
+  let h=`<div class="top"><h1>The next ${d.ahead_days} days<span>${up.length} event${up.length===1?"":"s"} · ${results} results · ${held} on names you hold</span></h1>
+    <div class="legend"><span><i class="k results"></i>results</span><span><i class="k ex_dividend"></i>ex-dividend, dividend paid</span><span><i class="k filing"></i>filing</span><span style="color:var(--accent)">held names in orange</span></div></div>`;
+  h+=months(up);
+  h+=`<div class="twocol"><div><h2>Day by day<span>${up.length} event${up.length===1?"":"s"}</span></h2>`;
   h+=up.length?`<table><tbody>${rows(up,true)}</tbody></table>`:`<div class="empty">${d.names?"No results or dividend date inside the window on these names yet. The desk rereads the record on its own; a date appears here as soon as the feed carries it.":"No names yet. A line on <b>Desk · Book</b>, a broker connected on Settings, or a name on any watchlist puts it on this calendar."}</div>`;
   if(d.failed&&d.failed.length) h+=`<div class="warn">Could not be read this time and will be retried within fifteen minutes: ${d.failed.map(esc).join(", ")}.</div>`;
+  h+=`</div><div class="side">${sideLists(up)}</div></div>`;
   h+=`<h2>Landed at the SEC, the last ${d.back_days} days<span>${la.length} filing${la.length===1?"":"s"} on US listings</span></h2>`;
   h+=la.length?`<table><thead><tr><th>Filed</th><th>Name</th><th>What</th><th></th></tr></thead><tbody>${rows(la,false)}</tbody></table>`:`<div class="empty">Nothing landed on a US listing you hold or watch in the window.</div>`;
   if(ma.length){ h+=`<h2>Macro<span>${ma.length} print${ma.length===1?"":"s"} ahead, high and medium impact</span></h2><table><thead><tr><th>Date</th><th>Country</th><th>Print</th><th>Expected</th><th>Previous</th></tr></thead><tbody>`+ma.map(r=>`<tr><td class="d">${esc(r.date)}${r.time?" "+esc(r.time):""}</td><td>${esc(r.country)}</td><td class="w">${esc(r.event)} <span class="imp ${esc(r.impact)}">${esc(r.impact)}</span></td><td class="d">${r.estimate??"—"}</td><td class="d">${r.previous??"—"}</td></tr>`).join("")+`</tbody></table>`; }

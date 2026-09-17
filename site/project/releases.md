@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.73. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.74. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.74
+
+*16 September 2026, release 74.* The Calendar reads like a calendar. This month and the next as seven-column grids, weeks as rows, today marked, each day listing the names with a dated event (a dot for the kind, the held names in the accent colour, the words on hover, a click opens the name); a header line with the counts and a legend; then the day-by-day list for the whole window beside two short lists, This week and Results ahead; the filings that landed and the macro prints below as before.
 
 ## 2026-09-16.73
 
