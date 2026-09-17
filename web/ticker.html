@@ -27,7 +27,7 @@ main{max-width:1280px;margin:0 auto;padding:18px 22px}
 .sub{color:var(--muted);font-size:12px;margin-bottom:16px}
 .pos{color:var(--pos)} .neg{color:var(--neg)} .dim{color:var(--muted)}
 
-.grid{display:grid;grid-template-columns:1fr 340px;gap:14px}
+.grid{display:grid;grid-template-columns:1fr 340px;gap:14px} .grid>div{min-width:0}
 @media(max-width:1000px){.grid{grid-template-columns:1fr}}
 .grid.solo{grid-template-columns:1fr 340px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
@@ -450,13 +450,11 @@ function renderRangeSeg(){
 /* The chart itself: TradingView's own chart by default (their embedded chart, their data,
    with their name on it), the desk's chart drawn from the free feed a click away and the
    fallback whenever the embed cannot load. The choice is remembered. */
-// Their embed answers "permission denied" for some exchanges (NSE's group is nse_dly) and shows
-// "This symbol is only available on TradingView"; an NSE listing is handed over as its BSE twin
-// (same company, same price to the paisa). Checked 2026-09-17 on the widget's own data socket,
-// one or two names per exchange: TV_CARRIES lists the exchanges that drew bars; the rest open on
-// the desk's own chart by default, and the switch says why.
-const TV_CARRIES=new Set(["NASDAQ","NYSE","AMEX","BATS","BSE","EURONEXT","XETR","FWB","TSX","TSXV","ASX","BMFBOVESPA","ADX","IDX","OMXSTO","OMXCOP","OSL","OMXHEX","SIX","VIE","GPW","TASE","MIL","BME"]);
-// refused in the embed (only on tradingview.com): NSE LSE TSE HKEX KRX TWSE BMV JSE TADAWUL DFM SGX MYX SET BIST
+// Their embed answers "permission denied" for some exchanges (NSE's group is nse_dly) and says so
+// through its frame (see the message listener below); an NSE listing is handed over as its BSE twin
+// (same company, same price to the paisa). Checked 2026-09-17 on the widget's own data socket: carried
+// NASDAQ NYSE AMEX BATS BSE EURONEXT XETR FWB TSX TSXV ASX BMFBOVESPA ADX IDX OMXSTO OMXCOP OSL OMXHEX SIX
+// VIE GPW TASE MIL BME; refused NSE LSE TSE HKEX KRX TWSE BMV JSE TADAWUL DFM SGX MYX SET BIST.
 const TV_EXCH={NASDAQGS:"NASDAQ",NASDAQGM:"NASDAQ",NASDAQCM:"NASDAQ",NASDAQ:"NASDAQ",NMS:"NASDAQ",NGM:"NASDAQ",NCM:"NASDAQ",NYSE:"NYSE",NYQ:"NYSE",NYSEARCA:"AMEX",PCX:"AMEX",NYSEAMERICAN:"AMEX",ASE:"AMEX",BATS:"BATS",BTS:"BATS",
   NSE:"BSE",NSI:"BSE",BSE:"BSE",LSE:"LSE",AMSTERDAM:"EURONEXT",AMS:"EURONEXT",PARIS:"EURONEXT",PAR:"EURONEXT",BRUSSELS:"EURONEXT",BRU:"EURONEXT",LISBON:"EURONEXT",XETRA:"XETR",GER:"XETR",FRANKFURT:"FWB",FRA:"FWB",TOKYO:"TSE",JPX:"TSE",HKSE:"HKEX",HKG:"HKEX",TORONTO:"TSX",TOR:"TSX",TSXV:"TSXV",VAN:"TSXV",ASX:"ASX",
   KSE:"KRX",KSC:"KRX",TAIWAN:"TWSE",TAI:"TWSE",SAOPAULO:"BMFBOVESPA",SAO:"BMFBOVESPA",MEXICO:"BMV",MEX:"BMV",JOHANNESBURG:"JSE",JNB:"JSE",SAUDI:"TADAWUL",SAU:"TADAWUL",DUBAI:"DFM",DFM:"DFM",ABUDHABI:"ADX",ADX:"ADX",SINGAPORE:"SGX",SES:"SGX",KUALALUMPUR:"MYX",KLS:"MYX",THAILAND:"SET",SET:"SET",JAKARTA:"IDX",JKT:"IDX",
@@ -467,10 +465,8 @@ function tvSymbol(){
   const ex=TV_EXCH[(TVEXCH||"").toUpperCase().replace(/[^A-Z]/g,"")];
   return ex ? ex+":"+bare : bare;
 }
-// a bare symbol (exchange unknown) is handed over as is; TradingView picks the primary listing
-function tvCarried(){ const s=tvSymbol(); return !s.includes(":")||TV_CARRIES.has(s.split(":")[0]); }
-// the desk's chart when the reader chose it; otherwise TradingView where their embed carries the exchange, the desk's chart where it does not
-function chartSource(){ try{ if(localStorage.getItem("gs.chart")==="desk") return "desk"; }catch(e){} return tvCarried()?"tv":"desk"; }
+// the desk's own chart unless the reader picked TradingView's (remembered on this computer)
+function chartSource(){ try{ return localStorage.getItem("gs.chart")==="tv"?"tv":"desk"; }catch(e){} return "desk"; }
 function mountTV(){
   const wrap=document.getElementById("tvwrap"); if(!wrap) return;
   wrap.innerHTML=`<div class="tradingview-widget-container" style="height:100%"><div id="tvchart" style="height:calc(100% - 22px)"></div></div>`;
@@ -496,7 +492,7 @@ window.addEventListener("message",e=>{
     // their quote names the feed it comes from: BSE_EOD is end of day, EURONEXT_DLY is delayed, BATS_DLY is Cboe One delayed
     const on=String((d.data||{}).original_name||""), how=/_EOD:/.test(on)?"end-of-day bars, updated after the close":/_DLY:/.test(on)?"delayed":"";
     const note=document.getElementById("srcnote");
-    if(note&&how&&document.getElementById("tvwrap").style.display!=="none") note.textContent="TradingView · "+tvSymbol()+" · their feed is "+how+" · the camera on their toolbar saves the chart with your drawings";
+    if(note&&how&&document.getElementById("tvwrap").style.display!=="none") note.textContent="TradingView · "+tvSymbol()+" · "+how;
   }
   else if(name==="tv-widget-no-data"&&document.getElementById("tvwrap").style.display!=="none"){ TVSTATE.got="refused"; setChartSource("desk",true,false,"refused"); }
 });
@@ -507,12 +503,11 @@ function setChartSource(src,fallback,quiet,why){   // quiet: the page opening on
   for(const id of ["modeseg","indwrap","rangeseg","intseg","chart","tip","chartret","drawbar"]){ const el=document.getElementById(id); if(el) el.style.display=tv?"none":""; }
   document.querySelectorAll("#srcseg button").forEach(b=>b.classList.toggle("on",b.dataset.s===(fallback?"desk":src)));
   const note=document.getElementById("srcnote");
-  const FELL={refused:"TradingView's embed does not carry "+tvSymbol()+" (their own site does), so this is the desk's own chart.",
-    nodata:"TradingView's data did not reach this browser (a shield or ad blocker can stop it, and so can no network), so this is the desk's own chart.",
-    noframe:"TradingView's chart could not load here (no network, or the browser blocked it), so this is the desk's own chart."};
-  if(note) note.textContent=fallback?(FELL[why]||FELL.noframe)
-    :tv?"TradingView · "+tvSymbol()+(tvCarried()?" · the camera on their toolbar saves the chart with your drawings":" · their embed does not carry this exchange, only their own site does")
-    :tvCarried()?"":"TradingView's embed does not carry "+tvSymbol().split(":")[0]+" listings (their own site does), so this is the desk's own chart.";
+  const FELL={refused:"TradingView does not carry "+tvSymbol()+"; the desk's chart instead.",
+    nodata:"TradingView's data did not reach this browser; the desk's chart instead.",
+    noframe:"TradingView did not load here; the desk's chart instead."};
+  if(note) note.textContent=fallback?(FELL[why]||FELL.noframe):tv?"TradingView · "+tvSymbol():"";
+  const sb=document.getElementById("snapbtn"); if(sb) sb.title=tv?"TradingView's chart lives in their frame: press the camera on their toolbar, Copy image, then paste on this page; it becomes a clipping in your notes on this name":"A picture of this chart, as drawn, becomes a clipping in your notes on this name";
   if(tv){ if(!document.querySelector("#tvwrap iframe")) mountTV(); } else drawChart();
 }
 function chartPanel(){
@@ -520,7 +515,7 @@ function chartPanel(){
     <div class="panel-h"><h2>Price</h2>
       <span id="chartret"></span><span id="srcnote" class="dim" style="font-size:11px"></span>
       <span style="flex:1"></span>
-      <div class="seg" id="srcseg" title="Which chart: TradingView's, or the desk's own from the free feed">
+      <div class="seg" id="srcseg" title="The desk's own chart from the free feed, with drawings and indicators kept on this computer; or TradingView's embedded chart (US, BSE and most European listings, their data, their tools)">
         <button data-s="tv">TRADINGVIEW</button>
         <button data-s="desk">DESK</button>
       </div>

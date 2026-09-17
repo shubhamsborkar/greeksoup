@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.72. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.73. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.73
+
+*16 September 2026, release 73.* The desk's own chart is the default on every listing; TradingView's is the switch, remembered once picked. Leaving full screen no longer leaves the chart at full-screen width with the side column pushed off the page. The line under Price is short and only there when it has something to say: which TradingView symbol is on and whether their feed is delayed or end of day, or, when their chart did not load, one line saying so and that the desk's chart is showing; the Save button's tooltip carries the camera-and-paste move for their chart.
 
 ## 2026-09-16.72
 
