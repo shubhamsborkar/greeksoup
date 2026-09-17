@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.81. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.82. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.82
+
+*16 September 2026, release 82.* ICICI Direct connects from the keys and the session key the reader pasted. The broker's file read an older session file instead of the one Settings writes, so a fresh login was refused as stale; it now builds the session from the saved keys and the day's apisession value, and the broker's own words come through when the keys are wrong. The desk also trusts a certificate bundle for every https call, so a Python installed without one (the python.org build on a Mac) no longer fails inside a broker's library with a certificate error.
 
 ## 2026-09-16.81
 

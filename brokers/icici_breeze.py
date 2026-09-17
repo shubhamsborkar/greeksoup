@@ -66,10 +66,21 @@ def exchange_token(cfg, token):
 
 
 def connect(cfg, token=None):
+    """A session from the keys the reader saved and today's apisession value, as they are.
+    None when the broker rejects the token; the broker's own words when it says why."""
     if not token:
         return None
-    from breeze_session import get_client_if_cached
-    return get_client_if_cached("primary")   # None when the broker rejects today's token
+    from breeze_connect import BreezeConnect
+    from . import BrokerError
+    client = BreezeConnect(api_key=cfg["BREEZE_API_KEY"])
+    try:
+        client.generate_session(api_secret=cfg["BREEZE_API_SECRET"], session_token=token)
+    except Exception as exc:  # noqa: BLE001
+        why = str(exc).strip()
+        if not why or "session" in why.lower() or "token" in why.lower():
+            return None      # the login is stale or mistyped: the page says so in plain words
+        raise BrokerError("ICICI Direct did not accept the keys: " + why[:160]) from exc
+    return client
 
 
 def label(client):

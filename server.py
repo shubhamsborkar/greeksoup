@@ -12,6 +12,17 @@ in this file assumes a particular broker, market or data provider.
 import json
 import os
 import sys
+
+# A Python installed from python.org ships without a certificate store, so every https call
+# made through the standard library (a broker's SDK, urllib) fails with "certificate verify
+# failed". The bundle requests carries stands in for the whole process, set before any
+# library that opens a connection is imported.
+try:
+    import certifi as _certifi
+    os.environ.setdefault("SSL_CERT_FILE", _certifi.where())
+    os.environ.setdefault("REQUESTS_CA_BUNDLE", _certifi.where())
+except ImportError:
+    pass
 import subprocess
 import shutil
 import re
