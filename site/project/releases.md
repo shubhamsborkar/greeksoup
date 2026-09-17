@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.68. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.69. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.69
+
+*16 September 2026, release 69.* The desk's own chart, rebuilt. It is now drawn by TradingView's open-source charting library, kept inside the desk (nothing fetched, works offline): candles, line and drawdown as before, the free feed's bars at every range and bar size, MA50 and MA200 from daily closes, volume below on its own scale, a legend at the top left as the pointer moves, a crosshair with price and time, wheel and drag to zoom and pan, and the bars refilling the box whenever it changes size, full screen included. Their small mark stays on the chart, as their licence asks. Save chart to notes keeps this drawing at the screen's own sharpness. This is the chart every listing gets where TradingView's embed does not carry the exchange, and the one drawings will go on next.
 
 ## 2026-09-16.68
 

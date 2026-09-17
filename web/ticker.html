@@ -7,6 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
+<script src="/assets/lightweight-charts.js"></script>
 <style>
 body{padding-bottom:50px}
 a{color:var(--cyan);text-decoration:none} a:hover{text-decoration:underline}
@@ -260,173 +261,118 @@ function sma(arr,n){
   }
   return out;
 }
+/* The desk's own chart is drawn by TradingView's open-source Lightweight Charts (Apache-2.0,
+   the file lives in web/assets, nothing is fetched): candles, a line, or drawdown, the free
+   feed's bars at the reader's range and bar size, MA50 and MA200 from daily closes, volume
+   below. Their small mark stays on the chart, as their licence asks. The same drawing is
+   what "Save chart to notes" keeps. */
+let LWC=null, LSERIES=[], LDATA={pts:[],S:[]};
+const tok=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+// daily bars carry a day; intraday bars carry the exchange's own wall clock, kept as it is
+const toTime=d=>isIntra(interval)&&d.length>=16 ? Date.UTC(+d.slice(0,4),+d.slice(5,7)-1,+d.slice(8,10),+d.slice(11,13),+d.slice(14,16))/1000 : d.slice(0,10);
+function chartHeight(){ return isFS ? Math.max(380, window.innerHeight-150) : 300; }
+function ensureChart(){
+  const el=document.getElementById("chart");
+  if(LWC){ LWC.applyOptions({height:chartHeight()}); return LWC; }
+  el.style.height=chartHeight()+"px"; el.style.position="relative";
+  LWC=LightweightCharts.createChart(el,{
+    autoSize:true,
+    layout:{background:{type:"solid",color:"transparent"},textColor:tok("--muted"),fontFamily:"-apple-system,Segoe UI,Helvetica,Arial,sans-serif",fontSize:11,attributionLogo:true},
+    grid:{vertLines:{color:tok("--grid")},horzLines:{color:tok("--grid")}},
+    crosshair:{mode:LightweightCharts.CrosshairMode.Normal,vertLine:{color:tok("--line2"),labelBackgroundColor:tok("--panel2")},horzLine:{color:tok("--line2"),labelBackgroundColor:tok("--panel2")}},
+    rightPriceScale:{borderColor:tok("--line"),scaleMargins:{top:0.06,bottom:0.22}},
+    timeScale:{borderColor:tok("--line"),timeVisible:true,secondsVisible:false,rightOffset:2},
+    localization:{timeFormatter:t=>typeof t==="number"?new Date(t*1000).toISOString().slice(0,16).replace("T"," "):t},
+    handleScale:{axisPressedMouseMove:true}, handleScroll:true,
+  });
+  // the range is the window: whenever the box changes size (full screen, a narrower window), the bars refill it
+  if(window.ResizeObserver) new ResizeObserver(()=>{ if(LDATA.pts.length) LWC.timeScale().fitContent(); }).observe(el);
+  LWC.subscribeCrosshairMove(param=>{
+    const tip=document.getElementById("tip"); if(!tip) return;
+    if(!param.time||!param.point){ tip.style.display="none"; return; }
+    const key=typeof param.time==="number"?param.time:param.time;
+    const i=LDATA.times.indexOf(key); if(i<0){ tip.style.display="none"; return; }
+    const p=LDATA.pts[i], s=LDATA.S[i];
+    tip.innerHTML = mode==="drawdown"
+      ? `<div class="d">${s.d}</div><div class="v mono">${s.v.toFixed(1)}%</div>`
+      : (p.o!=null
+        ? `<div class="d">${s.d}</div><div class="v mono">${money(p.price)}</div><div class="d mono">O ${F(p.o)} · H ${F(p.h)} · L ${F(p.l)}</div>${p.v!=null?`<div class="d mono">Vol ${F(p.v,0)}</div>`:""}`
+        : `<div class="d">${s.d}</div><div class="v mono">${money(s.v)}</div>`);
+    tip.style.display="block"; tip.style.left="10px"; tip.style.top="8px";   // a legend at the top left, as charting screens do
+  });
+  return LWC;
+}
+function clearSeries(){ for(const s of LSERIES){ try{ LWC.removeSeries(s); }catch(e){} } LSERIES=[]; }
 function drawChart(){
   const el=document.getElementById("chart");
   if(!el)return;
   let pts=sliced();
   const loadingKey=range+"|"+interval;
+  const msg=document.getElementById("chartmsg");
   if(pts.length<2){
-    el.innerHTML=`<div class="dim" style="padding:30px">${BARS[loadingKey]==="loading"?"Fetching "+INTERVALS[interval].label+"…":"No "+INTERVALS[interval].label+" for this range on the free feed right now."}</div>`;
+    if(LWC) clearSeries();
+    if(msg){ msg.style.display=""; msg.textContent=BARS[loadingKey]==="loading"?"Fetching "+INTERVALS[interval].label+"…":"No "+INTERVALS[interval].label+" for this range on the free feed right now."; }
     const lbl0=document.getElementById("chartret"); if(lbl0) lbl0.innerHTML=""; return; }
+  if(msg) msg.style.display="none";
   const intra=isIntra(interval);
   const quarterly=!intra&&pts.length>1&&(Date.parse(pts[1].date)-Date.parse(pts[0].date)>45*864e5);
   let barNote=quarterly?"quarterly bars (the free record before ten years back)":INTERVALS[interval].label;
   const S=seriesFor(pts,intra);
-  const showVol = mode!=="drawdown" && pts.some(p=>p.v);
-  // native pixels: crisp type at every width
-  const w=Math.max(560, el.clientWidth||860);
-  const h=isFS ? Math.max(380, window.innerHeight-230) : 300;
-  const L=8, R=62, T=16, B=28;
-  const vh=showVol?Math.round((h-T-B)*0.16):0;           // volume strip
-  const pT=T, pB=h-B-(showVol?vh+10:0);                  // price plot bottom
-  const vals=S.map(s=>s.v);
-  const useCandles = mode==="candles" && !pts.some(p=>p.o==null);
-  let min,max;
-  if(useCandles){
-    min=Math.min(...pts.map(p=>p.l??p.price)); max=Math.max(...pts.map(p=>p.h??p.price));
-  }else{min=Math.min(...vals);max=Math.max(...vals);}
-  if(mode==="drawdown"){max=0;}
-  const pad=(max-min)*0.06||1; min-=pad; if(mode!=="drawdown")max+=pad;
-  const plotW=w-L-R;
-  const X=i=>L+(i/(S.length-1))*plotW, Y=v=>pT+(pB-pT)*(1-(v-min)/(max-min));
+  const chart=ensureChart(); clearSeries();
+  // one row per time, ascending: the feed can repeat a stamp at a session's edge
+  const rows=[]; const seen=new Set();
+  for(let i=0;i<pts.length;i++){ const t=toTime(pts[i].date); if(seen.has(t)) continue; seen.add(t); rows.push({t,p:pts[i],s:S[i]}); }
+  LDATA={pts:rows.map(r=>r.p),S:rows.map(r=>r.s),times:rows.map(r=>r.t)};
+  const vals=LDATA.S.map(s=>s.v);
   const lastV=vals[vals.length-1];
   const up = mode!=="drawdown" ? lastV>=vals[0] : lastV>=-0.001;
-  const col = mode==="drawdown" ? "var(--neg)" : (up?"var(--pos)":"var(--neg)");
-
-  // y grid
-  let gy=""; const step=niceStep(max-min);
-  for(let v=Math.ceil(min/step)*step; v<=max; v+=step){
-    const y=Y(v);
-    gy+=`<line x1="${L}" y1="${y}" x2="${w-R}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>
-      <text x="${w-R+8}" y="${y+4}" fill="var(--muted)" font-size="11">${mode!=="drawdown"?F(v,step<1?2:step<10?1:0):v.toFixed(0)+"%"}</text>`;
-  }
-  // x ticks — consecutive duplicate labels dropped (no more "2024 2024")
-  let gx=""; const xstep=Math.max(1,Math.floor(S.length/(isFS?9:6)));
-  let lastLbl="";
-  for(let i=0;i<S.length;i+=xstep){
-    const x=X(i); if(x<44||x>w-R-30)continue;
-    const lbl=xLabel(S[i].d); if(lbl===lastLbl)continue; lastLbl=lbl;
-    gx+=`<text x="${x}" y="${h-8}" fill="var(--muted)" font-size="10.5" text-anchor="middle">${lbl}</text>`;
-  }
-
-  // marks: candles or line
-  let marks="";
-  const cw=plotW/S.length;
-  if(mode==="candles" && useCandles && cw<1.0) barNote+=", drawn as a line at this width";
-  if(useCandles && cw>=1.0 && mode==="candles"){
-    // body follows the bar count: ~62% of its slot, never wider than 14px, so
-    // a 22-bar month reads as candles rather than slabs and a 130-bar week
-    // still reads as candles rather than a line; wick scales with the body
-    const bw=Math.max(0.8,Math.min(14,cw*0.62));
-    const wickW=Math.max(0.6,Math.min(2,bw*0.14));
-    for(let i=0;i<pts.length;i++){
-      const p=pts[i]; if(p.o==null)continue;
-      const close=p.price;
-      const x=X(i), o=Y(p.o), c=Y(close),
-            hi=Y(p.h??Math.max(p.o,close)), lo=Y(p.l??Math.min(p.o,close));
-      const bull=close>=p.o, cc=bull?"var(--pos)":"var(--neg)";
-      const top=Math.min(o,c), bh=Math.max(1.2,Math.abs(o-c));
-      marks+=`<line x1="${x}" y1="${hi}" x2="${x}" y2="${lo}" stroke="${cc}" stroke-width="${wickW}" opacity="0.9"/>
-        <rect x="${x-bw/2}" y="${top}" width="${bw}" height="${bh}" fill="${cc}" fill-opacity="0.95" rx="${bw>6?1.5:0.5}"/>`;
-    }
-    marks=`<g class="anim-rise">${marks}</g>`;
+  const pos=tok("--pos"), neg=tok("--neg"), col = mode==="drawdown" ? neg : (up?pos:neg);
+  const useCandles = mode==="candles" && !LDATA.pts.some(p=>p.o==null);
+  const pf={type:"price",precision:mode==="drawdown"?1:(lastV<10?3:2),minMove:mode==="drawdown"?0.1:(lastV<10?0.001:0.01)};
+  let main;
+  if(mode==="drawdown"){
+    main=chart.addSeries(LightweightCharts.BaselineSeries,{baseValue:{type:"price",price:0},topLineColor:pos,topFillColor1:"rgba(0,0,0,0)",topFillColor2:"rgba(0,0,0,0)",bottomLineColor:neg,bottomFillColor1:neg+"0a",bottomFillColor2:neg+"2e",lineWidth:2,priceFormat:{type:"custom",formatter:v=>v.toFixed(1)+"%",minMove:0.1},priceLineVisible:true,lastValueVisible:true});
+    main.setData(rows.map(r=>({time:r.t,value:+r.s.v.toFixed(2)})));
+  }else if(useCandles){
+    main=chart.addSeries(LightweightCharts.CandlestickSeries,{upColor:pos,downColor:neg,borderUpColor:pos,borderDownColor:neg,wickUpColor:pos,wickDownColor:neg,priceFormat:pf});
+    main.setData(rows.map(r=>({time:r.t,open:r.p.o,high:r.p.h??Math.max(r.p.o,r.p.price),low:r.p.l??Math.min(r.p.o,r.p.price),close:r.p.price})));
   }else{
-    const line=S.map((s,i)=>`${X(i).toFixed(1)},${Y(s.v).toFixed(1)}`).join(" ");
-    const base = mode==="drawdown" ? Y(0) : pB;
-    marks=`<polygon class="anim-fade" points="${X(0)},${base} ${line} ${X(S.length-1)},${base}" fill="url(#fade)"/>
-      <polyline class="drawline" pathLength="1" points="${line}" fill="none" stroke="${col}" stroke-width="2"
-        stroke-linejoin="round" stroke-linecap="round"/>`;
+    main=chart.addSeries(LightweightCharts.AreaSeries,{lineColor:col,topColor:col+"33",bottomColor:col+"03",lineWidth:2,priceFormat:pf});
+    main.setData(rows.map(r=>({time:r.t,value:r.s.v})));
   }
-
-  // moving averages — computed on DAILY closes, joined to visible bars by
-  // date (index-joining breaks once long ranges resample to weekly/monthly)
-  let mas="", legend="";
-  // only the daily stretch feeds an average; the quarterly years before it would
-  // make the first fifty days' average a blend of days and quarters
+  LSERIES.push(main);
+  // moving averages on DAILY closes, joined to the visible bars by date
+  let legend="";
   let d0=0; for(let i=HIST.length-1;i>0;i--) if(Date.parse(HIST[i].date)-Date.parse(HIST[i-1].date)>45*864e5){d0=i;break;}
   const DAILY=HIST.slice(d0);
-  if(!intra && mode!=="drawdown" && DAILY.length>50 && barNote!=="quarterly bars"){
+  if(!intra && mode!=="drawdown" && DAILY.length>50 && !quarterly){
     const closes=DAILY.map(p=>p.price);
-    for(const [n,mcol,name] of [[50,"var(--amber)","MA50"],[200,"var(--cyan)","MA200"]]){
+    for(const [n,mcol,name] of [[50,tok("--amber"),"MA50"],[200,tok("--cyan"),"MA200"]]){
       if(DAILY.length<n+5)continue;
       const m=sma(closes,n), byDate={};
       for(let i=0;i<DAILY.length;i++) if(m[i]!=null) byDate[DAILY[i].date]=m[i];
-      const seg=[];
-      for(let i=0;i<pts.length;i++){
-        const v=byDate[pts[i].date];
-        if(v!=null&&v>=min&&v<=max)seg.push(`${X(i).toFixed(1)},${Y(v).toFixed(1)}`);
-      }
+      const seg=rows.filter(r=>byDate[r.p.date]!=null).map(r=>({time:r.t,value:byDate[r.p.date]}));
       if(seg.length>2){
-        mas+=`<polyline points="${seg.join(" ")}" fill="none" stroke="${mcol}" stroke-width="1.3" opacity="0.75"/>`;
+        const ls=chart.addSeries(LightweightCharts.LineSeries,{color:mcol,lineWidth:1,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
+        ls.setData(seg); LSERIES.push(ls);
         legend+=`<span style="color:${mcol};font-size:10px;margin-left:10px">— ${name}</span>`;
       }
     }
   }
-
-  // volume strip
-  let vol="";
-  if(showVol){
-    const vmax=Math.max(...pts.map(p=>p.v||0))||1;
-    const vT=pB+8, vB2=h-B;
-    const vw=Math.max(1,Math.min(14,cw*0.62));
-    for(let i=0;i<pts.length;i++){
-      const p=pts[i]; if(!p.v)continue;
-      const vhgt=Math.max(1,(p.v/vmax)*(vB2-vT));
-      const cc=(p.o!=null&&p.price<p.o)?"var(--neg)":"var(--pos)";
-      vol+=`<rect x="${X(i)-vw/2}" y="${vB2-vhgt}" width="${vw}" height="${vhgt}" fill="${cc}" opacity="0.35"/>`;
-    }
-    vol=`<g class="anim-fade">${vol}<text x="${L+2}" y="${vT+9}" fill="var(--muted)" font-size="9" letter-spacing=".08em">VOLUME</text></g>`;
+  // volume below the price, on its own scale
+  if(mode!=="drawdown" && LDATA.pts.some(p=>p.v)){
+    const vs=chart.addSeries(LightweightCharts.HistogramSeries,{priceFormat:{type:"volume"},priceScaleId:"vol",priceLineVisible:false,lastValueVisible:false});
+    chart.priceScale("vol").applyOptions({scaleMargins:{top:0.82,bottom:0}});
+    vs.setData(rows.map(r=>({time:r.t,value:r.p.v||0,color:(r.p.o!=null?r.p.price>=r.p.o:true)?pos+"66":neg+"66"})));
+    LSERIES.push(vs);
   }
-
-  // last-value pill
-  const ly=Math.max(pT+9,Math.min(pB-9,Y(lastV)));
-  const pill=`<g class="anim-fade"><rect x="${w-R+2}" y="${ly-10}" width="${R-6}" height="20" rx="5" fill="${col}"/>
-    <text x="${w-R+2+(R-6)/2}" y="${ly+4}" fill="var(--bg)" font-size="11" font-weight="700" text-anchor="middle">${mode!=="drawdown"?F(lastV,lastV<100?2:lastV<10000?1:0):lastV.toFixed(1)+"%"}</text></g>`;
-
-  el.innerHTML=`<svg id="csvg" width="${w}" height="${h}" style="display:block">
-    <defs><linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${col}" stop-opacity="${mode==="drawdown"?0.02:0.20}"/>
-      <stop offset="100%" stop-color="${col}" stop-opacity="${mode==="drawdown"?0.25:0.01}"/>
-    </linearGradient></defs>
-    ${gy}${gx}${vol}${marks}${mas}${pill}
-    <line id="xh" x1="0" y1="${pT}" x2="0" y2="${h-B}" stroke="var(--ink2)" stroke-width="0.8" stroke-dasharray="3 3" style="display:none"/>
-    <circle id="xdot" r="4" fill="${col}" stroke="var(--bg)" stroke-width="1.6" style="display:none"/>
-  </svg>`;
+  chart.timeScale().fitContent();
   const ret = mode!=="drawdown" ? (vals[vals.length-1]/vals[0]-1)*100 : null;
   const maxdd = mode!=="drawdown" ? null : Math.min(...vals);
   const lbl=document.getElementById("chartret");
   if(lbl) lbl.innerHTML = (mode!=="drawdown"
     ? `<span class="rangeret mono ${cls(ret)}">${pct(ret)}</span> <span class="dim">over ${range}${barNote?" · "+barNote:""}</span>`
     : `<span class="rangeret mono neg">${maxdd.toFixed(1)}%</span> <span class="dim">deepest in ${range} · % below the running peak of all loaded history</span>`)+legend;
-
-  const svg=document.getElementById("csvg"), tip=document.getElementById("tip");
-  svg.addEventListener("mousemove",ev=>{
-    const r=svg.getBoundingClientRect();
-    let i=Math.round(((ev.clientX-r.left)-L)/plotW*(S.length-1));
-    i=Math.max(0,Math.min(S.length-1,i));
-    const x=X(i),y=Y(S[i].v);
-    const xh=document.getElementById("xh"),xd=document.getElementById("xdot");
-    xh.setAttribute("x1",x);xh.setAttribute("x2",x);xh.style.display="block";
-    xd.setAttribute("cx",x);xd.setAttribute("cy",y);xd.style.display="block";
-    tip.style.display="block";
-    const p=pts[i];
-    tip.innerHTML = mode==="drawdown"
-      ? `<div class="d">${S[i].d}</div><div class="v mono">${S[i].v.toFixed(1)}%</div>`
-      : (p.o!=null
-        ? `<div class="d">${S[i].d}</div><div class="v mono">${money(p.price)}</div>
-           <div class="d mono">O ${F(p.o)} · H ${F(p.h)} · L ${F(p.l)}</div>
-           ${p.v!=null?`<div class="d mono">Vol ${F(p.v,0)}</div>`:""}`
-        : `<div class="d">${S[i].d}</div><div class="v mono">${money(S[i].v)}</div>`);
-    const wrap=document.getElementById("chartwrap").getBoundingClientRect();
-    let tx=ev.clientX-wrap.left+14; if(tx>wrap.width-150)tx-=170;
-    tx=Math.max(4,tx);
-    let ty=ev.clientY-wrap.top-16;
-    ty=Math.max(4,Math.min(wrap.height-86,ty));   // keep the tip inside the panel
-    tip.style.left=tx+"px"; tip.style.top=ty+"px";
-  });
-  svg.addEventListener("mouseleave",()=>{tip.style.display="none";
-    document.getElementById("xh").style.display="none";
-    document.getElementById("xdot").style.display="none";});
 }
 function renderRangeSeg(){
   const seg=document.getElementById("rangeseg");
@@ -502,7 +448,7 @@ function chartPanel(){
       <button class="fsbtn" id="fsbtn" title="Full screen (Esc closes)">⛶ Full screen</button>
     </div>
     <div id="snapmsg" style="display:none;padding:8px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--ink2);line-height:1.5"></div>
-    <div class="panel-b" id="chartwrap"><div id="tvwrap" style="height:480px;display:none"></div><div id="chart"></div><div id="tip"></div></div>
+    <div class="panel-b" id="chartwrap"><div id="tvwrap" style="height:480px;display:none"></div><div id="chartmsg" class="dim" style="display:none;padding:30px"></div><div id="chart"></div><div id="tip"></div></div>
   </section>`;
 }
 function bindChart(){
@@ -522,7 +468,7 @@ function bindChart(){
     drawChart();});
   document.getElementById("fsbtn").onclick=toggleFS;
   document.getElementById("snapbtn").onclick=snapChart;
-  window.addEventListener("resize",()=>drawChart());
+  window.addEventListener("resize",()=>{ if(LWC) LWC.applyOptions({height:chartHeight()}); });
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&isFS)toggleFS();});
   setChartSource(chartSource(),false,true);
 }
@@ -536,19 +482,16 @@ function chartWords(){ return ((document.getElementById("chartret")||{}).innerTe
 function calQuarter(d){ return "Q"+(Math.floor(d.getMonth()/3)+1)+" "+d.getFullYear(); }
 function stamp(d){ const z=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`; }
 async function deskChartPNG(){
-  const svg=document.querySelector("#chart svg"); if(!svg) return null;
-  const cs=getComputedStyle(document.documentElement);
-  const w=+svg.getAttribute("width"), h=+svg.getAttribute("height"), cap=22;
-  // the page's colour variables are resolved, since the picture carries no stylesheet
-  const xml=new XMLSerializer().serializeToString(svg).replace(/var\((--[a-z0-9-]+)\)/g,(m,v)=>cs.getPropertyValue(v).trim()||"#888").replace(/ style="display:none"/g,' visibility="hidden"');
-  const img=new Image(); const url=URL.createObjectURL(new Blob([xml],{type:"image/svg+xml;charset=utf-8"}));
-  await new Promise((ok,no)=>{ img.onload=ok; img.onerror=no; img.src=url; });
-  const c=document.createElement("canvas"); const k=2; c.width=w*k; c.height=(h+cap)*k;
+  if(!LWC||!LDATA.pts.length) return null;
+  const shot=LWC.takeScreenshot();       // the chart as drawn, at the screen's own pixel density
+  const cs=getComputedStyle(document.documentElement), k=window.devicePixelRatio||1, cap=22;
+  const w=shot.width/k, h=shot.height/k;
+  const c=document.createElement("canvas"); c.width=shot.width; c.height=shot.height+cap*k;
   const g=c.getContext("2d"); g.scale(k,k);
   g.fillStyle=cs.getPropertyValue("--panel").trim()||"#111"; g.fillRect(0,0,w,h+cap);
   g.fillStyle=cs.getPropertyValue("--ink2").trim()||"#ccc"; g.font="600 11px -apple-system,Segoe UI,Helvetica,Arial,sans-serif";
   g.fillText(`${SYM} · ${range} · ${chartWords()} · ${stamp(new Date())}`,10,15);
-  g.drawImage(img,0,cap,w,h); URL.revokeObjectURL(url);
+  g.drawImage(shot,0,0,shot.width,shot.height,0,cap,w,h);
   return new Promise(ok=>c.toBlob(ok,"image/png"));
 }
 async function saveClipping(blob,how){
@@ -582,6 +525,7 @@ function toggleFS(){
   document.body.style.overflow=isFS?"hidden":"";
   document.getElementById("fsbtn").textContent=isFS?"✕ Close":"⛶ Full screen";
   const tv=document.getElementById("tvwrap"); if(tv) tv.style.height=isFS?"calc(100vh - 90px)":"480px";
+  const box=document.getElementById("chart"); if(box) box.style.height=chartHeight()+"px";
   if(chartSource()!=="tv"||document.getElementById("srcnote").textContent.startsWith("TradingView's chart could not")) drawChart();
 }
 

@@ -213,4 +213,4 @@ This is an investment research tool, published for educational purposes by Shiks
 
 ## Licence
 
-MIT, copyright Shikshan Nivesh and Shubham Borkar. See `LICENSE`. GreekSoup is a Shikshan Nivesh product; Alpha with AI is our newsletter.
+MIT, copyright Shikshan Nivesh and Shubham Borkar. See `LICENSE`. GreekSoup is a Shikshan Nivesh product; Alpha with AI is our newsletter. The desk's own price chart is drawn by TradingView Lightweight Charts™ (Apache-2.0, `web/assets/lightweight-charts.LICENSE`), whose mark stays on the chart as its licence asks; the TradingView chart on a listing's page is their own embedded chart, under their terms.
