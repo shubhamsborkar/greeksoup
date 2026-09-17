@@ -23,8 +23,9 @@ EXAMPLE_PATH = os.path.join(HERE, ".env.example")
 
 # name -> (secret?, one-line meaning). Every broker file adds its own fields.
 ALLOWED = {
-    "BROKER": (False, "which broker file Desk · Home reads through"),
-    "HOME_MARKET": (False, "the home market file, when no broker sets it"),
+    "BROKER": (False, "the home broker file (kept for older copies; BROKERS lists them all)"),
+    "BROKERS": (False, "the brokers Desk · Home reads through, one per market, the home one first"),
+    "HOME_MARKET": (False, "the home market file; the reader's choice, else the home broker's market"),
     "DATA_PROVIDER": (False, "fmp, or the name of a provider module the reader's agent wrote"),
     "FMP_API_KEY": (True, "Financial Modeling Prep key, optional"),
     "DATA_API_KEY": (True, "another data provider's key, optional"),

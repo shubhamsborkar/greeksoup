@@ -74,17 +74,28 @@ def all_meta():
     return out
 
 
-def active_id():
-    """The broker the reader chose. A copy set up before the picker existed has
-    one broker's keys and no BROKER line; the first configured file counts."""
+def active_ids():
+    """The brokers the reader connected, in order: BROKERS=zerodha_kite,alpaca in .env (one per
+    market; the first is the home one), else the single BROKER line, else, for a copy set up
+    before the picker existed, the first configured file."""
+    raw = (os.getenv("BROKERS", "") or "").strip().lower()
+    ids = [b.strip() for b in raw.split(",") if b.strip() in REGISTRY]
+    if ids:
+        return ids
     bid = (os.getenv("BROKER", "") or "").strip().lower()
     if bid in REGISTRY:
-        return bid
+        return [bid]
     if bid in ("", "none"):
         for cand in REGISTRY:
             if configured(cand):
-                return cand
-    return ""
+                return [cand]
+    return []
+
+
+def active_id():
+    """The home broker: the first of the connected ones."""
+    ids = active_ids()
+    return ids[0] if ids else ""
 
 
 def config(broker_id):
@@ -107,7 +118,9 @@ def configured(broker_id):
 
 
 # ---- today's token for daily-login brokers -----------------------------------
-# One file, session_token_primary.txt, a date line then the token; gitignored.
+# One file per broker, session_token_<broker>.txt, a date line then the token; gitignored.
+# The home broker also reads the older session_token_primary.txt, so a copy that logged in
+# before brokers had files of their own keeps its session.
 TOKEN_PATH = os.path.join(ROOT, "session_token_primary.txt")
 
 
@@ -115,9 +128,14 @@ def _today():
     return datetime.now().strftime("%Y-%m-%d")
 
 
-def read_token():
+def token_path(broker_id=None):
+    bid = (broker_id or active_id() or "").strip().lower()
+    return os.path.join(ROOT, f"session_token_{bid}.txt") if bid else TOKEN_PATH
+
+
+def _read_token_file(path):
     try:
-        with open(TOKEN_PATH, encoding="utf-8") as fh:
+        with open(path, encoding="utf-8") as fh:
             date_line = fh.readline().strip()
             token = fh.readline().strip()
     except OSError:
@@ -125,16 +143,25 @@ def read_token():
     return token if (date_line == _today() and token) else None
 
 
-def write_token(token):
-    with open(TOKEN_PATH, "w", encoding="utf-8") as fh:
+def read_token(broker_id=None):
+    bid = broker_id or active_id()
+    tok = _read_token_file(token_path(bid))
+    if tok is None and bid == active_id():
+        tok = _read_token_file(TOKEN_PATH)
+    return tok
+
+
+def write_token(token, broker_id=None):
+    with open(token_path(broker_id), "w", encoding="utf-8") as fh:
         fh.write(f"{_today()}\n{token}\n")
 
 
-def clear_token():
-    try:
-        os.remove(TOKEN_PATH)
-    except OSError:
-        pass
+def clear_token(broker_id=None):
+    for path in {token_path(broker_id), TOKEN_PATH} if (broker_id or active_id()) == active_id() else {token_path(broker_id)}:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
 
 
 # ---- helpers shared by the adapters ------------------------------------------

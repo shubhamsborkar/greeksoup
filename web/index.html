@@ -51,6 +51,7 @@ main{max-width:1440px;margin:0 auto;padding:18px 22px}
 .family-strip{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:14px}
 .mid{grid-template-columns:1fr 380px;margin-bottom:14px}
 .accounts{grid-template-columns:1fr 1fr}
+.desk-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap} .desk-head h2{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink);margin:0} .desk-head span{font-size:12px;color:var(--muted)}
 @media(max-width:1100px){.mid{grid-template-columns:1fr}.accounts{grid-template-columns:1fr}}
 
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -455,30 +456,45 @@ function render(snap){
   LOCALE = (snap.market && snap.market.locale) || "";
   const anyLimit = Object.values(acc).some(a=>a.totals.limit_total!=null);
   const anyFno = Object.values(acc).some(a=>(a.futures&&a.futures.length)||a.totals.fno_mtm);
-  const fam={eq:0,pnl:0,mtm:0,cash:0,free:0,blocked:0,limit:0};
-  for(const a of Object.values(acc)){
-    fam.eq+=a.totals.equity_value||0; fam.pnl+=a.totals.equity_pnl||0;
-    fam.mtm+=a.totals.fno_mtm||0; fam.cash+=a.totals.cash||0;
-    fam.free+=a.totals.free_limit||0; fam.blocked+=a.totals.blocked||0;
-    fam.limit+=a.totals.limit_total||0;
-  }
-  const famUtil = fam.limit?(fam.blocked/fam.limit*100):null;
+  // one desk per broker market: the home market's, the US, the rest of the world; each has its
+  // own strip in its own currency and its own account panels, and nothing is added across desks
+  const DESKS=[["home",(snap.market&&snap.market.label)?"Home desk · "+snap.market.label:"Home desk"],["us","US desk"],["global","Global desk"]];
+  const groups=DESKS.map(([k,l])=>({key:k,label:l,accounts:Object.entries(acc).filter(([n,a])=>(a.desk||"home")===k)})).filter(g=>g.accounts.length);
+  const deskBlock=g=>{
+    const kept=CCY; CCY=(g.accounts[0][1].currency)||kept;
+    const fam={eq:0,pnl:0,mtm:0,cash:0,free:0,blocked:0,limit:0};
+    for(const [,a] of g.accounts){
+      fam.eq+=a.totals.equity_value||0; fam.pnl+=a.totals.equity_pnl||0;
+      fam.mtm+=a.totals.fno_mtm||0; fam.cash+=a.totals.cash||0;
+      fam.free+=a.totals.free_limit||0; fam.blocked+=a.totals.blocked||0;
+      fam.limit+=a.totals.limit_total||0;
+    }
+    const famUtil = fam.limit?(fam.blocked/fam.limit*100):null;
+    const gLimit=g.accounts.some(([,a])=>a.totals.limit_total!=null), gFno=g.accounts.some(([,a])=>(a.futures&&a.futures.length)||a.totals.fno_mtm);
+    const h=`${groups.length>1?`<div class="desk-head" style="margin:${g===groups[0]?"0":"22px"} 0 8px"><h2>${g.label}</h2><span>${g.accounts.map(([,a])=>a.broker+(a.label?" · "+a.label:"")).join(" · ")}</span></div>`:""}
+    <div class="grid family-strip">
+      ${tile("Holdings", money(fam.eq))}
+      ${tile("P&L since cost", signed(fam.pnl), cls(fam.pnl),
+        pct(fam.eq-fam.pnl ? fam.pnl/(fam.eq-fam.pnl)*100 : null))}
+      ${gFno?tile("Futures & options", signed(fam.mtm), cls(fam.mtm)):""}
+      ${tile("Cash", money(fam.cash))}
+      ${gLimit?tile("Free trading limit", money(fam.free), "", "cash + collateral headroom"):""}
+      ${gLimit?tile("Margin used", famUtil!=null?famUtil.toFixed(1)+"%":"—",
+        famUtil>75?"neg":famUtil>50?"":"", `blocked ${money(fam.blocked)}`, utilBar(famUtil)):""}
+    </div>
+    <div class="grid accounts">
+      ${g.accounts.map(([n,a])=>accountPanel(n,a)).join("")}
+    </div>`;
+    CCY=kept; return h;
+  };
 
   const app=document.getElementById("app");
   const firstPaint = app.className.includes("loading");
   app.className = firstPaint ? "firstpaint" : "";
   if(firstPaint) setTimeout(()=>app.classList.remove("firstpaint"), 1600);
+  const homeGroup=groups.find(g=>g.key==="home"), otherGroups=groups.filter(g=>g.key!=="home");
   app.innerHTML=`${ribbon}
-    <div class="grid family-strip">
-      ${tile("Holdings", money(fam.eq))}
-      ${tile("P&L since cost", signed(fam.pnl), cls(fam.pnl),
-        pct(fam.eq-fam.pnl ? fam.pnl/(fam.eq-fam.pnl)*100 : null))}
-      ${anyFno?tile("Futures & options", signed(fam.mtm), cls(fam.mtm)):""}
-      ${tile("Cash", money(fam.cash))}
-      ${anyLimit?tile("Free trading limit", money(fam.free), "", "cash + collateral headroom"):""}
-      ${anyLimit?tile("Margin used", famUtil!=null?famUtil.toFixed(1)+"%":"—",
-        famUtil>75?"neg":famUtil>50?"":"", `blocked ${money(fam.blocked)}`, utilBar(famUtil)):""}
-    </div>
+    ${homeGroup?deskBlock(homeGroup):""}
     ${(anyFno||tapeData&&tapeData.names&&tapeData.names.length)?`<div class="grid mid">
       <section class="panel">
         <div class="panel-h"><h2>Futures &amp; options</h2><span class="sub">open positions, every account · click headers to sort</span></div>
@@ -489,9 +505,7 @@ function render(snap){
         <div id="tape">${tapePanel(tapeData)}</div>
       </section>
     </div>`:""}
-    <div class="grid accounts">
-      ${Object.entries(acc).map(([n,a])=>accountPanel(n,a)).join("")}
-    </div>
+    ${otherGroups.map(deskBlock).join("")}
     ${resultsAvail===false?"":`<section class="panel" style="margin-top:14px">
       <div class="panel-h"><h2>Upcoming results · Home</h2>
         <span class="sub" id="einsub">results dates for the home watchlist, from the exchange's public calendar</span></div>

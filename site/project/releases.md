@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.77. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.78. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.78
+
+*16 September 2026, release 78.* One broker per market, each its own desk. Settings connects a broker per market (Zerodha for India, Alpaca for the US, Interactive Brokers for the world) and lists them; each is an account of its own on Desk · Home, on the desk its market belongs to (the home market's desk, the US desk, the global desk), with its own strip in its own currency, and nothing is added across desks. The home broker is the one in the reader's home market; the home market is the reader's own choice on Settings, and only follows a broker when no choice is made. A daily-login broker keeps its own login for the day. A second broker in a market already covered is refused for now, with the words saying so. Desk · Book stays the book kept by hand for anyone without a broker or a key.
 
 ## 2026-09-16.77
 

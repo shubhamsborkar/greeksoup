@@ -91,7 +91,8 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   <div class="panel" data-tab="connect">
     <div class="panel-h"><h2>Broker</h2><span class="st" id="b_status"></span></div>
     <div class="body">
-      <div class="row"><label for="b_pick">Your broker</label><select id="b_pick"></select></div>
+      <div id="b_list"></div>
+      <div class="row"><label for="b_pick" id="b_picklbl">Your broker</label><select id="b_pick"></select></div>
       <div class="row"><span></span><div class="hint" id="b_how"></div></div>
       <div id="b_fields"></div>
       <div class="btns" id="b_btns"><button id="b_save">Save and connect</button><button class="ghost" id="b_test">Check the connection</button><button class="ghost" id="b_clear">Remove the keys</button></div>
@@ -299,7 +300,7 @@ function metaOf(id){ return (S.brokers||[]).find(b=>b.id===id); }
 
 /* ---------- broker ---------- */
 function brokerFields(id){
-  const m=metaOf(id); const active=S.broker.id===id ? S.broker : null;
+  const m=metaOf(id); const active=(S.connected||[]).find(c=>c.id===id) || (S.broker.id===id ? S.broker : null);
   if(!m){ $("b_fields").innerHTML=""; $("b_how").textContent=""; return; }
   $("b_how").innerHTML=esc(m.how)+(m.docs?` <a href="${esc(m.docs)}" target="_blank" rel="noopener" style="color:var(--accent)">The broker's own page.</a>`:"");
   let h="";
@@ -314,14 +315,31 @@ function brokerFields(id){
   }
   $("b_fields").innerHTML=h;
 }
+/* One broker per market, each an account of its own on Desk · Home (the home market's desk,
+   the US desk, the global desk), never added together. The list shows what is connected; the
+   picker below adds another or edits one. */
+const DESK_NAME={home:"home desk",us:"US desk",global:"global desk"};
+function brokerLine(c){
+  const mk=((S.markets||[]).find(m=>m.id===c.region)||{}).label||c.region||"";
+  const state=c.connected?`connected as ${esc(c.account||"account")}`:c.configured?(c.daily_login?(c.token_today?"today's login saved, session not up":"keys saved, no login today"):"keys saved, not connected"):"keys not saved";
+  return `<div class="row" style="align-items:center"><label>${esc(c.label)}</label><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px">
+    <span class="dim">${esc(mk)} · ${DESK_NAME[c.desk]||"its own desk"}</span><span class="${c.connected?"ok":"warn"}" style="color:${c.connected?"var(--pos)":"var(--amber)"}">${state}</span>
+    <button class="ghost" data-edit="${c.id}" type="button" style="padding:3px 9px;font-size:11.5px">${c.daily_login&&!c.connected&&c.configured?"Log in today":"Keys"}</button>
+    <button class="ghost" data-check="${c.id}" type="button" style="padding:3px 9px;font-size:11.5px" ${c.configured?"":"disabled"}>Check</button>
+    <button class="ghost" data-rm="${c.id}" type="button" style="padding:3px 9px;font-size:11.5px">Remove</button></div></div>`;
+}
 function renderBroker(s){
-  const b=s.broker; const pick=$("b_pick"); const cur=pick.value;
-  pick.innerHTML=`<option value="">No broker: keep the book by hand</option>`+(s.brokers||[]).map(m=>`<option value="${m.id}">${esc(m.label)} · ${esc(m.where)}</option>`).join("")+`<option value="other">Another broker</option>`;
-  pick.value = cur && cur!==b.id && document.activeElement===pick ? cur : (b.id||"");
+  const b=s.broker; const pick=$("b_pick"); const cur=pick.value; const con=s.connected||[];
+  $("b_list").innerHTML=con.length?con.map(brokerLine).join("")+`<div class="hint" style="margin:2px 0 12px">Each broker is its own desk on Desk · Home, in its own currency; a second broker in a market already covered comes later.</div>`:"";
+  $("b_list").querySelectorAll("[data-edit]").forEach(x=>x.onclick=()=>{ pick.value=x.dataset.edit; onPick(false); $("b_fields").scrollIntoView({block:"center"}); });
+  $("b_list").querySelectorAll("[data-check]").forEach(x=>x.onclick=async()=>{ say("b_msg","Asking the broker…"); const r=await post("/api/settings/broker/test",{broker:x.dataset.check}); if(r.state) render(r.state); say("b_msg", r.ok?`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}.`:(r.error||"not connected"), r.ok?"ok":"err"); });
+  $("b_list").querySelectorAll("[data-rm]").forEach(x=>x.onclick=async()=>{ const m=metaOf(x.dataset.rm); if(!confirm(`Take ${m?m.label:"this broker"} off this desk and remove its keys?`)) return; const r=await post("/api/settings/broker/remove",{broker:x.dataset.rm,keys:true}); if(r.state) render(r.state); say("b_msg", r.ok?"Removed.":(r.error||"could not remove"), r.ok?"ok":"err"); });
+  $("b_picklbl").textContent=con.length?"Add or edit a broker":"Your broker";
+  pick.innerHTML=(con.length?`<option value="">Pick a broker to add or edit</option>`:`<option value="">No broker: keep the book by hand</option>`)+(s.brokers||[]).map(m=>`<option value="${m.id}">${esc(m.label)} · ${esc(m.where)}${con.some(c=>c.id===m.id)?" · on this desk":""}</option>`).join("")+`<option value="other">Another broker</option>`;
+  pick.value = cur && document.activeElement===pick ? cur : (con.length?(con.some(c=>c.id===cur)?cur:""):(b.id||""));
   onPick(true);
-  if(b.connected) st("b_status",`${b.label} connected · ${b.account||"account"} live`,"on");
-  else if(b.id && b.configured) st("b_status", b.daily_login ? (b.token_today?"keys saved · today's login saved, session not up":"keys saved · no login today") : "keys saved · not connected","warn");
-  else if(b.id) st("b_status", b.label+" chosen · keys not saved","warn");
+  const live=con.filter(c=>c.connected).length;
+  if(con.length) st("b_status", `${live} of ${con.length} connected`, live===con.length?"on":"warn");
   else st("b_status","no broker connected");
   renderMarket(s);
 }
@@ -334,16 +352,15 @@ function renderMarket(s){
   const ms=s.markets||[];
   const grp=(title,rows)=>rows.length?`<optgroup label="${esc(title)}">`+rows.map(m=>`<option value="${m.id}">${esc(m.label)} · ${esc(m.currency)}${m.exchanges.length?" · "+esc(m.exchanges.join(", ")):""}</option>`).join("")+`</optgroup>`:"";
   pick.innerHTML = (brokerRegion
-    ? `<option value="">Follows the broker: ${esc(brokerLabel||brokerRegion)}</option>`
+    ? `<option value="">Follows the home broker: ${esc(brokerLabel||brokerRegion)}</option>`
     : `<option value="">None: the home screens stay global</option>`)
     + grp("Full public record: calendar, filings, macro", ms.filter(m=>m.record==="full"))
     + grp("Quotes, the session and the index from the free feed", ms.filter(m=>m.record==="quotes"))
     + grp("Currency and the world index; no exchange on the free feed yet", ms.filter(m=>m.record==="currency"));
-  pick.value = brokerRegion ? "" : (s.home_market||"");
-  pick.disabled = !!brokerRegion;
-  const cur=ms.find(m=>m.id===(brokerRegion||s.home_market));
-  if(cur && !brokerRegion) say("m_msg",`${esc(cur.label)}: ${esc(cur.currency)}${cur.exchanges.length?", "+esc(cur.exchanges.join(" and ")):", no exchange on the free feed"}, Risk against ${esc(cur.benchmark_label)}.`);
-  if(brokerRegion && s.home_market && s.home_market!==brokerRegion) say("m_msg",`The broker sets the market while it is connected; your own choice (${esc(s.home_market)}) applies when no broker is chosen.`);
+  pick.value = s.home_market||"";
+  pick.disabled = false;
+  const cur=ms.find(m=>m.id===(s.home_market||brokerRegion));
+  if(cur) say("m_msg",`${esc(cur.label)}: ${esc(cur.currency)}${cur.exchanges.length?", "+esc(cur.exchanges.join(" and ")):", no exchange on the free feed"}, Risk against ${esc(cur.benchmark_label)}.${brokerRegion&&s.home_market&&s.home_market!==brokerRegion?" Your choice; the brokers keep their own desks.":""}`);
 }
 $("m_pick").onchange=async()=>{
   const v=$("m_pick").value; say("m_msg","Saving…");
@@ -381,16 +398,18 @@ function onPick(silent){
       window.deskAsk(`Write a broker file for ${n}${c?" ("+c+")":""} so this desk can read an account there. Follow brokers/README.md: copy the closest shipped file in brokers/, keep the same function names, fill META from the broker's own API documentation${d?" at "+d:""}, read-only throughout, and add the file to REGISTRY in brokers/__init__.py. If the broker publishes no API for individuals, say so and change nothing.`,"build");
       say("fb_msg","The request is in the Ask box, in Build mode. Press Ask there; the file appears in the picker above after the next reload.","ok"); };
   }
-  const daily = m && m.daily_login && id===b.id;
+  const c=(S.connected||[]).find(x=>x.id===id); const bb=c||b;
+  const daily = m && m.daily_login && !!c;
   $("b_tokenblock").style.display = daily ? "" : "none";
-  if(daily){
+  if(daily){ const b=bb;
     $("b_tokhint").innerHTML = esc(b.token_hint||"") + ` If the redirect address in your broker app is <span class="mono">http://localhost:${S.desk.port}/settings</span>, it arrives here by itself.`;
     $("b_token").placeholder = b.token_param ? `the value after ${b.token_param}=` : "the token";
     $("b_tok").innerHTML = b.connected ? `<b>Live.</b> The account is connected for today${b.account?" as "+esc(b.account):""}.` : b.token_today ? `<b>Saved for today</b>, but the session is not up. Log in again for a fresh one.` : b.configured ? `<b>Not yet today.</b> Desk · Home shows the last saved book until you log in.` : `Save the keys first.`;
     $("b_login").disabled=!b.login_url; $("b_connect").disabled=!b.configured;
   }
-  $("b_test").disabled = !(id && id===b.id && b.configured);
-  $("b_clear").disabled = !(id && id===b.id);
+  $("b_test").disabled = !(c && c.configured);
+  $("b_clear").disabled = !c;
+  $("b_save").textContent = c ? "Save and connect" : (S.connected||[]).length ? "Add and connect" : "Save and connect";
   if(!silent) say("b_msg","");
 }
 function collectBroker(){
@@ -402,25 +421,26 @@ $("b_pick").onchange=()=>onPick(false);
 $("b_save").onclick=async()=>{
   const id=$("b_pick").value; if(id==="other") return;
   say("b_msg", id?"Saving, then asking the broker…":"Saving…");
-  const r=await post("/api/settings/broker",{broker:id, fields:collectBroker()});
+  if(!id && (S.connected||[]).length) return say("b_msg","Pick a broker to add or edit; Remove on a row takes one off.","err");
+  const r=await post("/api/settings/broker",{broker:id, fields:collectBroker(), add:true});
   if(r.state) render(r.state);
   if(!id) return say("b_msg","No broker. Desk · Home shows nothing until one is chosen; Desk · Book works by hand.","ok");
   if(r.ok && r.saved_only) say("b_msg","Keys saved. Now log in for today below.","ok");
   else if(r.ok) say("b_msg",`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}. Desk · Home is live.`,"ok");
   else say("b_msg",r.error||"could not connect","err");
 };
-$("b_test").onclick=async()=>{ say("b_msg","Asking the broker…"); const r=await post("/api/settings/broker/test",{}); if(r.state) render(r.state); say("b_msg", r.ok?`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}.`:(r.error||"not connected"), r.ok?"ok":"err"); };
+$("b_test").onclick=async()=>{ say("b_msg","Asking the broker…"); const r=await post("/api/settings/broker/test",{broker:$("b_pick").value}); if(r.state) render(r.state); say("b_msg", r.ok?`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}.`:(r.error||"not connected"), r.ok?"ok":"err"); };
 $("b_clear").onclick=async()=>{
   const id=$("b_pick").value; const m=metaOf(id); if(!m) return;
-  if(!confirm(`Remove the ${m.label} keys from this desk?`)) return;
-  const fields={}; for(const f of m.fields) fields[f.env]=f.switch?"off":"";
-  const r=await post("/api/settings/broker",{broker:"", fields:{}}); await post("/api/settings/save",fields);
-  if(r.state) load(); say("b_msg","Removed. Desk · Home goes dark until a broker is chosen again.","ok");
+  if(!confirm(`Take ${m.label} off this desk and remove its keys?`)) return;
+  const r=await post("/api/settings/broker/remove",{broker:id, keys:true});
+  if(r.state) render(r.state); say("b_msg", r.ok?"Removed.":(r.error||"could not remove"), r.ok?"ok":"err");
 };
-$("b_login").onclick=()=>{ if(S&&S.broker.login_url) window.open(S.broker.login_url,"_blank"); };
-async function connectToken(tok){
+const pickedConn=()=>(S.connected||[]).find(c=>c.id===$("b_pick").value)||S.broker;
+$("b_login").onclick=()=>{ const c=pickedConn(); if(c&&c.login_url) window.open(c.login_url,"_blank"); };
+async function connectToken(tok,bid){
   say("t_msg","Asking the broker…");
-  const r=await post("/api/settings/token",{token:tok});
+  const r=await post("/api/settings/token",{token:tok, broker:bid||pickedConn().id});
   if(r.state) render(r.state);
   if(r.ok){ say("t_msg",`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}. Desk · Home is live for today.`,"ok"); $("b_token").value=""; }
   else say("t_msg",r.error||"could not connect","err");
@@ -626,9 +646,11 @@ async function load(){ const r=await fetch("/api/settings"); render(await r.json
 /* a broker login that redirects here carries today's token in the address */
 (async()=>{
   await load();
-  const q=new URLSearchParams(location.search); const b=S.broker;
-  const tok = b.token_param ? q.get(b.token_param) : null;
-  if(tok){ history.replaceState(null,"",location.pathname); $("b_token").value=tok; connectToken(tok); $("b_token").scrollIntoView({block:"center"}); }
+  const q=new URLSearchParams(location.search);
+  // whichever connected broker's login sent the reader back here
+  const c=(S.connected||[]).find(x=>x.token_param&&q.get(x.token_param)) || (S.broker.token_param&&q.get(S.broker.token_param)?S.broker:null);
+  const tok = c ? q.get(c.token_param) : null;
+  if(tok){ history.replaceState(null,"",location.pathname); $("b_pick").value=c.id; onPick(true); $("b_token").value=tok; connectToken(tok,c.id); $("b_token").scrollIntoView({block:"center"}); }
 })();
 </script>
 </body>

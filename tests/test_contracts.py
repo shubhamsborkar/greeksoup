@@ -1208,3 +1208,50 @@ def test_us_desk_on_home_only_where_the_reader_has_it(monkeypatch, tmp_path):
     monkeypatch.setattr(server, "us_book_positions", lambda: [{"symbol": "AAPL", "shares": 1, "avg_cost": 100.0}])
     monkeypatch.setattr(server, "fetch_us_quote", lambda s: {"ltp": 101.0, "day_pct": 0.1})
     assert server.build_usbook()["show"] is True          # a US name on Desk · Book
+
+
+def test_one_broker_per_market_each_its_own_desk(monkeypatch, tmp_path):
+    """Two brokers in two markets connect side by side: each is an account of its own on Desk · Home,
+    on the desk its market belongs to (home, US, global), in its own currency, never added
+    together; the home broker is the one in the reader's home market; a broker taken off the desk
+    leaves BROKERS and its client goes; a second broker in a market already covered is refused."""
+    import types
+    import server
+    import brokers
+
+    def fake(bid, region, cur, label):
+        m = types.ModuleType(bid)
+        m.META = {"id": bid, "label": label, "region": region, "where": "", "daily_login": False, "how": "", "docs": "", "fields": [{"env": bid.upper() + "_KEY", "label": "key"}]}
+        m.connect = lambda cfg, token: {"bid": bid}
+        m.label = lambda cli: "··" + bid[-4:]
+        m.equity = lambda cli: [{"code": bid.upper()[:4], "qty": 1, "ltp": 10.0, "value": 10.0, "pnl": 1.0, "currency": cur}]
+        m.funds = lambda cli: {"cash": 5.0, "currency": cur}
+        return m
+    mods = {"fake_in": fake("fake_in", "in", "INR", "Fake India"), "fake_us": fake("fake_us", "us", "USD", "Fake US"), "fake_uk": fake("fake_uk", "gb", "GBP", "Fake UK")}
+    monkeypatch.setattr(brokers, "REGISTRY", list(brokers.REGISTRY) + list(mods))
+    monkeypatch.setattr(brokers, "load", lambda bid: mods.get(bid))
+    monkeypatch.setattr(brokers, "configured", lambda bid: bid in mods)
+    monkeypatch.setattr(brokers, "config", lambda bid: {})
+    monkeypatch.setenv("BROKERS", "fake_us,fake_in")
+    monkeypatch.setenv("HOME_MARKET", "in")
+    monkeypatch.setattr(server, "_fill_marks", lambda rows: rows)
+    written = {}
+    monkeypatch.setattr(server.desk_settings, "write_env", lambda fields: written.update(fields) or fields)
+    server.clients.clear(); server.MODS.clear(); server.ACCOUNT_LABELS.clear()
+    rep = server.connect_all_brokers()
+    assert rep["fake_us"]["ok"] and rep["fake_in"]["ok"]
+    assert server.ADAPTER["id"] == "fake_in"                     # the home broker is the one in the home market
+    assert set(server.clients) == {"fake_us", "fake_in"}
+    snap = server.build_snapshot()
+    acc = snap["accounts"]
+    assert acc["fake_in"]["desk"] == "home" and acc["fake_in"]["currency"] == "INR"
+    assert acc["fake_us"]["desk"] == "us" and acc["fake_us"]["currency"] == "USD"
+    assert server.desk_of("gb") == "global"
+    states = server.brokers_state()
+    assert [s["id"] for s in states] == ["fake_us", "fake_in"] and all(s["connected"] for s in states)
+    assert next(s for s in states if s["id"] == "fake_in")["home"] is True
+    assert brokers.token_path("fake_us").endswith("session_token_fake_us.txt")
+    server.disconnect_broker("fake_us")
+    assert written["BROKERS"] == "fake_in" and written["BROKER"] == "fake_in" and "fake_us" not in server.clients
+    server.clients.clear(); server.MODS.clear(); server.ACCOUNT_LABELS.clear()
+    server.ADAPTER["id"], server.ADAPTER["mod"] = "", None

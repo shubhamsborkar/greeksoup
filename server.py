@@ -59,33 +59,66 @@ DATA_DIR = os.path.join(HERE, "data")   # the files you edit: watchlists, book, 
 SNAP_TTL = 30      # seconds between fresh broker pulls for positions/funds
 TAPE_TTL = 600     # option chains are heavy; refresh every 10 min
 
-clients = {}
+clients = {}          # broker id -> its connected client
+MODS = {}             # broker id -> its module, for every broker the reader connected
 ACCOUNT_LABELS = {}   # account key -> "A/C ··1234" (last four digits, never a name)
-# The broker the reader chose on Settings: its id and its module. clients["primary"]
-# is that broker's client object. Anything beyond holdings and cash (live ticks,
-# futures, margin, chains, candles, a symbol master) is an optional hook on the
-# broker file; _hook() finds it or returns None, and the desk shows what exists.
+# The brokers the reader connected on Settings, one per market: each is an account on
+# Desk · Home, in its own desk (the home market's, the US, the rest of the world), never
+# added together. ADAPTER is the home broker (the one whose market is the home market, else
+# the first): its optional hooks (live ticks, futures, margin, chains, candles, a symbol
+# master) serve the home screens; _hook() finds them or returns None.
 ADAPTER = {"id": "", "mod": None}
 
 
+def _mod_of(account):
+    """The module behind an account key (a broker id), the home adapter for anything older."""
+    return MODS.get(account) or ADAPTER["mod"]
+
+
 def _client():
-    return next(iter(clients.values()), None)
+    """The home broker's client."""
+    return clients.get(ADAPTER["id"]) or next(iter(clients.values()), None)
 
 
 def _hook(name, live=True):
-    """The active broker file's optional function `name`, if it has one. Most
+    """The home broker file's optional function `name`, if it has one. Most
     hooks need a connected client; the symbol master (resolve, search) does
     not, so those pass live=False and work with the session down."""
     mod = ADAPTER["mod"]
-    if mod is None or (live and not clients):
+    if mod is None or (live and not _client()):
         return None
     return getattr(mod, name, None)
 
 
 def _market():
-    """The home market file: the broker's market, else HOME_MARKET in .env."""
+    """The home market file: the reader's own choice (HOME_MARKET in .env) first, else the
+    home broker's market. A reader with a US broker and a home in India keeps India."""
+    chosen = (os.getenv("HOME_MARKET", "") or "").strip()
+    if chosen and markets.load(chosen):
+        return markets.load(chosen)
     mod = ADAPTER["mod"]
     return markets.active(mod.META.get("region") if mod else None)
+
+
+def _pick_adapter():
+    """The home broker among the connected ones: the one in the home market, else the first."""
+    ids = brokers.active_ids()
+    chosen = (os.getenv("HOME_MARKET", "") or "").strip().lower()
+    home = next((b for b in ids if MODS.get(b) and str(MODS[b].META.get("region", "")).lower() == chosen), None) if chosen else None
+    bid = home or (ids[0] if ids else "")
+    ADAPTER["id"], ADAPTER["mod"] = bid, MODS.get(bid)
+
+
+def desk_of(region):
+    """Which desk an account sits on, by its broker's market: the home market's, the US, or the rest."""
+    r = str(region or "").lower()
+    m = _market()
+    home = str(m.META.get("id", "")).lower() if m else ""
+    if r and r == home:
+        return "home"
+    if r == "us":
+        return "us"
+    return "global"
 
 
 # A daily-login broker's session ends at midnight. When every pull comes back
@@ -849,11 +882,14 @@ def build_ticker_home(code):
     held, fut_expiries = {}, []
     for account, cli in (clients.items() if (mod and not broker_health["dead"]) else []):
         label = ACCOUNT_LABELS.get(account, account)
+        amod = _mod_of(account)
+        if not amod or desk_of(amod.META.get("region", "")) != "home":
+            continue      # a home name is held in a home-market account; the US and global desks have their own
         try:
-            for e in mod.equity(cli):
+            for e in amod.equity(cli):
                 if e["code"] == code:
                     held[label] = e
-            for f in (mod.futures(cli) if hasattr(mod, "futures") else []):
+            for f in (amod.futures(cli) if hasattr(amod, "futures") else []):
                 if (f.get("underlying") or "") == code:
                     held[f"{label} · futures"] = f
                     if f.get("expiry") and f["expiry"] not in fut_expiries:
@@ -1384,9 +1420,9 @@ def watch_loop():
             missing = [e for e in names if _is_broker_name(e) and e["code"] not in WATCH]
         if missing and not broker_health["dead"]:
             marks = {}
-            for cl in clients.values():
+            for acct, cl in clients.items():
                 try:
-                    for row in ADAPTER["mod"].equity(cl):
+                    for row in _mod_of(acct).equity(cl):
                         if row.get("ltp"):
                             marks[row["code"]] = row
                 except Exception:  # noqa: BLE001
@@ -1472,9 +1508,9 @@ def _fill_marks(rows):
     return rows
 
 
-def _reads(cli):
-    """equity, futures, funds through the active broker's file."""
-    mod = ADAPTER["mod"]
+def _reads(cli, account=None):
+    """equity, futures, funds through the account's own broker file."""
+    mod = _mod_of(account)
     if mod is None:
         return [], [], {}
     equity = _fill_marks(mod.equity(cli))
@@ -1489,7 +1525,7 @@ def build_snapshot():
     live_client = None
     for name, cli in clients.items():
         try:
-            equity, futures, funds = _reads(cli)
+            equity, futures, funds = _reads(cli, name)
         except brokers.BrokerError as exc:
             print(f"  broker: {exc}")
             equity, futures, funds = [], [], {}
@@ -1504,10 +1540,12 @@ def build_snapshot():
         fno_mtm = sum(f["mtm"] for f in futures if f["mtm"] is not None)
         limit_total = funds.get("fno_limit_total")
         blocked = funds.get("fno_blocked") or 0
+        amod = _mod_of(name)
         accounts[name] = {
             "label": ACCOUNT_LABELS.get(name, name),
-            "broker": (ADAPTER["mod"].META["label"] if ADAPTER["mod"] else ""),
-            "region": (ADAPTER["mod"].META.get("region", "") if ADAPTER["mod"] else ""),
+            "broker": (amod.META["label"] if amod else ""),
+            "region": (amod.META.get("region", "") if amod else ""),
+            "desk": desk_of(amod.META.get("region", "") if amod else ""),
             "currency": funds.get("currency") or (equity[0].get("currency") if equity else "") or "",
             "equity": equity,
             "futures": futures,
@@ -1533,7 +1571,7 @@ def build_snapshot():
         live_names = [n for n, a in accounts.items()
                       if a.get("equity") or a.get("futures") or (a.get("funds") or {}).get("cash") is not None]
         try:
-            extras = extra_hook(live_client, live_names) or {}
+            extras = extra_hook(clients.get(ADAPTER["id"]) or live_client, live_names) or {}   # the home broker's other accounts
         except Exception:  # noqa: BLE001
             extras = {}
         for name, block in extras.items():
@@ -1553,6 +1591,9 @@ def build_snapshot():
                 "util_pct": (blocked / limit_total * 100) if limit_total else None,
             }
             block["label"] = ACCOUNT_LABELS.get(name) or block.get("label") or name
+            block.setdefault("desk", "home")
+            block.setdefault("broker", ADAPTER["mod"].META["label"] if ADAPTER["mod"] else "")
+            block.setdefault("currency", funds.get("currency") or (equity[0].get("currency") if equity else "") or "")
             accounts[name] = block
 
     # Sparklines under the open futures, where the broker serves intraday candles.
@@ -3175,23 +3216,40 @@ def _start_stream(cli):
         print(f"  live ticks not started: {exc}")
 
 
-def connect_broker_now(account="primary"):
-    """Connect the broker the reader chose on Settings, at boot or from the page,
-    with no restart. Returns plain words for the page."""
-    bid = brokers.active_id()
-    ADAPTER["id"], ADAPTER["mod"] = bid, (brokers.load(bid) if bid else None)
+def _forget_screens():
+    for k in ("snap", "risk", "tape", "results_home", "macro", "econcal", "commods", "chain"):
+        _cache[k] = (0.0, None)
+
+
+def connect_broker_now(bid=None):
+    """Connect one broker the reader chose on Settings (the home one when none is named), at
+    boot or from the page, with no restart. Returns plain words for the page."""
+    ids = brokers.active_ids()
+    bid = (bid or "").strip().lower() or (ids[0] if ids else "")
+    # the modules of every connected broker are loaded first, so the home adapter can be chosen
+    for other in ids:
+        if other not in MODS:
+            MODS[other] = brokers.load(other)
+    for gone in [k for k in list(MODS) if k not in ids]:
+        MODS.pop(gone, None)
+        clients.pop(gone, None)
+        ACCOUNT_LABELS.pop(gone, None)
+    _pick_adapter()
     if not bid:
         clients.clear()
+        ACCOUNT_LABELS.clear()
         broker_health["dead"] = True
-        for k in ("snap", "risk", "tape", "results_home", "macro", "econcal", "commods", "chain"):
-            _cache[k] = (0.0, None)
+        _forget_screens()
         return {"ok": False, "error": "No broker chosen."}
-    mod = ADAPTER["mod"]
+    if bid not in ids:
+        return {"ok": False, "error": "That broker is not on this desk."}
+    mod = MODS[bid]
     if not brokers.configured(bid):
         return {"ok": False, "error": "Save the broker's keys first."}
     cfg = brokers.config(bid)
-    token = brokers.read_token() if mod.META["daily_login"] else None
+    token = brokers.read_token(bid) if mod.META["daily_login"] else None
     if mod.META["daily_login"] and not token:
+        broker_health["dead"] = not clients
         return {"ok": False, "need_token": True, "error": "No login for today yet. Open the broker login below and paste what it hands back."}
     try:
         cli = mod.connect(cfg, token)
@@ -3201,32 +3259,54 @@ def connect_broker_now(account="primary"):
         return {"ok": False, "error": "Could not connect: " + str(exc)[:160]}
     if cli is None:
         return {"ok": False, "need_token": True, "error": "The broker did not accept today's login. It may be from an earlier day, or pasted with a character missing."}
-    clients.clear()
-    clients[account] = cli
+    clients[bid] = cli
     try:
-        ACCOUNT_LABELS[account] = mod.label(cli)
+        ACCOUNT_LABELS[bid] = mod.label(cli)
     except Exception:  # noqa: BLE001
-        ACCOUNT_LABELS[account] = "account"
+        ACCOUNT_LABELS[bid] = "account"
     broker_health["dead"] = False
-    for k in ("snap", "risk", "tape", "results_home", "macro", "econcal", "commods", "chain"):
-        _cache[k] = (0.0, None)
-    _start_stream(cli)
+    _forget_screens()
+    if bid == ADAPTER["id"]:
+        _start_stream(cli)
     try:
         n = len(mod.equity(cli))
     except Exception:  # noqa: BLE001
         n = None
-    return {"ok": True, "label": ACCOUNT_LABELS[account], "positions": n}
+    return {"ok": True, "label": ACCOUNT_LABELS[bid], "positions": n, "broker": bid}
+
+
+def connect_all_brokers():
+    """Every connected broker, at boot; the last report per broker."""
+    out = {}
+    for bid in brokers.active_ids():
+        out[bid] = connect_broker_now(bid)
+    if not out:
+        connect_broker_now("")
+    return out
+
+
+def disconnect_broker(bid):
+    """A broker off the desk: its id leaves BROKERS, its client and its token go."""
+    ids = [b for b in brokers.active_ids() if b != bid]
+    desk_settings.write_env({"BROKERS": ",".join(ids), "BROKER": ids[0] if ids else ""})
+    clients.pop(bid, None)
+    MODS.pop(bid, None)
+    ACCOUNT_LABELS.pop(bid, None)
+    brokers.clear_token(bid)
+    _pick_adapter()
+    broker_health["dead"] = not clients
+    _forget_screens()
 
 
 def _masked(v):
     return desk_settings.masked(v)
 
 
-def broker_state():
-    bid = brokers.active_id()
+def broker_state(bid=None):
+    bid = (bid or brokers.active_id() or "")
     mod = brokers.load(bid) if bid else None
-    st = {"id": bid, "connected": bool(clients), "account": ACCOUNT_LABELS.get("primary", ""),
-          "configured": brokers.configured(bid) if bid else False}
+    st = {"id": bid, "connected": bid in clients, "account": ACCOUNT_LABELS.get(bid, ""),
+          "configured": brokers.configured(bid) if bid else False, "home": bid == ADAPTER["id"]}
     if mod:
         m = mod.META
         cfg = brokers.config(bid)
@@ -3236,11 +3316,17 @@ def broker_state():
             fields.append({**f, "saved": ("on" if v.lower() in ("on", "1", "true", "yes") else "off") if f.get("switch") else _masked(v)})
         st.update({"label": m["label"], "where": m["where"], "daily_login": m["daily_login"], "how": m["how"],
                    "docs": m["docs"], "fields": fields, "token_hint": m.get("token_hint", ""),
-                   "token_param": m.get("token_param", ""), "region": m.get("region", "")})
+                   "token_param": m.get("token_param", ""), "region": m.get("region", ""),
+                   "desk": desk_of(m.get("region", ""))})
         if m["daily_login"]:
-            st["token_today"] = brokers.read_token() is not None
+            st["token_today"] = brokers.read_token(bid) is not None
             st["login_url"] = mod.login_url(cfg) if (st["configured"] and hasattr(mod, "login_url")) else ""
     return st
+
+
+def brokers_state():
+    """Every broker the reader connected, the home one first."""
+    return [broker_state(b) for b in brokers.active_ids()]
 
 
 # ---------------------------------------------------------------- the sidebar
@@ -3294,6 +3380,7 @@ def nav_state():
 def settings_state():
     st = desk_settings.current()
     st["broker"] = broker_state()
+    st["connected"] = brokers_state()
     st["brokers"] = [{k: v for k, v in m.items() if k != "fields"} | {"fields": m["fields"]} for m in brokers.all_meta()]
     st["others"] = [{"name": n, "path": p} for n, p in brokers.OTHERS]
     st["market"] = _market_info()
@@ -4193,7 +4280,8 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/api/settings/check_ai":
             return self._send(json.dumps(desk_ai.ping()).encode(), "application/json")
         if self.path == "/api/settings/broker":
-            # pick a broker and save its fields; "" = no broker
+            # pick a broker and save its fields. "add": true keeps the ones already connected and
+            # puts this one beside them (one per market); otherwise it replaces them. "" = no broker.
             bid = str(body.get("broker", "")).strip().lower()
             if bid and bid not in brokers.REGISTRY:
                 return self._send(b'{"ok":false,"error":"unknown broker"}', "application/json")
@@ -4203,24 +4291,42 @@ class Handler(BaseHTTPRequestHandler):
             for k, v in (body.get("fields") or {}).items():
                 if k in allowed and isinstance(v, str):
                     fields[k] = ("on" if v.lower() in ("on", "1", "true", "yes") else "off") if allowed[k].get("switch") else v
-            fields["BROKER"] = bid
+            ids = brokers.active_ids() if body.get("add") else []
+            if bid and body.get("add"):
+                region = str(mod.META.get("region", "")).lower()
+                clash = next((b for b in ids if b != bid and str(brokers.load(b).META.get("region", "")).lower() == region), "")
+                if clash:
+                    return self._send(json.dumps({"ok": False, "error": f"{brokers.load(clash).META['label']} already covers that market on this desk; a second broker in the same market comes later. Remove it first to switch."}).encode(), "application/json")
+            if bid and bid not in ids:
+                ids.append(bid)
+            fields["BROKERS"] = ",".join(ids)
+            fields["BROKER"] = ids[0] if ids else ""
             desk_settings.write_env(fields)
             rep = {"ok": True}
             if bid:
-                rep = connect_broker_now("primary")
+                rep = connect_broker_now(bid)
                 if rep.get("need_token"):
                     rep["ok"] = True   # keys saved; the login comes next
                     rep["saved_only"] = True
             else:
-                connect_broker_now("primary")
+                connect_broker_now("")
             rep["state"] = settings_state()
             return self._send(json.dumps(rep).encode(), "application/json")
         if self.path == "/api/settings/broker/test":
-            rep = connect_broker_now("primary")
+            rep = connect_broker_now(str(body.get("broker", "") or ""))
             rep["state"] = settings_state()
             return self._send(json.dumps(rep).encode(), "application/json")
+        if self.path == "/api/settings/broker/remove":
+            bid = str(body.get("broker", "")).strip().lower()
+            if bid not in brokers.active_ids():
+                return self._send(b'{"ok":false,"error":"that broker is not on this desk"}', "application/json")
+            mod = brokers.load(bid)
+            disconnect_broker(bid)
+            if body.get("keys"):
+                desk_settings.write_env({f["env"]: ("off" if f.get("switch") else "") for f in mod.META["fields"]})
+            return self._send(json.dumps({"ok": True, "state": settings_state()}).encode(), "application/json")
         if self.path == "/api/settings/token":
-            bid = brokers.active_id()
+            bid = str(body.get("broker", "") or "").strip().lower() or next((b for b in brokers.active_ids() if brokers.load(b).META["daily_login"]), brokers.active_id())
             mod = brokers.load(bid) if bid else None
             if not mod or not mod.META["daily_login"]:
                 return self._send(b'{"ok":false,"error":"The chosen broker has no daily login."}', "application/json")
@@ -4237,10 +4343,10 @@ class Handler(BaseHTTPRequestHandler):
                 access = mod.exchange_token(brokers.config(bid), raw)
             except brokers.BrokerError as exc:
                 return self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
-            brokers.write_token(access)
-            rep = connect_broker_now("primary")
+            brokers.write_token(access, bid)
+            rep = connect_broker_now(bid)
             if not rep.get("ok"):
-                brokers.clear_token()
+                brokers.clear_token(bid)
             rep["state"] = settings_state()
             return self._send(json.dumps(rep).encode(), "application/json")
         if self.path == "/api/settings/profile":
@@ -4595,14 +4701,13 @@ def main():
             print(f"  brought {m['label']} up to this version's shape ({os.path.relpath(m['path'], HERE)}); the copy from before is at {os.path.relpath(m['kept'], HERE)}")
     for n in mig["newer"]:
         print(f"  NOTE: {os.path.relpath(n['path'], HERE)} was written by a newer desk; update this one to read it fully")
-    bid = brokers.active_id()
-    if bid:
-        print(f"Connecting the broker chosen on Settings ({brokers.load(bid).META['label']})...")
-        rep = connect_broker_now("primary")
-        if rep.get("ok"):
-            print(f"  connected: {rep.get('label')}, {rep.get('positions')} holdings")
-        else:
-            print(f"  not connected: {rep.get('error')}")
+    if brokers.active_ids():
+        for bid, rep in connect_all_brokers().items():
+            label = brokers.load(bid).META["label"]
+            if rep.get("ok"):
+                print(f"  {label}: connected as {rep.get('label')}, {rep.get('positions')} holdings")
+            else:
+                print(f"  {label}: not connected: {rep.get('error')}")
     broker_health["dead"] = not clients
     if not clients:
         print("  NOTE: no broker session. Desk · Home shows the last saved book (or nothing "
