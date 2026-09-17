@@ -4076,7 +4076,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(json.dumps(desk_lists.view(kind)).encode(), "application/json")
             elif path == "/api/chain":
                 d = _cached("chain", CHAIN_TTL, build_chain)
-                if "hidden_starters" not in (d or {}):     # a copy from before chains were the reader's own
+                if "hidden_starters" not in (d or {}) or "markets" not in (d or {}):     # a copy from before chains were the reader's own, or before markets
                     _chain_changed()
                     d = _cache["chain"][1] or d
                 self._send(json.dumps(d).encode(), "application/json")
