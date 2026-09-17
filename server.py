@@ -100,6 +100,14 @@ def _market():
     return markets.active(mod.META.get("region") if mod else None)
 
 
+def _home_id():
+    m = _market()
+    return str(m.META.get("id", "")).lower() if m else ""
+
+
+desk_chains.home_id = _home_id      # a chain's country resolves to its quote path against the desk's home
+
+
 def _pick_adapter():
     """The home broker among the connected ones: the one in the home market, else the first."""
     ids = brokers.active_ids()
@@ -2443,6 +2451,7 @@ def build_chain():
     return {"chains": listing["chains"], "hidden_starters": listing["hidden_starters"],
             "home": {"id": m.META["id"] if m else "home", "label": m.META["label"] if m else "Home",
                      "symbol": m.META["symbol"] if m else "", "locale": m.META.get("locale", "en-US") if m else "en-US"},
+            "markets": [{"id": mm["id"], "label": mm["label"]} for mm in markets.all_meta()],
             "ts": datetime.now().strftime("%H:%M"), "session_dead": broker_health["dead"]}
 
 
@@ -2528,9 +2537,10 @@ def _chain_post(self, body):
         except Exception:  # noqa: BLE001
             pass
         m = _market()
+        mk = markets.load(str(body.get("market", ""))[:8].lower())
         out = desk_chains.draft(str(body.get("description", "")), (m.META["label"] if m else "home"),
                                 held - {""}, watched, symbol=str(body.get("symbol", ""))[:24].upper(),
-                                about=str(body.get("about", ""))[:80], door=door,
+                                about=str(body.get("about", ""))[:80], door=door, market_label=(mk.META["label"] if mk else ""),
                                 ask=lambda messages, system: desk_ai.complete(messages, system=system, max_tokens=6000, timeout=240),
                                 run_door=desk_plugins.run_door)
         return self._send(json.dumps(out).encode(), "application/json")
@@ -3303,7 +3313,7 @@ def _masked(v):
 
 
 def broker_state(bid=None):
-    bid = (bid or brokers.active_id() or "")
+    bid = (bid or ADAPTER["id"] or brokers.active_id() or "")      # the home broker is the one in the home market, not the first saved
     mod = brokers.load(bid) if bid else None
     st = {"id": bid, "connected": bid in clients, "account": ACCOUNT_LABELS.get(bid, ""),
           "configured": brokers.configured(bid) if bid else False, "home": bid == ADAPTER["id"]}
@@ -4629,6 +4639,7 @@ class Handler(BaseHTTPRequestHandler):
                     with _watch_lock:
                         WATCH_US[code] = q
                     _spawn("flow", build_flow)      # Flow reads the new name's chain behind the page
+                    _spawn("short", build_short)    # and Short its FINRA rows
                     return self._send(json.dumps({"ok": True, "journal": journal("watch", code, f"added to {WATCH_LABEL.get(region, 'Watch')}")}).encode(), "application/json")
                 if region == "global":
                     names = load_watchlist_global()
@@ -4672,6 +4683,7 @@ class Handler(BaseHTTPRequestHandler):
                     with _watch_lock:
                         WATCH_US.pop(code, None)
                     _spawn("flow", build_flow)
+                    _spawn("short", build_short)
                 elif region == "global":
                     save_watchlist_global([n for n in load_watchlist_global() if n["code"] != code])
                     with _watch_lock:

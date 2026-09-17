@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.79. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.80. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.80
+
+*16 September 2026, release 80.* Every add box finds the name. Flow's add box and a new one on Short search as you type, the way Watch does: two letters and the listings that match drop down (code, company, exchange), arrows and Enter or a click pick one; the same box is now one piece of the desk for any screen that takes a name. Short takes names of its own: a name added there goes on Watch · US and its FINRA rows are read behind the page, and a watched name has its × on the row. Chain's Market is every country the desk knows, the home market first, then the United States, then the rest by name, on the chain and on any row; the desk works out the pricing path from the country, and the AI draft is told which country the chain is drawn in. Settings names the home-market broker as the home broker, not the first one saved.
 
 ## 2026-09-16.79
 

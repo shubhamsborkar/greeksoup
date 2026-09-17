@@ -29,6 +29,7 @@ tr.held td{background:rgba(237,90,36,.05)}
 td.sym{font-weight:800}
 td.sym a{color:inherit;text-decoration:none}
 td.sym a:hover{color:var(--accent)}
+.sym .rm{background:none;border:0;color:var(--muted);cursor:pointer;font-size:12px;padding:0 6px;opacity:0} tr:hover .sym .rm{opacity:1} .sym .rm:hover{color:var(--neg)}
 .hd{font-size:9px;font-weight:800;border-radius:4px;padding:1.5px 6px;margin-left:7px;
   background:rgba(237,90,36,.16);color:var(--accent);letter-spacing:.05em;vertical-align:1px}
 .sep{border-left:1px solid var(--line2)}
@@ -50,6 +51,12 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
   count. <b style="color:var(--ink2)">Short VOLUME ratio</b> (right block) is the share of each
   DAY'S off-exchange volume marked short: tape flow, <b style="color:var(--ink2)">not</b> open
   positions; ~40-50% is normal market-making, the signal is the change against a name's own average.</div>
+  <form id="addf" style="display:flex;gap:8px;align-items:center;margin:-6px 0 16px;flex-wrap:wrap">
+    <span style="position:relative;display:inline-block"><input id="addc" placeholder="Add a US name or company, like COST" maxlength="12" autocomplete="off" spellcheck="false"
+      style="background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:6px 10px;font:inherit;font-size:12.5px;width:250px;text-transform:uppercase"></span>
+    <button type="submit" style="background:var(--panel2);color:var(--ink2);border:1px solid var(--line2);border-radius:7px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer">Add to the table</button>
+    <span id="addmsg" class="dim" style="font-size:12px"></span>
+  </form>
   <div id="body"><div class="loading">Reading FINRA files…</div></div>
 </main>
 <footer>Short interest settles twice a month and publishes ~9 days later, so the settlement shown
@@ -102,7 +109,7 @@ async function load(){
     const sif=n.si_pct_float;
     const dev=(n.srv_latest!=null&&n.srv_avg!=null)?n.srv_latest-n.srv_avg:null;
     h+=`<tr class="${n.held?"held":""}">
-      <td class="sym"><a href="/t?symbol=${n.symbol}">${n.symbol}</a>${n.held?'<span class="hd">HELD</span>':""}</td>
+      <td class="sym"><a href="/t?symbol=${n.symbol}">${n.symbol}</a>${n.held?'<span class="hd">HELD</span>':`<button type="button" class="rm" data-rm="${n.symbol}" title="Take ${n.symbol} off Watch · US">×</button>`}</td>
       <td class="mono">${kfmt(n.si)}</td>
       <td class="mono ${chg==null?"dim":chg>0?"neg":"pos"}">${chg==null?"—":(chg>0?"+":"")+chg.toFixed(1)+"%"}</td>
       <td class="mono ${n.dtc!=null&&n.dtc>=8?"neg":""}">${n.dtc==null?"—":n.dtc.toFixed(1)}</td>
@@ -115,7 +122,27 @@ async function load(){
   }
   h+="</tbody></table></div>";
   document.getElementById("body").innerHTML=h;
+  document.querySelectorAll("[data-rm]").forEach(b=>b.onclick=async()=>{
+    const code=b.dataset.rm; b.disabled=true;
+    let r; try{ r=await (await fetch("/api/watch/remove",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,list:"us"})})).json(); }catch(x){ r={ok:false}; }
+    if(r.ok){ b.closest("tr").remove(); say(`${code} is off Watch · US; the table is being reread.`); if(window.deskJournal&&r.journal) deskJournal(r.journal); }
+    else { b.disabled=false; say(r.error||"could not remove it"); }
+  });
 }
+/* the names here are the US lines on Desk · Book and Watch · US; a name added below goes on
+   Watch · US and its FINRA rows are read behind the page, the same box Flow has */
+const say=t=>{ document.getElementById("addmsg").textContent=t||""; };
+document.getElementById("addf").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const inp=document.getElementById("addc"); const code=inp.value.trim().toUpperCase(); if(!code) return;
+  say(`Adding ${code}…`);
+  let r; try{ r=await (await fetch("/api/watch/add",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,list:"us"})})).json(); }catch(x){ r={ok:false,error:"the desk did not answer"}; }
+  if(!r.ok){ say(r.error||"could not add it"); return; }
+  inp.value=""; say(`${code} is on Watch · US; its FINRA rows are being read, the line appears here in about a minute.`);
+  if(window.deskJournal&&r.journal) deskJournal(r.journal);
+  let tries=0; const poll=setInterval(async()=>{ tries++; const d=await (await fetch("/api/short")).json(); if((d.names||[]).some(n=>n.symbol===code)||tries>12){ clearInterval(poll); load(); say((d.names||[]).some(n=>n.symbol===code)?"":`${code} has no FINRA equity data, so it stays on Watch · US without a line here.`); } },10000);
+});
+document.addEventListener("DOMContentLoaded",()=>{ if(window.deskSuggest) deskSuggest(document.getElementById("addc"),{list:"us",onPick:()=>document.getElementById("addf").requestSubmit()}); });
 load();
 </script>
 </body>

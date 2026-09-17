@@ -77,8 +77,8 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
   the previous daily snapshot on disk, so they appear from a name's second covered day. Describes
   positioning only; it makes no call.</div>
   <form id="addf" style="display:flex;gap:8px;align-items:center;margin:-6px 0 16px;flex-wrap:wrap">
-    <input id="addc" placeholder="Add a US name, like COST" maxlength="12" autocomplete="off" spellcheck="false"
-      style="background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:6px 10px;font:inherit;font-size:12.5px;width:230px;text-transform:uppercase">
+    <span style="position:relative;display:inline-block"><input id="addc" placeholder="Add a US name or company, like COST" maxlength="12" autocomplete="off" spellcheck="false"
+      style="background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:6px 10px;font:inherit;font-size:12.5px;width:250px;text-transform:uppercase"></span>
     <button type="submit" style="background:var(--panel2);color:var(--ink2);border:1px solid var(--line2);border-radius:7px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer">Add to the tape</button>
     <span id="addmsg" class="dim" style="font-size:12px"></span>
   </form>
@@ -197,6 +197,7 @@ document.getElementById("addf").addEventListener("submit",async e=>{
   // the tape rebuilds behind the page: look again until the name shows up
   let tries=0; const poll=setInterval(async()=>{ tries++; const d=await (await fetch("/api/flow")).json(); if((d.names||[]).some(n=>n.symbol===code)||(d.skipped||[]).includes(code)||tries>12){ clearInterval(poll); load(); say((d.skipped||[]).includes(code)?`${code} has no listed options, so it stays on Watch · US without a card here.`:""); } },10000);
 });
+document.addEventListener("DOMContentLoaded",()=>{ if(window.deskSuggest) deskSuggest(document.getElementById("addc"),{list:"us",onPick:()=>document.getElementById("addf").requestSubmit()}); });
 load();
 </script>
 </body>

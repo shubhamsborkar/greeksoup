@@ -1152,6 +1152,54 @@
   })();
 })();
 
+/* ---- search-as-you-type on any add box --------------------------------------
+   deskSuggest(input, {list, onPick}) hangs the desk's name search under an input:
+   type two letters, the listings that match drop down (code, company, exchange),
+   arrows and Enter pick one, a click picks one, Escape closes. The same box the
+   Watch screens have, so Flow, Short and any screen that takes a name behave alike. */
+(function () {
+  const CSS = `.dsug{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:30;min-width:340px;max-width:460px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.dsug .sg{display:flex;align-items:baseline;gap:10px;padding:8px 13px;cursor:pointer;border-bottom:1px solid var(--line);font-size:12.5px;text-transform:none}
+.dsug .sg:last-child{border-bottom:none} .dsug .sg:hover,.dsug .sg.sel{background:var(--panel2)}
+.dsug .c{font-weight:800;min-width:74px;font-family:var(--mono,ui-monospace,monospace)} .dsug .n{color:var(--ink2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .dsug .e{color:var(--muted);font-size:10px;white-space:nowrap}`;
+  const EXN = { NSE: "NSE", BSE: "BSE", NASDAQ: "Nasdaq", NYSE: "NYSE", AMEX: "NYSE American", NMS: "Nasdaq", NYQ: "NYSE", NGM: "Nasdaq", NCM: "Nasdaq", PCX: "NYSE Arca", BATS: "Cboe" };
+  window.deskSuggest = function (input, opts) {
+    const o = opts || {};
+    if (!document.getElementById("dsug-css")) { const st = document.createElement("style"); st.id = "dsug-css"; st.textContent = CSS; document.head.appendChild(st); }
+    const wrap = input.parentElement;
+    if (getComputedStyle(wrap).position === "static") wrap.style.position = "relative";
+    const box = document.createElement("div"); box.className = "dsug"; wrap.appendChild(box);
+    let timer = null, items = [], sel = -1;
+    const hide = () => { box.style.display = "none"; items = []; sel = -1; };
+    const paint = () => {
+      if (!items.length) { hide(); return; }
+      box.innerHTML = items.map((r, i) => `<div class="sg ${i === sel ? "sel" : ""}" data-i="${i}"><span class="c">${r.code}</span><span class="n">${r.name || ""}</span><span class="e">${EXN[(r.exch || "").toUpperCase()] || r.exch || ""}</span></div>`).join("");
+      box.style.display = "block";
+      box.querySelectorAll(".sg").forEach(el => { el.onmousedown = e => { e.preventDefault(); pick(+el.dataset.i); }; });
+    };
+    const pick = i => { const r = items[i]; if (!r) return; input.value = r.code; hide(); if (o.onPick) o.onPick(r); };
+    input.addEventListener("input", () => {
+      clearTimeout(timer); const q = input.value.trim(); if (q.length < 2) { hide(); return; }
+      timer = setTimeout(async () => {
+        try {
+          const d = await (await fetch(`/api/search?q=${encodeURIComponent(q)}&list=${o.list || "us"}`)).json();
+          if (input.value.trim() !== q) return;
+          items = d.results || []; sel = -1; paint();
+        } catch (e) { /* the box stays closed */ }
+      }, 280);
+    });
+    input.addEventListener("blur", () => setTimeout(hide, 150));
+    input.addEventListener("keydown", e => {
+      if (box.style.display !== "block") return;
+      if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(items.length - 1, sel + 1); paint(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(0, sel - 1); paint(); }
+      else if (e.key === "Escape") { hide(); }
+      else if (e.key === "Enter" && sel >= 0) { e.preventDefault(); pick(sel); }
+    });
+    return { hide };
+  };
+})();
+
 /* ---- the time axis every history chart shares ------------------------------
    A series the desk keeps is often denser at the near end (daily for the last
    two years, weekly before, monthly before that), so a chart that spaces points

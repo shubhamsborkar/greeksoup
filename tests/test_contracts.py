@@ -1255,3 +1255,20 @@ def test_one_broker_per_market_each_its_own_desk(monkeypatch, tmp_path):
     assert written["BROKERS"] == "fake_in" and written["BROKER"] == "fake_in" and "fake_us" not in server.clients
     server.clients.clear(); server.MODS.clear(); server.ACCOUNT_LABELS.clear()
     server.ADAPTER["id"], server.ADAPTER["mod"] = "", None
+
+
+def test_chain_market_is_any_country_and_sets_the_quote_path(monkeypatch):
+    """A chain is drawn in a country the reader picks from every market the desk knows; the desk
+    turns that into the quote path (home, US, or the free feed's global path), on the chain and on
+    any name whose row names its own country. A chain saved before markets keeps its region."""
+    import chains
+    monkeypatch.setattr(chains, "home_id", lambda: "in")
+    c = chains.normalise({"title": "t", "market": "de",
+                          "layers": [{"name": "a", "names": [{"code": "SIE.DE", "label": "Siemens"},
+                                                              {"code": "AAPL", "label": "Apple", "market": "us"},
+                                                              {"code": "TCS", "label": "TCS", "market": "in"}]}]})
+    assert (c["region"], c["market"]) == ("global", "de")
+    assert [(n["region"], n["market"]) for n in c["layers"][0]["names"]] == [("", ""), ("us", "us"), ("home", "in")]
+    assert chains.normalise({"title": "t", "market": "in"})["region"] == "home"
+    assert chains.normalise({"title": "t", "market": "us"})["region"] == "us"
+    assert chains.normalise({"title": "t", "region": "us"})["region"] == "us"       # an older chain, no market

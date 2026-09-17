@@ -137,7 +137,15 @@ footer{max-width:1180px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
 <footer>A chain is yours: build it from your own research, or describe it and let your AI draft the first fill, then keep, change or drop every line. Receipts: DISCLOSED = in a filing · ON RECORD = the company said it · REPORTED = press only. Home-market names are priced from the connected broker when it serves quotes. Chains live in your research vault beside your notes, so they sync, back up and restore with them.</footer>
 <script>
 "use strict";
-let CHAINS=[], CUR=null, TS="", DEAD=false, HIDDEN=0, HOME={id:"home",label:"Home",symbol:"",locale:"en-US"};
+let CHAINS=[], CUR=null, TS="", DEAD=false, HIDDEN=0, HOME={id:"home",label:"Home",symbol:"",locale:"en-US"}, MARKETS=[];
+/* the market picker: every country the desk knows, the home market first, then the US, then the rest;
+   the value is the country, and the desk works out how to price it (home path, US path, free feed) */
+function marketOpts(sel, first){
+  const ms=MARKETS.length?MARKETS:[{id:HOME.id,label:HOME.label},{id:"us",label:"United States"}];
+  const order=[...ms].sort((a,b)=>(a.id===HOME.id?0:a.id==="us"?1:2)-(b.id===HOME.id?0:b.id==="us"?1:2)||a.label.localeCompare(b.label));
+  return (first||"")+order.map(m=>`<option value="${m.id}" ${sel===m.id?"selected":""}>${esc(m.label)}</option>`).join("");
+}
+function marketOf(c){ return c.market || (c.region==="us"?"us":c.region==="home"?HOME.id:""); }
 let EDIT=null;           // the chain being edited (a working copy), or null when viewing
 const STATUSES=["OWNED","HOLD","WATCH","CHECK","CONTEXT","OUT"];
 const RECEIPTS=["DISCLOSED","ON RECORD","REPORTED"];
@@ -159,7 +167,7 @@ function tickerHref(region,code){
 }
 function post(url,body){ return fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})}).then(r=>r.json()); }
 function blank(){
-  return {id:"",title:"",region:HOME.id==="us"?"us":"home",about:"",frame:[],hunt:[],layers:[blankLayer(1)],edges:[],own:true};
+  return {id:"",title:"",region:HOME.id==="us"?"us":"home",market:HOME.id==="home"?"":HOME.id,about:"",frame:[],hunt:[],layers:[blankLayer(1)],edges:[],own:true};
 }
 function blankLayer(n){ return {n,name:"",sells:"",buys_from:"",sells_to:"",presence:"",names:[]}; }
 function blankName(){ return {code:"",label:"",region:"",status:"CONTEXT",receipt:"REPORTED",note:"",source:""}; }
@@ -256,7 +264,6 @@ async function removeChain(d){
 /* ---------- editor ---------- */
 function renderEdit(){
   const c=EDIT;
-  const regOpts=[["home",HOME.label],["us","US"],["global","Global (any other exchange)"]];
   let html=tabs()+`<div class="titlerow"><h1>${c.id?"Edit chain":"New chain"}</h1></div>`;
   html+=`<div class="draft"><h3>Draft it with your AI</h3>
     <div class="hint" style="font-size:11.5px;color:var(--ink2);line-height:1.5">Describe the chain in a line or two: the product, the industry or the company at its centre, and what you want mapped. Your AI returns a first fill, upstream to downstream, with the names it knows under each layer; every line lands in the form below for you to keep, change or drop. Nothing is saved until you press Save.</div>
@@ -266,8 +273,8 @@ function renderEdit(){
       <button id="d_go" class="primary">Draft it</button><span class="msg" id="d_msg"></span></div></div>`;
   html+=`<div class="ed"><h3>The chain</h3>
     <div class="row"><label for="e_title">Title</label><input id="e_title" value="${esc(c.title)}" placeholder="what this chain maps"></div>
-    <div class="row"><label for="e_region">Market</label><select id="e_region">${regOpts.map(([v,l])=>`<option value="${v}" ${c.region===v?"selected":""}>${esc(l)}</option>`).join("")}</select></div>
-    <div class="row"><span></span><div class="hint">The market names are priced in unless a name says otherwise. A US name in a home-market chain simply gets its own market on its row.</div></div>
+    <div class="row"><label for="e_market">Market</label><select id="e_market">${marketOpts(marketOf(c))}</select></div>
+    <div class="row"><span></span><div class="hint">The country this chain is drawn in: its companies are the ones the draft lists and the ones priced on its own path. A name from elsewhere gets its own market on its row; outside the US and your home market, the free feed's symbol carries the exchange (2330.TW, SIE.DE).</div></div>
     <div class="row"><label for="e_about">One line</label><input id="e_about" value="${esc(c.about||"")}" placeholder="what this chain is"></div>
     <div class="row"><label for="e_frame">The frame</label><textarea id="e_frame" placeholder="one line per point: what drives the chain, where the money is made">${esc((c.frame||[]).join("\n"))}</textarea></div>
     <div class="row"><label for="e_hunt">The hunt</label><textarea id="e_hunt" placeholder="one line per point: what to look for next">${esc((c.hunt||[]).join("\n"))}</textarea></div>
@@ -301,7 +308,7 @@ function renderLayers(){
     ${l.names.map((n,j)=>`<tr data-j="${j}">
       <td class="c"><input class="n_code mono" value="${esc(n.code)}" placeholder="ticker"></td>
       <td><input class="n_label" value="${esc(n.label)}" placeholder="company (a private one has no ticker)"></td>
-      <td class="r"><select class="n_region"><option value="">as the chain</option><option value="home" ${n.region==="home"?"selected":""}>${esc(HOME.label)}</option><option value="us" ${n.region==="us"?"selected":""}>US</option><option value="global" ${n.region==="global"?"selected":""}>Global</option></select></td>
+      <td class="r"><select class="n_market">${marketOpts(n.market||(n.region==="us"?"us":n.region==="home"?HOME.id:""),`<option value="">as the chain</option>`)}</select></td>
       <td class="s"><select class="n_status">${STATUSES.map(s=>`<option ${n.status===s?"selected":""}>${s}</option>`).join("")}</select></td>
       <td class="s"><select class="n_receipt">${RECEIPTS.map(s=>`<option ${n.receipt===s?"selected":""}>${s}</option>`).join("")}</select></td>
       <td><input class="n_note" value="${esc(n.note)}" placeholder="what it does here, with a figure if you have one"></td>
@@ -331,7 +338,7 @@ function renderEdges(){
 function pullForm(){
   /* the form into EDIT, so a re-render never loses a keystroke */
   const g=id=>(document.getElementById(id)||{}).value||"";
-  EDIT.title=g("e_title"); EDIT.region=g("e_region")||EDIT.region; EDIT.about=g("e_about");
+  EDIT.title=g("e_title"); EDIT.market=g("e_market")||EDIT.market||""; EDIT.about=g("e_about");
   EDIT.frame=g("e_frame").split("\n").map(s=>s.trim()).filter(Boolean);
   EDIT.hunt=g("e_hunt").split("\n").map(s=>s.trim()).filter(Boolean);
   document.querySelectorAll("#e_layers .elayer").forEach(el=>{
@@ -341,7 +348,7 @@ function pullForm(){
     el.querySelectorAll("tbody tr").forEach(tr=>{
       const n=l.names[+tr.dataset.j]; if(!n) return;
       const w=cls=>(tr.querySelector("."+cls)||{}).value||"";
-      n.code=w("n_code").toUpperCase(); n.label=w("n_label"); n.region=w("n_region"); n.status=w("n_status"); n.receipt=w("n_receipt"); n.note=w("n_note"); n.source=w("n_source");
+      n.code=w("n_code").toUpperCase(); n.label=w("n_label"); n.market=w("n_market"); n.region=n.market?"":n.region; n.status=w("n_status"); n.receipt=w("n_receipt"); n.note=w("n_note"); n.source=w("n_source");
     });
   });
   document.querySelectorAll("#e_edges .eedge").forEach(el=>{
@@ -382,11 +389,11 @@ function wireDraft(){
     if(text.length<12){ msg.className="msg err"; msg.textContent="Describe the chain in a line or two first."; return; }
     msg.className="msg"; msg.textContent="Drafting… a full chain takes a minute or two."; go.disabled=true;
     try{
-      const out=await post("/api/chain/draft",{description:text,symbol:document.getElementById("d_sym").value.trim(),door:via.value||""});
+      const out=await post("/api/chain/draft",{description:text,symbol:document.getElementById("d_sym").value.trim(),door:via.value||"",market:(document.getElementById("e_market")||{}).value||""});
       if(!out.ok){ msg.className="msg err"; msg.innerHTML=esc(out.error||"That did not work.")+(out.settings?` <a href="/settings">Settings</a>`:""); return; }
       pullForm();
       const keepId=EDIT.id, c=out.chain;
-      EDIT={...EDIT,title:EDIT.title||c.title,region:keepId?EDIT.region:(c.region||EDIT.region),about:c.about||EDIT.about,frame:c.frame,hunt:c.hunt,layers:c.layers,edges:c.edges,source_note:c.source_note,as_of:c.as_of,id:keepId};
+      EDIT={...EDIT,title:EDIT.title||c.title,market:EDIT.market||c.market||"",region:keepId?EDIT.region:(c.region||EDIT.region),about:c.about||EDIT.about,frame:c.frame,hunt:c.hunt,layers:c.layers,edges:c.edges,source_note:c.source_note,as_of:c.as_of,id:keepId};
       if(!EDIT.title) EDIT.title=c.title;
       renderEdit();
       document.getElementById("d_text").value=text;
@@ -400,7 +407,7 @@ function wireDraft(){
 function render(){ if(EDIT) renderEdit(); else renderView(); }
 async function load(fresh){
   const r=await fetch("/api/chain"+(fresh?"?fresh=1":"")); const d=await r.json();
-  CHAINS=d.chains||[]; TS=d.ts; DEAD=d.session_dead; HIDDEN=d.hidden_starters||0; HOME=d.home||HOME;
+  CHAINS=d.chains||[]; TS=d.ts; DEAD=d.session_dead; HIDDEN=d.hidden_starters||0; HOME=d.home||HOME; MARKETS=d.markets||MARKETS;
   if(!CUR) CUR=new URLSearchParams(location.search).get("c")||(CHAINS[0]&&CHAINS[0].id);
   if(CUR&&!CHAINS.some(c=>c.id===CUR)) CUR=CHAINS[0]&&CHAINS[0].id;
   render();

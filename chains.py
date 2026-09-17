@@ -31,6 +31,22 @@ MIGRATIONS = {}      # {from_format: fn(dict) -> dict}, one step each; migrate.p
 STATUSES = ("OWNED", "HOLD", "WATCH", "CHECK", "CONTEXT", "OUT")
 RECEIPTS = ("DISCLOSED", "ON RECORD", "REPORTED")
 REGIONS = ("us", "home", "global")
+
+
+def home_id():
+    """The home market's id; the desk points this at its own choice (Settings, else the home broker)."""
+    import os
+    return (os.getenv("HOME_MARKET", "") or "").strip().lower()
+
+
+def region_of(market):
+    """The quote path a country implies: the home market's, the US, or the free feed's global one."""
+    market = (market or "").lower()
+    if not market:
+        return "home"
+    if market == home_id():
+        return "home"
+    return "us" if market == "us" else "global"
 _lock = threading.Lock()
 
 
@@ -76,6 +92,11 @@ def normalise(raw, own=True):
         region = "home"
     if region not in REGIONS:
         region = "home"
+    # the market is the country the chain is drawn in (any country the desk knows); the region
+    # is the quote path it implies, kept beside it so an older chain without a market still prices
+    market = _s(raw.get("market"), 8).lower()
+    if market:
+        region = region_of(market)
     layers = []
     for l in raw.get("layers") or []:
         if not isinstance(l, dict):
@@ -90,10 +111,13 @@ def normalise(raw, own=True):
             if not label:
                 continue
             nreg = _s(nm.get("region"), 10).lower()
+            nmarket = _s(nm.get("market"), 8).lower()
+            if nmarket:
+                nreg = region_of(nmarket)
             status = _s(nm.get("status"), 12).upper()
             receipt = _s(nm.get("receipt"), 12).upper()
             names.append({"code": code, "label": label,
-                          "region": nreg if nreg in REGIONS else "",
+                          "region": nreg if nreg in REGIONS else "", "market": nmarket,
                           "exch": _s(nm.get("exch"), 12).upper(),
                           "status": status if status in STATUSES else "CONTEXT",
                           "receipt": receipt if receipt in RECEIPTS else "REPORTED",
@@ -111,7 +135,7 @@ def normalise(raw, own=True):
                       "receipt": receipt if receipt in RECEIPTS else "REPORTED", "source": _s(e.get("source"), 200)})
     title = _s(raw.get("title"), 140) or "Untitled chain"
     cid = _safe_id(raw.get("id") or desk_notes.slug(title))
-    return {"format": FORMAT, "id": cid, "title": title, "region": region, "about": _s(raw.get("about"), 600),
+    return {"format": FORMAT, "id": cid, "title": title, "region": region, "market": market, "about": _s(raw.get("about"), 600),
             "as_of": _s(raw.get("as_of"), 20), "source_note": _s(raw.get("source_note"), 400),
             "frame": _lines(raw.get("frame") if raw.get("frame") is not None else raw.get("capex_notes")),
             "hunt": _lines(raw.get("hunt")), "layers": layers[:12], "edges": edges[:80],
@@ -247,9 +271,11 @@ The shape:
 Rules. Layers run upstream to downstream: raw inputs first, the end customer last; four to eight layers; every layer says what it buys and what it sells, so backward integration and forward integration read off the map. Names are listed companies where they exist, private ones by label with an empty code. Region per name: "us" for a US listing, "home" for the reader's home market, "global" for any other exchange (give the exchange-suffixed symbol, for example 2330.TW). Use a ticker only when you are sure of it; when unsure leave code empty and keep the label. Receipts: DISCLOSED only when a document supplied below states it, and then name that document in source; ON RECORD when the company itself has said it publicly; otherwise REPORTED. Status: OWNED for a name in the reader's book below, WATCH for a name on their watchlists, CONTEXT for everything else. Never invent a figure; a note without a figure is fine. Never tell the reader what to buy, sell or hold."""
 
 
-def draft_prompt(description, region, held, watched, vault):
+def draft_prompt(description, region, held, watched, vault, market_label=""):
     text = "THE READER'S DESCRIPTION\n" + description.strip()
     text += "\n\nHOME MARKET FOR THIS DESK: " + (region or "home")
+    if market_label:
+        text += "\n\nMARKET THIS CHAIN IS DRAWN IN: " + market_label + " (list the companies of this market at each layer where they exist; a name from elsewhere gets its own region on its row)"
     text += "\n\nNAMES THE READER HOLDS (status OWNED): " + (", ".join(sorted(held)) or "none")
     text += "\nNAMES THE READER WATCHES (status WATCH): " + (", ".join(sorted(watched)) or "none")
     if vault and (vault.get("notes") or vault.get("documents")):
@@ -268,7 +294,7 @@ def parse_draft(text):
     return json.loads(text[a:b + 1])
 
 
-def draft(description, region="home", held=(), watched=(), symbol="", about="", door="", ask=None, run_door=None):
+def draft(description, region="home", held=(), watched=(), symbol="", about="", door="", ask=None, run_door=None, market_label=""):
     """A first fill of the chain from the reader's words, for the reader to keep or drop line by
     line. `ask(messages, system)` is the desk's AI call; `run_door(name, prompt)` a door."""
     description = (description or "").strip()[:4000]
@@ -280,7 +306,7 @@ def draft(description, region="home", held=(), watched=(), symbol="", about="", 
             vault = desk_notes.context(symbol=symbol or None, about=about or None, budget=40000)
     except Exception:  # noqa: BLE001
         vault = None
-    prompt = draft_prompt(description, region, held, watched, vault)
+    prompt = draft_prompt(description, region, held, watched, vault, market_label)
     if door and run_door:
         out = run_door(door, DRAFT_SYSTEM + "\n\n" + prompt + "\n\nReturn the JSON object and nothing else. Do not run commands, edit files or ask for permissions.")
         if not out.get("ok"):
