@@ -1214,7 +1214,7 @@ def test_one_broker_per_market_each_its_own_desk(monkeypatch, tmp_path):
     """Two brokers in two markets connect side by side: each is an account of its own on Desk · Home,
     on the desk its market belongs to (home, US, global), in its own currency, never added
     together; the home broker is the one in the reader's home market; a broker taken off the desk
-    leaves BROKERS and its client goes; a second broker in a market already covered is refused."""
+    leaves BROKERS and its client goes; a second broker in the same market sits beside the first."""
     import types
     import server
     import brokers

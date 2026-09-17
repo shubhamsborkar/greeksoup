@@ -47,10 +47,18 @@ REGISTRY = ["alpaca", "icici_breeze", "ibkr_flex", "tradier", "trading212", "zer
 # Brokers the desk knows about but does not ship a file for, and the honest path
 # for each. Shown on the Settings screen under "Another broker".
 OTHERS = [
-    ("Charles Schwab", "Has an API for individuals. The login has to be repeated every seven days, so your agent writes this one from Schwab's documentation and keeps the weekly login."),
+    # Checked 2026-09-17 against each broker's own developer page; a price is the broker's, and can change.
+    ("Groww", "An API for individuals, ₹499 a month plus tax, keys from Settings on Groww; portfolio, orders and live data. Your agent writes it from groww.in/trade-api/docs."),
+    ("Dhan", "A free API for individuals with a token from web.dhan.co; holdings, positions and funds. Your agent writes it from dhanhq.co/docs."),
+    ("Upstox, Angel One (SmartAPI), Fyers, 5paisa", "Each has a free API with a daily login, the same pattern as the two Indian brokers shipped here; the same market file serves all of them. Your agent writes it from their documentation."),
+    ("Kotak Neo, HDFC Securities (InvestRight)", "Free APIs for their own clients; keys from developer portals (developer.hdfcsec.com for HDFC). Your agent writes the file the same way."),
+    ("Zerodha", "Shipped here. The personal API is free for holdings, positions and funds; live and historical data through it is ₹500 a month, and the desk prices the book from the free feed without it."),
+    ("Charles Schwab", "An API for individuals, no fee; the login has to be repeated every seven days, so your agent writes this one from Schwab's documentation and keeps the weekly login."),
+    ("tastytrade, Public, Webull, moomoo", "Each has an official API for its own clients (moomoo through its OpenD gateway on this computer). Your agent writes the file from their documentation."),
+    ("E*TRADE", "An API exists, with an approval process and a balance minimum. Export the holdings into Desk · Book unless you already have access."),
     ("Fidelity, Vanguard", "No API for individuals. Export the holdings to a file and paste them into Desk · Book; most exports paste straight in."),
-    ("Robinhood", "No API for stocks. Export the holdings into Desk · Book, or have your agent connect Robinhood's own agent server."),
-    ("Upstox, Angel One, Groww", "Each has an API with a daily login, the same pattern as the two Indian brokers shipped here, and the same market file serves all of them. Your agent writes it from their documentation."),
+    ("Robinhood", "No API for stocks (only for crypto). Export the holdings into Desk · Book, or have your agent connect Robinhood's own agent server."),
+    ("Saxo", "OpenAPI for its clients across Europe and Asia, OAuth login. Your agent writes it from developer.saxo."),
     ("Any other broker", "If it publishes an API, your agent writes the file from its documentation; the shape it has to return is in brokers/README.md. If it does not, Desk · Book takes an export."),
 ]
 

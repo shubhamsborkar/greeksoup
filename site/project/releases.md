@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.82. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.83. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.83
+
+*16 September 2026, release 83.* A broker error has a way out, and two brokers share a market. Every broker error on Settings (keys, Check, today's login) carries an Ask your AI about this button that puts the broker, its file, the contract and the exact words into the Ask box in Build mode, for the reader's own AI to work out. Two brokers in one market now sit side by side on that market's desk, each its own block, the desk's strip adding them (the same broker twice, with keys per account, is still to come). The futures and options table scrolls sideways where it is wider than the page. After a broker connects, the screens that read it are rebuilt at once rather than served from the pre-connect copy for their TTL (the options tape sat empty for ten minutes after a login). Settings' list of brokers readers ask about is rewritten from a check of each broker's own developer page today: Groww, Dhan, Upstox, Angel One, Fyers, 5paisa, Kotak Neo, HDFC Securities, Schwab, tastytrade, Public, Webull, moomoo, E*TRADE, Saxo, and the ones with no API. Two alert texts lose their dashes.
 
 ## 2026-09-16.82
 

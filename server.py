@@ -2311,7 +2311,7 @@ def _eval_alerts():
                     u = a.get("totals", {}).get("util_pct")
                     if u is not None and u >= thr:
                         _fire(f"margin|{name}", "hot",
-                              f"Margin used {u:.0f}% on {a.get('label', name)} — cushion thinning")
+                              f"Margin used {u:.0f}% on {a.get('label', name)}, the cushion is thinning")
 
             elif rtype == "fno_dte" and snap and not snap.get("session_dead"):
                 lim = int(rule.get("days") or 7)
@@ -3238,8 +3238,15 @@ def _start_stream(cli):
 
 
 def _forget_screens():
+    """After a broker connects or leaves, every screen that reads the broker is stale at once:
+    the copy in memory keeps serving while it rebuilds, and the copy on disk goes, so a read
+    that finds nothing in memory does not bring back the pre-connect answer for its TTL."""
     for k in ("snap", "risk", "tape", "results_home", "macro", "econcal", "commods", "chain"):
-        _cache[k] = (0.0, None)
+        _cache[k] = (0.0, _cache.get(k, (0.0, None))[1])
+        try:
+            os.remove(os.path.join(HIST_CACHE_DIR, f"api_{k}.json"))
+        except OSError:
+            pass
 
 
 def connect_broker_now(bid=None):
@@ -4313,11 +4320,9 @@ class Handler(BaseHTTPRequestHandler):
                 if k in allowed and isinstance(v, str):
                     fields[k] = ("on" if v.lower() in ("on", "1", "true", "yes") else "off") if allowed[k].get("switch") else v
             ids = brokers.active_ids() if body.get("add") else []
-            if bid and body.get("add"):
-                region = str(mod.META.get("region", "")).lower()
-                clash = next((b for b in ids if b != bid and str(brokers.load(b).META.get("region", "")).lower() == region), "")
-                if clash:
-                    return self._send(json.dumps({"ok": False, "error": f"{brokers.load(clash).META['label']} already covers that market on this desk; a second broker in the same market comes later. Remove it first to switch."}).encode(), "application/json")
+            # two brokers in one market sit side by side on that market's desk, each its own block,
+            # the desk's strip adding them (his ruling, 2026-09-17); the same broker twice waits on
+            # keys per account
             if bid and bid not in ids:
                 ids.append(bid)
             fields["BROKERS"] = ",".join(ids)
@@ -4659,7 +4664,7 @@ class Handler(BaseHTTPRequestHandler):
                     q = fetch_yahoo_quote(code)
                     if not q:
                         return self._send(
-                            json.dumps({"ok": False, "error": f"no Yahoo quote for {code} — use Yahoo symbols like TALABAT.AE"}).encode(),
+                            json.dumps({"ok": False, "error": f"no Yahoo quote for {code}; use Yahoo symbols like TALABAT.AE"}).encode(),
                             "application/json")
                     names.append({"code": code, "source": "yahoo"})
                     save_watchlist_global(names)

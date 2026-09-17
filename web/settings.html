@@ -295,6 +295,21 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 let S=null, P={}, PC={};
 async function post(url,body){ const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})}); return r.json(); }
 function say(id,text,k){ const el=$(id); el.textContent=text||""; el.className="msg "+(k||""); }
+/* a broker error the desk cannot explain gets a way out beside it: the reader's own AI, in Build
+   mode, with the broker, its file and the exact words filled in. Brokers are many and we do not
+   have an account at each; the file is plain code and the AI on this computer can read it. */
+function brokerHelp(id, bid, text){
+  const el=$(id); if(!el || !text) return;
+  const m=metaOf(bid); const label=m?m.label:(bid||"the broker");
+  const b=document.createElement("button"); b.type="button"; b.className="ghost"; b.style.cssText="margin-left:10px;padding:2px 9px;font-size:11.5px";
+  b.textContent="Ask your AI about this";
+  b.onclick=()=>{
+    if(!window.deskAsk) return;
+    window.deskAsk(`Settings could not connect ${label} on this desk. The broker's file is brokers/${bid||"<id>"}.py and the contract every broker file follows is brokers/README.md; the keys the reader saved are in .env (never print them) and a daily-login broker keeps today's session in session_token_${bid||"<id>"}.txt. The error the page showed was: "${text}". Work out why. If the fault is in the file, fix it there and say what changed. If the fault is on the broker's side (wrong keys, the redirect address in the broker's app, a session from an earlier day, a plan that does not include the API), say so in plain words with the exact step to take, and change nothing.`,"build");
+    say(id, text, "err"); const n=document.createElement("span"); n.style.cssText="margin-left:10px;color:var(--ink2)"; n.textContent="The question is in the Ask box, in Build mode; press Ask there."; el.appendChild(n);
+  };
+  el.appendChild(b);
+}
 function st(id,text,k){ const el=$(id); el.textContent=text||""; el.className="st "+(k||""); }
 function metaOf(id){ return (S.brokers||[]).find(b=>b.id===id); }
 
@@ -330,9 +345,9 @@ function brokerLine(c){
 }
 function renderBroker(s){
   const b=s.broker; const pick=$("b_pick"); const cur=pick.value; const con=s.connected||[];
-  $("b_list").innerHTML=con.length?con.map(brokerLine).join("")+`<div class="hint" style="margin:2px 0 12px;font-size:11px;color:var(--muted);line-height:1.5">Each broker is its own desk on Desk · Home, in its own currency; a second broker in a market already covered comes later.</div>`:"";
+  $("b_list").innerHTML=con.length?con.map(brokerLine).join("")+`<div class="hint" style="margin:2px 0 12px;font-size:11px;color:var(--muted);line-height:1.5">Each broker is an account of its own on Desk · Home, on the desk of its market, in its own currency; two brokers in one market sit side by side on that desk, and the desk's strip adds them.</div>`:"";
   $("b_list").querySelectorAll("[data-edit]").forEach(x=>x.onclick=()=>{ pick.value=x.dataset.edit; onPick(false); $("b_fields").scrollIntoView({block:"center"}); });
-  $("b_list").querySelectorAll("[data-check]").forEach(x=>x.onclick=async()=>{ say("b_msg","Asking the broker…"); const r=await post("/api/settings/broker/test",{broker:x.dataset.check}); if(r.state) render(r.state); say("b_msg", r.ok?`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}.`:(r.error||"not connected"), r.ok?"ok":"err"); });
+  $("b_list").querySelectorAll("[data-check]").forEach(x=>x.onclick=async()=>{ say("b_msg","Asking the broker…"); const r=await post("/api/settings/broker/test",{broker:x.dataset.check}); if(r.state) render(r.state); say("b_msg", r.ok?`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}.`:(r.error||"not connected"), r.ok?"ok":"err"); if(!r.ok) brokerHelp("b_msg", x.dataset.check, r.error||"not connected"); });
   $("b_list").querySelectorAll("[data-rm]").forEach(x=>x.onclick=async()=>{ const m=metaOf(x.dataset.rm); if(!confirm(`Take ${m?m.label:"this broker"} off this desk and remove its keys?`)) return; const r=await post("/api/settings/broker/remove",{broker:x.dataset.rm,keys:true}); if(r.state) render(r.state); say("b_msg", r.ok?"Removed.":(r.error||"could not remove"), r.ok?"ok":"err"); });
   $("b_picklbl").textContent=con.length?"Add or edit a broker":"Your broker";
   pick.innerHTML=(con.length?`<option value="">Pick a broker to add or edit</option>`:`<option value="">No broker: keep the book by hand</option>`)+(s.brokers||[]).map(m=>`<option value="${m.id}">${esc(m.label)} · ${esc(m.where)}${con.some(c=>c.id===m.id)?" · on this desk":""}</option>`).join("")+`<option value="other">Another broker</option>`;
@@ -430,9 +445,9 @@ $("b_save").onclick=async()=>{
   if(!id) return say("b_msg","No broker. Desk · Home shows nothing until one is chosen; Desk · Book works by hand.","ok");
   if(r.ok && r.saved_only) say("b_msg","Keys saved. Now log in for today below.","ok");
   else if(r.ok) say("b_msg",`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}. Desk · Home is live.`,"ok");
-  else say("b_msg",r.error||"could not connect","err");
+  else { say("b_msg",r.error||"could not connect","err"); brokerHelp("b_msg", id, r.error||"could not connect"); }
 };
-$("b_test").onclick=async()=>{ say("b_msg","Asking the broker…"); const r=await post("/api/settings/broker/test",{broker:$("b_pick").value}); if(r.state) render(r.state); say("b_msg", r.ok?`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}.`:(r.error||"not connected"), r.ok?"ok":"err"); };
+$("b_test").onclick=async()=>{ say("b_msg","Asking the broker…"); const r=await post("/api/settings/broker/test",{broker:$("b_pick").value}); if(r.state) render(r.state); say("b_msg", r.ok?`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}.`:(r.error||"not connected"), r.ok?"ok":"err"); if(!r.ok) brokerHelp("b_msg", $("b_pick").value, r.error||"not connected"); };
 $("b_clear").onclick=async()=>{
   const id=$("b_pick").value; const m=metaOf(id); if(!m) return;
   if(!confirm(`Take ${m.label} off this desk and remove its keys?`)) return;
@@ -446,7 +461,7 @@ async function connectToken(tok,bid){
   const r=await post("/api/settings/token",{token:tok, broker:bid||pickedConn().id});
   if(r.state) render(r.state);
   if(r.ok){ say("t_msg",`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}. Desk · Home is live for today.`,"ok"); $("b_token").value=""; }
-  else say("t_msg",r.error||"could not connect","err");
+  else { say("t_msg",r.error||"could not connect","err"); brokerHelp("t_msg", bid||pickedConn().id, r.error||"could not connect"); }
 }
 $("b_connect").onclick=()=>{ const t=$("b_token").value.trim(); if(!t) return say("t_msg","Paste what the login handed back first.","err"); connectToken(t); };
 $("b_token").addEventListener("keydown",e=>{ if(e.key==="Enter") $("b_connect").click(); });
