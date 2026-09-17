@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.94. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.95. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.95
+
+*16 September 2026, release 95.* A broker code on the ticker page (PNGADG, the code ICICI Direct gives P N Gadgil) is priced by the free feed through its exchange symbol (PNGJL.NS) whenever the broker's quote feed has nothing for it; the page said no quote and stopped. On Settings, the link beside the version now checks and brings a newer version in with the one click; the strip on every screen keeps doing the same. Open the full chart on a commodity card opens from the board's own copy of the record when the free feed is resting, instead of a page that says too many requests.
 
 ## 2026-09-16.94
 

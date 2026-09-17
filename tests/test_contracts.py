@@ -1297,3 +1297,32 @@ def test_home_quote_skips_broker_for_free_feed_names(monkeypatch):
     monkeypatch.setattr(server, "fetch_yahoo_quote", lambda ysym: {"ltp": 30.0, "exch": "LSE", "ysym": ysym})
     q = server._home_quote("SHEL.L")
     assert q and q["ltp"] == 30.0 and q["code"] == "SHEL.L" and asked == []
+
+
+def test_home_quote_falls_back_to_free_feed_when_broker_has_nothing(monkeypatch):
+    """A broker code the broker's quote feed does not answer (PNGADG on a lapsed session) is
+    priced through the resolved free-feed symbol (PNGJL.NS) instead of "no quote"."""
+    import server
+    monkeypatch.setattr(server, "_hook", lambda *a, **k: (lambda cli, code, ex=None: None) if a[0] == "quote" else None)
+    monkeypatch.setattr(server, "_client", lambda: object())
+    monkeypatch.setitem(server.broker_health, "dead", False)
+    monkeypatch.setattr(server, "load_watchlist", lambda: [])
+    monkeypatch.setattr(server, "_resolve", lambda code, exch=None: {"symbol": "PNGJL", "exch": "NSE", "name": "", "ysym": "PNGJL.NS", "meta": {}})
+    monkeypatch.setattr(server, "fetch_yahoo_quote", lambda ysym: {"ltp": 601.4, "exch": "NSI", "ysym": ysym})
+    q = server._home_quote("PNGADG", tries=1)
+    assert q and q["ltp"] == 601.4 and q["code"] == "PNGADG"
+
+
+def test_commodity_ticker_page_opens_from_the_board_when_the_feed_rests(monkeypatch, tmp_path):
+    """Open the full chart on a contract card while the free feed answers 429: the ticker page
+    is built from the commodity board's own cached record instead of "too many requests"."""
+    import server
+    monkeypatch.setattr(server, "HIST_CACHE_DIR", str(tmp_path))
+    (tmp_path / "api_commods.json").write_text(json.dumps({"at": 0, "data": {"cards": [
+        {"id": "wti", "label": "WTI crude", "group": "Energy", "unit": "$/bbl", "ysym": "CL=F", "value": 102.09, "date": "2026-09-17",
+         "chg": {"1d": -0.33}, "hi52": {"v": 112.95}, "lo52": {"v": 55.27}, "full": [["2016-09-19", 43.3], ["2026-09-14", 101.5]]}]}}))
+    monkeypatch.setattr(server, "build_ticker", lambda sym: {"symbol": sym, "error": "The free feed is resting"})
+    server._ticker_cache.clear()
+    page = server.cached_ticker("CL=F", "global")
+    assert not page.get("error") and page["quote"]["price"] == 102.09 and page["history"][0]["date"] == "2026-09-14"
+    assert page["source"] == "commodity board" and "CL=F" not in {k.split(":")[1] for k in server._ticker_cache}

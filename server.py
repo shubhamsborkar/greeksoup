@@ -230,7 +230,9 @@ def _home_quote(code, exch=None, tries=1):
                     return q
             if attempt + 1 < tries:
                 time.sleep(0.8)
-        return None
+        # the broker had nothing for this code (a lapsed session, a code its quote
+        # feed does not serve): the free feed through the resolved symbol, the same
+        # way the candles already fall back, rather than a page with no quote
     r = _resolve(code, exch)
     q = fetch_yahoo_quote(r["ysym"]) if r.get("ysym") else None
     if q:
@@ -1081,6 +1083,39 @@ def cached_infund(code):
     return data
 
 
+def _ticker_from_commodity(symbol):
+    """The commodity board already holds this contract's level and ten years of its
+    record: when the free feed is resting, the ticker page opens from that copy (the
+    board's own cache on disk, never a new request) rather than an empty screen."""
+    try:
+        with open(os.path.join(HIST_CACHE_DIR, "api_commods.json")) as fh:
+            cards = (json.load(fh).get("data") or {}).get("cards") or []
+    except (OSError, ValueError, AttributeError):
+        return None
+    card = next((c for c in cards if c.get("ysym") == symbol and c.get("value")), None)
+    if not card:
+        return None
+    full = card.get("full") or []
+    hist = [{"date": d, "price": v, "o": None, "h": None, "l": None, "v": None}
+            for d, v in reversed(full) if v is not None]
+    price = card["value"]
+    chg = (card.get("chg") or {}).get("1d")
+    prev = price / (1 + chg / 100.0) if chg is not None and chg > -100 else None
+    return {
+        "symbol": symbol, "region": "global",
+        "quote": {"symbol": symbol, "price": price, "previousClose": prev,
+                  "change": (price - prev) if prev else None, "changePercentage": chg,
+                  "yearHigh": (card.get("hi52") or {}).get("v"), "yearLow": (card.get("lo52") or {}).get("v"),
+                  "name": card.get("label"), "exchange": card.get("src_live") or ""},
+        "profile": {"companyName": card.get("label"), "exchange": card.get("src_live") or "",
+                    "sector": card.get("group"), "industry": (card.get("unit") or "")},
+        "ratios": {}, "metrics": {}, "history": hist, "intraday": {"1D": [], "5D": []},
+        "news": [], "pt": {}, "grades": {}, "earnings": [], "insiders": [], "dividends": [],
+        "source": "commodity board", "ts": datetime.now().strftime("%H:%M:%S"),
+        "stale_since": card.get("date") or "", "stale_why": "the free feed is resting; this is the commodity board's own copy of the record",
+    }
+
+
 def cached_ticker(symbol, region="us"):
     now = time.time()
     key = f"{region}:{symbol}"
@@ -1106,6 +1141,10 @@ def cached_ticker(symbol, region="us"):
                 alt["region"] = "us"
                 data = alt
     dpath = os.path.join(HIST_CACHE_DIR, f"api_ticker_{re.sub(r'[^A-Za-z0-9.^=-]', '_', key)}.json")
+    if data.get("error") and symbol.endswith("=F"):
+        board = _ticker_from_commodity(symbol)
+        if board:
+            return board            # the board's copy; not cached, the next click asks the feed again
     if not data.get("error"):        # never cache a failure; retry next click
         _ticker_cache[key] = (now, data)
         try:

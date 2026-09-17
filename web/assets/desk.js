@@ -696,6 +696,7 @@
     pull();
     setInterval(() => pull(false), 30 * 60 * 1000);
     window.deskCheckUpdate = () => pull(true);   // Settings: the version line asks now
+    window.deskRunUpdate = runUpdate;            // Settings: and brings a newer one in
   }
 
   /* ---- the Ask box: the reader's question, with this screen's numbers, to the

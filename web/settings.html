@@ -77,7 +77,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
 <header>
   <div class="brand">RESEARCH <span>DESK</span></div>
   <nav></nav>
-  <div class="right"><span id="asof"></span> <a href="#" id="upd_now" style="color:var(--muted);font-size:11px;text-decoration:none">check for a newer version</a></div>
+  <div class="right"><span id="asof"></span> <a href="#" id="upd_now" style="color:var(--muted);font-size:11px;text-decoration:none">check for a newer version and bring it in</a></div>
 </header>
 <main>
   <div class="sub">Everything the desk needs from you. Each key is optional, each one is yours, and each one stays in a file inside the desk folder on this computer; the desk writes that file for you, and a new version never touches it. Nothing on this screen places an order anywhere.</div>
@@ -615,7 +615,7 @@ $("e_save").onclick=async()=>{ const v=$("e_mail").value.trim(); if(!v) return s
 function render(s){
   S=s;
   $("asof").textContent="version "+(s.desk.version||"");
-  $("upd_now").onclick=async e=>{ e.preventDefault(); $("upd_now").textContent="checking…"; try{ if(window.deskCheckUpdate) await deskCheckUpdate(); const u=await (await fetch("/api/update",{cache:"no-store"})).json(); const c=u.check||{}; $("upd_now").textContent=c.available?"a newer version is available; the strip at the top brings it in":(c.error?"could not reach the source: "+c.error:"this is the newest version"); }catch(err){ $("upd_now").textContent="could not check"; } };
+  $("upd_now").onclick=async e=>{ e.preventDefault(); $("upd_now").textContent="checking…"; try{ if(window.deskCheckUpdate) await deskCheckUpdate(); const u=await (await fetch("/api/update",{cache:"no-store"})).json(); const c=u.check||{}; if(c.available){ $("upd_now").textContent="bringing in the "+c.remote+" version; the desk restarts by itself"; if(window.deskRunUpdate) deskRunUpdate(); } else $("upd_now").textContent=c.error?"could not reach the source: "+c.error:"this is the newest version"; }catch(err){ $("upd_now").textContent="could not check"; } };
   renderBroker(s); renderData(s); renderAI(s);
   $("agent_url").textContent=s.desk.agent_url; $("agent_url2").textContent=s.desk.agent_url;
   $("v_where").innerHTML=`<b>http://localhost:${s.desk.port}</b> from the folder <span class="mono">${esc(s.desk.folder)}</span>`;
