@@ -3448,7 +3448,10 @@ def screen_choices():
 def nav_state():
     hm = _market()
     hm_id = hm.META.get("id") if hm else None
-    default_hidden = set()
+    # a reader whose home is the US has the US list already (Watch · US carries the 52-week,
+    # moving-average and market-cap columns); Watch · Home would be the same names with fewer
+    # columns, so it steps aside and Settings can show it again
+    default_hidden = {"watch"} if hm_id == "us" else set()
     choices = screen_choices()
     hidden = [k for k, _, _ in SCREENS
               if k not in ALWAYS_SHOWN and not choices.get(k, k not in default_hidden)]

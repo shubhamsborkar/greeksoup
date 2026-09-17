@@ -1,7 +1,7 @@
 """The desk updates itself.
 
-Once a day the desk reads the VERSION file on GitHub (no key, one small
-request). When a newer version exists, every page shows a banner with the
+Every four hours the desk reads the VERSION file on GitHub (no key, one
+small request). When a newer version exists, every page shows a banner with the
 date and what changed, and one button, "Update the desk". The update:
 
   1. downloads the repository as a ZIP from GitHub and unpacks it in a
@@ -45,7 +45,7 @@ REPO = "shubhamsborkar/greeksoup"
 CACHE_DIR = os.path.join(HERE, "cache")
 CHECK_PATH = os.path.join(CACHE_DIR, "update_check.json")
 RESULT_PATH = os.path.join(CACHE_DIR, "update_result.json")
-CHECK_EVERY = 24 * 3600          # one look at GitHub a day
+CHECK_EVERY = 4 * 3600           # one small request every four hours
 RESULT_SHOWN_FOR = 3 * 24 * 3600  # the "updated" banner is offered for three days
 
 # Never written by an update, whatever the ZIP contains.
@@ -151,7 +151,7 @@ def _write_json(path, data):
 
 
 def check(force=False):
-    """What GitHub says today. Cached for a day; `force` asks again now."""
+    """What GitHub says. Cached four hours; `force` asks again now."""
     cached = _read_json(CHECK_PATH)
     if cached and not force and time.time() - cached.get("at", 0) < CHECK_EVERY:
         cached["local"] = local_version()
@@ -434,7 +434,7 @@ def restart_soon(delay=1.5):
 
 
 def loop(on_update=None):
-    """Daily check in the background; applies it by itself when
+    """Background check every hour (answered from the cache four hours); applies it by itself when
     DESK_AUTO_UPDATE=on. Starts a minute after boot so a fresh install is
     not slowed down."""
     time.sleep(60)

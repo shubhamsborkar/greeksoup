@@ -686,15 +686,16 @@
       `if that does not bring it back, give the file logs/desk-service.log in that folder to your AI agent.</span></div>`;
   }
   function initUpdateBar() {
-    async function pull() {
+    async function pull(force) {
       try {
-        const r = await fetch("/api/update", { cache: "no-store" });
+        const r = await fetch(force ? "/api/update?check=1" : "/api/update", { cache: "no-store" });
         if (!r.ok) return;
         renderUpdate(await r.json());
       } catch (e) { /* offline: no banner */ }
     }
     pull();
-    setInterval(pull, 30 * 60 * 1000);
+    setInterval(() => pull(false), 30 * 60 * 1000);
+    window.deskCheckUpdate = () => pull(true);   // Settings: the version line asks now
   }
 
   /* ---- the Ask box: the reader's question, with this screen's numbers, to the

@@ -661,6 +661,16 @@ def test_us_panels_live_on_home():
     assert "usdesk" not in {k for k, _, _ in server.SCREENS}
     nav = server.nav_state()
     assert nav["default_hidden"] == [] and "usdesk" not in nav["hidden"]
+    # a US home hides Watch · Home by default (Watch · US is the same names with more columns);
+    # the reader's own Settings choice still wins
+    os.environ["HOME_MARKET"] = "us"
+    try:
+        nav = server.nav_state()
+        assert nav["default_hidden"] == ["watch"] and "watch" in nav["hidden"]
+        os.environ["SCREENS"] = "watch:on"
+        assert "watch" not in server.nav_state()["hidden"]
+    finally:
+        os.environ.pop("HOME_MARKET", None); os.environ.pop("SCREENS", None)
     reads = server.ASK_READS["/"][1]
     assert "/api/usbook" in reads and "/api/earnings" in reads and "/api/insiders" in reads
     assert "/usdesk" not in server.ASK_READS

@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.92. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.93. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.93
+
+*16 September 2026, release 93.* The desk looks for a newer version every four hours instead of once a day, so the strip that offers it appears the same day a version ships; on Settings the version line carries "check for a newer version" for a reader who wants to ask now. A desk whose home market is the US no longer shows Watch · Home beside Watch · US (the same names with fewer columns); Settings shows it again in one click. Bringing a version in still takes the reader's click on the strip unless Newer versions is switched on in Settings.
 
 ## 2026-09-16.92
 
