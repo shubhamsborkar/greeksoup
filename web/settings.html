@@ -77,7 +77,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
 <header>
   <div class="brand">RESEARCH <span>DESK</span></div>
   <nav></nav>
-  <div class="right"><span id="asof"></span> <a href="#" id="upd_now" style="color:var(--muted);font-size:11px;text-decoration:none">check for a newer version and bring it in</a></div>
+  <div class="right"><span id="asof"></span></div>
 </header>
 <main>
   <div class="sub">Everything the desk needs from you. Each key is optional, each one is yours, and each one stays in a file inside the desk folder on this computer; the desk writes that file for you, and a new version never touches it. Nothing on this screen places an order anywhere.</div>
@@ -247,6 +247,8 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
       <div class="row"><label>Where it runs</label><div class="kv" id="v_where"></div></div>
       <div class="row"><label>Start with the computer</label><div class="sw"><input type="checkbox" id="s_auto"><span id="s_auto_txt"></span></div></div>
       <div class="row"><label>Newer versions</label><div class="sw"><input type="checkbox" id="s_upd"><span id="s_upd_txt"></span></div></div>
+      <div class="row"><label>This version</label><div class="kv"><span id="v_now"></span></div></div>
+      <div class="btns"><button id="upd_btn" type="button">Check for a newer version and bring it in</button><span class="hint" id="upd_txt"></span></div>
       <div class="row"><label for="e_mail">Your e-mail for the SEC</label><input id="e_mail" autocomplete="off" spellcheck="false" placeholder="you@example.com"></div>
       <div class="row"><span></span><div class="hint">The SEC's filing servers ask every program for a contact address and answer faster to one that gives it. Any address you own; it is sent only to the SEC.</div></div>
       <div class="btns"><button class="ghost" id="e_save">Save the address</button><button class="ghost" id="g_again" type="button">Show the startup guide again</button></div>
@@ -615,7 +617,8 @@ $("e_save").onclick=async()=>{ const v=$("e_mail").value.trim(); if(!v) return s
 function render(s){
   S=s;
   $("asof").textContent="version "+(s.desk.version||"");
-  $("upd_now").onclick=async e=>{ e.preventDefault(); $("upd_now").textContent="checking…"; try{ if(window.deskCheckUpdate) await deskCheckUpdate(); const u=await (await fetch("/api/update",{cache:"no-store"})).json(); const c=u.check||{}; if(c.available){ $("upd_now").textContent="bringing in the "+c.remote+" version; the desk restarts by itself"; if(window.deskRunUpdate) deskRunUpdate(); } else $("upd_now").textContent=c.error?"could not reach the source: "+c.error:"this is the newest version"; }catch(err){ $("upd_now").textContent="could not check"; } };
+  $("v_now").textContent=s.desk.version||"";
+  $("upd_btn").onclick=async()=>{ const b=$("upd_btn"), t=$("upd_txt"); b.disabled=true; t.textContent="Checking…"; try{ if(window.deskCheckUpdate) await deskCheckUpdate(); const u=await (await fetch("/api/update",{cache:"no-store"})).json(); const c=u.check||{}; if(c.available){ t.textContent="Bringing in the "+c.remote+" version. The desk restarts by itself and this page comes back on its own."; if(window.deskRunUpdate) deskRunUpdate(); } else { t.textContent=c.error?"Could not reach the source: "+c.error:"This is the newest version ("+(c.checked||"")+")."; b.disabled=false; } }catch(err){ t.textContent="Could not check."; b.disabled=false; } };
   renderBroker(s); renderData(s); renderAI(s);
   $("agent_url").textContent=s.desk.agent_url; $("agent_url2").textContent=s.desk.agent_url;
   $("v_where").innerHTML=`<b>http://localhost:${s.desk.port}</b> from the folder <span class="mono">${esc(s.desk.folder)}</span>`;

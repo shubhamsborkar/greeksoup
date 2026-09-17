@@ -1210,7 +1210,10 @@ function stmtRows(kind){
 }
 function finStmtHTML(kind){
   const key=(kind==="inc"?"inc":kind==="bs"?"bs":"cf")+(FS.period==="quarter"?"_q":"_a");
-  const cols=(FIN[key]||[]).slice().reverse();
+  // newest year on the left, whichever way the record arrived (the provider hands the newest
+  // first, the free record the oldest first): the columns are sorted by their date, so the
+  // % Chg line always reads a column against the year before it, the column to its right
+  const cols=(FIN[key]||[]).slice().sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
   if(!cols.length) return `<div class="fin-note">No ${FS.period} statements for this name on this record.</div>`;
   const rows=stmtRows(kind);
   const cur=FIN.free?(FIN.currency||""):"$";
@@ -1226,11 +1229,11 @@ function finStmtHTML(kind){
       return `<td class="mono${v!=null&&v<0?" neg":""}">${s}</td>`;}).join("")+"</tr>";
     if(FS.chg&&r.t==="n")
       h+=`<tr class="chgrow"><td>% Chg</td>`+vals.map((v,i)=>{
-        const pv=i>0?vals[i-1]:null;
+        const pv=i+1<vals.length?vals[i+1]:null;   // the year before sits to the right
         const g=(pv!=null&&pv!==0&&v!=null)?(v-pv)/Math.abs(pv)*100:null;
         return `<td class="mono ${g==null?"dim":g>=0?"pos":"neg"}">${g==null?"—":(g>=0?"+":"−")+Math.abs(g).toFixed(1)+"%"}</td>`;}).join("")+"</tr>";
   }
-  h+=`</tbody></table></div><div class="fin-note">${FIN.free?esc(FIN.note||"From the free record."):"As filed, from the data provider."} ${FS.chg?"% Chg is the change vs the previous column, under each line. ":""}Margins and EPS ignore the unit toggle.</div>`;
+  h+=`</tbody></table></div><div class="fin-note">${FIN.free?esc(FIN.note||"From the free record."):"As filed, from the data provider."} ${FS.chg?"% Chg is the change on the year (or quarter) before it, the column to its right. ":""}Margins and EPS ignore the unit toggle.</div>`;
   return h;
 }
 function finRatiosHTML(){

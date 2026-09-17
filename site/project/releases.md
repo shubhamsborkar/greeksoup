@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.99. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-17.100. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-17.100
+
+*17 September 2026, release 100.* The % Chg line under the financials read each year against the year after it: the free record arrives oldest first, the provider's newest first, and the table flipped both the same way, so FY2025 showed a fall against FY2026 and the newest year showed nothing. The columns now sort newest on the left whichever way they arrived, and % Chg is the change on the year (or quarter) before, the column to its right. Settings, under Your desk, carries a button: Check for a newer version and bring it in, with the version now running beside it.
 
 ## 2026-09-16.99
 
