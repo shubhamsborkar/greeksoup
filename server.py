@@ -3167,8 +3167,8 @@ def _rebuild(kind, builder):
         data = builder()
         if data is not None:
             _store(kind, data)
-    except Exception:  # noqa: BLE001 - a failed rebuild keeps the old copy
-        pass
+    except Exception as exc:  # noqa: BLE001 - a failed rebuild keeps the old copy, and the log says so
+        print(f"  {kind}: rebuild failed: {type(exc).__name__}: {str(exc)[:200]}", flush=True)
     finally:
         with _building_lock:
             _building.discard(kind)
@@ -3425,7 +3425,8 @@ def settings_state():
     st["desk"] = {"port": PORT, "folder": HERE, "version": updater.local_version(),
                   "autostart": desk_settings.autostart_status(),
                   "agent_url": f"http://localhost:{PORT}/agent",
-                  "log": os.path.join(HERE, "logs", "desk-service.log")}
+                  "log": os.path.join(HERE, "logs", "desk-service.log"),
+                  "building": sorted(_building), "home_broker": ADAPTER["id"], "clients": sorted(clients)}
     st["profile"] = desk_settings.load_profile()
     st["profile_choices"] = desk_settings.PROFILE_CHOICES
     st["files"] = desk_settings.data_files()

@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.84. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.85. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.85
+
+*16 September 2026, release 85.* A screen rebuild that fails writes one line to the desk log with the reason, instead of keeping the old copy in silence; Settings' state names the home broker, the connected clients and what is building right now.
 
 ## 2026-09-16.84
 
