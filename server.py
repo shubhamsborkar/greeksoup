@@ -1084,7 +1084,9 @@ def cached_ticker(symbol, region="us"):
     hit = _ticker_cache.get(key)
     if hit and now - hit[0] < TICKER_TTL:
         return hit[1]
-    data = build_ticker(symbol) if region == "us" else build_ticker_home(symbol)
+    # "us" and "global" are the free feed's own path (any Yahoo symbol: AAPL, SAP.DE, CL=F);
+    # only the home region goes through the home market's broker and files
+    data = build_ticker(symbol) if region in ("us", "global") else build_ticker_home(symbol)
     if data.get("error"):
         # a name typed as its home code (HDFCBANK, INFY), as words (HDFC Bank), or on a desk
         # with no market file for it: the free feed's search finds the exchange symbol

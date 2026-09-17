@@ -123,6 +123,7 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
 .map .empty{color:var(--muted);font-size:12px}
 .note{margin-top:12px;font-size:12.5px;line-height:1.55;color:var(--ink2);border-left:3px solid var(--accent);padding:6px 12px}
 .nochart{padding:28px;text-align:center;color:var(--muted);font-size:12px;background:var(--panel2);border-radius:10px}
+#m_ranges .fullchart{margin-left:auto;font-size:12px;color:var(--accent);text-decoration:none;border:1px solid var(--line2);border-radius:7px;padding:4px 10px} #m_ranges .fullchart:hover{border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -294,6 +295,9 @@ document.getElementById("q").addEventListener("input",render);
 
 /* ---- expand modal ---- */
 let mCard=null, mRange="5Y";
+/* a commodity with an exchange contract opens on the ticker page like any listing: the desk's own
+   chart with every bar size, the indicators, drawings and the drawdown view; a benchmark with a
+   monthly series only (FRED, Trading Economics) keeps the line here */
 const RANGES={"1Y":1,"5Y":5,"10Y":10,"MAX":999};
 function openModal(id){
   mCard=CARDS.find(c=>c.id===id); if(!mCard) return;
@@ -302,7 +306,8 @@ function openModal(id){
   document.getElementById("m_val").textContent=fmtN(mCard.value)+" "+mCard.unit+"  ("+(mCard.date||"")+")";
   const has=mCard.full&&mCard.full.length>1;
   document.getElementById("m_ranges").innerHTML=has?Object.keys(RANGES).map(r=>`<button class="${r===mRange?"on":""}" data-r="${r}">${r}</button>`).join("")+
-    `<span class="src">${esc(mCard.src_hist||"")}${mCard.hist_kind==="monthly"?" · monthly, through "+esc(mCard.hist_through||""):""}</span>`:"";
+    `<span class="src">${esc(mCard.src_hist||"")}${mCard.hist_kind==="monthly"?" · monthly, through "+esc(mCard.hist_through||""):""}</span>`+
+    (mCard.ysym?`<a class="fullchart" href="/t?symbol=${encodeURIComponent(mCard.ysym)}&region=global" title="The contract on its own page: candles, bar sizes, indicators, drawings, the drawdown view, TradingView at a click">Open the full chart ›</a>`:""):"";
   document.querySelectorAll("#m_ranges button").forEach(b=>b.onclick=()=>{mRange=b.dataset.r;openModal(id);});
   if(has) drawBig(); else document.getElementById("bigchart").innerHTML=`<div class="nochart">No free price history for this one. The level and the day, month and year changes are Trading Economics' daily read; the industries below still apply.</div>`;
   const ch=mCard.chg||{}, st=[];

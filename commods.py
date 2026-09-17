@@ -391,6 +391,7 @@ def _card(c):
             card["hist_through"] = series[-1][0]
             card["src_live"] = f"Yahoo {src['yahoo']}"
             card["src_hist"] = f"Yahoo {src['yahoo']}"
+            card["ysym"] = src["yahoo"]          # the contract: the ticker page charts it in full
             if live is None:
                 card["stale"] = True
             return card

@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.91. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.92. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.92
+
+*16 September 2026, release 92.* A commodity with an exchange contract opens on the ticker page. The detail panel on Commodities carries Open the full chart for every card priced from a contract (crude, gold, copper, wheat and the rest): the desk's own chart with every bar size, chart type, the indicators, drawings kept as a plain file, the drawdown view and Save chart to notes; a benchmark with a monthly series keeps its line on the board. A name opened from Global (SAP.DE, 7203.T) reads through the free feed's own path again; it was sent down the home market's path and came back with no quote. On the ticker page a contract asks TradingView for its continuous symbol (NYMEX:CL1!); where their embed does not carry it, the desk's chart stands in and the page says so.
 
 ## 2026-09-16.91
 
