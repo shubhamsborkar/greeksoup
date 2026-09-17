@@ -13,6 +13,8 @@ In a terminal:
 curl -fsSL https://greeksoup.ai/install.sh | bash
 ```
 
+If you would rather read the script before it runs, and you should if you do not know us: `curl -fsSL https://greeksoup.ai/install.sh -o install.sh`, open the file (it is about 130 lines of plain shell), then `bash install.sh`. It asks for your password exactly once, and only on a Mac with no Python 3.10 yet, to install python.org's package; otherwise never.
+
 Python 3.10 or newer is needed. If it is missing the line stops and says what to install: on Ubuntu or Debian `sudo apt install python3 python3-venv`, on Fedora `sudo dnf install python3`. Run the line again after that.
 
 The desk goes into `~/GreekSoup`, with its own environment inside that folder. The line then writes a small systemd user service, `greeksoup-desk.service`, enables it and starts it, so the desk starts at every login and restarts by itself if it stops. It opens the address in your browser if a browser is there to open it.

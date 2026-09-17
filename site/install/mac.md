@@ -13,6 +13,8 @@ Press Command and Space together, type `Terminal`, press Enter; a plain window o
 curl -fsSL https://greeksoup.ai/install.sh | bash
 ```
 
+If you would rather read the script before it runs, and you should if you do not know us: `curl -fsSL https://greeksoup.ai/install.sh -o install.sh`, open the file (it is about 130 lines of plain shell), then `bash install.sh`. It asks for your password exactly once, and only on a Mac with no Python 3.10 yet, to install python.org's package; otherwise never.
+
 If Python is not on your Mac yet, the line installs it from python.org and your Mac asks for your password once. Everything else goes into a folder called `GreekSoup` in your home folder. When the line finishes, the desk is open in your browser at `http://localhost:8765` and it starts with your Mac from then on.
 
 ## What you see

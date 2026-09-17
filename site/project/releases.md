@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-17.101. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-18.102. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-18.102
+
+*18 September 2026, release 102.* The written record says what a stranger will ask before they ask it: the README now counts sixteen screens like the site (Calendar was missing from its list), says whose framework the code was written to and what a human checks on every release (the 54 contract tests on two Python versions and Windows, the plain-words VERSION log), the Mac and Linux install pages show how to read the install script before running it and say the one time it asks for a password, the security page says plainly that the instruction to the AI not to read the keys file is an instruction and where the real wall is (read-only broker keys you can revoke), and What it talks to says what Yahoo's free feed is and is not. No code changed.
 
 ## 2026-09-17.101
 

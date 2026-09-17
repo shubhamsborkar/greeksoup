@@ -4,7 +4,7 @@ You have been opened inside a copy of GreekSoup, the one-person equity research 
 
 ## What this is
 
-A small Python program (`server.py` and the modules beside it) that serves fifteen research screens from `web/` at `http://localhost:8765` (the port is `DESK_PORT` in `.env` when it is not 8765). It reads the public record, the reader's broker if one is connected, and one optional data feed. It is read-only against every account: **there is no order path and you must not add one.**
+A small Python program (`server.py` and the modules beside it) that serves sixteen research screens from `web/` at `http://localhost:8765` (the port is `DESK_PORT` in `.env` when it is not 8765). It reads the public record, the reader's broker if one is connected, and one optional data feed. It is read-only against every account: **there is no order path and you must not add one.**
 
 While the desk is running, `http://localhost:8765/agent` lists every screen and the JSON address behind it, plus how this reader invests, in words they wrote themselves. Read it first when the question is about their book, a screen or a number; it is the same page the desk's own Ask box reads.
 

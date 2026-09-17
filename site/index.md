@@ -13,7 +13,7 @@ lead: The one-person equity research desk that runs on your own computer, writte
 
 ## What GreekSoup is
 
-A research desk that runs as a small program on your own computer and opens in your browser. Fifteen screens: your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a commodity board that names the industries each move squeezes or helps, your own value chains, a research vault of plain files, and a page for any ticker, priced live. It reads the public record (SEC EDGAR, CBOE, FINRA, FRED, Yahoo), your broker if you connect one, and one optional data feed. Every list a screen runs on is yours, and an AI you already pay for answers about your book without a key.
+A research desk that runs as a small program on your own computer and opens in your browser. Sixteen screens: your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a commodity board that names the industries each move squeezes or helps, your own value chains, a research vault of plain files, and a page for any ticker, priced live. It reads the public record (SEC EDGAR, CBOE, FINRA, FRED, Yahoo), your broker if you connect one, and one optional data feed. Every list a screen runs on is yours, and an AI you already pay for answers about your book without a key.
 
 Three things are involved, and it helps to know which is which.
 

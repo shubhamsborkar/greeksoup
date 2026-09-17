@@ -9,7 +9,7 @@ lead: The desk holds your book, your keys and your research. Here is what can go
 
 - The desk listens at an address only your own computer can reach, on both of its own names (`localhost` and `127.0.0.1`), and on nothing else. Another machine on your network cannot open it.
 - It has no login of its own, because nothing outside your computer can reach it. Two guards carry that weight, described below.
-- Your keys live in one settings file inside the desk folder. The update never touches it, the backup never includes it, and the page your AI reads tells the AI not to read it.
+- Your keys live in one settings file inside the desk folder. The update never touches it, the backup never includes it, and the page your AI reads tells the AI not to read it. That last one is an instruction, not a wall: an agent runs on your computer with your permissions, and one that ignored the instruction could open the file. The wall is on the broker's side, so use read-only keys where the broker offers them and a key you can revoke from the broker's own site, and keep a paper account while you learn the desk.
 - There is no order path, on any broker. Every broker file uses that broker's read endpoints and nothing else.
 - Nothing about you leaves your computer unless you connect something that needs it: your broker, a data provider, your AI. [What it talks to](/docs/install/what-it-talks-to/) is the whole list.
 - No telemetry, no analytics, no account, no crash reports. The once-a-day version check carries no identifier.

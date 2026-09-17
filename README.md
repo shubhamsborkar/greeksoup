@@ -18,7 +18,7 @@
   <a href="https://ai.shikshannivesh.com"><img src="https://img.shields.io/badge/newsletter-Alpha%20with%20AI-ED5A24?style=flat-square" alt="Alpha with AI on Substack"></a>
 </p>
 
-GreekSoup is a research desk that runs on your own computer: fifteen screens with your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a board of fifty-one commodities that names the industries each move squeezes or helps, your own value chains, a research vault for your notes, and a page for any ticker, priced live. It reads the public record (SEC EDGAR, CBOE, FINRA, FRED, Yahoo), your broker if you connect one, and one optional data feed, and it opens in any browser at an address on your own computer.
+GreekSoup is a research desk that runs on your own computer: sixteen screens with your positions, the filings, the 13F and insider trades, the options tape, short interest, macro, a board of fifty-one commodities that names the industries each move squeezes or helps, your own value chains, a research vault for your notes, and a page for any ticker, priced live. It reads the public record (SEC EDGAR, CBOE, FINRA, FRED, Yahoo), your broker if you connect one, and one optional data feed, and it opens in any browser at an address on your own computer.
 
 **Yours, and nothing leaves.** Every list a screen runs on is yours to add to, edit and put back. Your keys sit in one file in the desk folder and the desk sends nothing about you or your book anywhere; the one request it makes on its own is a daily look at whether a newer version exists. An AI you already pay for (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code or Cursor) answers questions about your own screens without a key, and the desk never sees that login. There is no account, no hosted copy and no telemetry. What it talks to, and what it does about a web page trying to reach it, is on the [security page](https://greeksoup.ai/docs/project/security/).
 
@@ -114,13 +114,14 @@ The market follows the broker. Once a broker is connected, the desk knows which 
 
 So a reader in the US picks Alpaca, Interactive Brokers or Tradier and has both desks; a reader in the UK picks Trading 212 or Interactive Brokers; a reader in India picks either of the two Indian brokers; a reader in Australia has the agent write the file for an ASX broker, or keeps the book by hand while it is written.
 
-## The fifteen screens
+## The sixteen screens
 
 - **Desk · Home** and its US panels: above.
 - **Desk · Book**: a portfolio you keep by hand, for anyone with no broker to connect and no feed key. Any symbol Yahoo Finance knows, in any market (AAPL, RELIANCE.NS, MC.PA, 0700.HK); add a line in the page or paste your whole holdings list, and it is priced from Yahoo's free feed, US listings close to live and most other exchanges 15 to 20 minutes behind, with value, day move, profit since cost and weight, one currency at a time.
 - **Risk**: beta, volatility, worst drawdown and correlation for every book against its index, leverage at underlying notional, margin cushion, a 5 percent stress line, sector concentration.
 - **Watch · Home, Watch · US, Global**: three watch grids; add a name by typing it. Global takes any symbol from any exchange.
 - **Macro**: 22 FRED series in groups, the home market's own cards, and an economic calendar for the US and the home market.
+- **Calendar**: earnings dates, ex-dividend dates and filings for your names on month grids, for the US and the home market.
 - **Funds**: 13F tracker straight from SEC EDGAR, top holdings, quarter-over-quarter changes, share of each company owned, plus the 13D/G activist feed.
 - **Flow**: the options tape on every US name from CBOE's free delayed chains: put/call, open-interest walls, expected move, unusual strikes, day-over-day builds.
 - **Short**: FINRA short interest and the daily short-volume ratio, kept apart.
@@ -134,7 +135,7 @@ And **Settings**, the last entry in the sidebar: your broker, picked from the li
 
 ## What runs with no key at all
 
-With no broker key and no feed key the desk still starts, and thirteen of the fifteen screens are live: the US panels of Desk · Home, Desk · Book, Watch · US, Global, Risk, Macro, Funds, Flow, Short, Capitol, Chain, Commodities, Notes, and the ticker page's chart, quote, ratios and insider table. The broker key lights up Desk · Home and Watch · Home. The feed key adds the parsed statements, ratio history, segments, estimates, peers, dividends and news on the ticker page, the 50 and 200 day columns on the US watch grid, a market-wide insider scan, and cleaner Congress rows.
+With no broker key and no feed key the desk still starts, and fifteen of the sixteen screens are live: the US panels of Desk · Home, Desk · Book, Watch · Home once a home market is picked in Settings, Watch · US, Global, Risk, Macro, Calendar, Funds, Flow, Short, Capitol, Chain, Commodities, Notes, and the ticker page's chart, quote, ratios and insider table. The broker key lights up Desk · Home and puts the broker's own ticks and order book under Watch · Home. The feed key adds the parsed statements, ratio history, segments, estimates, peers, dividends and news on the ticker page, the 50 and 200 day columns on the US watch grid, a market-wide insider scan, and cleaner Congress rows.
 
 ## Your own market on the Commodities screen
 
@@ -203,7 +204,11 @@ Setup by hand, the file map, how to adapt the broker adapter, the data sources i
 
 ## Built with an agent
 
-Every line here was written by Claude Code from plain-English descriptions and screenshots. The edition that walks through every screen, the build and the setup around it (the vault, the rulebook, the skills) is [How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity) in the *Alpha with AI* newsletter.
+Every line of code here was written by Claude Code from plain-English descriptions and screenshots. The framework it was written to is the author's: which numbers sit next to which, why a name added once is connected to its filings, its earnings, its funds and its notes everywhere at the same time, what a fundamental investor's desk holds and what it leaves out, and every decision about brokers, markets, keys and defaults. The author had built and run an earlier version of this desk as software before any of it was described to an agent, and has run this one on his own book every day since 3 September 2026.
+
+What a human checks: 54 contract tests run on every push, on Python 3.10 and 3.13 on Linux and as a smoke run on Windows (the `check` workflow), a release goes out only when they pass, and every version carries a line in plain words in `VERSION` saying what changed and why, 116 of them at the time of writing. Read that file before the code; it is the history of the decisions.
+
+The edition that walks through every screen, the build and the setup around it (the vault, the rulebook, the skills) is [How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity) in the *Alpha with AI* newsletter.
 
 The desk sits on top of a different setup, the agent itself as your research analyst: a folder of notes it reads, a rulebook it follows, and the habits of clipping filings into it and asking it questions. That is its own guide, and the place to start if you are new to all of this: [How I Set Up Claude Code as My Investment Research Analyst](https://ai.shikshannivesh.com/p/how-i-set-up-claude-code-as-my-investment), with its rebuild inside Obsidian in [How I Set Up Claude Code as My Investment Research Analyst 2.0](https://ai.shikshannivesh.com/p/how-i-set-up-claude-code-as-my-investment-c2b). The desk works with or without that setup.
 

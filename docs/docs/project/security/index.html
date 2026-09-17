@@ -48,7 +48,7 @@
 <ul>
 <li>The desk listens at an address only your own computer can reach, on both of its own names (<code>localhost</code> and <code>127.0.0.1</code>), and on nothing else. Another machine on your network cannot open it.</li>
 <li>It has no login of its own, because nothing outside your computer can reach it. Two guards carry that weight, described below.</li>
-<li>Your keys live in one settings file inside the desk folder. The update never touches it, the backup never includes it, and the page your AI reads tells the AI not to read it.</li>
+<li>Your keys live in one settings file inside the desk folder. The update never touches it, the backup never includes it, and the page your AI reads tells the AI not to read it. That last one is an instruction, not a wall: an agent runs on your computer with your permissions, and one that ignored the instruction could open the file. The wall is on the broker's side, so use read-only keys where the broker offers them and a key you can revoke from the broker's own site, and keep a paper account while you learn the desk.</li>
 <li>There is no order path, on any broker. Every broker file uses that broker's read endpoints and nothing else.</li>
 <li>Nothing about you leaves your computer unless you connect something that needs it: your broker, a data provider, your AI. <a href="../../install/what-it-talks-to/">What it talks to</a> is the whole list.</li>
 <li>No telemetry, no analytics, no account, no crash reports. The once-a-day version check carries no identifier.</li>
@@ -91,7 +91,7 @@
     </nav>
     <footer class="foot">
       <span>GreekSoup: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. For investors who refuse to settle.</span>
-      <span class="mono">version 2026-09-17.101 · built 2026-09-17 · <a href="https://github.com/shubhamsborkar/greeksoup/edit/main/site/project/security.md">edit this page</a></span>
+      <span class="mono">version 2026-09-18.102 · built 2026-09-18 · <a href="https://github.com/shubhamsborkar/greeksoup/edit/main/site/project/security.md">edit this page</a></span>
     </footer>
   </main>
   <aside class="rail">
