@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.85. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.86. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.86
+
+*16 September 2026, release 86.* A watchlist built on the free feed no longer kills the broker session. Watch · Home names added as Yahoo symbols (before a broker was connected, or by choice) went unpriced once a broker was on, and a pass over them with no broker answer marked the session dead, which emptied the options tape and could darken Desk · Home. Free-feed names now stay priced from the free feed beside the broker's own names, and only a silent pass over the broker's names says anything about its session. An empty options tape is retried within a minute.
 
 ## 2026-09-16.85
 

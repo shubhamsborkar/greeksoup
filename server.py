@@ -1417,8 +1417,14 @@ def watch_loop():
             time.sleep(90)
             continue
         any_ok = False
+        # names put on the list from the free feed (a Yahoo symbol, added before a broker was
+        # connected or by choice) keep pricing from the free feed; the broker prices its own
         for entry in names:
             if not _is_broker_name(entry):
+                q = fetch_yahoo_quote(entry["code"])
+                if q:
+                    with _watch_lock:
+                        WATCH[entry["code"]] = q
                 continue
             q = _home_quote(entry["code"], entry.get("exch") or None)
             if q:
@@ -1431,8 +1437,8 @@ def watch_loop():
                 time.sleep(5.0)
             else:
                 time.sleep(0.7 if (home_market_open() or first_cycle) else 3.0)
-        if names:                      # a full silent pass = the session is dead
-            broker_health["dead"] = not any_ok
+        if any(_is_broker_name(e) for e in names):     # a full silent pass over the broker's names = the session is dead
+            broker_health["dead"] = not any_ok         # a list with only free-feed names says nothing about the session
         # Thinly traded names often return no usable quote. For held names the
         # holdings feed carries the broker's own mark; use it rather than
         # leaving a dead row on the grid.
@@ -1723,7 +1729,9 @@ def build_tape():
     option chains; an empty list otherwise and the page says so."""
     hook = _hook("tape")
     if hook is None or broker_health["dead"]:
-        return {"ts": datetime.now().strftime("%H:%M:%S"), "names": []}
+        # nothing to read yet (no home broker, or its session is down): look again in a minute,
+        # never keep an empty tape for the full ten
+        return {"ts": datetime.now().strftime("%H:%M:%S"), "names": [], "_ttl": 60}
     cli = _client()
     if cli is None:
         return {"ts": datetime.now().strftime("%H:%M:%S"), "names": [], "_ttl": 60}
