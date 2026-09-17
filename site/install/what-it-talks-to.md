@@ -8,7 +8,7 @@ lead: The desk runs on your computer and answers only to your computer. This is 
 ## The list
 
 - **Your broker**, only if you connected one, with the keys you gave it, read-only. Each shipped broker file uses that broker's documented read endpoints and none of them can place an order.
-- **The public record**: SEC EDGAR for filings, FINRA for short interest, CBOE for delayed option chains, FRED for macro series, the Senate and House disclosure sites for Congress trades, Yahoo Finance for quotes and history, Trading Economics for a few commodity benchmarks, and the India sources named on the Macro screen.
+- **The public record**: SEC EDGAR for filings, FINRA for short interest, CBOE for delayed option chains, FRED for macro series, the Senate and House disclosure sites for Congress trades, Yahoo Finance for quotes and history, Nasdaq for US earnings dates, dividends and the market pulse, Trading Economics for a few commodity benchmarks, and the India sources named on the Macro screen.
 - **Your data provider**, only if you gave it a key. Financial Modeling Prep ships today.
 - **Your AI**, only if you chose one: a key from a lab, an app you already pay for on this computer (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code, Cursor, which reach their own providers under your own account), or a model running on your own computer, which never leaves it. What goes: your question and the numbers on the screen you asked from, which on Desk · Home are your book. Nothing goes until you press Enter.
 - **GitHub**, once a day, one small request for the `VERSION` file, to know whether a newer version exists. The update itself downloads the desk's files from GitHub when you click the button.

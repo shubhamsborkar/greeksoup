@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.89. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.90. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.90
+
+*16 September 2026, release 90.* The landing page catches up with the desk. greeksoup.ai now says sixteen screens (Calendar joined at .74), fifteen of them with no key; the rows for Desk · Home, Any ticker, Flow, Short, Calendar, Chain, Macro and Settings say what those screens do today; a fourth figure draws the drawdown view from the desk's own daily record; every screenshot is re-taken from this version; Nasdaq joins the public record on the page and in the desk's own security page; the Your AI block says every AI app on the computer is a door, picked question by question, and that Build mode changes the desk. On a desk whose home market is the US, the empty hand-kept tiles under The US desk step aside the same way they do elsewhere.
 
 ## 2026-09-16.89
 

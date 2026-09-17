@@ -13,6 +13,7 @@ lead: The source is named on every screen. This is the same list in one place, w
 - **FRED.** Twenty-two macro series in groups, and the long monthly history of commodity benchmarks that have no exchange contract.
 - **The Senate and the House.** Trading disclosures on your names and on the members you follow; the House reports arrive as PDFs and the desk reads them.
 - **Yahoo Finance.** Quotes, candles and the ticker page basics for any listing, and the exchange-traded commodity contracts on the board. Near live for US listings, fifteen to twenty minutes delayed for most other exchanges. Yahoo's quote endpoints are unofficial and can change; when they do, the desk falls back to the last saved quote and says so.
+- **Nasdaq.** The earnings date and the dividend record of each US name on the Calendar, and the US market pulse on Desk · Home: every large and mega cap with today's move, volume and sector, from which the gainers, the losers, the most active by dollars traded and the sector snapshot are read.
 - **Trading Economics.** One dated sentence per page for the commodity benchmarks with no contract and no FRED series, for the current level and the day, month and year change.
 - **The home market's own sources.** The exchange's filings and results calendar, and the statistics office, for the market your broker trades in. India and the United States ship.
 

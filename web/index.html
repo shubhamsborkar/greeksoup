@@ -437,7 +437,7 @@ function placeUSBroker(){
   const slot=document.getElementById("us_broker"); if(!slot) return false;
   slot.innerHTML = window.US_BROKER_HTML || "";
   const wait=document.getElementById("us_broker_wait"); if(wait) wait.remove();
-  if(window.usDeskBrokerPlaced) usDeskBrokerPlaced(!!window.US_BROKER_HTML);
+  if(window.usDeskBrokerPlaced) usDeskBrokerPlaced(!!window.US_BROKER_HTML || !!window.US_HOME_BROKER);
   return true;
 }
 window.placeUSBroker = placeUSBroker;
@@ -517,6 +517,9 @@ function render(snap){
   // the US broker's block belongs under The US desk, with the hand-kept US names; it is placed
   // there once that section is on the page, and stays here until then
   window.US_BROKER_HTML = usGroup ? deskBlock(usGroup) : "";
+  // on a desk whose home market is the US, the home broker IS the US account: the hand-kept
+  // tiles under The US desk step aside the same way while that book is empty
+  window.US_HOME_BROKER = !!(homeGroup && snap.market && snap.market.id === "us");
   app.innerHTML=`${ribbon}${homeNote}
     ${homeGroup?deskBlock(homeGroup):""}
     ${(anyFno||tapeData&&tapeData.names&&tapeData.names.length)?`<div class="grid mid">
