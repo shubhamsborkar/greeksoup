@@ -417,17 +417,37 @@ function mountTV(){
   sc.text=JSON.stringify({autosize:true,symbol:tvSymbol(),interval:"D",timezone:"Etc/UTC",theme:"dark",style:"1",locale:"en",
     allow_symbol_change:false,hide_side_toolbar:false,withdateranges:true,calendar:false,save_image:true,support_host:"https://www.tradingview.com"});
   wrap.firstChild.appendChild(sc);
-  // no iframe within a few seconds means the embed could not load (no network, or blocked): the desk's chart takes over
-  setTimeout(()=>{ if(chartSource()==="tv"&&!wrap.querySelector("iframe")){ setChartSource("desk",true); } },6000);
+  // Their frame tells the page how it went: "tv-widget-no-data" when their embed does not carry
+  // the name, "quoteUpdate" once their data is flowing. No word within twelve seconds means their
+  // data did not reach this browser (a shield or ad blocker, or no network): the desk's chart takes over.
+  TVSTATE.got=""; TVSTATE.mounted=Date.now();
+  setTimeout(()=>{ if(chartSource()==="tv"&&!TVSTATE.got&&document.getElementById("tvwrap").style.display!=="none"){ setChartSource("desk",true,false,wrap.querySelector("iframe")?"nodata":"noframe"); } },12000);
 }
-function setChartSource(src,fallback,quiet){   // quiet: the page opening on its default, nothing is remembered
+const TVSTATE={got:"",mounted:0};
+window.addEventListener("message",e=>{
+  if(!/tradingview/.test(e.origin)) return;
+  let d=e.data; if(typeof d==="string"){ try{ d=JSON.parse(d); }catch(x){ d={name:d.includes("tv-widget-no-data")?"tv-widget-no-data":""}; } }
+  const name=d&&typeof d==="object"?d.name:"";
+  if(name==="quoteUpdate"){
+    TVSTATE.got="data";
+    // their quote names the feed it comes from: BSE_EOD is end of day, EURONEXT_DLY is delayed, BATS_DLY is Cboe One delayed
+    const on=String((d.data||{}).original_name||""), how=/_EOD:/.test(on)?"end-of-day bars, updated after the close":/_DLY:/.test(on)?"delayed":"";
+    const note=document.getElementById("srcnote");
+    if(note&&how&&document.getElementById("tvwrap").style.display!=="none") note.textContent="TradingView · "+tvSymbol()+" · their feed is "+how+" · the camera on their toolbar saves the chart with your drawings";
+  }
+  else if(name==="tv-widget-no-data"&&document.getElementById("tvwrap").style.display!=="none"){ TVSTATE.got="refused"; setChartSource("desk",true,false,"refused"); }
+});
+function setChartSource(src,fallback,quiet,why){   // quiet: the page opening on its default, nothing is remembered; why: what their frame said
   try{ if(!fallback&&!quiet) localStorage.setItem("gs.chart",src); }catch(e){}
   const tv=src==="tv";
   document.getElementById("tvwrap").style.display=tv?"":"none";
   for(const id of ["modeseg","rangeseg","intseg","chart","tip","chartret","drawbar"]){ const el=document.getElementById(id); if(el) el.style.display=tv?"none":""; }
   document.querySelectorAll("#srcseg button").forEach(b=>b.classList.toggle("on",b.dataset.s===(fallback?"desk":src)));
   const note=document.getElementById("srcnote");
-  if(note) note.textContent=fallback?"TradingView's chart could not load here; this is the desk's own."
+  const FELL={refused:"TradingView's embed does not carry "+tvSymbol()+" (their own site does), so this is the desk's own chart.",
+    nodata:"TradingView's data did not reach this browser (a shield or ad blocker can stop it, and so can no network), so this is the desk's own chart.",
+    noframe:"TradingView's chart could not load here (no network, or the browser blocked it), so this is the desk's own chart."};
+  if(note) note.textContent=fallback?(FELL[why]||FELL.noframe)
     :tv?"TradingView · "+tvSymbol()+(tvCarried()?" · the camera on their toolbar saves the chart with your drawings":" · their embed does not carry this exchange, only their own site does")
     :tvCarried()?"":"TradingView's embed does not carry "+tvSymbol().split(":")[0]+" listings (their own site does), so this is the desk's own chart.";
   if(tv){ if(!document.querySelector("#tvwrap iframe")) mountTV(); } else drawChart();

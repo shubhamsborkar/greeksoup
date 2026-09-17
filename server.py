@@ -875,7 +875,8 @@ def build_ticker_home(code):
         "symbol": code, "region": "home",
         "exchange_symbol": r.get("symbol") if r.get("symbol") != code else "",
         "ysym": r.get("ysym", ""),
-        "currency_symbol": (m.META["symbol"] if m else CURRENCY_SYMBOLS.get(cur_code, cur_code + " " if cur_code else "")),
+        # the sign follows the quote's own currency (an NSE name is rupees whatever the home market); the market's sign only when the feed names none
+        "currency_symbol": (CURRENCY_SYMBOLS.get(cur_code, cur_code + " ") if cur_code and (not m or cur_code != m.META["currency"]) else (m.META["symbol"] if m else "")),
         "filings": (m.META.get("filings") if m else "") or "",
         "units": (m.META.get("units") if m else "") or "",
         "market": (m.META["label"] if m else ""),

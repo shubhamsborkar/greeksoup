@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.70. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.71. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.71
+
+*16 September 2026, release 71.* The sign follows the quote. An NSE name opened on a desk whose home market is elsewhere printed its price with the home market's sign ($715.75); the sign now follows the currency the feed names for that listing (₹ for rupees, £ or p for London, € for Euronext), and the home market's sign only where the feed names none. TradingView's frame now tells the page how it went, so the page stops guessing: their embed says when it does not carry a name (the desk's chart takes over with that reason), their first quote says the data is flowing and names the feed (BSE is end-of-day bars updated after the close; Euronext and Cboe One are delayed), and no word within twelve seconds means their data did not reach this browser (a shield or ad blocker, or no network), which the panel says in those words.
 
 ## 2026-09-16.70
 
