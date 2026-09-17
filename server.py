@@ -3032,11 +3032,55 @@ def build_short():
 
 
 # ---- US market pulse (movers + sector heat; audited working on Starter) ------
+def _pulse_free():
+    """The pulse without a key: Nasdaq's public screener hands out every large and mega cap
+    with today's move, volume and sector in one answer. Gainers, losers and the most active by
+    dollar traded come from that list, and the sector snapshot is the cap-weighted move of each
+    sector today. Small caps stay out on purpose: the free list is the liquid market."""
+    from calendar_desk import _NASDAQ_UA
+    try:
+        r = requests.get("https://api.nasdaq.com/api/screener/stocks",
+                         params={"tableonly": "false", "limit": 1500, "marketcap": "mega|large", "download": "true"},
+                         headers=_NASDAQ_UA, timeout=30)
+        d = r.json().get("data") or {}
+        rows = d.get("rows") or (d.get("table") or {}).get("rows") or []
+    except Exception:  # noqa: BLE001
+        rows = []
+    names = []
+    for x in rows:
+        try:
+            price = float(str(x.get("lastsale", "")).replace("$", "").replace(",", ""))
+            chg = float(str(x.get("pctchange", "")).replace("%", "").replace(",", ""))
+            vol = float(str(x.get("volume", "0")).replace(",", "") or 0)
+            cap = float(str(x.get("marketCap", "0")).replace(",", "") or 0)
+        except ValueError:
+            continue
+        nm = re.sub(r"\s+(Common Stock|Class [A-C] .*|Ordinary Shares.*|Depositary Shares.*)$", "", str(x.get("name") or ""))
+        names.append({"symbol": x.get("symbol"), "name": nm, "price": price, "chg_pct": chg,
+                      "dollar": price * vol, "cap": cap, "sector": x.get("sector") or ""})
+    if not names:
+        return {"gainers": [], "losers": [], "actives": [], "sectors": [], "sector_date": None,
+                "note": "the market pulse could not be read from the free record just now; it is tried again in a few minutes", "_ttl": 300,
+                "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
+    slim = lambda r: {"symbol": r["symbol"], "name": r["name"], "price": r["price"], "chg_pct": r["chg_pct"]}
+    by_chg = sorted(names, key=lambda r: r["chg_pct"])
+    actives = sorted(names, key=lambda r: -r["dollar"])[:10]
+    agg = {}
+    for r in names:
+        if r["sector"] and r["cap"] and r["sector"] != "Miscellaneous":
+            a = agg.setdefault(r["sector"], [0.0, 0.0])
+            a[0] += r["chg_pct"] * r["cap"]
+            a[1] += r["cap"]
+    sectors = sorted(({"sector": k, "chg": v[0] / v[1]} for k, v in agg.items() if v[1]), key=lambda x: -x["chg"])
+    return {"gainers": [slim(r) for r in by_chg[::-1][:10]], "losers": [slim(r) for r in by_chg[:10]],
+            "actives": [slim(r) for r in actives], "sectors": sectors, "sector_date": datetime.now().strftime("%Y-%m-%d"),
+            "note": "the free record: large and mega caps, movers by today's change, most active by dollars traded, sectors cap-weighted · refreshes every 15 min",
+            "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
+
+
 def build_pulse():
     if not os.getenv("FMP_API_KEY", "").strip():
-        return {"gainers": [], "losers": [], "actives": [], "sectors": [], "sector_date": None,
-                "note": "the market pulse (movers and sector snapshot) needs the feed key",
-                "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
+        return _pulse_free()
     with ThreadPoolExecutor(max_workers=4) as ex:
         g = ex.submit(fmp_get, "biggest-gainers")
         l = ex.submit(fmp_get, "biggest-losers")

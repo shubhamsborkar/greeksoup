@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.87. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.88. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.88
+
+*16 September 2026, release 88.* The US market pulse without a key. Biggest gainers, biggest losers, the most active by dollars traded and the sector snapshot now come from the free public record (every large and mega cap with today's move, volume and sector, in one read), so the panel on Desk · Home fills for every reader; a data key still brings the whole market, small caps included.
 
 ## 2026-09-16.87
 
