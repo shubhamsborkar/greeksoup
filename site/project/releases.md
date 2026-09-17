@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.74. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.75. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.75
+
+*16 September 2026, release 75.* The drawdown view, rebuilt to be read. It is drawn from daily closes whatever the bar size (at a weekly or monthly size the chart keeps each week's or month's deepest close, so a thirty-year view stays evenly spaced and the deepest day is never lost), filled from the zero line down to the curve, the scale pinned to zero at the top, the deepest point marked on the chart with its date. The line above says where it stands: below the peak now and the days since that peak, the deepest point inside the range and its date, the longest stretch under water in the whole record and whether it is still running. A stray print in the free record (one close several times its neighbours) no longer sits in the running peak for years; the line says how many were ignored.
 
 ## 2026-09-16.74
 

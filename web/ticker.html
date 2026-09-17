@@ -231,13 +231,25 @@ function resampleOHLC(pts,bucket){
   if(cur)out.push(cur);
   return out;
 }
+/* A stray print in the free record (one close several times its neighbours, the neighbours agreeing
+   with each other) would sit in the running peak for years; the drawdown ignores it and says so. */
+let STRAY=0;
+function cleanSpikes(hist){
+  STRAY=0; const out=hist.map(p=>p.price);
+  for(let i=1;i<hist.length-1;i++){
+    const a=hist[i-1].price, b=hist[i].price, c=hist[i+1].price;
+    if(a>0&&c>0&&Math.abs(a/c-1)<0.3&&(b>2.5*Math.max(a,c)||b<0.4*Math.min(a,c))){ out[i]=(a+c)/2; STRAY++; }
+  }
+  return out;
+}
 function seriesFor(pts,intra){
   if(mode!=="drawdown") return pts.map(p=>({d:p.date,v:p.price}));
   if(!intra&&HIST.length){
     // running peak over FULL loaded history, not just the visible window —
     // a 1Y view starts below zero when the peak is older than the window.
+    const px=cleanSpikes(HIST);
     let peak=-Infinity; const dd={};
-    for(const p of HIST){peak=Math.max(peak,p.price); dd[p.date]=(p.price/peak-1)*100;}
+    for(let i=0;i<HIST.length;i++){peak=Math.max(peak,px[i]); dd[HIST[i].date]=(px[i]/peak-1)*100;}
     return pts.map(p=>({d:p.date,v:dd[p.date]??0}));
   }
   let peak=-Infinity;
@@ -380,9 +392,25 @@ function drawChart(){
     if(msg){ msg.style.display=""; msg.textContent=BARS[loadingKey]==="loading"?"Fetching "+INTERVALS[interval].label+"…":"No "+INTERVALS[interval].label+" for this range on the free feed right now."; }
     const lbl0=document.getElementById("chartret"); if(lbl0) lbl0.innerHTML=""; return; }
   if(msg) msg.style.display="none";
-  const intra=isIntra(interval);
+  const intra=isIntra(interval); DDINFO=null;
+  if(mode==="drawdown"&&!intra){
+    // a drawdown is read off daily closes whatever the bar size, so a weekly view does not hide the days in between
+    let d0=0; for(let i=HIST.length-1;i>0;i--) if(Date.parse(HIST[i].date)-Date.parse(HIST[i-1].date)>45*864e5){d0=i;break;}
+    const daily=HIST.slice(d0).filter(p=>p.date>=pts[0].date); if(daily.length>=2) pts=daily;
+    // the words come from the daily record: the deepest point inside the range, the days since the peak and the time under water from the whole record
+    const full=HIST.slice(d0); DDINFO={...ddStats(full, seriesFor(full,false).map(x=>x.v)), ...(o=>({deepest:o.deepest,deepestOn:o.deepestOn}))(ddStats(pts, seriesFor(pts,false).map(x=>x.v)))};
+    // at a weekly or monthly bar size the chart keeps, per week or month, the day the drawdown was deepest,
+    // so the bars stay evenly spaced and the deepest close is never lost
+    if(interval==="1W"||interval==="1M"){
+      const ddv=seriesFor(pts,false).map(x=>x.v); const keep=[]; let key="", best=-1;
+      for(let i=0;i<pts.length;i++){ const d=pts[i].date; const k=interval==="1M"?d.slice(0,7):String(Math.floor((Date.parse(d)/864e5+4)/7));
+        if(k!==key){ if(best>=0) keep.push(pts[best]); key=k; best=i; } else if(ddv[i]<ddv[best]) best=i; }
+      if(best>=0) keep.push(pts[best]); if(keep.length) keep[keep.length-1]=pts[pts.length-1];   // the last bar is today, so the chart ends where the words do
+      pts=keep;
+    }
+  }
   const quarterly=!intra&&pts.length>1&&(Date.parse(pts[1].date)-Date.parse(pts[0].date)>45*864e5);
-  let barNote=quarterly?"quarterly bars (the free record before ten years back)":INTERVALS[interval].label;
+  let barNote=quarterly?"quarterly bars (the free record before ten years back)":(mode==="drawdown"&&!intra?(interval==="1W"?"the deepest close of each week":interval==="1M"?"the deepest close of each month":"daily closes"):INTERVALS[interval].label);
   const S=seriesFor(pts,intra);
   const chart=ensureChart(); clearSeries();
   document.getElementById("chart").style.height=chartHeight()+"px";
@@ -399,8 +427,16 @@ function drawChart(){
   const pf={type:"price",precision:mode==="drawdown"?1:(lastV<10?3:2),minMove:mode==="drawdown"?0.1:(lastV<10?0.001:0.01)};
   let main;
   if(mode==="drawdown"){
-    main=chart.addSeries(LightweightCharts.BaselineSeries,{baseValue:{type:"price",price:0},topLineColor:pos,topFillColor1:"rgba(0,0,0,0)",topFillColor2:"rgba(0,0,0,0)",bottomLineColor:neg,bottomFillColor1:neg+"0a",bottomFillColor2:neg+"2e",lineWidth:2,priceFormat:{type:"custom",formatter:v=>v.toFixed(1)+"%",minMove:0.1},priceLineVisible:true,lastValueVisible:true});
+    // underwater: the fill hangs from the zero line down to the curve; the scale keeps zero at the top
+    const floor=Math.min(...vals);
+    main=chart.addSeries(LightweightCharts.BaselineSeries,{baseValue:{type:"price",price:0},topLineColor:pos,topFillColor1:"rgba(0,0,0,0)",topFillColor2:"rgba(0,0,0,0)",bottomLineColor:neg,bottomFillColor1:neg+"66",bottomFillColor2:neg+"14",lineWidth:1.5,priceFormat:{type:"custom",formatter:v=>v.toFixed(1)+"%",minMove:0.1},priceLineVisible:true,lastValueVisible:true,
+      autoscaleInfoProvider:()=>({priceRange:{minValue:Math.min(floor*1.08,-1),maxValue:0.4}})});
     main.setData(rows.map(r=>({time:r.t,value:+r.s.v.toFixed(2)})));
+    main.createPriceLine({price:0,color:tok("--ink2"),lineWidth:1,lineStyle:LightweightCharts.LineStyle.Solid,axisLabelVisible:false});
+    // the deepest point, named on the chart
+    let iMin=0; for(let i=1;i<vals.length;i++) if(vals[i]<vals[iMin]) iMin=i;
+    if(vals[iMin]<-0.5){ main.createPriceLine({price:floor,color:neg+"88",lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:"deepest"});
+      LightweightCharts.createSeriesMarkers(main,[{time:rows[iMin].t,position:"belowBar",color:neg,shape:"circle",size:0.6,text:`${vals[iMin].toFixed(1)}% · ${rows[iMin].p.date.slice(0,10)}`}]); }
   }else if(useCandles){
     let ohlc=rows.map(r=>({time:r.t,open:r.p.o,high:r.p.h??Math.max(r.p.o,r.p.price),low:r.p.l??Math.min(r.p.o,r.p.price),close:r.p.price}));
     if(mode==="ha"){
@@ -433,13 +469,31 @@ function drawChart(){
     LSERIES.push(vs);
   }
   renderDrawings(chart,main);
+  chart.timeScale().applyOptions({rightOffset:mode==="drawdown"?9:2});   // room for the deepest point's words at the right edge
   chart.timeScale().fitContent();
   const ret = mode!=="drawdown" ? (vals[vals.length-1]/vals[0]-1)*100 : null;
   const maxdd = mode!=="drawdown" ? null : Math.min(...vals);
   const lbl=document.getElementById("chartret");
   if(lbl) lbl.innerHTML = (mode!=="drawdown"
     ? `<span class="rangeret mono ${cls(ret)}">${pct(ret)}</span> <span class="dim">over ${range}${barNote?" · "+barNote:""}</span>`
-    : `<span class="rangeret mono neg">${maxdd.toFixed(1)}%</span> <span class="dim">deepest in ${range} · % below the running peak of all loaded history</span>`)+legend;
+    : ddWords(rows,vals,maxdd))+legend;
+}
+/* the drawdown in words: where it stands now, the deepest point and its date, the days since the
+   last peak, and the longest stretch spent under water inside the range (peak to a new peak) */
+let DDINFO=null;
+function ddStats(pts,vals){
+  const n=vals.length, now=vals[n-1];
+  let iMin=0; for(let i=1;i<n;i++) if(vals[i]<vals[iMin]) iMin=i;
+  let lastPeak=n-1; while(lastPeak>0&&vals[lastPeak]<-0.001) lastPeak--;
+  const day=i=>pts[i].date.slice(0,10), days=(a,b)=>Math.round((Date.parse(day(b))-Date.parse(day(a)))/864e5);
+  let longest=0, start=-1; for(let i=0;i<n;i++){ if(vals[i]<-0.001){ if(start<0) start=i; } else if(start>=0){ longest=Math.max(longest,days(start,i)); start=-1; } }
+  const open=start>=0?days(start,n-1):0;
+  return {now, sincePeak:now<-0.001&&lastPeak<n-1?days(lastPeak,n-1):0, deepest:vals[iMin], deepestOn:day(iMin), under:Math.max(longest,open), counting:open>0&&open>=longest};
+}
+function ddWords(rows,vals,maxdd){
+  const d=DDINFO||ddStats(rows.map(r=>r.p),vals);
+  const mono=x=>`<span class="mono" style="color:var(--ink)">${x}</span>`;
+  return `<span class="rangeret mono neg">${d.now.toFixed(1)}%</span> <span class="dim">below the peak now${d.sincePeak?", "+mono(d.sincePeak+" days")+" since it":""} · deepest ${mono(d.deepest.toFixed(1)+"%")} on ${mono(d.deepestOn)}${d.under>0?" · longest under water "+mono(d.under+" days")+(d.counting?" and counting":""):""} · ${interval==="1W"?"each week's deepest close":interval==="1M"?"each month's deepest close":"daily closes"} against the running peak of all loaded history${STRAY?" · "+STRAY+" stray print"+(STRAY>1?"s":"")+" in the free record ignored":""}</span>`;
 }
 function renderRangeSeg(){
   const seg=document.getElementById("rangeseg");
