@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.90. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.91. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.91
+
+*16 September 2026, release 91.* The landing page's questions read against the desk of today: where the keys and the daily session live, picking the AI app question by question, what the Ask box carries from a ticker page, which screens take a name at the top, Build mode from inside the desk; and two new ones, TradingView's chart at a click and which brokers ask for a daily login.
 
 ## 2026-09-16.90
 
