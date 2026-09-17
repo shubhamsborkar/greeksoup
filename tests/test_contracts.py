@@ -1326,3 +1326,14 @@ def test_commodity_ticker_page_opens_from_the_board_when_the_feed_rests(monkeypa
     page = server.cached_ticker("CL=F", "global")
     assert not page.get("error") and page["quote"]["price"] == 102.09 and page["history"][0]["date"] == "2026-09-14"
     assert page["source"] == "commodity board" and "CL=F" not in {k.split(":")[1] for k in server._ticker_cache}
+
+
+def test_contract_symbol_never_matched_to_a_company(monkeypatch, tmp_path):
+    """CL=F with the feed resting and no board copy: the page says so; it never becomes CLF."""
+    import server
+    monkeypatch.setattr(server, "HIST_CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(server, "build_ticker", lambda sym: {"symbol": sym, "error": "resting"} if sym == "CL=F" else {"symbol": sym, "quote": {"price": 8.16}})
+    monkeypatch.setattr(server.freefeed, "search", lambda q, n: [{"code": "CLF"}])
+    server._ticker_cache.clear()
+    page = server.cached_ticker("CL=F", "global")
+    assert page.get("error") and page["symbol"] == "CL=F"

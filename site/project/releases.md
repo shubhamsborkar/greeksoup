@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.95. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.96. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.96
+
+*16 September 2026, release 96.* A contract, an index or a currency pair on the ticker page (CL=F, ^NSEI, EURUSD=X) is never handed to the company search when the feed is resting: Open the full chart on WTI crude came back as Cleveland-Cliffs, the company whose letters it shares. The board's own copy of the record now comes first for a contract.
 
 ## 2026-09-16.95
 

@@ -1125,7 +1125,13 @@ def cached_ticker(symbol, region="us"):
     # "us" and "global" are the free feed's own path (any Yahoo symbol: AAPL, SAP.DE, CL=F);
     # only the home region goes through the home market's broker and files
     data = build_ticker(symbol) if region in ("us", "global") else build_ticker_home(symbol)
-    if data.get("error"):
+    if data.get("error") and symbol.endswith("=F"):
+        board = _ticker_from_commodity(symbol)
+        if board:
+            return board            # the board's copy; not cached, the next click asks the feed again
+    # a contract, an index or an FX pair is spelt the feed's way already (CL=F, ^NSEI, EURUSD=X):
+    # the name search below would hand it a company that shares its letters (CL=F became CLF)
+    if data.get("error") and not any(ch in symbol for ch in "=^"):
         # a name typed as its home code (HDFCBANK, INFY), as words (HDFC Bank), or on a desk
         # with no market file for it: the free feed's search finds the exchange symbol
         # (HDFCBANK.NS) and the page shows that one, saying which name it matched
@@ -1141,10 +1147,6 @@ def cached_ticker(symbol, region="us"):
                 alt["region"] = "us"
                 data = alt
     dpath = os.path.join(HIST_CACHE_DIR, f"api_ticker_{re.sub(r'[^A-Za-z0-9.^=-]', '_', key)}.json")
-    if data.get("error") and symbol.endswith("=F"):
-        board = _ticker_from_commodity(symbol)
-        if board:
-            return board            # the board's copy; not cached, the next click asks the feed again
     if not data.get("error"):        # never cache a failure; retry next click
         _ticker_cache[key] = (now, data)
         try:
