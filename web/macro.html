@@ -38,9 +38,9 @@ h2.grp:first-of-type{margin-top:0}
 .calwrap tbody tr:hover td{background:var(--panel2)}
 .calwrap td.ev{white-space:normal;max-width:420px}
 tr.dhead td{background:var(--panel2);color:var(--ink2);font-weight:700;font-size:11px;letter-spacing:.08em}
-.cc{font-size:9px;font-weight:800;border-radius:4px;padding:1.5px 6px;letter-spacing:.05em}
+.cc{font-size:9px;font-weight:800;border-radius:4px;padding:1.5px 6px;letter-spacing:.05em;background:var(--panel2);color:var(--ink2)}
 .cc.US{background:rgba(91,184,212,.13);color:#5bb8d4}
-.cc.IN{background:rgba(237,90,36,.14);color:var(--accent)}
+.cc.IN,.cc.home{background:rgba(237,90,36,.14);color:var(--accent)}
 .imp{font-size:9px;font-weight:700;border-radius:4px;padding:1.5px 6px}
 .imp.High{background:rgba(241,100,114,.14);color:var(--neg)}
 .imp.Medium{background:rgba(232,161,60,.12);color:#e8a13c}
@@ -74,7 +74,8 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
   <div class="sub">US macro backdrop from FRED (St. Louis Fed): rates, inflation, labor, credit,
   commodities, equity indices. Sparklines show two years; delta is roughly one month.
   <b style="color:var(--ink2)">Click any card for the full history.</b></div>
-  <h2 class="grp">Economic calendar · next 10 days</h2>
+  <h2 class="grp" id="calh">Economic calendar · next 60 days</h2>
+  <div class="sub" id="calsub" style="margin:-4px 0 10px">Your home market and the US in full (the low-impact noise left out), and the prints that move markets in the euro area, Britain, Japan and China: rate decisions, inflation, jobs, growth, PMIs. Times are yours.</div>
   <div class="calwrap" id="econcal" style="margin-bottom:24px"><div class="loading" style="padding:24px">Loading calendar…</div></div>
   <div id="cards"><div class="loading">Loading FRED series…</div></div>
 </main>
@@ -146,19 +147,20 @@ const RANGES={"2Y":2,"10Y":10,"MAX":999};
 async function loadCal(){
   try{
     const r=await fetch("/api/econcal"); const d=await r.json();
-    if(!d.rows.length){document.getElementById("econcal").innerHTML='<div class="loading" style="padding:24px">Nothing High/Medium impact scheduled.</div>';return;}
-    let html=`<table><thead><tr><th>IST</th><th></th><th>Event</th><th></th>
+    if(d.days) document.getElementById("calh").textContent=`Economic calendar · next ${d.days} days`+(d.source?` · ${d.rows.length} prints from the ${d.source}`:"");
+    if(!d.rows.length){document.getElementById("econcal").innerHTML=`<div class="loading" style="padding:24px">${d.note||"Nothing scheduled in the window."}</div>`;return;}
+    let html=`<table><thead><tr><th>Time</th><th></th><th>Event</th><th></th>
       <th class="num">Est</th><th class="num">Prev</th><th class="num">Actual</th></tr></thead><tbody>`;
     let lastDay="";
     for(const e of d.rows){
-      const dt=new Date((e.date||"").replace(" ","T")+"Z");   // FMP times are UTC
-      const day=dt.toLocaleDateString("en-IN",{weekday:"short",month:"short",day:"numeric"});
-      const hm=dt.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:false});
+      const dt=new Date(`${(e.date||"").slice(0,10)}T${e.time||"00:00"}:00Z`);   // the feeds give UTC; shown in the reader's own time
+      const day=dt.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+      const hm=e.time?dt.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit",hour12:false}):"";
       if(day!==lastDay){html+=`<tr class="dhead"><td colspan="7">${day}</td></tr>`;lastDay=day;}
       const fmt=x=>x==null?"—":x+(e.unit&&x!==null?e.unit:"");
       html+=`<tr><td class="mono dim">${hm}</td>
-        <td><span class="cc ${e.country}">${e.country}</span></td>
-        <td class="ev">${e.event}</td>
+        <td><span class="cc ${e.country}${e.country===d.home?" home":""}">${e.country}</span></td>
+        <td class="ev">${e.event}${e.period?` <span class="dim">· ${e.period}</span>`:""}</td>
         <td><span class="imp ${e.impact}">${e.impact.toUpperCase()}</span></td>
         <td class="mono num dim">${fmt(e.estimate)}</td>
         <td class="mono num dim">${fmt(e.previous)}</td>

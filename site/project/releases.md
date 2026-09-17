@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.75. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.76. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.76
+
+*16 September 2026, release 76.* Flow takes names. A box at the top of Flow adds a US name (it goes on Watch · US and its chain is read within a minute, the card appearing on its own), each watched card has an × that takes the name off, and the first lines say where the names come from. The economic calendar on Macro now runs sixty days and needs no key: the home market and the US in full with the low-impact noise left out, and the prints that move markets in the euro area, Britain, Japan and China; from the data provider when a key is set, otherwise from the free feed's own calendar; times shown in the reader's own clock; when the free feed is resting the calendar says so and tries again in ten minutes. The free feed is asked less often: the US grid every ten seconds in session instead of every two and a half, the home and global grids a full pass every minute and a half, so a desk (or three on one computer) stops being throttled for hours.
 
 ## 2026-09-16.75
 

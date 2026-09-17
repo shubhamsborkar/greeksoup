@@ -1151,3 +1151,34 @@ def test_chart_drawings_live_in_the_vault(tmp_path):
     assert [i["id"] for i in desk_notes.remove_drawing("HDFCBANK.NS", gone)["items"]] == [d["items"][1]["id"], d["items"][2]["id"]]
     assert desk_notes.remove_drawing("HDFCBANK.NS")["items"] == [] and not path.exists()
     desk_notes._point_at(keep)
+
+
+def test_econ_calendar_keyless_sixty_days(monkeypatch):
+    """Without a provider key the economic calendar comes from the free feed for sixty days: the home
+    market and the US keep their market-moving prints, the majors keep only the big ones, the rest of
+    the world stays out; an empty answer carries a note and asks to be retried soon."""
+    import server
+    import freefeed
+    monkeypatch.delenv("FMP_API_KEY", raising=False)
+    rows = [
+        {"date": "2026-10-01", "time": "12:30", "country": "US", "event": "Nonfarm Payrolls", "period": "Sep", "estimate": "150", "previous": "142", "actual": None},
+        {"date": "2026-10-01", "time": "11:00", "country": "US", "event": "MBA Mortgage Applications", "period": "", "estimate": None, "previous": "2.1", "actual": None},
+        {"date": "2026-10-03", "time": "06:30", "country": "IN", "event": "RBI Repo Rate", "period": "", "estimate": "5.5", "previous": "5.5", "actual": None},
+        {"date": "2026-10-05", "time": "08:00", "country": "GB", "event": "CPI YY", "period": "Sep", "estimate": "3.1", "previous": "3.4", "actual": None},
+        {"date": "2026-10-05", "time": "08:00", "country": "GB", "event": "Car Registrations", "period": "Sep", "estimate": None, "previous": "1.0", "actual": None},
+        {"date": "2026-10-06", "time": "01:30", "country": "AU", "event": "RBA Cash Rate", "period": "", "estimate": "3.6", "previous": "3.6", "actual": None},
+        {"date": "2026-11-20", "time": "13:30", "country": "US", "event": "CPI MM", "period": "Oct", "estimate": "0.2", "previous": "0.3", "actual": None},
+    ]
+    monkeypatch.setattr(freefeed, "econ_calendar", lambda days=60, high_only=False: ([r for r in rows if r["event"] in ("Nonfarm Payrolls", "RBI Repo Rate")] if high_only else rows))
+    monkeypatch.setattr(server, "_market", lambda: type("M", (), {"META": {"econ_country": "IN"}})())
+    out = server.build_econcal()
+    got = [(r["country"], r["event"], r["impact"]) for r in out["rows"]]
+    assert ("US", "Nonfarm Payrolls", "High") in got and ("IN", "RBI Repo Rate", "High") in got
+    assert ("US", "CPI MM", "Medium") in got and ("GB", "CPI YY", "Medium") in got
+    assert all(e != "MBA Mortgage Applications" and e != "Car Registrations" for _, e, _ in got)     # noise out
+    assert all(c != "AU" for c, _, _ in got)                                                          # not a major, not home
+    assert out["days"] == 60 and out["home"] == "IN" and out["source"] == "free feed" and out["_ttl"] is None
+    assert out["rows"][0]["event"] == "MBA Mortgage Applications" or out["rows"][0]["date"] <= out["rows"][-1]["date"]
+    monkeypatch.setattr(freefeed, "econ_calendar", lambda days=60, high_only=False: [])
+    empty = server.build_econcal()
+    assert empty["rows"] == [] and "resting" in empty["note"] and empty["_ttl"] == 600

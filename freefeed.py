@@ -390,3 +390,70 @@ def statements(symbol, years=6):
             rows = sorted(by.get((kind, per), {}).values(), key=lambda r: r["date"])
             out[f"{kind}_{per}"] = rows[-4:] if per == "q" else rows[-6:]
     return out
+
+
+# The economic calendar behind Yahoo's own calendar page: every country's prints with the
+# consensus and the prior, in windows of a week, with the cookie and crumb the quote summary
+# uses. Nothing here needs a key. Returns rows or [] when the feed is resting.
+_ECON_KEYS = {"event": ("event", "eventName", "name"), "consensus": ("consensus", "forecast", "expected", "estimate"),
+              "prior": ("prior", "previous"), "actual": ("actual",), "period": ("period", "forPeriod")}
+
+
+def _pick(rec, keys):
+    for k in keys:
+        if rec.get(k) not in (None, ""):
+            return rec.get(k)
+    return None
+
+
+def econ_calendar(days=60, high_only=False):
+    if not _auth():
+        return []
+    out, seen = [], set()
+    start = time.time()
+    for k in range(0, days, 7):
+        a = int((start + k * 86400) * 1000)
+        b = int((start + min(k + 7, days) * 86400) * 1000)
+        try:
+            r = _Y["session"].get("https://query1.finance.yahoo.com/ws/screeners/v1/finance/calendar-events",
+                                  params={"modules": "economicEvents", "startDate": a, "endDate": b, "countPerDay": 250,
+                                          "economicEventsHighImportanceOnly": "true" if high_only else "false",
+                                          "economicEventsRegionFilter": "", "lang": "en-US", "region": "US", "crumb": _Y["crumb"]},
+                                  timeout=20)
+        except Exception:  # noqa: BLE001
+            break
+        if r.status_code == 429:
+            _Y.update(session=None, crumb=None, next_try=time.time() + 600)
+            break
+        if r.status_code != 200:
+            break
+        try:
+            j = r.json()
+        except ValueError:
+            break
+        # the records sit a few levels down; walk for every dict that names an event and a country
+        stack = [j]
+        while stack:
+            o = stack.pop()
+            if isinstance(o, dict):
+                if o.get("countryCode") and _pick(o, _ECON_KEYS["event"]) and o.get("eventTime"):
+                    t = o.get("eventTime")
+                    try:
+                        t = float(t) / (1000.0 if float(t) > 1e11 else 1.0)
+                    except (TypeError, ValueError):
+                        continue
+                    when = datetime.utcfromtimestamp(t)
+                    key = (o["countryCode"], _pick(o, _ECON_KEYS["event"]), when.strftime("%Y-%m-%d"))
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    out.append({"date": when.strftime("%Y-%m-%d"), "time": when.strftime("%H:%M"), "country": o["countryCode"],
+                                "event": str(_pick(o, _ECON_KEYS["event"])), "period": _pick(o, _ECON_KEYS["period"]) or "",
+                                "estimate": _pick(o, _ECON_KEYS["consensus"]), "previous": _pick(o, _ECON_KEYS["prior"]),
+                                "actual": _pick(o, _ECON_KEYS["actual"]), "high": bool(high_only or o.get("importance") in ("High", "high", 3))})
+                else:
+                    stack.extend(o.values())
+            elif isinstance(o, list):
+                stack.extend(o)
+    out.sort(key=lambda r: (r["date"], r["time"]))
+    return out

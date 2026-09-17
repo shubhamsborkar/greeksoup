@@ -24,6 +24,7 @@ main{max-width:1420px;margin:0 auto;padding:20px 22px}
 .nm-h .hd{font-size:9px;font-weight:800;border-radius:4px;padding:1.5px 6px;
   background:rgba(237,90,36,.16);color:var(--accent);letter-spacing:.05em}
 .nm-h .right2{margin-left:auto;font-size:11px;color:var(--muted)}
+.nm-h .rm{background:none;border:0;color:var(--muted);cursor:pointer;font-size:11px;padding:0 4px} .nm-h .rm:hover{color:var(--neg)}
 .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:11px 15px;
   border-bottom:1px solid var(--line)}
 .st .l{font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
@@ -67,12 +68,20 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
   <div class="right"><span id="asof"></span></div>
 </header>
 <main>
-  <div class="sub">The options-tape read on every US book and watchlist name, from CBOE's free
-  15-min-delayed chains (<span id="win"></span>-day expiry window). <b style="color:var(--ink2)">Unusual
+  <div class="sub">What the US options market is positioned for on each of your names, read from CBOE's free
+  15-minute-delayed chains (<span id="win"></span>-day expiry window). The names are the US lines on
+  <a href="/book" style="color:var(--ink2)">Desk · Book</a> and the names on <a href="/watch?list=us" style="color:var(--ink2)">Watch · US</a>;
+  a name added below goes on Watch · US and its chain is read within a minute. <b style="color:var(--ink2)">Unusual
   strikes</b> = today's volume at least twice the existing open interest with real premium: positions
   that did not exist yesterday. <b style="color:var(--ink2)">OI builds</b> compare open interest against
   the previous daily snapshot on disk, so they appear from a name's second covered day. Describes
   positioning only; it makes no call.</div>
+  <form id="addf" style="display:flex;gap:8px;align-items:center;margin:-6px 0 16px;flex-wrap:wrap">
+    <input id="addc" placeholder="Add a US name, like COST" maxlength="12" autocomplete="off" spellcheck="false"
+      style="background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:6px 10px;font:inherit;font-size:12.5px;width:230px;text-transform:uppercase">
+    <button type="submit" style="background:var(--panel2);color:var(--ink2);border:1px solid var(--line2);border-radius:7px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer">Add to the tape</button>
+    <span id="addmsg" class="dim" style="font-size:12px"></span>
+  </form>
   <div id="body"><div class="loading">Reading chains… a full sweep takes about a minute.</div></div>
 </main>
 <footer>PCR = put/call ratio (OI = standing positioning, VOL = today's tape). Walls = the strikes with
@@ -156,7 +165,7 @@ async function load(){
     const dp=n.day_pct;
     h+=`<div class="nm ${n.held?"held":""}">
       <div class="nm-h"><span class="sym"><a href="/t?symbol=${n.symbol}">${n.symbol}</a></span>
-        ${n.held?'<span class="hd">HELD</span>':""}
+        ${n.held?'<span class="hd">HELD</span>':`<button class="rm" data-c="${n.symbol}" title="Take ${n.symbol} off Watch · US and this tape">✕</button>`}
         <span class="px mono">${n.spot.toLocaleString("en-US",{maximumFractionDigits:2})}</span>
         ${dp==null?"":`<span class="mono ${dp>=0?"pos":"neg"}" style="font-size:12px;font-weight:700">${dp>=0?"+":""}${dp.toFixed(2)}%</span>`}
         <span class="right2 mono">${n.builds_vs?"vs "+n.builds_vs:"first snapshot"}</span></div>
@@ -170,7 +179,24 @@ async function load(){
   if(d.skipped&&d.skipped.length)
     h+=`<div class="dim" style="font-size:11px;margin-top:12px">No listed options / no chain served: ${d.skipped.join(", ")}</div>`;
   document.getElementById("body").innerHTML=h;
+  document.querySelectorAll("button.rm").forEach(b=>b.onclick=async()=>{
+    const code=b.dataset.c; b.disabled=true;
+    const r=await (await fetch("/api/watch/remove",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,list:"us"})})).json();
+    if(r.ok){ b.closest(".nm").remove(); say(`${code} is off Watch · US; the tape is being reread.`); if(window.deskJournal&&r.journal) deskJournal(r.journal); }
+  });
 }
+const say=t=>{ document.getElementById("addmsg").textContent=t||""; };
+document.getElementById("addf").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const inp=document.getElementById("addc"); const code=inp.value.trim().toUpperCase(); if(!code) return;
+  say(`Adding ${code}…`);
+  let r; try{ r=await (await fetch("/api/watch/add",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,list:"us"})})).json(); }catch(x){ r={ok:false,error:"the desk did not answer"}; }
+  if(!r.ok){ say(r.error||"could not add it"); return; }
+  inp.value=""; say(`${code} is on Watch · US; its chain is being read, the card appears here in about a minute.`);
+  if(window.deskJournal&&r.journal) deskJournal(r.journal);
+  // the tape rebuilds behind the page: look again until the name shows up
+  let tries=0; const poll=setInterval(async()=>{ tries++; const d=await (await fetch("/api/flow")).json(); if((d.names||[]).some(n=>n.symbol===code)||(d.skipped||[]).includes(code)||tries>12){ clearInterval(poll); load(); say((d.skipped||[]).includes(code)?`${code} has no listed options, so it stays on Watch · US without a card here.`:""); } },10000);
+});
 load();
 </script>
 </body>

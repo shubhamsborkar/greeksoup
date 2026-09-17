@@ -246,7 +246,7 @@ def fetch_us_quote(symbol):
 
 
 # ---- Yahoo batch quotes (the "live" Watch·US path) ---------------------------
-# One request quotes the whole list, so a 2.5s cadence is polite. Needs a
+# One request quotes the whole list, so a ten-second cadence is polite. Needs a
 # session cookie + crumb; when Yahoo throttles the crumb, we fall back to a
 # parallel FMP sweep (10s full-grid refresh) until the next crumb attempt.
 _yahoo = {"session": None, "crumb": None, "next_try": 0.0}
@@ -261,7 +261,7 @@ def _yahoo_auth():
                       timeout=10).text.strip()
         if crumb and "Too Many" not in crumb and len(crumb) <= 16:
             _yahoo.update(session=s, crumb=crumb)
-            print(f"  Yahoo batch quotes: ON (crumb ok) — Watch·US refreshes every ~2.5s in-session")
+            print("  Yahoo batch quotes: ON (crumb ok); Watch·US refreshes every ~10s in-session")
             return True
     except Exception:  # noqa: BLE001
         pass
@@ -1254,9 +1254,9 @@ def global_watch_loop():
             if q:
                 with _watch_lock:
                     WATCH_GLOBAL[entry["code"]] = q
-            time.sleep(1.5 if first_cycle else 5)   # keyless API: gentle after the fill
+            time.sleep(1.5 if first_cycle else 3)   # keyless API: gentle after the fill
         first_cycle = False
-        time.sleep(30)
+        time.sleep(90)      # a full pass every two minutes or so: the free feed is delayed on most of these exchanges anyway
 
 
 def build_usbook():
@@ -1293,7 +1293,7 @@ def build_usbook():
 
 def us_watch_loop():
     """Live-first US quotes. Preferred path: ONE Yahoo batch call for the whole
-    list every 2.5s while the US session is open (the live-terminal feel) and
+    list every 10s while the US session is open (live enough, kind to the feed) and
     every 60s closed. Fallback when Yahoo throttles the crumb: a parallel FMP
     sweep — full grid every ~10s open / 120s closed, inside Starter's rate
     budget. First pass after a start is always brisk."""
@@ -1310,7 +1310,7 @@ def us_watch_loop():
                 with _watch_lock:
                     WATCH_US.update(batch)
             first_cycle = False
-            time.sleep(2.5 if open_ else 60)
+            time.sleep(10 if open_ else 60)     # one call for the whole list; ten seconds keeps the grid live without wearing out the free feed
             continue
         # FMP fallback: sweep in parallel, then rest
         with ThreadPoolExecutor(max_workers=8) as ex:
@@ -1346,9 +1346,9 @@ def watch_loop():
                 if q:
                     with _watch_lock:
                         WATCH[entry["code"]] = q
-                time.sleep(0.5)
+                time.sleep(1)
             first_cycle = False
-            time.sleep(60)
+            time.sleep(90)
             continue
         any_ok = False
         for entry in names:
@@ -1756,27 +1756,60 @@ desk_lists.MACRO_STARTERS = MACRO_SERIES     # the shipped set is the starter of
 
 
 # ---- economic calendar (FMP; the Trading-Economics-style dated prints) -------
+# the prints that move markets, so a country outside the reader's own and the US still shows its big ones
+ECON_MAJOR = ("US", "EU", "GB", "JP", "CN", "DE")
+ECON_KEY_WORDS = ("cpi", "inflation", "gdp", "rate decision", "interest rate", "policy rate", "repo", "payroll", "unemployment", "jobless",
+                  "pmi", "retail sales", "trade balance", "industrial production", "fomc", "ecb", "boe", "boj", "rbi", "pboc", "consumer confidence",
+                  "core pce", "pce", "ppi", "ism", "nonfarm", "employment", "central bank", "cash rate", "refi rate", "bank rate", "durable", "housing starts", "wpi", "iip")
+
+
+def _econ_keep(country, event, high, countries):
+    """Which prints stay: everything High or Medium at home and in the US; the prints that move markets elsewhere in the majors."""
+    e = (event or "").lower()
+    if country in countries:
+        return True
+    return country in ECON_MAJOR and (high or any(w in e for w in ECON_KEY_WORDS))
+
+
 def build_econcal():
-    """Upcoming macro prints, next ~10 days, the US and the home market,
-    High/Medium impact (Low-impact noise like rig counts stays out). Dates from
-    the feed are UTC."""
-    frm = datetime.now().strftime("%Y-%m-%d")
-    to = (datetime.now() + timedelta(days=10)).strftime("%Y-%m-%d")
-    rows = fmp_get("economic-calendar", **{"from": frm, "to": to}) or []
+    """Upcoming macro prints, the next 60 days: the home market and the US in full, the major
+    economies' market-moving prints (rate decisions, inflation, jobs, growth, PMIs). From the data
+    provider when a key is set; otherwise from the free feed's own calendar. Times are UTC."""
     m = _market()
-    countries = {"US", (m.META.get("econ_country") if m else "") or "US"}
-    keep = []
-    for r in rows:
-        if r.get("country") not in countries:
-            continue
-        if (r.get("impact") or "") not in ("High", "Medium"):
-            continue
-        keep.append({"date": r.get("date"), "country": r.get("country"),
-                     "event": r.get("event"), "impact": r.get("impact"),
-                     "estimate": r.get("estimate"), "previous": r.get("previous"),
-                     "actual": r.get("actual"), "unit": r.get("unit")})
-    keep.sort(key=lambda r: r["date"] or "")
-    return {"rows": keep[:80], "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
+    home = (m.META.get("econ_country") if m else "") or "US"
+    countries = {"US", home}
+    days = 60
+    frm = datetime.now().strftime("%Y-%m-%d")
+    to = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d")
+    keep, source = [], ""
+    rows = fmp_get("economic-calendar", **{"from": frm, "to": to}) if os.getenv("FMP_API_KEY", "").strip() else None
+    if rows:
+        source = "provider"
+        for r in rows:
+            c, imp = r.get("country"), (r.get("impact") or "")
+            if c in countries and imp not in ("High", "Medium"):
+                continue
+            if not _econ_keep(c, r.get("event"), imp == "High", countries):
+                continue
+            d = str(r.get("date") or "")
+            keep.append({"date": d[:10], "time": d[11:16], "country": c, "event": r.get("event"), "impact": imp or ("High" if c in ECON_MAJOR else "Medium"),
+                         "estimate": r.get("estimate"), "previous": r.get("previous"), "actual": r.get("actual"), "unit": r.get("unit")})
+    else:
+        free = freefeed.econ_calendar(days)
+        if free:
+            source = "free feed"
+            high = {(r["country"], r["event"], r["date"]) for r in freefeed.econ_calendar(days, high_only=True)}
+            for r in free:
+                is_high = (r["country"], r["event"], r["date"]) in high
+                if not _econ_keep(r["country"], r["event"], is_high, countries):
+                    continue
+                if r["country"] in countries and not is_high and not any(w in (r["event"] or "").lower() for w in ECON_KEY_WORDS):
+                    continue      # at home and in the US, the low-impact noise (rig counts, weekly mortgage index) stays out
+                keep.append({**r, "impact": "High" if is_high else "Medium", "unit": ""})
+    keep.sort(key=lambda r: (r["date"] or "", r.get("time") or ""))
+    return {"rows": keep[:400], "days": days, "home": home, "source": source, "ts": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "_ttl": 600 if not keep else None,     # an empty answer is retried in ten minutes, not six hours
+            "note": "" if keep else ("The free feed is resting; the calendar fills when it answers again." if not os.getenv("FMP_API_KEY", "").strip() else "The provider returned no prints for the window.")}
 
 
 def build_macro():
@@ -4479,6 +4512,7 @@ class Handler(BaseHTTPRequestHandler):
                     save_watchlist_us(names)
                     with _watch_lock:
                         WATCH_US[code] = q
+                    _spawn("flow", build_flow)      # Flow reads the new name's chain behind the page
                     return self._send(json.dumps({"ok": True, "journal": journal("watch", code, f"added to {WATCH_LABEL.get(region, 'Watch')}")}).encode(), "application/json")
                 if region == "global":
                     names = load_watchlist_global()
@@ -4521,6 +4555,7 @@ class Handler(BaseHTTPRequestHandler):
                     save_watchlist_us([n for n in load_watchlist_us() if n["code"] != code])
                     with _watch_lock:
                         WATCH_US.pop(code, None)
+                    _spawn("flow", build_flow)
                 elif region == "global":
                     save_watchlist_global([n for n in load_watchlist_global() if n["code"] != code])
                     with _watch_lock:
