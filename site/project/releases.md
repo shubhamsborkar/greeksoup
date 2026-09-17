@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.83. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.84. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.84
+
+*16 September 2026, release 84.* The options tape reads the home broker's own session. A hook in the home broker's file was handed whichever client was connected when the home broker was not (Alpaca's, while ICICI waited for its login), so the tape read nothing and the empty answer was kept for ten minutes. The home client is now the home broker's only; an empty or failed tape is retried within two minutes, and a failed read says why on the card.
 
 ## 2026-09-16.83
 

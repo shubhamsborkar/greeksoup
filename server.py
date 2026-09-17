@@ -87,8 +87,9 @@ def _mod_of(account):
 
 
 def _client():
-    """The home broker's client."""
-    return clients.get(ADAPTER["id"]) or next(iter(clients.values()), None)
+    """The home broker's client, and only that one: a hook in the home broker's file must never
+    be handed another desk's client (Alpaca's, while ICICI waits for its login)."""
+    return clients.get(ADAPTER["id"])
 
 
 def _hook(name, live=True):
@@ -1723,11 +1724,15 @@ def build_tape():
     hook = _hook("tape")
     if hook is None or broker_health["dead"]:
         return {"ts": datetime.now().strftime("%H:%M:%S"), "names": []}
+    cli = _client()
+    if cli is None:
+        return {"ts": datetime.now().strftime("%H:%M:%S"), "names": [], "_ttl": 60}
     try:
-        names = hook(_client()) or []
-    except Exception:  # noqa: BLE001
-        names = []
-    return {"ts": datetime.now().strftime("%H:%M:%S"), "names": names}
+        names = hook(cli) or []
+    except Exception as exc:  # noqa: BLE001
+        return {"ts": datetime.now().strftime("%H:%M:%S"), "names": [], "_ttl": 120,
+                "error": "The tape could not be read from the broker: " + str(exc)[:160]}
+    return {"ts": datetime.now().strftime("%H:%M:%S"), "names": names, "_ttl": 120 if not names else None}
 
 
 # ---- earnings calendar (US, FMP bulk) ---------------------------------------

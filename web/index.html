@@ -392,6 +392,7 @@ function accountPanel(name,a){
 
 function tapePanel(tape){
   if(!tape) return `<div class="loading">Loading options tape&hellip;</div>`;
+  if(tape.error) return `<div class="tape-card dim" style="padding:24px 15px">${tape.error} It is tried again in two minutes.</div>`;
   if(!tape.names||!tape.names.length)
     return `<div class="tape-card dim" style="padding:24px 15px">This tape reads index option chains from the connected
       broker, and only some brokers serve them. The US options tape from CBOE is on the Flow screen for every reader.</div>`;
