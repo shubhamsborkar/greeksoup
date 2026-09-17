@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.71. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.72. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.72
+
+*16 September 2026, release 72.* The desk's chart gets a charting screen's tools. Chart types: candles, bars, Heikin Ashi, line, area, drawdown. An Indicators menu on the panel: on the price, SMA 20, 50, 100 and 200, EMA 9, 21 and 50, Bollinger Bands (20, 2) and VWAP for intraday bars; below the price, RSI (14) with its 30 and 70 lines and MACD (12, 26, 9) with its histogram, each in its own pane; volume on or off; a log scale for the price. Every study is computed on this computer from the free feed's bars, daily studies on the full daily record so the first bars on screen already carry a settled value. The picks are remembered on this computer, the legend names what is on, and the box grows with each pane so the price keeps its room. Save chart to notes keeps all of it.
 
 ## 2026-09-16.71
 

@@ -272,7 +272,8 @@ let LWC=null, LSERIES=[], LDATA={pts:[],S:[]};
 const tok=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 // daily bars carry a day; intraday bars carry the exchange's own wall clock, kept as it is
 const toTime=d=>isIntra(interval)&&d.length>=16 ? Date.UTC(+d.slice(0,4),+d.slice(5,7)-1,+d.slice(8,10),+d.slice(11,13),+d.slice(14,16))/1000 : d.slice(0,10);
-function chartHeight(){ return isFS ? Math.max(380, window.innerHeight-150) : 300; }
+// each study pane adds to the box, so the price keeps its room
+function chartHeight(){ const extra=(mode==="drawdown"?0:((IND.rsi?1:0)+(IND.macd?1:0)))*100; return isFS ? Math.max(380, window.innerHeight-150) : 300+extra; }
 function ensureChart(){
   const el=document.getElementById("chart");
   if(LWC){ LWC.applyOptions({height:chartHeight()}); return LWC; }
@@ -306,6 +307,68 @@ function ensureChart(){
   return LWC;
 }
 function clearSeries(){ for(const s of LSERIES){ try{ LWC.removeSeries(s); }catch(e){} } LSERIES=[]; }
+/* Indicators, the way a charting screen has them: overlays on the price (moving averages,
+   Bollinger Bands, VWAP), studies in their own panes below (RSI, MACD), volume, and a log
+   scale. The reader's picks are remembered on this computer. Every study is computed here
+   from the free feed's bars: daily studies on the full daily record so the first bars on
+   screen already carry a settled value; intraday studies on the session's bars. */
+const IND_DEF={sma20:0,sma50:1,sma100:0,sma200:1,ema9:0,ema21:0,ema50:0,bb:0,vwap:0,rsi:0,macd:0,vol:1,log:0};
+const IND_LABEL={sma20:"SMA 20",sma50:"SMA 50",sma100:"SMA 100",sma200:"SMA 200",ema9:"EMA 9",ema21:"EMA 21",ema50:"EMA 50",bb:"Bollinger Bands (20, 2)",vwap:"VWAP (intraday, resets each day)",rsi:"RSI (14)",macd:"MACD (12, 26, 9)",vol:"Volume",log:"Log scale"};
+const IND_COL={sma20:"#e0c060",sma50:"--amber",sma100:"#c98bd9",sma200:"--cyan",ema9:"#7bd389",ema21:"#5d9cff",ema50:"#ff8ab3",bb:"#8ea0b8",vwap:"#ffd166"};
+let IND=(()=>{ try{ return {...IND_DEF,...JSON.parse(localStorage.getItem("gs.chart.ind")||"{}")}; }catch(e){ return {...IND_DEF}; } })();
+function saveInd(){ try{ localStorage.setItem("gs.chart.ind",JSON.stringify(IND)); }catch(e){} }
+const colOf=k=>IND_COL[k].startsWith("--")?tok(IND_COL[k]):IND_COL[k];
+function ema(arr,n){ const out=new Array(arr.length).fill(null); const k=2/(n+1); let e=null;
+  for(let i=0;i<arr.length;i++){ const v=arr[i]; if(v==null) continue; e=e==null?v:v*k+e*(1-k); if(i>=n-1) out[i]=e; } return out; }
+function rsi(arr,n){ const out=new Array(arr.length).fill(null); let ag=0,al=0;
+  for(let i=1;i<arr.length;i++){ const d=arr[i]-arr[i-1], g=Math.max(d,0), l=Math.max(-d,0);
+    if(i<=n){ ag+=g/n; al+=l/n; if(i===n) out[i]=al===0?100:100-100/(1+ag/al); }
+    else{ ag=(ag*(n-1)+g)/n; al=(al*(n-1)+l)/n; out[i]=al===0?100:100-100/(1+ag/al); } } return out; }
+function macd(arr){ const f=ema(arr,12), s=ema(arr,26); const line=arr.map((_,i)=>f[i]!=null&&s[i]!=null?f[i]-s[i]:null);
+  const first=line.findIndex(v=>v!=null); const sig=new Array(arr.length).fill(null); const e=ema(line.slice(first),9); for(let i=0;i<e.length;i++) sig[first+i]=e[i];
+  return {line,sig,hist:line.map((v,i)=>v!=null&&sig[i]!=null?v-sig[i]:null)}; }
+function bollinger(arr,n,k){ const m=sma(arr,n); const up=[],lo=[]; for(let i=0;i<arr.length;i++){ if(m[i]==null){up.push(null);lo.push(null);continue;} let s=0; for(let j=i-n+1;j<=i;j++) s+=(arr[j]-m[i])**2; const sd=Math.sqrt(s/n); up.push(m[i]+k*sd); lo.push(m[i]-k*sd); } return {mid:m,up,lo}; }
+function vwap(pts){ const out=[]; let day="",pv=0,vv=0; for(const p of pts){ const d=(p.date||"").slice(0,10); if(d!==day){day=d;pv=0;vv=0;} const tp=((p.h??p.price)+(p.l??p.price)+p.price)/3; pv+=tp*(p.v||0); vv+=p.v||0; out.push(vv?pv/vv:null); } return out; }
+function renderIndicators(chart,rows,intra,quarterly,DAILY){
+  let legend="";
+  const on=k=>!!IND[k];
+  const base=intra?LDATA.pts:DAILY;                     // the record a study is computed on
+  const closes=base.map(p=>p.price);
+  const join=(vals)=>{ const by={}; for(let i=0;i<base.length;i++) if(vals[i]!=null) by[base[i].date]=vals[i]; return rows.filter(r=>by[r.p.date]!=null).map(r=>({time:r.t,value:by[r.p.date]})); };
+  const line=(data,color,opts,pane)=>{ if(data.length<2) return null; const s=chart.addSeries(LightweightCharts.LineSeries,{color,lineWidth:1,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,...(opts||{})},pane||0); s.setData(data); LSERIES.push(s); return s; };
+  const tag=(k,color)=>{ legend+=`<span style="color:${color};font-size:10px;margin-left:10px">— ${IND_LABEL[k].replace(/ \(.*/,"")}</span>`; };
+  if(mode!=="drawdown"&&!quarterly){
+    for(const k of ["sma20","sma50","sma100","sma200","ema9","ema21","ema50"]){
+      if(!on(k)) continue; const n=+k.replace(/\D/g,""); if(closes.length<n+5) continue;
+      const v=k.startsWith("sma")?sma(closes,n):ema(closes,n); if(line(join(v),colOf(k))) tag(k,colOf(k));
+    }
+    if(on("bb")&&closes.length>25){ const b=bollinger(closes,20,2); const c=colOf("bb"); if(line(join(b.up),c,{lineStyle:LightweightCharts.LineStyle.Dotted})){ line(join(b.lo),c,{lineStyle:LightweightCharts.LineStyle.Dotted}); line(join(b.mid),c+"99"); tag("bb",c); } }
+    if(on("vwap")&&intra){ const c=colOf("vwap"); if(line(join(vwap(base)),c,{lineWidth:2})) tag("vwap",c); }
+  }
+  // studies in panes below the price: each pane its own scale, the price pane keeps most of the height
+  let pane=1;
+  if(on("rsi")&&closes.length>20&&mode!=="drawdown"){
+    const r=rsi(closes,14); const s=line(join(r),"#c98bd9",{lastValueVisible:true,priceLineVisible:false,priceFormat:{type:"price",precision:1,minMove:0.1}},pane);
+    if(s){ s.createPriceLine({price:70,color:tok("--neg")+"88",lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:false}); s.createPriceLine({price:30,color:tok("--pos")+"88",lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:false}); tag("rsi","#c98bd9"); pane++; }
+  }
+  if(on("macd")&&closes.length>40&&mode!=="drawdown"){
+    const m=macd(closes); const pos=tok("--pos"), neg=tok("--neg");
+    const hist=chart.addSeries(LightweightCharts.HistogramSeries,{priceLineVisible:false,lastValueVisible:false,priceFormat:{type:"price",precision:2,minMove:0.01}},pane);
+    const hd=join(m.hist); if(hd.length>2){ hist.setData(hd.map(x=>({...x,color:x.value>=0?pos+"88":neg+"88"}))); LSERIES.push(hist);
+      line(join(m.line),"#5d9cff",{lastValueVisible:true},pane); line(join(m.sig),"#ff8ab3",{},pane); tag("macd","#5d9cff"); pane++; }
+    else { try{ chart.removeSeries(hist); }catch(e){} }
+  }
+  // the panes' heights: the price keeps three quarters, each study a slice
+  try{ const ps=chart.panes(); if(ps.length>1){ ps[0].setStretchFactor(3); for(let i=1;i<ps.length;i++) ps[i].setStretchFactor(1); } }catch(e){}
+  return legend;
+}
+function renderIndMenu(){
+  const m=document.getElementById("indmenu"); if(!m) return;
+  const groups=[["On the price",["sma20","sma50","sma100","sma200","ema9","ema21","ema50","bb","vwap"]],["Below the price",["rsi","macd","vol"]],["Scale",["log"]]];
+  m.innerHTML=groups.map(([h,keys])=>`<div class="dim" style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;margin:8px 0 4px">${h}</div>`+keys.map(k=>`<label style="display:flex;gap:8px;align-items:center;padding:3px 0;cursor:pointer;font-size:12px"><input type="checkbox" data-k="${k}" ${IND[k]?"checked":""} style="accent-color:var(--accent)"><span style="color:${IND_COL[k]?colOf(k):"var(--ink)"}">${IND_LABEL[k]}</span></label>`).join("")).join("")+`<div style="margin-top:8px"><button class="fsbtn" id="indreset" style="padding:2px 8px;font-size:11px">Back to the defaults</button></div>`;
+  m.querySelectorAll("input").forEach(c=>c.onchange=()=>{ IND[c.dataset.k]=c.checked?1:0; saveInd(); drawChart(); });
+  m.querySelector("#indreset").onclick=()=>{ IND={...IND_DEF}; saveInd(); renderIndMenu(); drawChart(); };
+}
 function drawChart(){
   const el=document.getElementById("chart");
   if(!el)return;
@@ -322,6 +385,7 @@ function drawChart(){
   let barNote=quarterly?"quarterly bars (the free record before ten years back)":INTERVALS[interval].label;
   const S=seriesFor(pts,intra);
   const chart=ensureChart(); clearSeries();
+  document.getElementById("chart").style.height=chartHeight()+"px";
   // one row per time, ascending: the feed can repeat a stamp at a session's edge
   const rows=[]; const seen=new Set();
   for(let i=0;i<pts.length;i++){ const t=toTime(pts[i].date); if(seen.has(t)) continue; seen.add(t); rows.push({t,p:pts[i],s:S[i]}); }
@@ -330,40 +394,39 @@ function drawChart(){
   const lastV=vals[vals.length-1];
   const up = mode!=="drawdown" ? lastV>=vals[0] : lastV>=-0.001;
   const pos=tok("--pos"), neg=tok("--neg"), col = mode==="drawdown" ? neg : (up?pos:neg);
-  const useCandles = mode==="candles" && !LDATA.pts.some(p=>p.o==null);
+  const hasOHLC=!LDATA.pts.some(p=>p.o==null);
+  const useCandles = (mode==="candles"||mode==="bars"||mode==="ha") && hasOHLC;
   const pf={type:"price",precision:mode==="drawdown"?1:(lastV<10?3:2),minMove:mode==="drawdown"?0.1:(lastV<10?0.001:0.01)};
   let main;
   if(mode==="drawdown"){
     main=chart.addSeries(LightweightCharts.BaselineSeries,{baseValue:{type:"price",price:0},topLineColor:pos,topFillColor1:"rgba(0,0,0,0)",topFillColor2:"rgba(0,0,0,0)",bottomLineColor:neg,bottomFillColor1:neg+"0a",bottomFillColor2:neg+"2e",lineWidth:2,priceFormat:{type:"custom",formatter:v=>v.toFixed(1)+"%",minMove:0.1},priceLineVisible:true,lastValueVisible:true});
     main.setData(rows.map(r=>({time:r.t,value:+r.s.v.toFixed(2)})));
   }else if(useCandles){
-    main=chart.addSeries(LightweightCharts.CandlestickSeries,{upColor:pos,downColor:neg,borderUpColor:pos,borderDownColor:neg,wickUpColor:pos,wickDownColor:neg,priceFormat:pf});
-    main.setData(rows.map(r=>({time:r.t,open:r.p.o,high:r.p.h??Math.max(r.p.o,r.p.price),low:r.p.l??Math.min(r.p.o,r.p.price),close:r.p.price})));
+    let ohlc=rows.map(r=>({time:r.t,open:r.p.o,high:r.p.h??Math.max(r.p.o,r.p.price),low:r.p.l??Math.min(r.p.o,r.p.price),close:r.p.price}));
+    if(mode==="ha"){
+      // Heikin Ashi: each bar averaged with the one before, so the trend reads and the noise does not
+      const out=[]; for(let i=0;i<ohlc.length;i++){ const b=ohlc[i], prev=out[i-1]; const close=(b.open+b.high+b.low+b.close)/4; const open=prev?(prev.open+prev.close)/2:(b.open+b.close)/2;
+        out.push({time:b.time,open,close,high:Math.max(b.high,open,close),low:Math.min(b.low,open,close)}); } ohlc=out;
+    }
+    main=chart.addSeries(mode==="bars"?LightweightCharts.BarSeries:LightweightCharts.CandlestickSeries,
+      mode==="bars"?{upColor:pos,downColor:neg,thinBars:false,priceFormat:pf}:{upColor:pos,downColor:neg,borderUpColor:pos,borderDownColor:neg,wickUpColor:pos,wickDownColor:neg,priceFormat:pf});
+    main.setData(ohlc);
+  }else if(mode==="line"){
+    main=chart.addSeries(LightweightCharts.LineSeries,{color:col,lineWidth:2,priceFormat:pf});
+    main.setData(rows.map(r=>({time:r.t,value:r.s.v})));
   }else{
     main=chart.addSeries(LightweightCharts.AreaSeries,{lineColor:col,topColor:col+"33",bottomColor:col+"03",lineWidth:2,priceFormat:pf});
     main.setData(rows.map(r=>({time:r.t,value:r.s.v})));
   }
   LSERIES.push(main);
-  // moving averages on DAILY closes, joined to the visible bars by date
-  let legend="";
   let d0=0; for(let i=HIST.length-1;i>0;i--) if(Date.parse(HIST[i].date)-Date.parse(HIST[i-1].date)>45*864e5){d0=i;break;}
   const DAILY=HIST.slice(d0);
-  if(!intra && mode!=="drawdown" && DAILY.length>50 && !quarterly){
-    const closes=DAILY.map(p=>p.price);
-    for(const [n,mcol,name] of [[50,tok("--amber"),"MA50"],[200,tok("--cyan"),"MA200"]]){
-      if(DAILY.length<n+5)continue;
-      const m=sma(closes,n), byDate={};
-      for(let i=0;i<DAILY.length;i++) if(m[i]!=null) byDate[DAILY[i].date]=m[i];
-      const seg=rows.filter(r=>byDate[r.p.date]!=null).map(r=>({time:r.t,value:byDate[r.p.date]}));
-      if(seg.length>2){
-        const ls=chart.addSeries(LightweightCharts.LineSeries,{color:mcol,lineWidth:1,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
-        ls.setData(seg); LSERIES.push(ls);
-        legend+=`<span style="color:${mcol};font-size:10px;margin-left:10px">— ${name}</span>`;
-      }
-    }
-  }
-  // volume below the price, on its own scale
-  if(mode!=="drawdown" && LDATA.pts.some(p=>p.v)){
+  // the log scale is the price pane's own; a study pane stays linear (a log of a negative MACD is nothing)
+  main.priceScale().applyOptions({mode:IND.log&&mode!=="drawdown"?LightweightCharts.PriceScaleMode.Logarithmic:LightweightCharts.PriceScaleMode.Normal});
+  let legend=renderIndicators(chart,rows,intra,quarterly,DAILY);
+  for(const sr of LSERIES) if(sr!==main){ try{ if(chart.panes().length>1&&sr.getPane&&sr.getPane().paneIndex()>0) sr.priceScale().applyOptions({mode:LightweightCharts.PriceScaleMode.Normal}); }catch(e){} }
+  // volume below the price, on its own scale within the price pane
+  if(IND.vol && mode!=="drawdown" && LDATA.pts.some(p=>p.v)){
     const vs=chart.addSeries(LightweightCharts.HistogramSeries,{priceFormat:{type:"volume"},priceScaleId:"vol",priceLineVisible:false,lastValueVisible:false});
     chart.priceScale("vol").applyOptions({scaleMargins:{top:0.82,bottom:0}});
     vs.setData(rows.map(r=>({time:r.t,value:r.p.v||0,color:(r.p.o!=null?r.p.price>=r.p.o:true)?pos+"66":neg+"66"})));
@@ -441,7 +504,7 @@ function setChartSource(src,fallback,quiet,why){   // quiet: the page opening on
   try{ if(!fallback&&!quiet) localStorage.setItem("gs.chart",src); }catch(e){}
   const tv=src==="tv";
   document.getElementById("tvwrap").style.display=tv?"":"none";
-  for(const id of ["modeseg","rangeseg","intseg","chart","tip","chartret","drawbar"]){ const el=document.getElementById(id); if(el) el.style.display=tv?"none":""; }
+  for(const id of ["modeseg","indwrap","rangeseg","intseg","chart","tip","chartret","drawbar"]){ const el=document.getElementById(id); if(el) el.style.display=tv?"none":""; }
   document.querySelectorAll("#srcseg button").forEach(b=>b.classList.toggle("on",b.dataset.s===(fallback?"desk":src)));
   const note=document.getElementById("srcnote");
   const FELL={refused:"TradingView's embed does not carry "+tvSymbol()+" (their own site does), so this is the desk's own chart.",
@@ -461,11 +524,16 @@ function chartPanel(){
         <button data-s="tv">TRADINGVIEW</button>
         <button data-s="desk">DESK</button>
       </div>
-      <div class="seg" id="modeseg">
+      <div class="seg" id="modeseg" title="Chart type">
         <button data-m="candles" class="on">CANDLES</button>
+        <button data-m="bars">BARS</button>
+        <button data-m="ha" title="Heikin Ashi">HA</button>
         <button data-m="line">LINE</button>
-        <button data-m="drawdown">DD</button>
+        <button data-m="area">AREA</button>
+        <button data-m="drawdown" title="Drawdown from the running peak">DD</button>
       </div>
+      <div style="position:relative" id="indwrap"><button class="fsbtn" id="indbtn" title="Moving averages, Bollinger Bands, VWAP, RSI, MACD, volume, log scale">Indicators ▾</button>
+        <div id="indmenu" style="display:none;position:absolute;right:0;top:32px;z-index:20;background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding:8px 14px 12px;min-width:250px;box-shadow:0 8px 24px rgba(0,0,0,.45)"></div></div>
       <div class="seg" id="rangeseg"></div>
       <div class="seg" id="intseg" title="Bar size"></div>
       <button class="fsbtn" id="snapbtn" title="A picture of this chart, as drawn, becomes a clipping in your notes on this name">Save chart to notes</button>
@@ -575,6 +643,9 @@ function bindChart(){
     document.querySelectorAll("#modeseg button").forEach(x=>x.classList.toggle("on",x===b));
     drawChart();});
   document.getElementById("fsbtn").onclick=toggleFS;
+  renderIndMenu();
+  document.getElementById("indbtn").onclick=e=>{ e.stopPropagation(); const m=document.getElementById("indmenu"); m.style.display=m.style.display==="none"?"":"none"; };
+  document.addEventListener("click",e=>{ const m=document.getElementById("indmenu"); if(m&&m.style.display!=="none"&&!e.target.closest("#indwrap")) m.style.display="none"; });
   document.getElementById("snapbtn").onclick=snapChart;
   window.addEventListener("resize",()=>{ if(LWC) LWC.applyOptions({height:chartHeight()}); });
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&isFS)toggleFS();});
