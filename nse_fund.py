@@ -121,8 +121,13 @@ def _parse_filing(url):
             rounding = cells[1].strip().lower()
             break
     factor = _ROUND_TO_CR.get(rounding or "lakhs", 0.01)
-    raw_rev = _row_value(rows, "Revenue from operations")
-    raw_pat = _row_value(rows, "Total profit (loss) for period")
+    # a bank files the banking layout: no revenue from operations line, interest earned
+    # instead, and its own words for the profit lines (HDFC Bank showed no quarters at all)
+    bank = _row_value(rows, "Total interest earned") is not None
+    first = lambda *labels: next((v for v in (_row_value(rows, lb) for lb in labels) if v is not None), None)  # noqa: E731
+    raw_rev = first("Revenue from operations", "Total interest earned")
+    raw_pat = first("Total profit (loss) for period", "Net profit (loss) for the period",
+                    "Net Profit (loss) after taxes minority interest")
     eps_probe = _row_value(rows, "Basic earnings")
     # Some filings state one rounding level but carry absolute-rupee values
     # (seen live: Suzlon FY25 quarters say "Crores", numbers are rupees).
@@ -144,12 +149,13 @@ def _parse_filing(url):
                 break
     to_cr = lambda v: round(v * factor, 2) if v is not None else None  # noqa: E731
     d = {
-        "revenue": to_cr(_row_value(rows, "Revenue from operations")),
+        "revenue": to_cr(raw_rev),
+        "revenue_label": "Interest earned" if bank else "Revenue",
         "total_income": to_cr(_row_value(rows, "Total income")),
         "expenses": to_cr(_row_value(rows, "Total expenses")),
-        "pbt": to_cr(_row_value(rows, "Total profit before tax")),
-        "pat": to_cr(_row_value(rows, "Total profit (loss) for period")),
-        "eps": _row_value(rows, "Basic earnings (loss) per share from continuing"),
+        "pbt": to_cr(first("Total profit before tax", "Total profit (loss) from ordinary activities before tax")),
+        "pat": to_cr(raw_pat),
+        "eps": first("Basic earnings (loss) per share from continuing", "Basic earnings per share before extraordinary"),
         "rounding": rounding,
     }
     if d["eps"] is None:

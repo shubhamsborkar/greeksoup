@@ -138,6 +138,13 @@ def resolve(code):
             "ysym": ysym, "meta": meta}
 
 
+def code_of(symbol, exch=None):
+    """This broker's code for an exchange symbol (HDFCBANK -> HDFBAN), so a name
+    added by company name is quoted by the broker too. None when unknown."""
+    import secmaster
+    return secmaster.code_of(symbol, exch)
+
+
 def search(q):
     """Search-as-you-type over the broker's own master: code, exchange symbol
     or company name."""

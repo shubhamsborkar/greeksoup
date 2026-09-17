@@ -53,14 +53,23 @@ def _parse(zf, member, exch):
         for row in rdr:
             code = g(row, "ShortName")
             series = g(row, "Series")
-            # keep tradeable equity series only; skip rights/partly-paid/debt
-            if not code or series in ("DR", "E1", "RE", "BL"):
+            isin = g(row, "ISINCode")
+            if not code:
+                continue
+            # keep tradeable equity only. The NSE file says so in Series (skip rights,
+            # partly-paid, debt); the BSE file marks 10,000 rows "DR", government loans and
+            # ordinary shares alike (NIYOGIN, a BSE-only name, sat there unseen), so there the
+            # ISIN decides: an Indian equity ISIN is INE + issuer + "01" + serial
+            if exch == "BSE":
+                if not (isin.startswith("INE") and isin[7:9] == "01"):
+                    continue
+            elif series in ("DR", "E1", "RE", "BL"):
                 continue
             entry = {
-                "exch": exch,
+                "exch": exch, "series": series,
                 "company": g(row, "CompanyName"),
                 "nse_symbol": g(row, "ExchangeCode"),
-                "isin": g(row, "ISINCode"),
+                "isin": isin,
                 "w52h": _num(g(row, "52WeeksHigh")),
                 "w52l": _num(g(row, "52WeeksLow")),
                 "lth": _num(g(row, "LifeTimeHigh")),
@@ -89,3 +98,22 @@ def load():
 
 def lookup(code):
     return load().get((code or "").upper())
+
+
+def code_of(symbol, exch=None):
+    """The broker's short code for an exchange symbol (HDFCBANK on the NSE -> HDFBAN): the
+    way back from a free-feed name to the broker's quote. The ordinary-share row wins when
+    a warrant or another series shares the symbol. None when the master has no row."""
+    sym = (symbol or "").upper()
+    if not sym:
+        return None
+    best = None
+    for code, m in load().items():
+        if (m.get("nse_symbol") or "").upper() != sym:
+            continue
+        if exch and m.get("exch") != exch.upper():
+            continue
+        equity = m.get("series") == "EQ" or (m.get("isin") or "")[7:9] == "01"
+        if best is None or (equity and not best[1]):
+            best = (code, equity)
+    return best[0] if best else None

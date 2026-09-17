@@ -1371,3 +1371,66 @@ def test_free_feed_symbol_splits_for_the_exchange_record(monkeypatch):
     server._ticker_cache.clear()
     page = server.cached_ticker("SAP.DE", "home")
     assert seen == {"global": "SAP.DE"} and page["region"] == "global"
+
+
+def test_free_feed_name_is_quoted_by_the_broker_through_its_code(monkeypatch):
+    """HDFCBANK.NS on an Indian home with ICICI connected: the broker's master maps HDFCBANK
+    back to HDFBAN and the broker quotes it (session, order book); the row keeps its own code."""
+    import server, markets
+    asked = []
+    hooks = {"quote": lambda cli, code, ex=None: asked.append((code, ex)) or {"ltp": 722.4, "exch": ex},
+             "code_of": lambda sym, exch=None: "HDFBAN" if sym == "HDFCBANK" else None}
+    monkeypatch.setattr(server, "_hook", lambda name, live=True: hooks.get(name))
+    monkeypatch.setattr(server, "_client", lambda: object())
+    monkeypatch.setattr(server, "_market", lambda: markets.load("in"))
+    monkeypatch.setitem(server.broker_health, "dead", False)
+    q = server._home_quote("HDFCBANK.NS")
+    assert q["ltp"] == 722.4 and q["code"] == "HDFCBANK.NS" and asked[0] == ("HDFBAN", "NSE")
+
+
+def test_master_keeps_bse_only_equities_and_maps_back():
+    """The BSE file marks equities and government loans alike: the ISIN decides. NIYOGIN (M3GLO,
+    BSE only) stays; a GOI loan goes; code_of finds the ordinary-share row for a symbol."""
+    import secmaster
+    rows = [["1", "M3GLO", "DR", "NIYOGIN FINTECH LIMITED", "INE480D01010", "NIYOGIN"],
+            ["2", "03D001", "DR", "11.10% GOI LOAN", "INY019980013", "CG1110S9803"]]
+    import io, zipfile, csv
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        out = io.StringIO(); w = csv.writer(out)
+        w.writerow(["Token", "ShortName", "Series", "CompanyName", "ISINCode", "ExchangeCode"])
+        for r in rows:
+            w.writerow(r)
+        zf.writestr("BSEScripMaster.txt", out.getvalue())
+        out = io.StringIO(); w = csv.writer(out)
+        w.writerow(["Token", "ShortName", "Series", "CompanyName", "ISINCode", "ExchangeCode"])
+        w.writerow(["3", "HDFWA2", "W2", "HDFC BANK WARRANTS", "INE040A13032", "HDFCBANK"])
+        w.writerow(["4", "HDFBAN", "EQ", "HDFC BANK LIMITED", "INE040A01034", "HDFCBANK"])
+        zf.writestr("NSEScripMaster.txt", out.getvalue())
+    buf.seek(0)
+    with zipfile.ZipFile(buf) as zf:
+        m = secmaster._parse(zf, "BSEScripMaster.txt", "BSE")
+        m.update(secmaster._parse(zf, "NSEScripMaster.txt", "NSE"))
+    assert "M3GLO" in m and m["M3GLO"]["nse_symbol"] == "NIYOGIN" and "03D001" not in m
+    secmaster._map = m
+    try:
+        assert secmaster.code_of("HDFCBANK", "NSE") == "HDFBAN" and secmaster.code_of("NIYOGIN") == "M3GLO"
+    finally:
+        secmaster._map = None
+
+
+def test_bank_filing_layout_parses(monkeypatch, tmp_path):
+    """The banking layout of an integrated filing (interest earned, its own profit lines) gives
+    the quarter row; the revenue column says Interest earned."""
+    import nse_fund
+    monkeypatch.setattr(nse_fund, "CACHE_DIR", str(tmp_path))
+    html = "".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in [
+        ("Level of rounding used in financial results", "Lakhs"),
+        ("Total interest earned", "90,57,533.00"), ("Total income", "1,33,11,036.00"),
+        ("Total profit (loss) from ordinary activities before tax", "27,19,316.00"),
+        ("Net profit (loss) for the period", "20,38,269.00"),
+        ("Basic earnings per share before extraordinary items", "12.5")])
+    monkeypatch.setattr(nse_fund, "_get", lambda path, raw=False: html)
+    d = nse_fund._parse_filing("https://x/INTEGRATED_FILING_BANKING_1_iXBRL_WEB.html")
+    assert d["revenue_label"] == "Interest earned" and d["revenue"] == 90575.33
+    assert d["pbt"] == 27193.16 and d["pat"] == 20382.69 and d["eps"] == 12.5

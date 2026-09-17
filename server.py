@@ -222,17 +222,28 @@ def _home_quote(code, exch=None, tries=1):
     (with the order book), else Yahoo through the resolved symbol."""
     hook = _hook("quote")
     cli = _client()
-    # a name the reader added by company name carries the free feed's own symbol (SHEL.L,
-    # ASML.AS, 7203.T) and the list says so: the home broker does not know it, the free feed does
-    yahoo_name = any(n.get("code") == code and not _is_broker_name(n) for n in load_watchlist())
-    if hook and cli and not broker_health["dead"] and not yahoo_name:
+    # a name the reader added by company name carries the free feed's own symbol
+    # (HDFCBANK.NS, SHEL.L): the broker is asked through its own code for that symbol
+    # when its master knows one (HDFCBANK on the NSE is HDFBAN at ICICI), so the session
+    # and the order book come from the broker for that name too; SHEL.L has no such code
+    # and the free feed prices it
+    ask = code
+    if "." in code:
+        m = _market()
+        split = m.from_ysym(code) if (m and hasattr(m, "from_ysym")) else None
+        back = _hook("code_of", live=False)
+        ask = (back(split[0], split[1]) if (split and back) else None) or ""
+        if ask and not exch:
+            exch = split[1]
+    if hook and cli and not broker_health["dead"] and ask:
         m = _market()
         exchanges = [exch] if exch else []
         exchanges += [e for e in (m.META["exchanges"] if m else []) if e not in exchanges]
         for attempt in range(max(1, tries)):
             for ex in exchanges or [None]:
-                q = hook(cli, code, ex) if ex else hook(cli, code)
+                q = hook(cli, ask, ex) if ex else hook(cli, ask)
                 if q:
+                    q["code"] = code
                     return q
             if attempt + 1 < tries:
                 time.sleep(0.8)

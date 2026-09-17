@@ -977,7 +977,7 @@ async function loadInfund(filings){
       if(m==null||!y) return s;
       const q=m>=3?Math.floor((m-3)/3)+1:4, fy=(m>=3?y+1:y)%100;
       return "Q"+q+" FY"+fy;};
-    qEl.innerHTML=`<table class="mini"><thead><tr><th>Quarter</th><th>Revenue</th><th>PBT</th><th>PAT</th><th>EPS</th></tr></thead><tbody>`+
+    qEl.innerHTML=`<table class="mini"><thead><tr><th>Quarter</th><th>${esc(qs[0].revenue_label||"Revenue")}</th><th>PBT</th><th>PAT</th><th>EPS</th></tr></thead><tbody>`+
       qs.map(x=>{
         const yoy=qs.find(o=>o!==x&&o.quarter_ended.slice(0,6)===x.quarter_ended.slice(0,6)&&+o.quarter_ended.slice(-4)===+x.quarter_ended.slice(-4)-1);
         const g=(yoy&&yoy.revenue&&x.revenue!=null)?((x.revenue-yoy.revenue)/Math.abs(yoy.revenue)*100):null;

@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.98. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.99. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.99
+
+*16 September 2026, release 99.* A name added by company name is quoted by the connected broker too: the broker's own symbol master maps HDFCBANK back to its code, so HDFCBANK.NS on Watch · Home gets the broker's session and order book like a name added by code; a name the broker does not carry stays on the free feed. A BSE-only name held through ICICI Direct (NIYOGIN, code M3GLO) opens its page: the BSE half of the master marks ordinary shares and government loans with the same word, so the desk now reads the ISIN to tell them apart. A bank's quarterly results read again: the banking layout of an integrated filing carries interest earned and its own profit lines, and the table says Interest earned where it showed Revenue.
 
 ## 2026-09-16.98
 
