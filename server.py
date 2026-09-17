@@ -3342,19 +3342,24 @@ def _start_stream(cli):
         print(f"  live ticks not started: {exc}")
 
 
-def _forget_screens():
+def _forget_screens(disk=True):
     """After a broker connects or leaves, every screen that reads the broker is stale at once:
     the copy in memory keeps serving while it rebuilds, and the copy on disk goes, so a read
-    that finds nothing in memory does not bring back the pre-connect answer for its TTL."""
+    that finds nothing in memory does not bring back the pre-connect answer for its TTL.
+    At boot the broker is the same one as before the restart, so the disk copies stay
+    (`disk=False`): removing them there made every restart rebuild Commodities and Chain
+    from nothing and spent the free feed's budget on it."""
     for k in ("snap", "risk", "tape", "results_home", "macro", "econcal", "commods", "chain"):
         _cache[k] = (0.0, _cache.get(k, (0.0, None))[1])
+        if not disk:
+            continue
         try:
             os.remove(os.path.join(HIST_CACHE_DIR, f"api_{k}.json"))
         except OSError:
             pass
 
 
-def connect_broker_now(bid=None):
+def connect_broker_now(bid=None, at_boot=False):
     """Connect one broker the reader chose on Settings (the home one when none is named), at
     boot or from the page, with no restart. Returns plain words for the page."""
     ids = brokers.active_ids()
@@ -3372,7 +3377,7 @@ def connect_broker_now(bid=None):
         clients.clear()
         ACCOUNT_LABELS.clear()
         broker_health["dead"] = True
-        _forget_screens()
+        _forget_screens(disk=not at_boot)
         return {"ok": False, "error": "No broker chosen."}
     if bid not in ids:
         return {"ok": False, "error": "That broker is not on this desk."}
@@ -3398,7 +3403,7 @@ def connect_broker_now(bid=None):
     except Exception:  # noqa: BLE001
         ACCOUNT_LABELS[bid] = "account"
     broker_health["dead"] = False
-    _forget_screens()
+    _forget_screens(disk=not at_boot)
     if bid == ADAPTER["id"]:
         _start_stream(cli)
     try:
@@ -3412,9 +3417,9 @@ def connect_all_brokers():
     """Every connected broker, at boot; the last report per broker."""
     out = {}
     for bid in brokers.active_ids():
-        out[bid] = connect_broker_now(bid)
+        out[bid] = connect_broker_now(bid, at_boot=True)
     if not out:
-        connect_broker_now("")
+        connect_broker_now("", at_boot=True)
     return out
 
 

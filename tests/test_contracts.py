@@ -1337,3 +1337,19 @@ def test_contract_symbol_never_matched_to_a_company(monkeypatch, tmp_path):
     server._ticker_cache.clear()
     page = server.cached_ticker("CL=F", "global")
     assert page.get("error") and page["symbol"] == "CL=F"
+
+
+def test_boot_keeps_the_screen_caches_on_disk(monkeypatch, tmp_path):
+    """A restart connects the same broker as before: Commodities and Chain keep their disk copies
+    (a click from Settings still clears them, the broker changed)."""
+    import server
+    monkeypatch.setattr(server, "HIST_CACHE_DIR", str(tmp_path))
+    for k in ("commods", "chain"):
+        (tmp_path / f"api_{k}.json").write_text("{}")
+    server._forget_screens(disk=False)
+    assert (tmp_path / "api_commods.json").exists() and (tmp_path / "api_chain.json").exists()
+    server._forget_screens()
+    assert not (tmp_path / "api_commods.json").exists()
+    import inspect
+    src = inspect.getsource(server.connect_all_brokers)
+    assert "at_boot=True" in src

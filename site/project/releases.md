@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.96. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.97. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.97
+
+*16 September 2026, release 97.* A restart keeps the Commodities and Chain records on disk. Each boot reconnected the same broker and, treating that as a change of broker, threw both records away, so every newer version rebuilt them from nothing and spent the free feed's daily allowance doing it; that is where a run of too many requests came from. Changing the broker on Settings still starts them afresh.
 
 ## 2026-09-16.96
 
