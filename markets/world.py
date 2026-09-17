@@ -172,6 +172,14 @@ class Market:
         first = self.META["exchanges"][0]
         return s + self._suffix.get((exch or first).upper(), self._suffix[first])
 
+    def from_ysym(self, ysym):
+        """RR.L -> ("RR", "LSE"); None when the suffix is not this market's."""
+        s = (ysym or "").upper()
+        for exch, suf in (self._suffix or {}).items():
+            if suf and s.endswith(suf) and len(s) > len(suf):
+                return s[:-len(suf)], exch
+        return None
+
 
 def ids():
     return sorted(set(EXCHANGES) | set(COUNTRIES))

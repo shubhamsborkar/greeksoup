@@ -1353,3 +1353,21 @@ def test_boot_keeps_the_screen_caches_on_disk(monkeypatch, tmp_path):
     import inspect
     src = inspect.getsource(server.connect_all_brokers)
     assert "at_boot=True" in src
+
+
+def test_free_feed_symbol_splits_for_the_exchange_record(monkeypatch):
+    """HDFCBANK.NS on an Indian home resolves to HDFCBANK on the NSE (the exchange's results and
+    filings are read for the exchange symbol); SAP.DE on that home is routed to the free feed's
+    page and the answer says region global."""
+    import server, markets
+    monkeypatch.setattr(server, "_hook", lambda *a, **k: None)
+    monkeypatch.setattr(server, "_market", lambda: markets.load("in"))
+    r = server._resolve("HDFCBANK.NS")
+    assert r["symbol"] == "HDFCBANK" and r["exch"] == "NSE" and r["ysym"] == "HDFCBANK.NS"
+    assert markets.load("in").from_ysym("SAP.DE") is None
+    seen = {}
+    monkeypatch.setattr(server, "build_ticker", lambda sym: seen.setdefault("global", sym) and {"symbol": sym, "quote": {"price": 1}})
+    monkeypatch.setattr(server, "build_ticker_home", lambda sym: seen.setdefault("home", sym) and {"symbol": sym, "region": "home", "quote": {"ltp": 1}})
+    server._ticker_cache.clear()
+    page = server.cached_ticker("SAP.DE", "home")
+    assert seen == {"global": "SAP.DE"} and page["region"] == "global"

@@ -53,6 +53,15 @@ def ysym(symbol, exch=None):
     return s + _SUFFIX.get((exch or "NSE").upper(), ".NS")
 
 
+def from_ysym(ysym):
+    """HDFCBANK.NS -> ("HDFCBANK", "NSE"); None when the suffix is not this market's."""
+    s = (ysym or "").upper()
+    for exch, suf in _SUFFIX.items():
+        if s.endswith(suf) and len(s) > len(suf):
+            return s[:-len(suf)], exch
+    return None
+
+
 # ---- the exchange's public API (needs a cookie warm-up) ---------------------
 _nse = {"session": None, "warmed": 0.0}
 

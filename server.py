@@ -206,6 +206,12 @@ def _resolve(code, exch=None):
         if r:
             return r
     m = _market()
+    # a name added by company name carries the free feed's symbol (HDFCBANK.NS): the exchange
+    # symbol and the exchange come out of it, so the exchange's own record (results, filings,
+    # shareholding) is read for HDFCBANK, which the exchange knows, and not HDFCBANK.NS
+    split = m.from_ysym(code) if (m and hasattr(m, "from_ysym") and "." in code) else None
+    if split:
+        return {"symbol": split[0], "exch": split[1], "name": "", "ysym": code.upper(), "meta": {}}
     exch = exch or (m.META["exchanges"][0] if m else "")
     ysym = m.ysym(code, exch) if m else code
     return {"symbol": code, "exch": exch, "name": "", "ysym": ysym, "meta": {}}
@@ -1118,6 +1124,13 @@ def _ticker_from_commodity(symbol):
 
 def cached_ticker(symbol, region="us"):
     now = time.time()
+    # a home click on a name from another market's exchange (SAP.DE, 7203.T on an Indian home)
+    # is the free feed's page, not the home market's: its blocks (the exchange's results and
+    # filings, shareholding) belong to home names only
+    if region == "home" and "." in symbol:
+        m = _market()
+        if not (m and hasattr(m, "from_ysym") and m.from_ysym(symbol)):
+            region = "global"
     key = f"{region}:{symbol}"
     hit = _ticker_cache.get(key)
     if hit and now - hit[0] < TICKER_TTL:
@@ -1148,6 +1161,7 @@ def cached_ticker(symbol, region="us"):
                 data = alt
     dpath = os.path.join(HIST_CACHE_DIR, f"api_ticker_{re.sub(r'[^A-Za-z0-9.^=-]', '_', key)}.json")
     if not data.get("error"):        # never cache a failure; retry next click
+        data.setdefault("region", region)   # the page renders by the answer, not the door it came in by
         _ticker_cache[key] = (now, data)
         try:
             with open(dpath, "w") as fh:

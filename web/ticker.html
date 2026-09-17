@@ -136,7 +136,7 @@ tbody tr:last-child td{border-bottom:none}
 const P = new URLSearchParams(location.search);
 const SYM = (P.get("symbol")||"AAPL").toUpperCase();
 const REG = (P.get("region")||"us").toLowerCase();
-const HOME = REG!=="us";     // a home-market name: the broker's code or the exchange symbol
+let HOME = REG==="home";     // a home-market name: the broker's code or the exchange symbol; the answer can say otherwise
 document.getElementById("go").addEventListener("keydown",e=>{
   if(e.key==="Enter"&&e.target.value.trim())
     location.href="/t?symbol="+encodeURIComponent(e.target.value.trim().toUpperCase())+(HOME?"&region=home":"");});
@@ -790,6 +790,9 @@ async function load(){
   // the free feed matched the name to its exchange symbol: the page is that symbol's
   if(d.matched_from&&(HOME||d.symbol!==SYM)){ location.replace("/t?symbol="+encodeURIComponent(d.symbol)+"&from="+encodeURIComponent(d.matched_from)); return; }
   document.title=SYM+" · GreekSoup";
+  // the desk decides which page a name gets: a home name carries the home market's blocks; a name
+  // from another exchange, or a contract, is the free feed's page whatever door it came in by
+  if(d.region) HOME = d.region==="home";
   HIST=[...(d.history||[])].reverse();
   INTRA=d.intraday||{};
   if(HOME) renderHome(d,app); else renderUS(d,app);

@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.97. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.98. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.98
+
+*16 September 2026, release 98.* A home name added by company name (HDFCBANK.NS) reads its exchange record again: quarterly results, corporate filings and shareholding are asked for HDFCBANK on the NSE, which the exchange knows, instead of HDFCBANK.NS, which it does not; the blocks said the exchange was not answering. A name from another market's exchange opened from Watch · Home (SAP.DE, 7203.T) now gets the free feed's page, with valuation, financials and estimates, instead of the home market's blocks asking an Indian exchange about a German company.
 
 ## 2026-09-16.97
 

@@ -28,3 +28,10 @@ def is_open(now=None):
 
 def ysym(symbol, exch=None):
     return (symbol or "").upper()
+
+
+def from_ysym(ysym):
+    """A US symbol carries no suffix on the free feed: AAPL is AAPL. A dotted symbol is
+    another market's."""
+    s = (ysym or "").upper()
+    return (s, "NASDAQ") if s and "." not in s else None
