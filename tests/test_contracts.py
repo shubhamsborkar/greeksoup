@@ -1282,3 +1282,18 @@ def test_chain_market_is_any_country_and_sets_the_quote_path(monkeypatch):
     assert chains.normalise({"title": "t", "market": "in"})["region"] == "home"
     assert chains.normalise({"title": "t", "market": "us"})["region"] == "us"
     assert chains.normalise({"title": "t", "region": "us"})["region"] == "us"       # an older chain, no market
+
+
+def test_home_quote_skips_broker_for_free_feed_names(monkeypatch):
+    """A Watch · Home name added by company name (SHEL.L, source yahoo) is priced by the free
+    feed even with a home broker connected; the broker was asked for it and answered nothing,
+    so the ticker page said "no quote"."""
+    import server
+    asked = []
+    monkeypatch.setattr(server, "_hook", lambda *a, **k: (lambda cli, code, ex=None: asked.append(code)) if a[0] == "quote" else None)
+    monkeypatch.setattr(server, "_client", lambda: object())
+    monkeypatch.setitem(server.broker_health, "dead", False)
+    monkeypatch.setattr(server, "load_watchlist", lambda: [{"code": "SHEL.L", "exch": "LSE", "source": "yahoo"}])
+    monkeypatch.setattr(server, "fetch_yahoo_quote", lambda ysym: {"ltp": 30.0, "exch": "LSE", "ysym": ysym})
+    q = server._home_quote("SHEL.L")
+    assert q and q["ltp"] == 30.0 and q["code"] == "SHEL.L" and asked == []

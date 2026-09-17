@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.93. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.94. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.94
+
+*16 September 2026, release 94.* A name on Watch · Home that was added by company name from another exchange (SHEL.L, ASML.AS, 7203.T) opens its ticker page again on a desk with a home broker connected: the broker was asked for it, knew nothing, and the page said no quote; the free feed that prices it on the list now prices the page too.
 
 ## 2026-09-16.93
 

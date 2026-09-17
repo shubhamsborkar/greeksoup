@@ -216,7 +216,10 @@ def _home_quote(code, exch=None, tries=1):
     (with the order book), else Yahoo through the resolved symbol."""
     hook = _hook("quote")
     cli = _client()
-    if hook and cli and not broker_health["dead"]:
+    # a name the reader added by company name carries the free feed's own symbol (SHEL.L,
+    # ASML.AS, 7203.T) and the list says so: the home broker does not know it, the free feed does
+    yahoo_name = any(n.get("code") == code and not _is_broker_name(n) for n in load_watchlist())
+    if hook and cli and not broker_health["dead"] and not yahoo_name:
         m = _market()
         exchanges = [exch] if exch else []
         exchanges += [e for e in (m.META["exchanges"] if m else []) if e not in exchanges]
