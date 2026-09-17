@@ -6,6 +6,7 @@
 "use strict";
 (function () {
   const MARKUP = `
+  <div id="us_broker"></div>
   <div class="tiles" id="us_tiles"></div>
   <section class="panel">
     <div class="panel-h"><h2>Positions</h2><span class="sub" id="us_asof"></span></div>
@@ -88,7 +89,16 @@ async function pull(){
     `These are the US names kept by hand on <a href="/book" style="color:var(--accent)">Desk · Book</a>, priced live;
      change a line there and this panel follows. A US broker connected on
      <a href="/settings" style="color:var(--accent)">Settings</a> shows its holdings in the account panel above.`;
+  LAST = d; hideEmptyHand();
 }
+/* with a US broker's account on this desk, an empty hand-kept book shows one line, not four zero tiles */
+let LAST = null, BROKER = false;
+function hideEmptyHand(){
+  const empty = BROKER && LAST && !LAST.positions.length && !LAST.cash;
+  const t = document.getElementById("us_tiles"); if(t) t.style.display = empty ? "none" : "";
+  const a = document.getElementById("us_asof"); if(a && empty) a.textContent = "nothing kept by hand; the account above is the broker's";
+}
+window.usDeskBrokerPlaced = function(present){ BROKER = present; hideEmptyHand(); };
 async function pullEarnings(){
   try{
     const r=await fetch("/api/earnings"); const d=await r.json();
@@ -169,6 +179,7 @@ async function pullInsiders(){
       return;
     }
     root.innerHTML = `<div class="us-head"><h2>The US desk</h2><span>the US names on Desk · Book, the earnings ahead, the market pulse and the insider tape</span></div>` + MARKUP;
+    if (window.placeUSBroker) placeUSBroker();
     pull(); pullEarnings(); pullPulse(); pullInsiders();
     setInterval(pull, 30000); setInterval(pullPulse, 900000); setInterval(pullInsiders, 3600000);
   };

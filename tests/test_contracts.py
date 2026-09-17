@@ -1202,9 +1202,9 @@ def test_us_desk_on_home_only_where_the_reader_has_it(monkeypatch, tmp_path):
     monkeypatch.setattr(server, "_market", lambda: type("M", (), {"META": {"id": "us"}})())
     assert server.build_usbook()["show"] is True          # the home market is the US
     monkeypatch.setattr(server, "_market", lambda: type("M", (), {"META": {"id": "gb"}})())
-    monkeypatch.setitem(server.ADAPTER, "mod", type("B", (), {"META": {"region": "us"}})())
-    assert server.build_usbook()["show"] is True          # a US broker
-    monkeypatch.setitem(server.ADAPTER, "mod", None)
+    monkeypatch.setitem(server.MODS, "alpaca", type("B", (), {"META": {"region": "us"}})())
+    assert server.build_usbook()["show"] is True          # a US broker on any desk, home or not
+    monkeypatch.delitem(server.MODS, "alpaca")
     monkeypatch.setattr(server, "us_book_positions", lambda: [{"symbol": "AAPL", "shares": 1, "avg_cost": 100.0}])
     monkeypatch.setattr(server, "fetch_us_quote", lambda s: {"ltp": 101.0, "day_pct": 0.1})
     assert server.build_usbook()["show"] is True          # a US name on Desk · Book

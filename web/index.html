@@ -50,7 +50,7 @@ main{max-width:1440px;margin:0 auto;padding:18px 22px}
 .grid{display:grid;gap:14px}
 .family-strip{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:14px}
 .mid{grid-template-columns:1fr 380px;margin-bottom:14px}
-.accounts{grid-template-columns:1fr 1fr}
+.accounts{grid-template-columns:1fr 1fr} .accounts.one{grid-template-columns:1fr}
 .desk-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap} .desk-head h2{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink);margin:0} .desk-head span{font-size:12px;color:var(--muted)}
 @media(max-width:1100px){.mid{grid-template-columns:1fr}.accounts{grid-template-columns:1fr}}
 
@@ -120,7 +120,7 @@ td.flash-neg{background:var(--flashneg)!important}
   padding:11px 15px;border-bottom:1px solid var(--line)}
 .acct-head h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase}
 .acct-head .mini{font-size:11px;color:var(--ink2)}
-.acct-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+.acct-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line)}
 .acct-tiles .at{background:var(--panel);padding:10px 14px}
 .at .l{font-size:9.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
 .at .v{font-size:14.5px;font-weight:700;margin-top:4px}
@@ -197,6 +197,7 @@ let lastSnap = null;
 /* ---------- formatting ---------- */
 let CCY = "";      // the connected account's currency, set on every snapshot
 let LOCALE = "";   // how the home market groups digits, from the market file
+let HOME_CCY = "";  // the home market's currency; other currencies group their own way
 function inr(x, dp=0){
   /* plain number, grouped the way the home market groups its digits */
   if(x==null || isNaN(x)) return "—";
@@ -207,7 +208,10 @@ function money(x,dp=0,ccy){
   if(x==null||isNaN(x)) return "—";
   const c = ccy||CCY;
   if(!c) return inr(x,dp);
-  try{ return new Intl.NumberFormat(LOCALE||undefined,{style:"currency",currency:c,maximumFractionDigits:dp,minimumFractionDigits:dp}).format(x).replace("-","−"); }
+  // digits group the way the money's own market groups them: a US desk block on an Indian
+  // home desk prints $280,419, never $2,80,419; the home currency keeps the home grouping
+  const loc = (HOME_CCY && c===HOME_CCY) ? (LOCALE||undefined) : (c==="INR" ? "en-IN" : "en-US");
+  try{ return new Intl.NumberFormat(loc,{style:"currency",currency:c,maximumFractionDigits:dp,minimumFractionDigits:dp}).format(x).replace("-","−"); }
   catch(e){ return c+" "+inr(x,dp); }
 }
 const rupee = money;   // older call sites
@@ -426,6 +430,16 @@ function buildTicker(accounts){
 
 /* ---------- render ---------- */
 let tapeData=null;
+function homeGroupOf(groups){ return groups.find(g=>g.key==="home"); }
+function placeUSBroker(){
+  /* the US broker's block goes into The US desk section when that section is on the page */
+  const slot=document.getElementById("us_broker"); if(!slot) return false;
+  slot.innerHTML = window.US_BROKER_HTML || "";
+  const wait=document.getElementById("us_broker_wait"); if(wait) wait.remove();
+  if(window.usDeskBrokerPlaced) usDeskBrokerPlaced(!!window.US_BROKER_HTML);
+  return true;
+}
+window.placeUSBroker = placeUSBroker;
 function render(snap){
   if(!snap) return;
   const dot0=document.getElementById("mktdot"), lbl0=document.getElementById("mktlabel");
@@ -454,6 +468,7 @@ function render(snap){
   const acc=snap.accounts;
   CCY = (Object.values(acc)[0]||{}).currency || "";
   LOCALE = (snap.market && snap.market.locale) || "";
+  HOME_CCY = (snap.market && snap.market.currency) || "";
   const anyLimit = Object.values(acc).some(a=>a.totals.limit_total!=null);
   const anyFno = Object.values(acc).some(a=>(a.futures&&a.futures.length)||a.totals.fno_mtm);
   // one desk per broker market: the home market's, the US, the rest of the world; each has its
@@ -471,7 +486,10 @@ function render(snap){
     }
     const famUtil = fam.limit?(fam.blocked/fam.limit*100):null;
     const gLimit=g.accounts.some(([,a])=>a.totals.limit_total!=null), gFno=g.accounts.some(([,a])=>(a.futures&&a.futures.length)||a.totals.fno_mtm);
-    const h=`${groups.length>1?`<div class="desk-head" style="margin:${g===groups[0]?"0":"22px"} 0 8px"><h2>${g.label}</h2><span>${g.accounts.map(([,a])=>a.broker+(a.label?" · "+a.label:"")).join(" · ")}</span></div>`:""}
+    // a desk head names the desk once there is more than one, or when the only one is not the
+    // home desk; the US desk's block carries no head of its own, it sits under The US desk below
+    const head = g.key!=="us" && (groups.length>1 || g.key!=="home");
+    const h=`${head?`<div class="desk-head" style="margin:${g===groups[0]?"0":"22px"} 0 8px"><h2>${g.label}</h2><span>${g.accounts.map(([,a])=>a.broker+(a.label?" · "+a.label:"")).join(" · ")}</span></div>`:""}
     <div class="grid family-strip">
       ${tile("Holdings", money(fam.eq))}
       ${tile("P&L since cost", signed(fam.pnl), cls(fam.pnl),
@@ -482,18 +500,23 @@ function render(snap){
       ${gLimit?tile("Margin used", famUtil!=null?famUtil.toFixed(1)+"%":"—",
         famUtil>75?"neg":famUtil>50?"":"", `blocked ${money(fam.blocked)}`, utilBar(famUtil)):""}
     </div>
-    <div class="grid accounts">
+    <div class="grid accounts${g.accounts.length===1?" one":""}">
       ${g.accounts.map(([n,a])=>accountPanel(n,a)).join("")}
     </div>`;
     CCY=kept; return h;
   };
+  // the home desk with no broker of its own while another desk has one: one line, not the notice
+  const homeNote = (!homeGroupOf(groups) && groups.length) ? `<div class="desk-head" style="margin:0 0 8px"><h2>${(snap.market&&snap.market.label)?"Home desk · "+snap.market.label:"Home desk"}</h2><span>no broker in this market yet; <a href="/settings" style="color:var(--accent)">Settings</a> connects one, <a href="/book" style="color:var(--accent)">Desk · Book</a> keeps it by hand</span></div>` : "";
 
   const app=document.getElementById("app");
   const firstPaint = app.className.includes("loading");
   app.className = firstPaint ? "firstpaint" : "";
   if(firstPaint) setTimeout(()=>app.classList.remove("firstpaint"), 1600);
-  const homeGroup=groups.find(g=>g.key==="home"), otherGroups=groups.filter(g=>g.key!=="home");
-  app.innerHTML=`${ribbon}
+  const homeGroup=homeGroupOf(groups), otherGroups=groups.filter(g=>g.key!=="home"&&g.key!=="us"), usGroup=groups.find(g=>g.key==="us");
+  // the US broker's block belongs under The US desk, with the hand-kept US names; it is placed
+  // there once that section is on the page, and stays here until then
+  window.US_BROKER_HTML = usGroup ? deskBlock(usGroup) : "";
+  app.innerHTML=`${ribbon}${homeNote}
     ${homeGroup?deskBlock(homeGroup):""}
     ${(anyFno||tapeData&&tapeData.names&&tapeData.names.length)?`<div class="grid mid">
       <section class="panel">
@@ -506,6 +529,7 @@ function render(snap){
       </section>
     </div>`:""}
     ${otherGroups.map(deskBlock).join("")}
+    ${!placeUSBroker() ? `<div id="us_broker_wait">${window.US_BROKER_HTML}</div>` : ""}
     ${resultsAvail===false?"":`<section class="panel" style="margin-top:14px">
       <div class="panel-h"><h2>Upcoming results · Home</h2>
         <span class="sub" id="einsub">results dates for the home watchlist, from the exchange's public calendar</span></div>

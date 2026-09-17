@@ -98,17 +98,17 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
       <div class="btns" id="b_btns"><button id="b_save">Save and connect</button><button class="ghost" id="b_test">Check the connection</button><button class="ghost" id="b_clear">Remove the keys</button></div>
       <div class="msg" id="b_msg"></div>
     </div>
+    <div class="body" id="b_tokenblock" style="border-top:1px solid var(--line);display:none">
+      <div class="row"><label>Today's login</label><div class="kv" id="b_tok"></div></div>
+      <div class="row"><span></span><div class="hint" id="b_tokhint"></div></div>
+      <div class="row"><label for="b_token" id="b_toklbl">Paste it here</label><input class="mono" id="b_token" autocomplete="off" spellcheck="false"></div>
+      <div class="btns"><button class="ghost" id="b_login">Open the broker login</button><button id="b_connect">Connect</button></div>
+      <div class="msg" id="t_msg"></div>
+    </div>
     <div class="body" style="border-top:1px solid var(--line)">
       <div class="row"><label for="m_pick">Home market</label><select id="m_pick"></select></div>
       <div class="row"><span></span><div class="hint" id="m_how">Pick your country. The home screens take its shape: its session hours, its index on Risk, its currency, its exchanges, and where the public record has them, the results calendar, the filings and the market's own macro cards. A connected broker sets the country for you. A country whose exchange the free feed does not carry keeps its currency and measures against the world index; if a row is wrong for your market, the Feedback door in the sidebar is the way to say so.</div></div>
       <div class="msg" id="m_msg"></div>
-    </div>
-    <div class="body" id="b_tokenblock" style="border-top:1px solid var(--line);display:none">
-      <div class="row"><label>Today's login</label><div class="kv" id="b_tok"></div></div>
-      <div class="row"><span></span><div class="hint" id="b_tokhint"></div></div>
-      <div class="row"><label for="b_token">Paste it here</label><input class="mono" id="b_token" autocomplete="off" spellcheck="false"></div>
-      <div class="btns"><button class="ghost" id="b_login">Open the broker login</button><button id="b_connect">Connect</button></div>
-      <div class="msg" id="t_msg"></div>
     </div>
     <div class="note" id="b_others" style="display:none"></div>
     <div class="note"><b>No broker, or one with no API?</b> <a href="/book" style="color:var(--accent)">Desk · Book</a> keeps a portfolio by hand in any market with no key; most broker exports paste straight into it.</div>
@@ -330,7 +330,7 @@ function brokerLine(c){
 }
 function renderBroker(s){
   const b=s.broker; const pick=$("b_pick"); const cur=pick.value; const con=s.connected||[];
-  $("b_list").innerHTML=con.length?con.map(brokerLine).join("")+`<div class="hint" style="margin:2px 0 12px">Each broker is its own desk on Desk · Home, in its own currency; a second broker in a market already covered comes later.</div>`:"";
+  $("b_list").innerHTML=con.length?con.map(brokerLine).join("")+`<div class="hint" style="margin:2px 0 12px;font-size:11px;color:var(--muted);line-height:1.5">Each broker is its own desk on Desk · Home, in its own currency; a second broker in a market already covered comes later.</div>`:"";
   $("b_list").querySelectorAll("[data-edit]").forEach(x=>x.onclick=()=>{ pick.value=x.dataset.edit; onPick(false); $("b_fields").scrollIntoView({block:"center"}); });
   $("b_list").querySelectorAll("[data-check]").forEach(x=>x.onclick=async()=>{ say("b_msg","Asking the broker…"); const r=await post("/api/settings/broker/test",{broker:x.dataset.check}); if(r.state) render(r.state); say("b_msg", r.ok?`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}.`:(r.error||"not connected"), r.ok?"ok":"err"); });
   $("b_list").querySelectorAll("[data-rm]").forEach(x=>x.onclick=async()=>{ const m=metaOf(x.dataset.rm); if(!confirm(`Take ${m?m.label:"this broker"} off this desk and remove its keys?`)) return; const r=await post("/api/settings/broker/remove",{broker:x.dataset.rm,keys:true}); if(r.state) render(r.state); say("b_msg", r.ok?"Removed.":(r.error||"could not remove"), r.ok?"ok":"err"); });
@@ -360,7 +360,7 @@ function renderMarket(s){
   pick.value = s.home_market||"";
   pick.disabled = false;
   const cur=ms.find(m=>m.id===(s.home_market||brokerRegion));
-  if(cur) say("m_msg",`${esc(cur.label)}: ${esc(cur.currency)}${cur.exchanges.length?", "+esc(cur.exchanges.join(" and ")):", no exchange on the free feed"}, Risk against ${esc(cur.benchmark_label)}.${brokerRegion&&s.home_market&&s.home_market!==brokerRegion?" Your choice; the brokers keep their own desks.":""}`);
+  if(cur) say("m_msg",`${cur.label}: ${cur.currency}${cur.exchanges.length?", "+cur.exchanges.join(" and "):", no exchange on the free feed"}, Risk against ${cur.benchmark_label}.${brokerRegion&&s.home_market&&s.home_market!==brokerRegion?" Your choice; the brokers keep their own desks.":""}`);
 }
 $("m_pick").onchange=async()=>{
   const v=$("m_pick").value; say("m_msg","Saving…");
@@ -398,14 +398,17 @@ function onPick(silent){
       window.deskAsk(`Write a broker file for ${n}${c?" ("+c+")":""} so this desk can read an account there. Follow brokers/README.md: copy the closest shipped file in brokers/, keep the same function names, fill META from the broker's own API documentation${d?" at "+d:""}, read-only throughout, and add the file to REGISTRY in brokers/__init__.py. If the broker publishes no API for individuals, say so and change nothing.`,"build");
       say("fb_msg","The request is in the Ask box, in Build mode. Press Ask there; the file appears in the picker above after the next reload.","ok"); };
   }
-  const c=(S.connected||[]).find(x=>x.id===id); const bb=c||b;
-  const daily = m && m.daily_login && !!c;
+  const c=(S.connected||[]).find(x=>x.id===id); const bb=c||m;
+  // the session block shows the moment a daily-login broker is picked, keys saved or not,
+  // so the reader sees the third thing the broker asks for before the first two go in
+  const daily = !!(m && m.daily_login);
   $("b_tokenblock").style.display = daily ? "" : "none";
   if(daily){ const b=bb;
+    $("b_toklbl").textContent = b.token_param ? `Session key (${b.token_param})` : "Session key";
     $("b_tokhint").innerHTML = esc(b.token_hint||"") + ` If the redirect address in your broker app is <span class="mono">http://localhost:${S.desk.port}/settings</span>, it arrives here by itself.`;
     $("b_token").placeholder = b.token_param ? `the value after ${b.token_param}=` : "the token";
-    $("b_tok").innerHTML = b.connected ? `<b>Live.</b> The account is connected for today${b.account?" as "+esc(b.account):""}.` : b.token_today ? `<b>Saved for today</b>, but the session is not up. Log in again for a fresh one.` : b.configured ? `<b>Not yet today.</b> Desk · Home shows the last saved book until you log in.` : `Save the keys first.`;
-    $("b_login").disabled=!b.login_url; $("b_connect").disabled=!b.configured;
+    $("b_tok").innerHTML = b.connected ? `<b>Live.</b> The account is connected for today${b.account?" as "+esc(b.account):""}.` : b.token_today ? `<b>Saved for today</b>, but the session is not up. Log in again for a fresh one.` : b.configured ? `<b>Not yet today.</b> Desk · Home shows the last saved book until you log in.` : `<b>Needs the keys first.</b> Save them above; the broker then hands out a session key at each day's login, and it goes here.`;
+    $("b_login").disabled=!b.login_url; $("b_connect").disabled=!b.configured; $("b_token").disabled=!b.configured;
   }
   $("b_test").disabled = !(c && c.configured);
   $("b_clear").disabled = !c;

@@ -1324,9 +1324,9 @@ def build_usbook():
     # name of their own on Watch · US (the ten starters that ship do not count). Elsewhere Home
     # stays the home market's, with one line saying how the US desk gets there.
     m = _market()
-    mod = ADAPTER["mod"]
+    us_broker = any(str(mod.META.get("region", "")).lower() == "us" for mod in MODS.values() if mod is not None)
     added = [n["code"] for n in load_watchlist_us() if n["code"] not in US_WATCH_STARTERS]
-    show = bool(rows) or (m is not None and m.META.get("id") == "us") or (mod is not None and str(mod.META.get("region", "")).lower() == "us") or bool(added)
+    show = bool(rows) or (m is not None and m.META.get("id") == "us") or us_broker or bool(added)
     return {
         "cash": cash, "positions": rows,
         "deployed": deployed, "total": total,

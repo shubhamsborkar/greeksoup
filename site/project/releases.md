@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.78. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.79. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.79
+
+*16 September 2026, release 79.* A broker outside the home market sits on its own desk. A US broker connected on a desk whose home market is elsewhere shows under The US desk on Desk · Home, above the names kept by hand, with the hand-kept tiles out of the way while that book is empty; the home desk says in one line that no broker is in its market yet. Every desk block groups its digits the way its own currency does ($280,426 on an Indian home desk, never $2,80,419), and one account fills the row. Settings shows the session block the moment a daily-login broker is picked, under its keys, naming what the broker calls the key (apisession for ICICI Direct, request_token for Zerodha), so the third thing the broker asks for is visible before the first two go in.
 
 ## 2026-09-16.78
 
