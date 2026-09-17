@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-16.86. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-16.87. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-16.87
+
+*16 September 2026, release 87.* The economic calendar reads today's prints from the calendar page when the free feed's calendar endpoint refuses the address while quotes and charts still answer; the card says it is today only and looks for the full sixty days again in ten minutes.
 
 ## 2026-09-16.86
 

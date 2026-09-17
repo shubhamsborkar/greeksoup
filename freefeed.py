@@ -7,7 +7,9 @@ cookie and a "crumb" that Yahoo hands out freely but rate-limits. Everything
 here returns an empty shape instead of raising, so a page degrades instead of
 dying. Yahoo's endpoints are unofficial and can change without notice.
 """
+import json
 import math
+import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -406,6 +408,54 @@ def _pick(rec, keys):
     return None
 
 
+def _econ_walk(j, out, seen, high_only):
+    """Every record in a calendar-events answer that names an event, a country and a time."""
+    stack = [j]
+    while stack:
+        o = stack.pop()
+        if isinstance(o, dict):
+            if o.get("countryCode") and _pick(o, _ECON_KEYS["event"]) and o.get("eventTime"):
+                t = o.get("eventTime")
+                try:
+                    t = float(t) / (1000.0 if float(t) > 1e11 else 1.0)
+                except (TypeError, ValueError):
+                    continue
+                when = datetime.utcfromtimestamp(t)
+                key = (o["countryCode"], _pick(o, _ECON_KEYS["event"]), when.strftime("%Y-%m-%d"))
+                if key in seen:
+                    continue
+                seen.add(key)
+                out.append({"date": when.strftime("%Y-%m-%d"), "time": when.strftime("%H:%M"), "country": o["countryCode"],
+                            "event": str(_pick(o, _ECON_KEYS["event"])), "period": _pick(o, _ECON_KEYS["period"]) or "",
+                            "estimate": _pick(o, _ECON_KEYS["consensus"]), "previous": _pick(o, _ECON_KEYS["prior"]),
+                            "actual": _pick(o, _ECON_KEYS["actual"]), "high": bool(high_only or o.get("importance") in ("High", "high", 3))})
+            else:
+                stack.extend(o.values())
+        elif isinstance(o, list):
+            stack.extend(o)
+
+
+def _econ_from_page():
+    """The calendar page itself, when the calendar-events endpoint refuses this address: the
+    page carries today's answer inside it (the big prints, as the page asks for them; the day
+    in the address is ignored by the page, so this is today and nothing further)."""
+    out, seen = [], set()
+    try:
+        r = _Y["session"].get("https://finance.yahoo.com/calendar/economic", timeout=20)
+    except Exception:  # noqa: BLE001
+        return []
+    if r.status_code != 200:
+        return []
+    for m in re.finditer(r'data-url="[^"]*calendar-events[^"]*"[^>]*>(\{.*?\})</script>', r.text):
+        try:
+            body = json.loads(m.group(1)).get("body")
+            _econ_walk(json.loads(body) if isinstance(body, str) else body, out, seen, True)
+        except (ValueError, TypeError, AttributeError):
+            continue
+    out.sort(key=lambda r: (r["date"], r["time"]))
+    return out
+
+
 def econ_calendar(days=60, high_only=False):
     if not _auth():
         return []
@@ -423,7 +473,10 @@ def econ_calendar(days=60, high_only=False):
         except Exception:  # noqa: BLE001
             break
         if r.status_code == 429:
-            _Y.update(session=None, crumb=None, next_try=time.time() + 600)
+            # this endpoint can refuse an address while quotes and charts still answer: the page
+            # fallback reads the same records the long way; the session itself is kept
+            if k == 0:
+                return _econ_from_page()
             break
         if r.status_code != 200:
             break
@@ -431,29 +484,7 @@ def econ_calendar(days=60, high_only=False):
             j = r.json()
         except ValueError:
             break
-        # the records sit a few levels down; walk for every dict that names an event and a country
-        stack = [j]
-        while stack:
-            o = stack.pop()
-            if isinstance(o, dict):
-                if o.get("countryCode") and _pick(o, _ECON_KEYS["event"]) and o.get("eventTime"):
-                    t = o.get("eventTime")
-                    try:
-                        t = float(t) / (1000.0 if float(t) > 1e11 else 1.0)
-                    except (TypeError, ValueError):
-                        continue
-                    when = datetime.utcfromtimestamp(t)
-                    key = (o["countryCode"], _pick(o, _ECON_KEYS["event"]), when.strftime("%Y-%m-%d"))
-                    if key in seen:
-                        continue
-                    seen.add(key)
-                    out.append({"date": when.strftime("%Y-%m-%d"), "time": when.strftime("%H:%M"), "country": o["countryCode"],
-                                "event": str(_pick(o, _ECON_KEYS["event"])), "period": _pick(o, _ECON_KEYS["period"]) or "",
-                                "estimate": _pick(o, _ECON_KEYS["consensus"]), "previous": _pick(o, _ECON_KEYS["prior"]),
-                                "actual": _pick(o, _ECON_KEYS["actual"]), "high": bool(high_only or o.get("importance") in ("High", "high", 3))})
-                else:
-                    stack.extend(o.values())
-            elif isinstance(o, list):
-                stack.extend(o)
+        _econ_walk(j, out, seen, high_only)
+        continue
     out.sort(key=lambda r: (r["date"], r["time"]))
     return out

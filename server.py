@@ -1880,7 +1880,8 @@ def build_econcal():
     else:
         free = freefeed.econ_calendar(days)
         if free:
-            source = "free feed"
+            span = max(r["date"] for r in free)
+            source = "free feed" if span > (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d") else "free feed, today only"
             high = {(r["country"], r["event"], r["date"]) for r in freefeed.econ_calendar(days, high_only=True)}
             for r in free:
                 is_high = (r["country"], r["event"], r["date"]) in high
@@ -1891,8 +1892,9 @@ def build_econcal():
                 keep.append({**r, "impact": "High" if is_high else "Medium", "unit": ""})
     keep.sort(key=lambda r: (r["date"] or "", r.get("time") or ""))
     return {"rows": keep[:400], "days": days, "home": home, "source": source, "ts": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "_ttl": 600 if not keep else None,     # an empty answer is retried in ten minutes, not six hours
-            "note": "" if keep else ("The free feed is resting; the calendar fills when it answers again." if not os.getenv("FMP_API_KEY", "").strip() else "The provider returned no prints for the window.")}
+            "_ttl": 600 if (not keep or source.endswith("today only")) else None,     # a thin answer is retried in ten minutes, not six hours
+            "note": ("" if keep else ("The free feed is resting; the calendar fills when it answers again." if not os.getenv("FMP_API_KEY", "").strip() else "The provider returned no prints for the window."))
+                    if not source.endswith("today only") else "The free feed is handing out today's prints only just now; the weeks ahead fill when it answers in full again."}
 
 
 def build_macro():
