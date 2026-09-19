@@ -13,7 +13,7 @@ The desk makes outbound requests to these places, and to nothing else:
 - **GitHub**, once a day, one small request for the `VERSION` file, to know whether a newer version exists. The update itself downloads the repository ZIP from GitHub when you click.
 - **Google Fonts**, from the pages' markup, for the desk's typefaces.
 
-There is no telemetry, no analytics, no crash reporting and no account. The desk sends nothing about you or your book anywhere. The daily version check carries no identifier.
+There is no telemetry, no analytics, no crash reporting and no account. The desk sends nothing about you or your book anywhere. The daily version check carries no identifier. The Tell us page gathers a report and shows it to you in full; it leaves your computer only when you send it from your own mail app.
 
 ## Where your keys live
 

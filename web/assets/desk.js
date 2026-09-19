@@ -113,7 +113,7 @@
       '<div class="rfoot">' +
       '<button id="askbtn" title="Ask SuperAnalyst, the desk\'s AI, about this screen (⌘I)"><span class="rk">✦</span><span>Ask SuperAnalyst</span></button>' +
       '<button id="cmdkbtn" title="Jump anywhere (⌘K)"><span class="rk">⌘</span><span>Command · K</span></button>' +
-      '<button id="fbbtn" title="Tell us what is wrong, missing or unsupported on this screen"><span class="rk">✎</span><span>Feedback</span></button>' +
+      '<button id="fbbtn" title="Tell us what is wrong, missing or unclear on this screen; no account needed"><span class="rk">✎</span><span>Tell us</span></button>' +
       '<button id="themebtn" title="Cycle theme"><span class="rk">◐</span><span>Theme · <b id="themename"></b></span></button>' +
       '<button id="railbtn" title="Collapse sidebar ( [ )"><span class="rk" id="railglyph">⟨</span><span>Collapse</span></button>' +
       '</div>' +
@@ -128,7 +128,7 @@
     el.querySelectorAll(".rgone").forEach(b => b.onclick = e => { e.preventDefault(); setShown(b.dataset.key, true); });
     document.getElementById("railbtn").onclick = toggleRail;
     document.getElementById("railedge").onclick = toggleRail;
-    document.getElementById("fbbtn").onclick = () => window.open(feedbackUrl("", ""), "_blank", "noopener");
+    document.getElementById("fbbtn").onclick = () => { location.href = feedbackUrl("", ""); };
     document.getElementById("cmdkbtn").onclick = () => openCmdk(true);
     document.getElementById("askbtn").onclick = () => openAsk(true);
     const tb = document.getElementById("themebtn");
@@ -642,15 +642,13 @@
       if (!rep.ok) {
         el.className = "fail";
         /* a report with the error already in it, for a reader with no other way to reach us */
-        const tell = "https://github.com/shubhamsborkar/greeksoup/issues/new?template=bug.yml" +
-          "&title=" + encodeURIComponent("The update did not go through") +
-          "&version=" + encodeURIComponent(rep.from || "") +
-          "&what=" + encodeURIComponent("Clicked Update the desk. The strip said: " + (rep.error || "unknown reason"));
+        const tell = "/report?title=" + encodeURIComponent("The update did not go through") +
+          "&what=" + encodeURIComponent("Clicked Update the desk on version " + (rep.from || "?") + ". The strip said: " + (rep.error || "unknown reason"));
         el.innerHTML = `<div class="uin"><span class="utag">Not updated</span>` +
           `<span class="utxt">The update did not go through: ${esc(rep.error || "unknown reason")}. ` +
           `Your keys and lists are untouched and the desk keeps running on the version it has. ` +
           `Clicking Update again picks up where this stopped; the other way is in the README under "Getting a newer version". ` +
-          `If it fails again, <a href="${tell}" target="_blank" rel="noopener">tell us</a>, the message is already written.</span>` +
+          `If it fails again, <a href="${tell}">tell us</a>, the message is already written.</span>` +
           `<button class="ubtn ghost" id="uclose">Close</button></div>`;
         document.getElementById("uclose").onclick = () => { el.style.display = "none"; };
         return;
@@ -695,7 +693,7 @@
   // No error ends in silence. Every page's fallback message ends with this, and when the
   // desk stops answering at all (a request fails at the network, not with an answer), a
   // strip says so and waits for it, instead of a screen that quietly does nothing.
-  window.NEXT_STEP = "Reload once. If it happens again, run python doctor.py in the desk folder and tell us what it prints; Settings, under If something is wrong, says where.";
+  window.NEXT_STEP = "Reload once. If it happens again, press Tell us in the sidebar; it gathers what we need and you send it by email.";
   let downShown = false;
   function showDown() {
     if (downShown) return;
@@ -705,7 +703,7 @@
     el.className = "fail";
     el.innerHTML = `<div class="uin"><span class="utag">Not answering</span>` +
       `<span class="utxt">The desk is not answering. If it just updated, it is restarting and this page reloads by itself in a moment. ` +
-      `Otherwise open the desk folder and double-click <b>Start Desk</b>; <b>python doctor.py</b> in that folder says why it stopped, and Settings, under If something is wrong, says where to send it.</span></div>`;
+      `Otherwise open the desk folder and double-click <b>Start Desk</b>; <b>python doctor.py</b> in that folder says why it stopped; once the desk is back, <b>Tell us</b> in the sidebar sends it to us.</span></div>`;
     waitForRestart(el, "");
   }
   window.addEventListener("unhandledrejection", e => {
@@ -747,12 +745,13 @@
   // wrong, a screen that misreads. Every ticket opens prefilled on the desk's
   // public tracker with the screen and the version, and nothing is sent until
   // the reader presses the button there.
-  const TRACKER = "https://github.com/shubhamsborkar/greeksoup/issues/new";
+  // The report page inside the desk (/report): runs the check, shows everything, and the
+  // reader emails it from their own mail app. No account anywhere; most readers have no GitHub.
   function feedbackUrl(title, body) {
     const where = (askPage().label || document.title) + (deskVersion ? " · " + deskVersion : "");
     const t = title || ("On " + where);
-    const b = (body || "What happened, and what you expected:\n\n") + "\n\nScreen: " + where;
-    return TRACKER + "?title=" + encodeURIComponent(t) + "&body=" + encodeURIComponent(b);
+    const b = (body || "") + "Screen: " + where;
+    return "/report?title=" + encodeURIComponent(t) + "&what=" + encodeURIComponent(b);
   }
   window.deskFeedback = feedbackUrl;
   // another screen opens the box with a request ready: Settings hands a broker file to Build

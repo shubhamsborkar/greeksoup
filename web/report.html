@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tell us · GreekSoup</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
+<link rel="stylesheet" href="/assets/desk.css">
+<script src="/assets/desk.js" defer></script>
+<style>
+body{padding-bottom:50px}
+main{max-width:860px;margin:0 auto;padding:20px 22px}
+.sub{color:var(--muted);font-size:12px;margin-bottom:18px;line-height:1.55;max-width:760px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.panel-h{padding:11px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.panel-h h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2);margin:0;font-weight:700}
+.panel-h .st{font-size:11px;color:var(--muted)}
+.panel-h .st.on{color:var(--pos)} .panel-h .st.warn{color:var(--amber)}
+.body{padding:14px 15px}
+textarea{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font-size:12.5px;font-family:inherit;width:100%}
+.body p{font-size:12.5px;line-height:1.6;color:var(--ink2);margin:0 0 10px}
+.body p:last-child{margin-bottom:0}
+textarea{max-width:none;min-height:120px;resize:vertical;line-height:1.5}
+pre{font-family:"SF Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.5;color:var(--ink2);
+  background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:10px 12px;margin:0;white-space:pre-wrap;word-break:break-word;max-height:360px;overflow:auto}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+button{background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:8px;padding:7px 14px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+button.ghost{background:none;color:var(--ink2);border-color:var(--line2);font-weight:500}
+button:hover{filter:brightness(1.08)}
+.msg{font-size:12px;color:var(--muted)} .msg.ok{color:var(--pos)}
+.addr{font-family:"SF Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--ink)}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <div class="sub"><b style="color:var(--ink);font-size:15px;display:block;margin-bottom:6px">Tell us</b>
+  Something wrong, missing or unclear. This page gathers what we need to help, shows you all of it, and nothing leaves your computer until you send it yourself. No account needed anywhere.</div>
+
+  <div class="panel">
+    <div class="panel-h"><h2>What happened</h2></div>
+    <div class="body">
+      <textarea id="what" placeholder="Which screen, what you expected, what you saw instead. A line or two is plenty."></textarea>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><h2>The desk's own check</h2><span class="st" id="dstate">running, about ten seconds</span></div>
+    <div class="body">
+      <p>Your Python version, whether the desk answers, which keys are set by name and never by value, the start-at-login entry, which sources it can reach, and the last lines of its log. Nothing in it is private. It is what makes a reply fast.</p>
+      <pre id="doc">Running the check…</pre>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><h2>Send it</h2></div>
+    <div class="body">
+      <p>The email goes to <span class="addr">info@shikshannivesh.com</span>. Press the button and your mail app opens with everything above already in it; read it, then send. If your mail app cut the check short, press Copy and paste it into the email instead.</p>
+      <div class="row">
+        <button id="mail">Email it</button>
+        <button class="ghost" id="copy">Copy the report</button>
+        <span class="msg" id="msg"></span>
+      </div>
+      <p style="margin-top:14px">We reply by email, and what we learn goes on <a href="https://greeksoup.ai/docs/install/known-issues/" target="_blank" rel="noopener">Known issues</a> the same day, dated, so the next reader finds it. If you use GitHub: a question is best asked in <a href="https://github.com/shubhamsborkar/greeksoup/discussions" target="_blank" rel="noopener">Discussions</a>, in the open, and something plainly broken can go through <a href="https://github.com/shubhamsborkar/greeksoup/issues/new/choose" target="_blank" rel="noopener">the report form</a>; the same report pastes into either.</p>
+    </div>
+  </div>
+</main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const q = new URLSearchParams(location.search);
+  const title = (q.get("title") || "").trim();
+  const seed = (q.get("what") || "").trim();
+  if (seed) $("what").value = seed + "\n\n";
+  let doc = "";
+  fetch("/api/doctor", { cache: "no-store" }).then(r => r.json()).then(d => {
+    doc = d.text || d.error || "The check did not run.";
+    $("doc").textContent = doc;
+    $("dstate").textContent = d.ok ? "done" : "did not finish";
+    $("dstate").className = "st" + (d.ok ? " on" : " warn");
+  }).catch(() => {
+    doc = "The check did not run; the desk did not answer. In the desk folder, run: python doctor.py, and paste what it prints here.";
+    $("doc").textContent = doc; $("dstate").textContent = "did not run"; $("dstate").className = "st warn";
+  });
+  const report = () => "What happened:\n" + ($("what").value.trim() || "(not written)") + "\n\nThe desk's check:\n" + doc;
+  const subject = () => "GreekSoup: " + (title || ($("what").value.trim().split("\n")[0] || "something is wrong").slice(0, 80));
+  $("mail").onclick = () => {
+    if (!$("what").value.trim()) { $("what").focus(); $("msg").textContent = "Write a line about what happened first."; $("msg").className = "msg"; return; }
+    location.href = "mailto:info@shikshannivesh.com?subject=" + encodeURIComponent(subject()) + "&body=" + encodeURIComponent(report());
+    $("msg").textContent = "Your mail app should be open now. If nothing opened, press Copy and paste the report into an email to info@shikshannivesh.com.";
+    $("msg").className = "msg";
+  };
+  $("copy").onclick = async () => {
+    try { await navigator.clipboard.writeText(report()); $("msg").textContent = "Copied. Paste it into an email to info@shikshannivesh.com."; $("msg").className = "msg ok"; }
+    catch (e) { $("msg").textContent = "Could not copy by itself; select the text above and copy it."; $("msg").className = "msg"; }
+  };
+})();
+</script>
+</body>
+</html>

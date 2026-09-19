@@ -50,8 +50,8 @@ import shortint
 import updater          # the daily version check and the one-click update
 
 # No error ends in silence: anything the desk did not expect ends with this one next step.
-NEXT_STEP = ("Reload once. If it happens again, run python doctor.py in the desk folder and tell us "
-             "what it prints; Settings, under If something is wrong, says where.")
+NEXT_STEP = ("Reload once. If it happens again, press Tell us in the sidebar; it gathers what we need "
+             "and you send it by email.")
 import settings as desk_settings   # the Settings screen: keys, token, switches
 import ai as desk_ai               # the reader's own AI key, tested here
 import brokers                     # the broker layer: one file per broker, read-only
@@ -4150,6 +4150,17 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/settings":
                 with open(os.path.join(HERE, "web", "settings.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
+            elif path == "/report":
+                # Tell us: the page a reader with no GitHub account uses. It runs the check,
+                # shows all of it, and sends nothing; the reader emails it from their own app.
+                with open(os.path.join(HERE, "web", "report.html"), "rb") as fh:
+                    self._send(fh.read(), "text/html; charset=utf-8")
+            elif path == "/api/doctor":
+                try:
+                    p = subprocess.run([sys.executable, os.path.join(HERE, "doctor.py")], capture_output=True, text=True, timeout=90, cwd=HERE)
+                    self._send(json.dumps({"ok": p.returncode == 0, "text": (p.stdout or "") + (p.stderr or "")}).encode(), "application/json")
+                except Exception as exc:  # noqa: BLE001
+                    self._send(json.dumps({"ok": False, "error": f"The check did not run ({exc}). In the desk folder, run: python doctor.py"}).encode(), "application/json")
             elif path == "/api/ask":
                 self._send(json.dumps(ask_ready()).encode(), "application/json")
             elif path == "/api/ask/threads":

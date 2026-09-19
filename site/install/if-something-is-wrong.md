@@ -37,8 +37,9 @@ If you would rather not open a terminal, tell your agent: "run the check in this
 
 ## Still stuck
 
-Three doors, and every one of them is read.
+Four doors, and every one of them is read.
 
+- **Tell us**, in the sidebar of the desk itself. It runs the check, shows you everything it gathered, and opens your mail app with it addressed to us. No account anywhere. This is the door for most readers.
 - [Known issues](/docs/install/known-issues/): what other readers have hit, dated, with the fix next to it. Look here first; it is often one click.
 - [Discussions](https://github.com/shubhamsborkar/greeksoup/discussions): ask in the open. The answer stays up for the next reader with the same question, and search engines find it.
 - [Report it](https://github.com/shubhamsborkar/greeksoup/issues/new/choose) when something is plainly broken. The template asks for what you saw and the check's printout, and that is all we need.

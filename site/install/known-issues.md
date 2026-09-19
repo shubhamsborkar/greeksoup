@@ -26,4 +26,4 @@ Each line says what a reader saw, what it meant, and where it stands. Fixed mean
 
 ## Not on the list?
 
-[Ask in Discussions](https://github.com/shubhamsborkar/greeksoup/discussions), where the answer helps the next reader too, [report it](https://github.com/shubhamsborkar/greeksoup/issues/new/choose) with the printout of `python doctor.py`, or email info@shikshannivesh.com. Whichever way, it lands here.
+Press **Tell us** in the desk's sidebar (it gathers what we need and you send it by email, no account anywhere), [ask in Discussions](https://github.com/shubhamsborkar/greeksoup/discussions) where the answer helps the next reader too, [report it](https://github.com/shubhamsborkar/greeksoup/issues/new/choose) with the printout of `python doctor.py`, or email info@shikshannivesh.com. Whichever way, it lands here.
