@@ -139,6 +139,7 @@ SHELL = """<!DOCTYPE html>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{rel}assets/docs.css">
 <script>try{{var t=localStorage.getItem("gs-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;}}catch(e){{}}</script>
+<!-- Cloudflare Web Analytics: counts page views and visits for greeksoup.ai, no cookie, no personal data --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{{"token": "2e8be72dd4814f2e8301f4ffb36140e5"}}'></script>
 </head>
 <body data-rel="{rel}">
 <a class="skip" href="#content">Skip to content</a>

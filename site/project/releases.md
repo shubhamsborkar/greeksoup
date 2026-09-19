@@ -2,8 +2,36 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-18.102. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-19.103. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-19.103
+
+*19 September 2026, release 103.* The website now counts its own visits. greeksoup.ai and the docs pages carry Cloudflare Web Analytics, which counts page views and visits with no cookie and no personal data, and What it talks to says so in one line; the desk itself still sends nothing to anyone. No code changed.
+
+## 2026-09-19.108
+
+*19 September 2026, release 108.* Tell us, a page inside the desk for a reader with no GitHub account, which is most readers: the Feedback entry in the sidebar is now Tell us, and it opens a page that runs the desk's own check, shows every line of it (keys by name and never by value, nothing private), takes a line about what happened, and opens your mail app with the whole report addressed to info@shikshannivesh.com; a Copy button for readers who use mail in a browser. Nothing leaves the computer until the reader sends it. Every failure strip and every next-step line points there, the other-broker request on Settings opens it with the details filled in, and the README, the docs and the security page say so.
+
+## 2026-09-19.107
+
+*19 September 2026, release 107.* No error ends in silence. Every message the desk shows when something fails now ends with one next step: reload once, run the check (python doctor.py) and tell us, with Settings saying where. When the desk stops answering altogether, a strip on the open page says so, waits for it, and reloads by itself when it is back, instead of a screen that quietly does nothing. An AI provider's refusal now ends with what to check on Settings; a start-at-login service that would not register says the desk still runs and how to start it by hand. Settings, under If something is wrong, carries the four doors: Known issues, Discussions, the report form with the check's printout, and the email.
+
+## 2026-09-19.106
+
+*19 September 2026, release 106.* One address for anything a reader would rather not put on GitHub, info@shikshannivesh.com, on the README, the docs, the issue chooser and the security page (which asked for an empty issue titled Security before; now it asks for an email). The feedback box inside the desk files to the same place as everything else, the GitHub issues, instead of the mirror's tracker. The issue chooser offers Discussions and the Known issues page before a form.
+
+## 2026-09-19.105
+
+*19 September 2026, release 105.* Three doors for a reader who is stuck, all written down: a Known issues page on the docs site (every problem a reader has reported, dated, what it meant and the version that fixed it, newest first), Discussions on the repository for questions and ideas asked in the open so one answer serves the next reader, and the issue forms for what is plainly broken. If something is wrong, the project page and the README point at all three. No code changed.
+
+## 2026-09-19.104
+
+*19 September 2026, release 104.* An update that a Windows antivirus interrupts can no longer leave a desk half old and half new: the desk reads every file in the download before it writes a single one into its folder, so when the antivirus is holding one the strip says nothing was changed and means it, and one more click finishes the job. Every installed copy sheds the website and the install scripts from its own folder at start and after an update, because the zip carried them and an antivirus reads an install script on disk as a downloader on any day it scans; the installers do the same on install day. On Windows the always-on service notices a desk that stops three times within a minute of starting, brings the current version in by itself and starts again, so a desk nobody is watching comes back without a click. The strip on a failed update carries a link that opens a report with the error already written, for a reader with no other way to reach us. The README, the Windows install page and the updates page say what the antivirus popup means and what to do.
+
+## 2026-09-19.103
+
+*19 September 2026, release 103.* A Windows reader's antivirus stopped the update: it read the Windows install script, unpacked with the new version, as a downloader (an installer fetches a file and runs it, which is what one looks like), locked it, and the update died trying to copy it. The install scripts and the website were travelling inside every update and the desk never uses either, so they no longer do: the update unpacks only the files the desk runs on, so nothing an antivirus objects to touches the disk. When the computer does refuse a file, the rest of the version still comes in, the desk says which file was held and asks for one more click, and the strip no longer claims nothing was changed when most files had already landed. A second click after a stopped update keeps the copy of the previous version instead of throwing it away.
 
 ## 2026-09-18.102
 

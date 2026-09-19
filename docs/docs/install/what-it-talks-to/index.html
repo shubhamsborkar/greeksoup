@@ -17,6 +17,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../assets/docs.css">
 <script>try{var t=localStorage.getItem("gs-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;}catch(e){}</script>
+<!-- Cloudflare Web Analytics: counts page views and visits for greeksoup.ai, no cookie, no personal data --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "2e8be72dd4814f2e8301f4ffb36140e5"}'></script>
 </head>
 <body data-rel="../../">
 <a class="skip" href="#content">Skip to content</a>
@@ -48,6 +49,7 @@
 <ul>
 <li><strong>Your broker</strong>, only if you connected one, with the keys you gave it, read-only. Each shipped broker file uses that broker's documented read endpoints and none of them can place an order.</li>
 <li><strong>The public record</strong>: SEC EDGAR for filings, FINRA for short interest, CBOE for delayed option chains, FRED for macro series, the Senate and House disclosure sites for Congress trades, Yahoo Finance for quotes and history, Nasdaq for US earnings dates, dividends and the market pulse, Trading Economics for a few commodity benchmarks, and the India sources named on the Macro screen.</li>
+<li><strong>The website, not the desk</strong>: greeksoup.ai counts its own page views and visits with Cloudflare Web Analytics, which sets no cookie and keeps no personal data, so we know how many people read the page. The desk itself sends nothing to Cloudflare or to us.</li>
 <li><strong>On Yahoo Finance, plainly</strong>: the filings, the short interest, the option chains, the macro series and the Congress trades come from the bodies that publish them. Quotes and price history come from Yahoo's free feed, which has no contract behind it, throttles when asked too often, and can change without notice. The desk caches what it read and falls back where it can, a connected broker prices the names it knows, and a data provider key adds the statements and ratios. If you want a contract behind your prices, connect the broker or the provider; the free feed is where the desk starts.</li>
 <li><strong>Your data provider</strong>, only if you gave it a key. Financial Modeling Prep ships today.</li>
 <li><strong>Your AI</strong>, only if you chose one: a key from a lab, an app you already pay for on this computer (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code, Cursor, which reach their own providers under your own account), or a model running on your own computer, which never leaves it. What goes: your question and the numbers on the screen you asked from, which on Desk · Home are your book. Nothing goes until you press Enter.</li>
@@ -73,7 +75,7 @@
     </nav>
     <footer class="foot">
       <span>GreekSoup: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. For investors who refuse to settle.</span>
-      <span class="mono">version 2026-09-19.108 · built 2026-09-19 · <a href="https://github.com/shubhamsborkar/greeksoup/edit/main/site/install/what-it-talks-to.md">edit this page</a></span>
+      <span class="mono">version 2026-09-19.103 · built 2026-09-19 · <a href="https://github.com/shubhamsborkar/greeksoup/edit/main/site/install/what-it-talks-to.md">edit this page</a></span>
     </footer>
   </main>
   <aside class="rail">

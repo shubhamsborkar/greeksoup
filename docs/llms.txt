@@ -28,6 +28,7 @@ Installed with one line on Mac, Windows or Linux. Six brokers connect read-only 
 - [What it talks to](https://greeksoup.ai/docs/install/what-it-talks-to/): Every place GreekSoup sends a request, what it sends, and what it never sends. No telemetry, no account, no analytics.
 - [Your computer or a server](https://greeksoup.ai/docs/install/your-computer-or-a-server/): Whether to run GreekSoup on the computer in front of you or on a rented server, and why the desk's safety story holds on a laptop and turns around on a VPS.
 - [If something is wrong](https://greeksoup.ai/docs/install/if-something-is-wrong/): Symptom first. What each thing a GreekSoup screen can do means, and the one check that tells your agent what to fix.
+- [Known issues](https://greeksoup.ai/docs/install/known-issues/): Every problem a GreekSoup reader has reported, dated, with what it means and the version that fixed it. Newest first.
 - [The page is blank](https://greeksoup.ai/docs/install/the-page-is-blank/): What to do when the GreekSoup address does not open, in order.
 
 ## Setup
