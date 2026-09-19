@@ -47,7 +47,7 @@ That paste also works on any copy, at any time, if you would rather not use the 
 
 ## What was added, newest first
 
-The list lives in the `VERSION` file at the top of the repository, one line per release, and the [landing page](/#releases) reads it live.
+The list lives in the `VERSION` file at the top of the repository, one line per release, and the [Releases page](/docs/project/releases/) carries the same list.
 
 ## Going back
 
