@@ -1,5 +1,14 @@
 blank_issues_enabled: true
 contact_links:
+  - name: A question, or an idea
+    url: https://github.com/shubhamsborkar/greeksoup/discussions
+    about: Ask in the open; the answer stays up for the next reader. Ideas for the desk go here too.
+  - name: Known issues
+    url: https://greeksoup.ai/docs/install/known-issues/
+    about: What readers have already hit, dated, with the fix next to it. Often one click.
+  - name: Email
+    url: https://greeksoup.ai/docs/install/if-something-is-wrong/
+    about: info@shikshannivesh.com, if you would rather not use GitHub.
   - name: The docs
     url: https://greeksoup.ai/docs/
     about: Install, brokers, markets, what runs with no key, and what to do when a page is blank.

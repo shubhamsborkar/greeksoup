@@ -25,3 +25,4 @@ It places no orders, it sends nothing about you anywhere, and it assumes no brok
 - [Discussions](https://github.com/shubhamsborkar/greeksoup/discussions): a question, or an idea for the desk, asked in the open so the answer serves the next reader.
 - [Issues](https://github.com/shubhamsborkar/greeksoup/issues): something wrong, a broker you want, a market you want.
 - [Known issues](/docs/install/known-issues/): what readers have hit, dated, with the fix next to it.
+- Email: info@shikshannivesh.com, for anything you would rather not put on GitHub.

@@ -59,4 +59,4 @@ In the desk folder, `python doctor.py` prints every setting by name and never by
 
 ## Reporting a problem
 
-Open a GitHub issue titled `Security` with no details in it, and we will reply with a private channel within a few days. Please do not post the details publicly first. The repository's `SECURITY.md` says the same.
+Write to info@shikshannivesh.com with `Security` in the subject, and we reply within a few days. Please do not post the details publicly first. The repository's `SECURITY.md` says the same.

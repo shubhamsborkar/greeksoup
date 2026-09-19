@@ -27,7 +27,7 @@ It never places orders. There is no order path in the code, on any broker, and t
 
 ## Reporting a problem
 
-If you find a security problem, open a GitHub issue titled `Security` with no details in it, and we will reply with a private channel within a few days. Please do not post the details publicly first.
+If you find a security problem, write to info@shikshannivesh.com with `Security` in the subject, and we reply within a few days. Please do not post the details publicly first.
 
 ## Keeping your copy safe
 

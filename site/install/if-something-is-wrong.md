@@ -42,5 +42,6 @@ Three doors, and every one of them is read.
 - [Known issues](/docs/install/known-issues/): what other readers have hit, dated, with the fix next to it. Look here first; it is often one click.
 - [Discussions](https://github.com/shubhamsborkar/greeksoup/discussions): ask in the open. The answer stays up for the next reader with the same question, and search engines find it.
 - [Report it](https://github.com/shubhamsborkar/greeksoup/issues/new/choose) when something is plainly broken. The template asks for what you saw and the check's printout, and that is all we need.
+- Email, if you would rather not use GitHub: info@shikshannivesh.com, with the check's printout pasted in.
 
 Whichever door, it is answered, and what we learn goes on the Known issues page the same day.

@@ -727,12 +727,12 @@
   // wrong, a screen that misreads. Every ticket opens prefilled on the desk's
   // public tracker with the screen and the version, and nothing is sent until
   // the reader presses the button there.
-  const TRACKER = "https://gitlab.com/shikshan-nivesh/greeksoup/-/issues/new";
+  const TRACKER = "https://github.com/shubhamsborkar/greeksoup/issues/new";
   function feedbackUrl(title, body) {
     const where = (askPage().label || document.title) + (deskVersion ? " · " + deskVersion : "");
     const t = title || ("On " + where);
     const b = (body || "What happened, and what you expected:\n\n") + "\n\nScreen: " + where;
-    return TRACKER + "?issue[title]=" + encodeURIComponent(t) + "&issue[description]=" + encodeURIComponent(b);
+    return TRACKER + "?title=" + encodeURIComponent(t) + "&body=" + encodeURIComponent(b);
   }
   window.deskFeedback = feedbackUrl;
   // another screen opens the box with a request ready: Settings hands a broker file to Build
