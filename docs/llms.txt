@@ -79,5 +79,6 @@ Installed with one line on Mac, Windows or Linux. Six brokers connect read-only 
 ## Elsewhere
 
 - [The landing page](https://greeksoup.ai/): what the desk is, the sixteen screens, and the one-line install.
+- [Every docs page in one file](https://greeksoup.ai/llms-full.txt): the full text of the documentation, in this order, for an answer engine or an agent that reads once.
 - [The repository](https://github.com/shubhamsborkar/greeksoup): the whole desk, MIT licensed.
 - [What changed, newest first](https://github.com/shubhamsborkar/greeksoup/blob/main/VERSION): the same file the desk reads when it checks for an update.

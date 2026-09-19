@@ -97,6 +97,45 @@ def relativise(body, rel):
     return body
 
 
+def faq_pairs(body):
+    """Question-and-answer pairs from a page written as bold questions followed by
+    their answers, the way the FAQ is: <p><strong>Q?</strong>\nA</p>. Two or more
+    and the page is a FAQ to the engines as well as to the reader."""
+    pairs = []
+    for q, a in re.findall(r"<p><strong>([^<]+\?)</strong>\s*(.*?)</p>", body, flags=re.S):
+        a = strip_tags(a)
+        if a:
+            pairs.append((html.unescape(q.strip()), html.unescape(a)))
+    return pairs if len(pairs) >= 2 else []
+
+
+def structured_data(p, sections_by_dir, built):
+    """What the search and answer engines read before the prose: the page as an
+    article, the trail above it, and the questions on it where there are any."""
+    org = {"@type": "Organization", "name": "Shikshan Nivesh", "url": "https://shikshannivesh.com"}
+    url = SITE_URL + p["url"]
+    crumbs = [("GreekSoup", SITE_URL + "/"), ("Docs", SITE_URL + "/docs/")]
+    if p["dir"]:
+        crumbs.append((p["section"], SITE_URL + page_url(p["dir"], "index")))
+        if p["page"] != "index":
+            crumbs.append((p["title"], url))
+    graph = [
+        {"@type": "TechArticle", "@id": url + "#article", "headline": p["title"],
+         "description": strip_tags(p["description"] or p["lead"]), "url": url, "inLanguage": "en",
+         "dateModified": built, "author": org, "publisher": org,
+         "about": {"@type": "SoftwareApplication", "name": "GreekSoup", "url": SITE_URL + "/"},
+         "isPartOf": {"@type": "WebSite", "name": "GreekSoup", "url": SITE_URL + "/"}},
+        {"@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": i + 1, "name": n, "item": u} for i, (n, u) in enumerate(crumbs)]},
+    ]
+    pairs = faq_pairs(p["body"])
+    if pairs:
+        graph.append({"@type": "FAQPage", "@id": url + "#faq", "mainEntity": [
+            {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in pairs]})
+    data = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False)
+    return '<script type="application/ld+json">' + data.replace("</", "<\\/") + "</script>"
+
+
 def toc_html(tokens):
     if not tokens:
         return ""
@@ -133,6 +172,7 @@ SHELL = """<!DOCTYPE html>
 <meta property="og:url" content="{canonical}">
 <meta property="og:image" content="https://greeksoup.ai/img/og.jpg">
 <link rel="canonical" href="{canonical}">
+{ld}
 <link rel="icon" href="{rel}../img/greeksoup-favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="{rel}../img/greeksoup-favicon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -210,7 +250,7 @@ def build():
             entry = {"section": sec["title"], "dir": sec["dir"], "page": pg, "url": page_url(sec["dir"], pg),
                      "title": title, "nav": meta.get("nav") or title, "description": meta.get("description", ""),
                      "lead": meta.get("lead", ""), "body": body, "toc": toc, "src": os.path.relpath(path, ROOT),
-                     "text": strip_tags(body)}
+                     "text": strip_tags(body), "md": text}
             pages[(sec["dir"], pg)] = entry
             order.append(entry)
 
@@ -238,7 +278,8 @@ def build():
             rel=rel, repo=REPO, sidebar=sidebar_html(sections, pages, p["url"], rel), section=html.escape(p["section"]),
             lead=relativise(lead, rel), body=relativise(p["body"], rel), prev=link(prev_, "prev", "Previous"),
             next=link(next_, "next", "Next"), version=ver, built=built,
-            edit=f"{REPO}/edit/main/{p['src']}", toc_block=toc_block)
+            edit=f"{REPO}/edit/main/{p['src']}", toc_block=toc_block,
+            ld=structured_data(p, sections, built))
         dest = out_path(p["dir"], p["page"])
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         with open(dest, "w", encoding="utf-8") as fh:
@@ -257,7 +298,9 @@ def build():
         rel="", repo=REPO, sidebar=sidebar_html(sections, pages, "/docs/", ""), section="Documentation",
         lead=(f'<p class="lead">{meta["lead"]}</p>' if meta.get("lead") else ""), body=relativise(body, ""),
         prev="<span></span>", next=(f'<a class="next" href="{order[0]["url"][len("/docs/"):]}"><small>Next</small><b>{html.escape(order[0]["title"])}</b></a>' if order else "<span></span>"),
-        version=ver, built=built, edit=f"{REPO}/edit/main/site/index.md", toc_block="")
+        version=ver, built=built, edit=f"{REPO}/edit/main/site/index.md", toc_block="",
+        ld=structured_data({"url": "/docs/", "dir": "", "page": "index", "section": "Documentation", "title": meta.get("title", "Documentation"),
+                            "description": meta.get("description", ""), "lead": meta.get("lead", ""), "body": body}, sections, built))
     with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as fh:
         fh.write(home)
     with open(os.path.join(OUT, "search.json"), "w", encoding="utf-8") as fh:
@@ -305,11 +348,24 @@ def write_discovery(sections, pages, order, built):
         lines.append("")
     lines += ["## Elsewhere", "",
               f"- [The landing page]({SITE_URL}/): what the desk is, the sixteen screens, and the one-line install.",
+              f"- [Every docs page in one file]({SITE_URL}/llms-full.txt): the full text of the documentation, in this order, for an answer engine or an agent that reads once.",
               f"- [The repository]({REPO}): the whole desk, MIT licensed.",
               f"- [What changed, newest first]({REPO}/blob/main/VERSION): the same file the desk reads when it checks for an update.",
               ""]
     with open(os.path.join(site, "llms.txt"), "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines))
+
+    # the whole documentation as one plain-text file, page after page in the sidebar's
+    # order, links made absolute, so that a machine reading once reads everything
+    full = lines[:7]
+    for p in order:
+        md = p["md"].replace("](/docs/", f"]({SITE_URL}/docs/").replace("](/img/", f"]({SITE_URL}/img/").replace("](/#", f"]({SITE_URL}/#")
+        full += [f"# {p['title']}", "", f"Section: {p['section']}. URL: {SITE_URL}{p['url']}", ""]
+        if p["lead"]:
+            full += [strip_tags(p["lead"]), ""]
+        full += [md.strip(), "", "---", ""]
+    with open(os.path.join(site, "llms-full.txt"), "w", encoding="utf-8") as fh:
+        fh.write("\n".join(full))
 
 
 if __name__ == "__main__":

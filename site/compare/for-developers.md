@@ -7,7 +7,8 @@ lead: No. It is for people who research stocks and hold positions. The question 
 
 ## The one paragraph
 
-GreekSoup is installed by pasting one line into a terminal on a Mac, Windows or Linux computer; the line finds or installs Python for you. After that it is a set of screens in your browser. Every setting is a field on the Settings screen. Every list is edited on the screen it belongs to. Your broker connects with a key pasted into a box. Your AI connects the same way, or through an app you already pay for. Nobody who uses the desk needs to open a code file, and the people who built it use it that way every day. It is on GitHub because that is where open-source software lives and where updates come from, and it is in Python because that is what the AI agents that built it write best.
+**Is GreekSoup for developers?**
+No. GreekSoup is installed by pasting one line into a terminal on a Mac, Windows or Linux computer; the line finds or installs Python for you. After that it is a set of screens in your browser. Every setting is a field on the Settings screen. Every list is edited on the screen it belongs to. Your broker connects with a key pasted into a box. Your AI connects the same way, or through an app you already pay for. Nobody who uses the desk needs to open a code file, and the people who built it use it that way every day. It is on GitHub because that is where open-source software lives and where updates come from, and it is in Python because that is what the AI agents that built it write best.
 
 ## What "no coding" covers
 
@@ -19,4 +20,5 @@ GreekSoup is installed by pasting one line into a terminal on a Mac, Windows or 
 
 ## What a developer gets anyway
 
+**What does a developer get from GreekSoup?**
 The desk is plain files in one folder. A broker is one file to [a written contract](/docs/brokers/another-broker/); a market is one file to [another](/docs/markets/your-own-market/); a data provider is a third. Plugins add a screen. The research vault is markdown. Nothing is compiled, nothing is hidden and the licence is MIT. A developer can read all of it in an afternoon and change any of it. The desk has that property whoever it was made for.
