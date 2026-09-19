@@ -7,6 +7,7 @@ offers. None of this talks to a broker, a feed or GitHub.
 import importlib
 import json
 import os
+import pytest
 import re
 import sys
 
@@ -223,11 +224,22 @@ def test_windows_scripts_have_no_drive_qualified_variables():
                     f"{name}:{i} writes ${m.group(1)}: which PowerShell reads as a drive; write ${{{m.group(1)}}}: instead")
 
 
+def _web_repo():
+    """The website (greeksoup.ai, its docs and the plugin list) lives in its own repository,
+    checked out next to this one on the machine that releases; a contributor's clone may not
+    have it, and the two contracts that read it skip there."""
+    web = os.environ.get("GREEKSOUP_WEB", os.path.join(os.path.dirname(HERE), "greeksoup-web"))
+    if not os.path.isfile(os.path.join(web, "site", "nav.json")):
+        pytest.skip("greeksoup-web is not checked out next to this repository")
+    return web
+
+
 def test_docs_nav_points_at_real_pages():
-    nav = json.load(open(os.path.join(HERE, "site", "nav.json"), encoding="utf-8"))
+    web = _web_repo()
+    nav = json.load(open(os.path.join(web, "site", "nav.json"), encoding="utf-8"))
     for sec in nav["sections"]:
         for page in sec["pages"]:
-            path = os.path.join(HERE, "site", sec["dir"], page + ".md")
+            path = os.path.join(web, "site", sec["dir"], page + ".md")
             assert os.path.isfile(path), f"docs page missing: {path}"
 
 
@@ -642,7 +654,7 @@ def test_plugins_load_install_remove(tmp_path, monkeypatch):
         assert desk_plugins.remove("mine") and desk_plugins.remove("mine") is False
         assert [p["name"] for p in desk_plugins.installed(force=True)] == ["hello", "terminal"] and not any(p.get("builtin") for p in desk_plugins.installed())
         assert desk_plugins.run_door("nothing", "x")["ok"] is False
-        with open(os.path.join(here, "docs", "plugins", "index.json"), encoding="utf-8") as fh:
+        with open(os.path.join(_web_repo(), "docs", "plugins", "index.json"), encoding="utf-8") as fh:
             lst = json.load(fh)
         assert {p["name"] for p in lst["plugins"]} >= {"terminal"} and "hello" not in {p["name"] for p in lst["plugins"]} and all(p["zip"].startswith("https://greeksoup.ai/plugins/") for p in lst["plugins"])
     finally:

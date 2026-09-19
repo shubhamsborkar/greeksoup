@@ -29,4 +29,4 @@ Anything the reader sees, on a screen, in a message, in a file they open, is pla
 
 ## The whole picture
 
-`README.md` is written for the reader and says what every screen does. `TECHNICAL.md` is the file map, the data sources and the always-on service. `SECURITY.md` is what the desk talks to and the two guards on every request. The docs are at https://greeksoup.ai/docs/ and the project page at https://greeksoup.ai.
+`README.md` is written for the reader and says what every screen does. `TECHNICAL.md` is the file map, the data sources and the always-on service. `SECURITY.md` is what the desk talks to and the two guards on every request. The docs are at https://greeksoup.ai/docs/ and the project page at https://greeksoup.ai; both live in their own repository, gitlab.com/shikshan-nivesh/greeksoup-web (a checkout next to this one), so a release that adds or changes a feature edits the page there and runs its `build.py`, never a file here.

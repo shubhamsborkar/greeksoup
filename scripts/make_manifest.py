@@ -29,8 +29,9 @@ from updater import bytes_hash, parse_version_text  # noqa: E402
 # and runs winget, which is what one looks like), locked it, and the update died on it.
 SKIP = {"MANIFEST.json", ".gitignore", ".gitlab-ci.yml", "netlify.toml",
         "install.sh", "install.ps1"}
-# The website (the launch page, its images and video, and the docs source) is served by
-# GitHub Pages, not by the desk, so a reader's copy never needs any of it in an update.
+# The website (the launch page, the docs and the plugin list) lives in its own repository,
+# gitlab.com/shikshan-nivesh/greeksoup-web, served by GitLab Pages; the two folder names stay
+# skipped so an old checkout that still has them never ships them in an update.
 SKIP_DIRS = ("site/", "docs/", "support/")   # support/ is the Cloudflare script, not the desk
 
 
