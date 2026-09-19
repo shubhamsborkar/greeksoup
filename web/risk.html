@@ -132,7 +132,7 @@ names are carried at their last print; a no-trade day counts as a 0% day, same a
 (function(){
   const $=id=>document.getElementById(id);
   fetch("/api/settings",{cache:"no-store"}).then(r=>r.json()).then(s=>{ $("bench").value=s.risk_benchmark||""; $("benchlbl").value=s.risk_benchmark_label||""; }).catch(()=>{});
-  const save=async(sym,lbl)=>{ const r=await fetch("/api/settings/save",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({RISK_BENCHMARK:sym,RISK_BENCHMARK_LABEL:lbl})}); const d=await r.json(); if(!d.ok){ alert(d.error||"That did not save."); return; } location.reload(); };
+  const save=async(sym,lbl)=>{ const r=await fetch("/api/settings/save",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({RISK_BENCHMARK:sym,RISK_BENCHMARK_LABEL:lbl})}); const d=await r.json(); if(!d.ok){ alert(d.error||("That did not save. "+window.NEXT_STEP)); return; } location.reload(); };
   $("benchsave").onclick=()=>save($("bench").value.trim(),$("benchlbl").value.trim());
   $("benchback").onclick=()=>save("","");
   $("bench").addEventListener("keydown",e=>{ if(e.key==="Enter") $("benchsave").click(); });

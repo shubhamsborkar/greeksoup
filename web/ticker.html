@@ -662,7 +662,7 @@ function renderDrawBar(){
 function drawHint(t){ const h=document.getElementById("drawhint"); if(h) h.textContent=t||""; }
 async function addDrawing(item){
   let r; try{ r=await (await fetch("/api/research/drawings/add",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({symbol:SYM,item})})).json(); }catch(e){ r={ok:false,error:"the desk did not answer"}; }
-  if(!r.ok){ drawHint(r.error||"could not save the drawing"); return; }
+  if(!r.ok){ drawHint(r.error||("could not save the drawing "+window.NEXT_STEP)); return; }
   DRAW.items=r.items||[]; DRAW.pending=null; renderDrawBar(); drawChart();
 }
 async function removeDrawing(id){

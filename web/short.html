@@ -126,7 +126,7 @@ async function load(){
     const code=b.dataset.rm; b.disabled=true;
     let r; try{ r=await (await fetch("/api/watch/remove",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,list:"us"})})).json(); }catch(x){ r={ok:false}; }
     if(r.ok){ b.closest("tr").remove(); say(`${code} is off Watch · US; the table is being reread.`); if(window.deskJournal&&r.journal) deskJournal(r.journal); }
-    else { b.disabled=false; say(r.error||"could not remove it"); }
+    else { b.disabled=false; say(r.error||("could not remove it "+window.NEXT_STEP)); }
   });
 }
 /* the names here are the US lines on Desk · Book and Watch · US; a name added below goes on
@@ -137,7 +137,7 @@ document.getElementById("addf").addEventListener("submit",async e=>{
   const inp=document.getElementById("addc"); const code=inp.value.trim().toUpperCase(); if(!code) return;
   say(`Adding ${code}…`);
   let r; try{ r=await (await fetch("/api/watch/add",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,list:"us"})})).json(); }catch(x){ r={ok:false,error:"the desk did not answer"}; }
-  if(!r.ok){ say(r.error||"could not add it"); return; }
+  if(!r.ok){ say(r.error||("could not add it "+window.NEXT_STEP)); return; }
   inp.value=""; say(`${code} is on Watch · US; its FINRA rows are being read, the line appears here in about a minute.`);
   if(window.deskJournal&&r.journal) deskJournal(r.journal);
   let tries=0; const poll=setInterval(async()=>{ tries++; const d=await (await fetch("/api/short")).json(); if((d.names||[]).some(n=>n.symbol===code)||tries>12){ clearInterval(poll); load(); say((d.names||[]).some(n=>n.symbol===code)?"":`${code} has no FINRA equity data, so it stays on Watch · US without a line here.`); } },10000);

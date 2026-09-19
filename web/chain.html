@@ -255,7 +255,7 @@ async function removeChain(d){
   const q=d.starter?`Put away the starter "${d.title}"? You can bring it back from the tab strip.`:`Delete "${d.title}"? You can undo it for a moment after.`;
   if(!confirm(q)) return;
   const out=await post("/api/chain/delete",{id:d.id});
-  if(!out.ok){ alert(out.error||"That did not work."); return; }
+  if(!out.ok){ alert(out.error||("That did not work. "+window.NEXT_STEP)); return; }
   CUR=null; await load(true);
   if(out.kind==="own"&&window.deskToast) window.deskToast(`"${d.title}" deleted.`,"Undo",async()=>{ const u=await post("/api/chain/undo",{undo:out.undo}); if(u.ok){ CUR=u.id; await load(true); } });
   else if(window.deskToast) window.deskToast(`"${d.title}" put away.`,"Bring it back",async()=>{ await post("/api/chain/starters"); CUR=d.id; await load(true); });
@@ -366,7 +366,7 @@ async function saveChain(){
   const body={...EDIT,layers:layers.map(l=>({...l,names:l.names.filter(n=>n.label.trim()||n.code.trim())})),edges:EDIT.edges.filter(e=>e.from.trim()&&e.to.trim())};
   msg.textContent="Saving…";
   const out=await post("/api/chain/save",{chain:body});
-  if(!out.ok){ msg.className="msg err"; msg.textContent=out.error||"That did not save."; return; }
+  if(!out.ok){ msg.className="msg err"; msg.textContent=out.error||("That did not save. "+window.NEXT_STEP); return; }
   if(out.journal&&window.deskJournal) window.deskJournal(out.journal);
   EDIT=null; CUR=out.chain.id; await load(true);
 }
@@ -390,7 +390,7 @@ function wireDraft(){
     msg.className="msg"; msg.textContent="Drafting… a full chain takes a minute or two."; go.disabled=true;
     try{
       const out=await post("/api/chain/draft",{description:text,symbol:document.getElementById("d_sym").value.trim(),door:via.value||"",market:(document.getElementById("e_market")||{}).value||""});
-      if(!out.ok){ msg.className="msg err"; msg.innerHTML=esc(out.error||"That did not work.")+(out.settings?` <a href="/settings">Settings</a>`:""); return; }
+      if(!out.ok){ msg.className="msg err"; msg.innerHTML=esc(out.error||("That did not work. "+window.NEXT_STEP))+(out.settings?` <a href="/settings">Settings</a>`:""); return; }
       pullForm();
       const keepId=EDIT.id, c=out.chain;
       EDIT={...EDIT,title:EDIT.title||c.title,market:EDIT.market||c.market||"",region:keepId?EDIT.region:(c.region||EDIT.region),about:c.about||EDIT.about,frame:c.frame,hunt:c.hunt,layers:c.layers,edges:c.edges,source_note:c.source_note,as_of:c.as_of,id:keepId};

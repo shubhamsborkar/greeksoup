@@ -191,7 +191,7 @@ document.getElementById("addf").addEventListener("submit",async e=>{
   const inp=document.getElementById("addc"); const code=inp.value.trim().toUpperCase(); if(!code) return;
   say(`Adding ${code}…`);
   let r; try{ r=await (await fetch("/api/watch/add",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,list:"us"})})).json(); }catch(x){ r={ok:false,error:"the desk did not answer"}; }
-  if(!r.ok){ say(r.error||"could not add it"); return; }
+  if(!r.ok){ say(r.error||("could not add it "+window.NEXT_STEP)); return; }
   inp.value=""; say(`${code} is on Watch · US; its chain is being read, the card appears here in about a minute.`);
   if(window.deskJournal&&r.journal) deskJournal(r.journal);
   // the tape rebuilds behind the page: look again until the name shows up

@@ -497,7 +497,7 @@ def set_autostart(on):
             if os.path.exists(plist):
                 os.remove(plist)
         except OSError as exc:
-            return {"ok": False, "error": str(exc)}
+            return {"ok": False, "error": f"{exc}. The desk keeps running; to stop it starting at login, delete that file yourself, or tell us (Settings, under If something is wrong, says where)."}
         return {"ok": True, "text": "Off from your next login. The desk keeps running until then."}
     if sysname == "Linux":
         unit = _linux_unit()

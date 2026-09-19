@@ -48,6 +48,10 @@ import options_us
 import risk
 import shortint
 import updater          # the daily version check and the one-click update
+
+# No error ends in silence: anything the desk did not expect ends with this one next step.
+NEXT_STEP = ("Reload once. If it happens again, run python doctor.py in the desk folder and tell us "
+             "what it prints; Settings, under If something is wrong, says where.")
 import settings as desk_settings   # the Settings screen: keys, token, switches
 import ai as desk_ai               # the reader's own AI key, tested here
 import brokers                     # the broker layer: one file per broker, read-only
@@ -749,7 +753,7 @@ def plugin_list():
         rows = [x for x in (data.get("plugins") or []) if isinstance(x, dict) and x.get("name") and x.get("zip")]
         out = {"ok": True, "plugins": rows, "url": PLUGIN_LIST_URL, "checked": datetime.now().strftime("%Y-%m-%d %H:%M")}
     except Exception as exc:  # noqa: BLE001
-        out = {"ok": False, "plugins": [], "url": PLUGIN_LIST_URL, "error": f"the list could not be read ({type(exc).__name__})"}
+        out = {"ok": False, "plugins": [], "url": PLUGIN_LIST_URL, "error": f"the list could not be read ({type(exc).__name__}). Check the connection and reload; if it stays, the list at {PLUGIN_LIST_URL} may be down for the moment"}
     _plugin_list_cache.update(at=now, data=out)
     return out
 
@@ -4088,7 +4092,7 @@ class Handler(BaseHTTPRequestHandler):
                 try:
                     return self._send(json.dumps(resolve_block(spec), default=str).encode(), "application/json")
                 except Exception as exc:  # noqa: BLE001 - a block never breaks the note around it
-                    return self._send(json.dumps({"spec": spec, "error": f"could not read this block ({type(exc).__name__})"}).encode(), "application/json")
+                    return self._send(json.dumps({"spec": spec, "error": f"could not read this block ({type(exc).__name__}). {NEXT_STEP}"}).encode(), "application/json")
             elif path == "/api/research/location":
                 return self._send(json.dumps(desk_notes.vault_location()).encode(), "application/json")
             elif path == "/api/research/tree":
@@ -4332,7 +4336,7 @@ class Handler(BaseHTTPRequestHandler):
             pass
         except Exception as exc:  # noqa: BLE001 - report, keep serving
             try:
-                self.send_error(500, str(exc))
+                self.send_error(500, f"{exc}. {NEXT_STEP}")
             except Exception:  # noqa: BLE001
                 pass
 
@@ -4645,7 +4649,7 @@ class Handler(BaseHTTPRequestHandler):
                     try:
                         desk_plugins.install_shipped("terminal")
                     except (ValueError, OSError) as exc:
-                        return self._send(json.dumps({"ok": False, "error": f"The Terminal door could not be installed ({exc})."}).encode(), "application/json")
+                        return self._send(json.dumps({"ok": False, "error": f"The Terminal door could not be installed ({exc}). Open the desk folder in your agent and say: install the Terminal door for the desk; or tell us, Settings under If something is wrong says where."}).encode(), "application/json")
                     door = next((d["name"] for d in desk_plugins.doors() if d["app"] == app and d["ready"]), "")
                     if not door:
                         return self._send(b'{"ok":false,"error":"the app was not found from the desk"}', "application/json")
@@ -4850,7 +4854,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(json.dumps({"ok": True, "journal": journal("watch", code, f"removed from {WATCH_LABEL.get(region, 'Watch')}")}).encode(), "application/json")
             self.send_error(404)
         except Exception as exc:  # noqa: BLE001
-            self._send(json.dumps({"ok": False, "error": str(exc)}).encode(), "application/json")
+            self._send(json.dumps({"ok": False, "error": f"{exc}. {NEXT_STEP}"}).encode(), "application/json")
 
     def log_message(self, *args):  # quiet
         pass

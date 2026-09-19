@@ -500,7 +500,7 @@ $("e_save").onclick=async()=>{
     body.file=up.file; EDIT.pending=null; EDIT.file=up.file;
   }
   const r=await post("/api/notes/save",body);
-  if(!r.ok) return say(r.error||"could not save","err");
+  if(!r.ok) return say(r.error||("could not save "+window.NEXT_STEP),"err");
   say("Saved.","ok"); await load(); open(r.note.id);
   if(window.deskJournal) deskJournal(r.journal);
 };

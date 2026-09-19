@@ -319,7 +319,7 @@ document.getElementById("addbtn").onclick=async()=>{
   const r=await fetch("/api/watch/add",{method:"POST",body:JSON.stringify({code,exch,list:REGION})});
   const j=await r.json();
   if(j.ok){msg.className="ok";msg.textContent=code+" added ✓";document.getElementById("addcode").value="";pull(); if(window.deskJournal) deskJournal(j.journal);}
-  else{msg.className="";msg.textContent=j.error||"could not add";}
+  else{msg.className="";msg.textContent=j.error||("could not add "+window.NEXT_STEP);}
 };
 /* ---- search-as-you-type: confirm the symbol before adding ---- */
 const addEl=document.getElementById("addcode"), suggEl=document.getElementById("sugg");

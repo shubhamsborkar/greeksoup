@@ -166,7 +166,7 @@ document.getElementById("f_add").onclick=async()=>{
   say("addmsg","Checking "+symbol+" on Yahoo…");
   const r=await post("/api/book/add",{symbol,shares,avg_cost});
   if(r.ok){ say("addmsg",`${symbol} saved${r.name?" · "+r.name:""}${r.currency?" · "+r.currency:""}`,"ok"); document.getElementById("f_sym").value="";document.getElementById("f_sh").value="";document.getElementById("f_ac").value=""; load(); if(window.deskJournal) deskJournal(r.journal); }
-  else say("addmsg",r.error||"could not save","err");
+  else say("addmsg",r.error||("could not save "+window.NEXT_STEP),"err");
 };
 // type a name, pick the listing: Yahoo's search, through the desk
 const symIn=document.getElementById("f_sym"), sugg=document.getElementById("sugg");
@@ -197,7 +197,7 @@ document.getElementById("imp").onclick=async()=>{
   say("impmsg","Checking every symbol on Yahoo, this takes a second per line…");
   const r=await post("/api/book/import",{csv});
   if(r.ok){ say("impmsg",`${r.added} line${r.added===1?"":"s"} saved.`+(r.errors&&r.errors.length?" Not saved: "+r.errors.join("; "):""),r.errors&&r.errors.length?"":"ok"); load(); }
-  else say("impmsg",r.error||"import failed","err");
+  else say("impmsg",r.error||("import failed "+window.NEXT_STEP),"err");
 };
 document.getElementById("impfile").onclick=()=>document.getElementById("file").click();
 document.getElementById("file").onchange=e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{document.getElementById("csv").value=rd.result;}; rd.readAsText(f); };

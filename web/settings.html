@@ -274,6 +274,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
       <p style="margin-bottom:8px"><b>A screen is blank or a number looks off.</b> Reload the page once. Most screens rebuild on their own within a few minutes; the free quote feeds sometimes ask a new desk to wait, and the desk retries by itself.</p>
       <p style="margin-bottom:8px"><b>The address does not open.</b> The desk is not running. Open the desk folder and double-click <b>Start Desk</b>; with the switch above on, it starts by itself at your next login.</p>
       <p style="margin-bottom:8px"><b>Anything else.</b> The desk writes what it is doing to <span class="mono" id="h_log"></span>. Open the desk folder in your AI agent and say: <i>read README.md, then read the log file and tell me what is wrong with the desk</i>, and paste what you see on the screen. That is the same method that built it.</p>
+      <p style="margin-bottom:8px"><b>Tell us.</b> Nothing you send is ignored. What other readers have hit, dated, with the fix next to it: <a href="https://greeksoup.ai/docs/install/known-issues/" target="_blank" rel="noopener" style="color:var(--accent)">Known issues</a>. A question, in the open so the answer serves the next reader: <a href="https://github.com/shubhamsborkar/greeksoup/discussions" target="_blank" rel="noopener" style="color:var(--accent)">Discussions</a>. Something plainly broken: <a href="https://github.com/shubhamsborkar/greeksoup/issues/new/choose" target="_blank" rel="noopener" style="color:var(--accent)">the report form</a>, with the printout of <span class="mono">python doctor.py</span> from the desk folder (nothing in it is private). Email, if you would rather: <span class="mono">info@shikshannivesh.com</span>.</p>
       <p><b>Reading.</b> The <a href="https://github.com/shubhamsborkar/greeksoup#readme" target="_blank" rel="noopener" style="color:var(--accent)">README</a> explains every screen in plain words; the technical notes in the same folder are for the agent. Newer versions arrive through the strip at the top of every screen.</p>
     </div>
   </div>
@@ -349,8 +350,8 @@ function renderBroker(s){
   const b=s.broker; const pick=$("b_pick"); const cur=pick.value; const con=s.connected||[];
   $("b_list").innerHTML=con.length?con.map(brokerLine).join("")+`<div class="hint" style="margin:2px 0 12px;font-size:11px;color:var(--muted);line-height:1.5">Each broker is an account of its own on Desk · Home, on the desk of its market, in its own currency; two brokers in one market sit side by side on that desk, and the desk's strip adds them.</div>`:"";
   $("b_list").querySelectorAll("[data-edit]").forEach(x=>x.onclick=()=>{ pick.value=x.dataset.edit; onPick(false); $("b_fields").scrollIntoView({block:"center"}); });
-  $("b_list").querySelectorAll("[data-check]").forEach(x=>x.onclick=async()=>{ say("b_msg","Asking the broker…"); const r=await post("/api/settings/broker/test",{broker:x.dataset.check}); if(r.state) render(r.state); say("b_msg", r.ok?`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}.`:(r.error||"not connected"), r.ok?"ok":"err"); if(!r.ok) brokerHelp("b_msg", x.dataset.check, r.error||"not connected"); });
-  $("b_list").querySelectorAll("[data-rm]").forEach(x=>x.onclick=async()=>{ const m=metaOf(x.dataset.rm); if(!confirm(`Take ${m?m.label:"this broker"} off this desk and remove its keys?`)) return; const r=await post("/api/settings/broker/remove",{broker:x.dataset.rm,keys:true}); if(r.state) render(r.state); say("b_msg", r.ok?"Removed.":(r.error||"could not remove"), r.ok?"ok":"err"); });
+  $("b_list").querySelectorAll("[data-check]").forEach(x=>x.onclick=async()=>{ say("b_msg","Asking the broker…"); const r=await post("/api/settings/broker/test",{broker:x.dataset.check}); if(r.state) render(r.state); say("b_msg", r.ok?`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}.`:(r.error||("not connected "+window.NEXT_STEP)), r.ok?"ok":"err"); if(!r.ok) brokerHelp("b_msg", x.dataset.check, r.error||("not connected "+window.NEXT_STEP)); });
+  $("b_list").querySelectorAll("[data-rm]").forEach(x=>x.onclick=async()=>{ const m=metaOf(x.dataset.rm); if(!confirm(`Take ${m?m.label:"this broker"} off this desk and remove its keys?`)) return; const r=await post("/api/settings/broker/remove",{broker:x.dataset.rm,keys:true}); if(r.state) render(r.state); say("b_msg", r.ok?"Removed.":(r.error||("could not remove "+window.NEXT_STEP)), r.ok?"ok":"err"); });
   $("b_picklbl").textContent=con.length?"Add or edit a broker":"Your broker";
   pick.innerHTML=(con.length?`<option value="">Pick a broker to add or edit</option>`:`<option value="">No broker: keep the book by hand</option>`)+(s.brokers||[]).map(m=>`<option value="${m.id}">${esc(m.label)} · ${esc(m.where)}${con.some(c=>c.id===m.id)?" · on this desk":""}</option>`).join("")+`<option value="other">Another broker</option>`;
   pick.value = cur && document.activeElement===pick ? cur : (con.length?(con.some(c=>c.id===cur)?cur:""):(b.id||""));
@@ -383,7 +384,7 @@ $("m_pick").onchange=async()=>{
   const v=$("m_pick").value; say("m_msg","Saving…");
   const r=await post("/api/settings/save",{HOME_MARKET:v});
   if(r.state) render(r.state);
-  say("m_msg", r.ok ? (v?"Saved. The home screens take this market's shape on their next refresh.":"Saved. No home market; Watch · Home takes Yahoo symbols.") : (r.error||"could not save"), r.ok?"ok":"err");
+  say("m_msg", r.ok ? (v?"Saved. The home screens take this market's shape on their next refresh.":"Saved. No home market; Watch · Home takes Yahoo symbols.") : (r.error||("could not save "+window.NEXT_STEP)), r.ok?"ok":"err");
 };
 function onPick(silent){
   const id=$("b_pick").value; const m=metaOf(id); const b=S.broker;
@@ -447,14 +448,14 @@ $("b_save").onclick=async()=>{
   if(!id) return say("b_msg","No broker. Desk · Home shows nothing until one is chosen; Desk · Book works by hand.","ok");
   if(r.ok && r.saved_only) say("b_msg","Keys saved. Now log in for today below.","ok");
   else if(r.ok) say("b_msg",`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}. Desk · Home is live.`,"ok");
-  else { say("b_msg",r.error||"could not connect","err"); brokerHelp("b_msg", id, r.error||"could not connect"); }
+  else { say("b_msg",r.error||("could not connect "+window.NEXT_STEP),"err"); brokerHelp("b_msg", id, r.error||("could not connect "+window.NEXT_STEP)); }
 };
-$("b_test").onclick=async()=>{ say("b_msg","Asking the broker…"); const r=await post("/api/settings/broker/test",{broker:$("b_pick").value}); if(r.state) render(r.state); say("b_msg", r.ok?`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}.`:(r.error||"not connected"), r.ok?"ok":"err"); if(!r.ok) brokerHelp("b_msg", $("b_pick").value, r.error||"not connected"); };
+$("b_test").onclick=async()=>{ say("b_msg","Asking the broker…"); const r=await post("/api/settings/broker/test",{broker:$("b_pick").value}); if(r.state) render(r.state); say("b_msg", r.ok?`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}.`:(r.error||("not connected "+window.NEXT_STEP)), r.ok?"ok":"err"); if(!r.ok) brokerHelp("b_msg", $("b_pick").value, r.error||("not connected "+window.NEXT_STEP)); };
 $("b_clear").onclick=async()=>{
   const id=$("b_pick").value; const m=metaOf(id); if(!m) return;
   if(!confirm(`Take ${m.label} off this desk and remove its keys?`)) return;
   const r=await post("/api/settings/broker/remove",{broker:id, keys:true});
-  if(r.state) render(r.state); say("b_msg", r.ok?"Removed.":(r.error||"could not remove"), r.ok?"ok":"err");
+  if(r.state) render(r.state); say("b_msg", r.ok?"Removed.":(r.error||("could not remove "+window.NEXT_STEP)), r.ok?"ok":"err");
 };
 const pickedConn=()=>(S.connected||[]).find(c=>c.id===$("b_pick").value)||S.broker;
 $("b_login").onclick=()=>{ const c=pickedConn(); if(c&&c.login_url) window.open(c.login_url,"_blank"); };
@@ -463,7 +464,7 @@ async function connectToken(tok,bid){
   const r=await post("/api/settings/token",{token:tok, broker:bid||pickedConn().id});
   if(r.state) render(r.state);
   if(r.ok){ say("t_msg",`Connected${r.label?" as "+r.label:""}${r.positions!=null?" · "+r.positions+" holding"+(r.positions===1?"":"s"):""}. Desk · Home is live for today.`,"ok"); $("b_token").value=""; }
-  else { say("t_msg",r.error||"could not connect","err"); brokerHelp("t_msg", bid||pickedConn().id, r.error||"could not connect"); }
+  else { say("t_msg",r.error||("could not connect "+window.NEXT_STEP),"err"); brokerHelp("t_msg", bid||pickedConn().id, r.error||("could not connect "+window.NEXT_STEP)); }
 }
 $("b_connect").onclick=()=>{ const t=$("b_token").value.trim(); if(!t) return say("t_msg","Paste what the login handed back first.","err"); connectToken(t); };
 $("b_token").addEventListener("keydown",e=>{ if(e.key==="Enter") $("b_connect").click(); });
@@ -481,7 +482,7 @@ function renderData(s){
 }
 function onDataPick(){ const v=$("d_pick").value; $("d_fmp").style.display = v==="fmp"?"":"none"; $("d_other").style.display = v==="other"?"":"none"; }
 $("d_pick").onchange=async()=>{ onDataPick(); const v=$("d_pick").value; if(v!=="other"){ const r=await post("/api/settings/save",{DATA_PROVIDER:v}); if(r.ok) render(r.state); } };
-$("d_save").onclick=async()=>{ const v=$("d_key").value.trim(); if(!v) return say("d_msg","Paste the key first.","err"); const r=await post("/api/settings/save",{FMP_API_KEY:v, DATA_PROVIDER:"fmp"}); if(r.ok){ $("d_key").value=""; say("d_msg","Saved. The screens that use it pick it up on their next refresh; click Check to see what the plan answers.","ok"); $("d_table").innerHTML=""; render(r.state);} else say("d_msg",r.error||"could not save","err"); };
+$("d_save").onclick=async()=>{ const v=$("d_key").value.trim(); if(!v) return say("d_msg","Paste the key first.","err"); const r=await post("/api/settings/save",{FMP_API_KEY:v, DATA_PROVIDER:"fmp"}); if(r.ok){ $("d_key").value=""; say("d_msg","Saved. The screens that use it pick it up on their next refresh; click Check to see what the plan answers.","ok"); $("d_table").innerHTML=""; render(r.state);} else say("d_msg",r.error||("could not save "+window.NEXT_STEP),"err"); };
 $("d_clear").onclick=async()=>{ if(!confirm("Remove the data key from this desk?")) return; const r=await post("/api/settings/save",{FMP_API_KEY:"", DATA_PROVIDER:""}); if(r.ok){ say("d_msg","Removed. The desk runs on the free record from the next refresh.","ok"); $("d_table").innerHTML=""; render(r.state);} };
 $("d_check").onclick=async()=>{
   say("d_msg","Asking the feed eight questions…"); $("d_table").innerHTML="";
@@ -489,7 +490,7 @@ $("d_check").onclick=async()=>{
   if(r.rows) $("d_table").innerHTML="<table>"+r.rows.map(x=>`<tr><td>${esc(x.what)}</td><td class="${x.answer==="yes"?"yes":"no"}">${esc(x.answer)}</td></tr>`).join("")+"</table>";
   say("d_msg", r.ok? r.summary : (r.error||"the check did not run"), r.ok?"ok":"err");
 };
-$("d_osave").onclick=async()=>{ const name=$("d_name").value.trim(); if(!name) return say("d_msg","Type the provider's name first.","err"); const f={DATA_PROVIDER:name, DATA_BASE_URL:$("d_obase").value.trim()}; if($("d_okey").value.trim()) f.DATA_API_KEY=$("d_okey").value.trim(); const r=await post("/api/settings/save",f); if(r.ok){ $("d_okey").value=""; say("d_msg","Saved for the provider file your agent writes.","ok"); render(r.state);} else say("d_msg",r.error||"could not save","err"); };
+$("d_osave").onclick=async()=>{ const name=$("d_name").value.trim(); if(!name) return say("d_msg","Type the provider's name first.","err"); const f={DATA_PROVIDER:name, DATA_BASE_URL:$("d_obase").value.trim()}; if($("d_okey").value.trim()) f.DATA_API_KEY=$("d_okey").value.trim(); const r=await post("/api/settings/save",f); if(r.ok){ $("d_okey").value=""; say("d_msg","Saved for the provider file your agent writes.","ok"); render(r.state);} else say("d_msg",r.error||("could not save "+window.NEXT_STEP),"err"); };
 
 /* ---------- ai ---------- */
 function renderAI(s){
@@ -517,7 +518,7 @@ $("a_save").onclick=async()=>{
   const f={AI_PROVIDER:p, AI_FORMAT:$("a_fmt").value, AI_MODEL:$("a_model").value.trim(), AI_BASE_URL:$("a_base").value.trim()};
   if($("a_key").value.trim()) f.AI_API_KEY=$("a_key").value.trim();
   const r=await post("/api/settings/save",f);
-  if(r.ok){ $("a_key").value=""; say("a_msg","Saved. Click Test to send one line to the model.","ok"); render(r.state);} else say("a_msg",r.error||"could not save","err");
+  if(r.ok){ $("a_key").value=""; say("a_msg","Saved. Click Test to send one line to the model.","ok"); render(r.state);} else say("a_msg",r.error||("could not save "+window.NEXT_STEP),"err");
 };
 $("a_clear").onclick=async()=>{ if(!confirm("Remove the AI key from this desk?")) return; const r=await post("/api/settings/save",{AI_API_KEY:""}); if(r.ok){ say("a_msg","Removed.","ok"); render(r.state);} };
 $("a_test").onclick=async()=>{ say("a_msg","Sending one line…"); const r=await post("/api/settings/check_ai",{}); say("a_msg", r.ok?`The model answered: "${r.reply}". The key works.`:(r.error||"no answer"), r.ok?"ok":"err"); };
@@ -536,7 +537,7 @@ function picked(id){ return [...$(id).querySelectorAll(".chip.on")].map(c=>c.dat
 $("p_save").onclick=async()=>{
   const body={styles:picked("p_styles"),drivers:picked("p_drivers"),sectors:picked("p_sectors"),risk:picked("p_risk")[0]||"",horizon:picked("p_horizon")[0]||"",home_currency:$("p_ccy").value.trim().toUpperCase(),since:$("p_since").value.trim(),about:$("p_about").value.trim()};
   const r=await post("/api/settings/profile",body);
-  if(r.ok){ say("p_msg","Saved. The agent page carries it from now.","ok"); load(); } else say("p_msg",r.error||"could not save","err");
+  if(r.ok){ say("p_msg","Saved. The agent page carries it from now.","ok"); load(); } else say("p_msg",r.error||("could not save "+window.NEXT_STEP),"err");
 };
 
 /* ---------- desk ---------- */
@@ -581,8 +582,8 @@ async function loadApps(){
     <div class="ab">${a.found?(a.door&&d.default_door===a.door?`<button class="ghost" data-use="" data-app="${esc(a.app)}">Stop using it</button>`:`<button class="primary" data-use="${esc(a.door)}" data-app="${esc(a.app)}">Use it for Ask</button>`)+`<button data-signin="${esc(a.app)}">Sign in</button><button class="ghost" data-check="${esc(a.app)}">Check</button>`:`<a href="${esc(a.site)}" target="_blank" rel="noopener">Get ${esc(a.label)}</a>`}</div>
     <div class="login" data-login="${esc(a.app)}"></div>
     <div class="msg"></div></div>`).join("");
-  $("a_apps").querySelectorAll("[data-use]").forEach(b=>b.onclick=async()=>{ const r=await post("/api/ai/app/use",{door:b.dataset.use,app:b.dataset.use?"":(b.textContent.startsWith("Stop")?"":b.dataset.app)}); if(!r.ok){ alert(r.error||"That did not save."); return; } loadApps(); loadPlugins(); if(window.deskRefreshNav) window.deskRefreshNav(); });
-  $("a_apps").querySelectorAll("[data-signin]").forEach(b=>b.onclick=async()=>{ const r=await post("/api/ai/app/signin",{app:b.dataset.signin}); b.closest(".app").querySelector(".msg").textContent=r.ok?r.text:(r.error||"That did not work."); if(r.ok) watchLogin(b.dataset.signin); });
+  $("a_apps").querySelectorAll("[data-use]").forEach(b=>b.onclick=async()=>{ const r=await post("/api/ai/app/use",{door:b.dataset.use,app:b.dataset.use?"":(b.textContent.startsWith("Stop")?"":b.dataset.app)}); if(!r.ok){ alert(r.error||("That did not save. "+window.NEXT_STEP)); return; } loadApps(); loadPlugins(); if(window.deskRefreshNav) window.deskRefreshNav(); });
+  $("a_apps").querySelectorAll("[data-signin]").forEach(b=>b.onclick=async()=>{ const r=await post("/api/ai/app/signin",{app:b.dataset.signin}); b.closest(".app").querySelector(".msg").textContent=r.ok?r.text:(r.error||("That did not work. "+window.NEXT_STEP)); if(r.ok) watchLogin(b.dataset.signin); });
   $("a_apps").querySelectorAll("[data-check]").forEach(b=>b.onclick=()=>checkLogin(b.dataset.check,true));
   // the apps with a status command of their own are read on load (no model call); the rest
   // are checked when the reader presses Check, since the only test is a one-word question
@@ -628,7 +629,7 @@ function render(s){
   $("s_upd").checked=!!s.auto_update;
   const JL={ask:"Ask me each time",always:"Always write them",never:"Never"};
   $("j_chips").innerHTML=["ask","always","never"].map(m=>`<button class="chip${(s.journal||"ask")===m?" on":""}" data-m="${m}">${JL[m]}</button>`).join("");
-  $("j_chips").querySelectorAll(".chip").forEach(b=>b.onclick=async()=>{ const r=await post("/api/settings/save",{JOURNAL:b.dataset.m}); if(r.ok){ render(r.state); say("j_msg","Saved.","ok"); } else say("j_msg",r.error||"could not save","err"); });
+  $("j_chips").querySelectorAll(".chip").forEach(b=>b.onclick=async()=>{ const r=await post("/api/settings/save",{JOURNAL:b.dataset.m}); if(r.ok){ render(r.state); say("j_msg","Saved.","ok"); } else say("j_msg",r.error||("could not save "+window.NEXT_STEP),"err"); });
   st("j_status",{ask:"asks each time",always:"writes every moment",never:"off"}[s.journal||"ask"],"");
   $("s_upd_txt").textContent=s.auto_update?"A newer version is brought in the day it appears, and the strip tells you what changed.":"The desk tells you on every screen when a newer version exists; you click to bring it in.";
   $("e_mail").placeholder=s.edgar_contact||"you@example.com";

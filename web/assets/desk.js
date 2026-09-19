@@ -194,7 +194,7 @@
       if (target === "other") { target = prompt("The folder where your research should live (it is made if it is not there):", v.documents || ""); if (!target) return; }
       b.disabled = true; b.textContent = "Moving…";
       const out = await post("/api/research/relocate", { path: target });
-      if (!out.ok) { alert(out.error || "That did not work."); renderGuide(g); return; }
+      if (!out.ok) { alert(out.error ||("That did not work. "+window.NEXT_STEP)); renderGuide(g); return; }
       railToast(`Your research now lives in ${out.location ? out.location.path : target}. Bring it back is on Settings.`, "OK", () => {});
       renderGuide(await post("/api/guide", { tick: "vault", on: true }));
     });
@@ -251,13 +251,13 @@
       const onThatList = location.pathname === "/watch" && ((new URLSearchParams(location.search).get("list") || "home") === n.region);
       if (!onThatList) pop.appendChild(item("Add to " + watchLabel, async b => {
         b.disabled = true; const out = await post("/api/watch/add", { code: n.symbol, list: n.region });
-        say(out.ok ? `${n.symbol} is on ${watchLabel}.` : (out.error || "That did not work.")); if (out.journal && window.deskJournal) window.deskJournal(out.journal); hide();
+        say(out.ok ? `${n.symbol} is on ${watchLabel}.` : (out.error ||("That did not work. "+window.NEXT_STEP))); if (out.journal && window.deskJournal) window.deskJournal(out.journal); hide();
       }));
       pop.appendChild(item("A note on it", () => { location.href = "/notes?new&symbol=" + encodeURIComponent(n.symbol); }));
       pop.appendChild(item("A task on it", b => {
         const t = prompt(`A task on ${n.symbol} (a line; add "by 2026-10-01" for a date)`); if (!t) return;
         const m = t.match(/\bby\s+(\d{4}-\d{2}-\d{2})\b/); const text = m ? t.replace(m[0], "").trim() : t.trim();
-        post("/api/research/tasks/add", { text, symbol: n.symbol, due: m ? m[1] : "" }).then(out => { say(out.ok ? "Task saved. Open your tasks on Notes." : (out.error || "That did not save.")); hide(); });
+        post("/api/research/tasks/add", { text, symbol: n.symbol, due: m ? m[1] : "" }).then(out => { say(out.ok ? "Task saved. Open your tasks on Notes." : (out.error ||("That did not save. "+window.NEXT_STEP))); hide(); });
       }));
       pop.appendChild(item("Put it on a chain", async b => {
         b.disabled = true;
@@ -272,7 +272,7 @@
             const layer = chain.layers.find(x => x.n === l.n);
             if (!layer.names.some(x => (x.code || "").toUpperCase() === n.symbol)) layer.names.push({ code: n.symbol, label: n.label.toUpperCase() === n.symbol ? n.symbol : n.label, region: n.region === chain.region ? "" : n.region, status: "CONTEXT", receipt: "REPORTED", note: "", source: "" });
             const out = await post("/api/chain/save", { chain });
-            say(out.ok ? `${n.symbol} is on ${c.title}, layer ${l.n}.` : (out.error || "That did not save.")); if (out.journal && window.deskJournal) window.deskJournal(out.journal); hide();
+            say(out.ok ? `${n.symbol} is on ${c.title}, layer ${l.n}.` : (out.error ||("That did not save. "+window.NEXT_STEP))); if (out.journal && window.deskJournal) window.deskJournal(out.journal); hide();
           })));
         });
         b.replaceWith(sub);
@@ -692,6 +692,26 @@
       `<span class="utxt">The desk has not answered since the update. To start it by hand, ${where} and double-click <b>Start Desk</b>; ` +
       `if that does not bring it back, give the file logs/desk-service.log in that folder to your AI agent.</span></div>`;
   }
+  // No error ends in silence. Every page's fallback message ends with this, and when the
+  // desk stops answering at all (a request fails at the network, not with an answer), a
+  // strip says so and waits for it, instead of a screen that quietly does nothing.
+  window.NEXT_STEP = "Reload once. If it happens again, run python doctor.py in the desk folder and tell us what it prints; Settings, under If something is wrong, says where.";
+  let downShown = false;
+  function showDown() {
+    if (downShown) return;
+    downShown = true;
+    const el = updateBar();
+    el.style.display = "";
+    el.className = "fail";
+    el.innerHTML = `<div class="uin"><span class="utag">Not answering</span>` +
+      `<span class="utxt">The desk is not answering. If it just updated, it is restarting and this page reloads by itself in a moment. ` +
+      `Otherwise open the desk folder and double-click <b>Start Desk</b>; <b>python doctor.py</b> in that folder says why it stopped, and Settings, under If something is wrong, says where to send it.</span></div>`;
+    waitForRestart(el, "");
+  }
+  window.addEventListener("unhandledrejection", e => {
+    const r = e && e.reason;
+    if (r instanceof TypeError && /fetch|network|load failed/i.test(String(r.message || ""))) showDown();
+  });
   function initUpdateBar() {
     async function pull(force) {
       try {
@@ -1026,7 +1046,7 @@
       const out = await r.json();
       if (!out.ok) {
         wait.className = "a err";
-        wait.innerHTML = `<p>${esc(out.error || "The model did not answer.")}` +
+        wait.innerHTML = `<p>${esc(out.error ||("The model did not answer. "+window.NEXT_STEP))}` +
           (out.settings ? ` Set it on <a href="/settings">Settings</a>, under Your AI.` : "") + `</p>`;
       } else {
         const msg = { role: "assistant", content: out.answer, model: out.model || "", read: out.read || [], sources: out.sources || [] };
@@ -1077,7 +1097,7 @@
         const r = await fetch("/api/research/tasks/add", { method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text, symbol: sv.querySelector(".svs").value.trim(), due: sv.querySelector(".svp").value, category: sv.querySelector(".svk").value, source: "an answer on " + screen }) });
         const d = await r.json();
-        if (!d.ok) throw new Error(d.error || "could not save");
+        if (!d.ok) throw new Error(d.error ||("could not save "+window.NEXT_STEP));
         sv.innerHTML = `<small class="svm">Task saved. <a href="/notes?tasks">Open your tasks</a></small>`;
       } catch (e) { sv.querySelector(".svgo").disabled = false; msg.textContent = "Not saved: " + (e.message || "the desk did not answer."); }
     };
@@ -1118,7 +1138,7 @@
       try {
         const r = await fetch("/api/notes/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(note) });
         const d = await r.json();
-        if (!d.ok) throw new Error(d.error || "could not save");
+        if (!d.ok) throw new Error(d.error ||("could not save "+window.NEXT_STEP));
         try { if (d.note.period) localStorage.setItem("gs.period", d.note.period); } catch (e) { /* fine */ }
         sv.innerHTML = `<small class="svm">Saved. <a href="/notes?id=${encodeURIComponent(d.note.id)}">Open the note</a> · <span class="mono">${esc(d.note.path)}</span></small>`;
         window.deskJournal(d.journal);

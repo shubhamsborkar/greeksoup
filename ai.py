@@ -63,6 +63,9 @@ def settings():
     }
 
 
+STEP = " Check the key, the provider and the model on Settings, then ask again."
+
+
 def _err(r):
     """The endpoint's own words, short, for the page."""
     try:
@@ -70,10 +73,10 @@ def _err(r):
         e = j.get("error")
         msg = e.get("message") if isinstance(e, dict) else (e or j.get("message"))
         if msg:
-            return str(msg)[:240]
+            return str(msg)[:240] + STEP
     except Exception:  # noqa: BLE001
         pass
-    return (r.text or "").strip()[:240] or f"answered {r.status_code}"
+    return ((r.text or "").strip()[:240] or f"answered {r.status_code}") + STEP
 
 
 def _anthropic(s, messages, system=None, max_tokens=16, bearer=False, timeout=45, web=False):
