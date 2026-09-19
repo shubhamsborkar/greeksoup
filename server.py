@@ -48,6 +48,7 @@ import options_us
 import risk
 import shortint
 import updater          # the daily version check and the one-click update
+import support          # Tell us: reports sent from the desk, and the replies that come back
 
 # No error ends in silence: anything the desk did not expect ends with this one next step.
 NEXT_STEP = ("Reload once. If it happens again, press Tell us in the sidebar; it gathers what we need "
@@ -4181,6 +4182,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(body)
             elif path == "/api/settings":
                 self._send(json.dumps(settings_state()).encode(), "application/json")
+            elif path == "/api/report/list":
+                light = (qs.get("light", [""])[0] or "") == "1"
+                self._send(json.dumps(support.listing(light)).encode(), "application/json")
             elif path == "/api/update":
                 force = (qs.get("check", [""])[0] or "") == "1"
                 self._send(json.dumps({**updater.status(force), "migrations": desk_migrate.last_report()}).encode(), "application/json")
@@ -4783,6 +4787,13 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(json.dumps({"ok": True, "thread": ask_thread_save(body)}).encode(), "application/json")
             if self.path == "/api/ask/thread/delete":
                 return self._send(json.dumps({"ok": ask_thread_delete(str(body.get("id", "")))}).encode(), "application/json")
+            if self.path == "/api/report/send":
+                # Tell us, Send: the report the reader saw goes to our support address, which files
+                # it as a public issue; nothing leaves before this press
+                return self._send(json.dumps(support.send(body.get("what", ""), body.get("check", ""), body.get("screen", ""),
+                                                          body.get("version", ""), body.get("email", ""))).encode(), "application/json")
+            if self.path == "/api/report/seen":
+                return self._send(json.dumps(support.seen(int(body.get("number", 0)))).encode(), "application/json")
             if self.path == "/api/update/apply":
                 # The one click. Writes program files inside this folder only,
                 # then the process restarts itself; the page reconnects.

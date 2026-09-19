@@ -26,3 +26,4 @@ data/research/notes/*
 
 # the Ask box conversations, kept on this desk only
 data/ask_threads.json
+data/reports.json

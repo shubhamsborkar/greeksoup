@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-19.110. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-19.111. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-19.111
+
+*19 September 2026, release 111.* Tell us grows a Send button and a Your reports list. Send takes the report exactly as the page shows it to our support address, which files it in the open where we answer it, and hands back the number and the link on the spot; the reader's email is optional, kept privately, never published. The reply we write comes back to the same page under Your reports, with a mark on the sidebar entry when one is waiting, so a reader is answered inside the desk and never has to watch an inbox, and the next reader with the same problem finds the answer by search. The button appears once the support address is switched on; until then the page sends by the reader's own mail app as before.
 
 ## 2026-09-19.110
 

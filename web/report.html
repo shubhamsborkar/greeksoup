@@ -21,6 +21,7 @@ textarea{background:var(--panel2);color:var(--ink);border:1px solid var(--line2)
 .body p{font-size:12.5px;line-height:1.6;color:var(--ink2);margin:0 0 10px}
 .body p:last-child{margin-bottom:0}
 textarea{max-width:none;min-height:120px;resize:vertical;line-height:1.5}
+input{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:inherit;width:100%}
 pre{font-family:"SF Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.5;color:var(--ink2);
   background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:10px 12px;margin:0;white-space:pre-wrap;word-break:break-word;max-height:360px;overflow:auto}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
@@ -52,16 +53,26 @@ a{color:var(--accent)}
     </div>
   </div>
 
+  <div class="panel" id="mine" hidden>
+    <div class="panel-h"><h2>Your reports</h2><span class="st" id="mstate"></span></div>
+    <div class="body" id="mlist"></div>
+  </div>
+
   <div class="panel">
     <div class="panel-h"><h2>Send it</h2></div>
     <div class="body">
-      <p>The email goes to <span class="addr">info@shikshannivesh.com</span>. Press the button and your mail app opens with everything above already in it; read it, then send. If your mail app cut the check short, press Copy and paste it into the email instead.</p>
+      <p id="sendhelp" hidden>Press <b>Send</b> and the report above goes to us as it stands and is filed in the open, where we answer it; the reply appears on this page under Your reports the next time you open the desk, and the next reader with the same problem finds it too. Your email is optional, kept privately, and never published; give it if you want a copy of the reply.</p>
+      <div class="row" id="sendrow" hidden>
+        <input id="email" type="email" placeholder="your email, optional" style="max-width:280px">
+        <button id="send">Send</button>
+      </div>
+      <p>Or by email, to <span class="addr">info@shikshannivesh.com</span>: press the button and your mail app opens with everything above already in it; read it, then send. If your mail app cut the check short, press Copy and paste it into the email instead.</p>
       <div class="row">
         <button id="mail">Email it</button>
         <button class="ghost" id="copy">Copy the report</button>
         <span class="msg" id="msg"></span>
       </div>
-      <p style="margin-top:14px">We reply by email, and what we learn goes on <a href="https://greeksoup.ai/docs/install/known-issues/" target="_blank" rel="noopener">Known issues</a> the same day, dated, so the next reader finds it. If you use GitHub: a question is best asked in <a href="https://github.com/shubhamsborkar/greeksoup/discussions" target="_blank" rel="noopener">Discussions</a>, in the open, and something plainly broken can go through <a href="https://github.com/shubhamsborkar/greeksoup/issues/new/choose" target="_blank" rel="noopener">the report form</a>; the same report pastes into either.</p>
+      <p style="margin-top:14px">We reply where the report came from, and what we learn goes on <a href="https://greeksoup.ai/docs/install/known-issues/" target="_blank" rel="noopener">Known issues</a> the same day, dated, so the next reader finds it. If you use GitHub: a question is best asked in <a href="https://github.com/shubhamsborkar/greeksoup/discussions" target="_blank" rel="noopener">Discussions</a>, in the open, and something plainly broken can go through <a href="https://github.com/shubhamsborkar/greeksoup/issues/new/choose" target="_blank" rel="noopener">the report form</a>; the same report pastes into either.</p>
     </div>
   </div>
 </main>
@@ -89,6 +100,39 @@ a{color:var(--accent)}
     location.href = "mailto:info@shikshannivesh.com?subject=" + encodeURIComponent(subject()) + "&body=" + encodeURIComponent(report());
     $("msg").textContent = "Your mail app should be open now. If nothing opened, press Copy and paste the report into an email to info@shikshannivesh.com.";
     $("msg").className = "msg";
+  };
+  const screen = (seed.match(/^Screen:\s*(.+)$/m) || [])[1] || "";
+  const version = (screen.match(/(\d{4}-\d{2}-\d{2}(?:\.\d+)?)/) || [])[1] || "";
+  const mine = list => {
+    if (!list.reports.length) return;
+    $("mine").hidden = false;
+    $("mstate").textContent = list.waiting ? (list.waiting + " with a new reply") : "";
+    $("mstate").className = "st" + (list.waiting ? " on" : "");
+    $("mlist").innerHTML = list.reports.map(r => {
+      const st = r.state === "closed" ? "answered and closed" : (r.comments ? "replied" : "sent, no reply yet");
+      const last = r.last ? `<p style="margin-top:6px"><b>${esc(r.last.who)}</b>, ${esc(r.last.at)}: ${esc(r.last.text)}</p>` : "";
+      return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><p><a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a> · ${esc(r.title)} · ${esc(r.at)} · ${st}${r.new ? ' · <b style="color:var(--pos)">new reply</b>' : ""}</p>${last}</div>`;
+    }).join("");
+    list.reports.filter(r => r.new).forEach(r => fetch("/api/report/seen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ number: r.number }) }));
+  };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  fetch("/api/report/list", { cache: "no-store" }).then(r => r.json()).then(list => {
+    if (list.enabled) { $("sendhelp").hidden = false; $("sendrow").hidden = false; }
+    mine(list);
+  }).catch(() => {});
+  $("send").onclick = async () => {
+    if (!$("what").value.trim()) { $("what").focus(); $("msg").textContent = "Write a line about what happened first."; $("msg").className = "msg"; return; }
+    $("send").disabled = true; $("msg").textContent = "Sending…"; $("msg").className = "msg";
+    try {
+      const r = await fetch("/api/report/send", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ what: $("what").value.trim(), check: doc, screen, version, email: $("email").value.trim() }) });
+      const out = await r.json();
+      if (out.ok) {
+        $("msg").innerHTML = `Sent. Your report is <a href="${esc(out.url)}" target="_blank" rel="noopener">number ${out.number}</a>. The reply appears here under Your reports; open Tell us any time to see it.`;
+        $("msg").className = "msg ok";
+        fetch("/api/report/list", { cache: "no-store" }).then(r => r.json()).then(mine).catch(() => {});
+      } else { $("msg").textContent = out.error || ("That did not send. " + window.NEXT_STEP); $("send").disabled = false; }
+    } catch (e) { $("msg").textContent = "That did not send; the desk did not answer. " + window.NEXT_STEP; $("send").disabled = false; }
   };
   $("copy").onclick = async () => {
     try { await navigator.clipboard.writeText(report()); $("msg").textContent = "Copied. Paste it into an email to info@shikshannivesh.com."; $("msg").className = "msg ok"; }

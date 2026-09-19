@@ -198,7 +198,7 @@ Setup by hand, the file map, how to adapt the broker adapter, the data sources i
 
 ## Community
 
-- **Something wrong, and you have no GitHub account**: press **Tell us** in the desk's sidebar. It runs the check, shows you everything it gathered, and opens your mail app with it addressed to info@shikshannivesh.com. Nothing leaves your computer until you send.
+- **Something wrong, and you have no GitHub account**: press **Tell us** in the desk's sidebar. It runs the check, shows you everything it gathered, and sends it with one press, or opens your mail app with it addressed to info@shikshannivesh.com. Nothing leaves your computer until you press. The reply comes back to the same page.
 - **A question, or an idea for the desk**: [Discussions](https://github.com/shubhamsborkar/greeksoup/discussions), in the open, so the answer serves the next reader too. What readers have already hit, dated, with the fix next to it: [Known issues](https://greeksoup.ai/docs/install/known-issues/).
 - **Something wrong, or a broker or market you want**: the [issue chooser](https://github.com/shubhamsborkar/greeksoup/issues/new/choose) has a template for each. `python doctor.py` in the desk folder prints what a report needs and nothing private.
 - **A security problem, or anything you would rather not put on GitHub**: info@shikshannivesh.com. [SECURITY.md](SECURITY.md) says what to put in the subject.

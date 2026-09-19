@@ -129,6 +129,16 @@
     document.getElementById("railbtn").onclick = toggleRail;
     document.getElementById("railedge").onclick = toggleRail;
     document.getElementById("fbbtn").onclick = () => { location.href = feedbackUrl("", ""); };
+    // a reply to a report sent from this desk: a mark on the entry, once every ten minutes at most
+    try {
+      const last = parseInt(store.getItem("desk_reports_checked") || "0", 10);
+      if (Date.now() - last > 600000) {
+        store.setItem("desk_reports_checked", String(Date.now()));
+        fetch("/api/report/list", { cache: "no-store" }).then(r => r.json()).then(l => {
+          if (l.waiting) { const b = document.getElementById("fbbtn"); b.title = l.waiting + " reply waiting on Tell us"; b.querySelector("span:last-child").innerHTML = "Tell us <em style=\"font-style:normal;color:var(--pos)\">·</em>"; }
+        }).catch(() => {});
+      }
+    } catch (e) {}
     document.getElementById("cmdkbtn").onclick = () => openCmdk(true);
     document.getElementById("askbtn").onclick = () => openAsk(true);
     const tb = document.getElementById("themebtn");

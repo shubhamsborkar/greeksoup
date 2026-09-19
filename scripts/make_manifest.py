@@ -31,7 +31,7 @@ SKIP = {"MANIFEST.json", ".gitignore", ".gitlab-ci.yml", "netlify.toml",
         "install.sh", "install.ps1"}
 # The website (the launch page, its images and video, and the docs source) is served by
 # GitHub Pages, not by the desk, so a reader's copy never needs any of it in an update.
-SKIP_DIRS = ("site/", "docs/")
+SKIP_DIRS = ("site/", "docs/", "support/")   # support/ is the Cloudflare script, not the desk
 
 
 def git(*args):
