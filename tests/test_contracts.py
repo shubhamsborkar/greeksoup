@@ -1489,3 +1489,24 @@ def test_tradingview_never_asked_for_exchange_futures():
     page = open(os.path.join(here, "web", "ticker.html"), encoding="utf-8").read()
     assert '1!"' not in page and 'CL:"TVC:USOIL"' in page and "tvCarries" in page
     assert "does not carry this contract" in page
+
+
+def test_isin_lookup_shapes_and_tables():
+    """An ISIN is recognised, Bloomberg's punctuation never reaches a symbol, and every
+    home-exchange suffix the ISIN's country points at is one the desk knows a name for."""
+    figi = importlib.import_module("figi")
+    assert figi.is_isin("INE009A01021") and figi.is_isin("us0378331005") and not figi.is_isin("AAPL")
+    assert not figi.is_isin("INE009A0102")           # eleven characters
+    for sfx in set(figi.HOME.values()):
+        assert sfx in figi.NAMES or sfx in figi.SUFFIX.values(), sfx
+
+
+def test_currency_cards_carry_a_keyless_history():
+    """Every currency card on the board names a Frankfurter pair beside its Yahoo symbol,
+    so a keyless copy still draws the card when the free quote feed does not answer."""
+    board = json.load(open(os.path.join(HERE, "data", "commodities.json"), encoding="utf-8"))
+    cur = [c for c in board["commodities"] if c.get("group") == "Currency"]
+    assert len(cur) >= 5
+    for c in cur:
+        pair = c["sources"].get("frankfurter", "")
+        assert "/" in pair and len(pair) == 7, c["id"]

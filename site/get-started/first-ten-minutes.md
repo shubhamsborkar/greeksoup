@@ -16,7 +16,7 @@ Bottom right sits the startup guide: five steps with a tick each. The first is w
 
 Open these in turn. Each one is live from the public record with no key at all.
 
-- **Commodities**: fifty-one commodities in seven groups, each with its level, five change windows and the distance from its five-year high. Click any card and it shows the industries a rise squeezes and the industries it helps, with the US names mapped to them and the raw-material share each one filed itself.
+- **Commodities**: fifty-four commodities in seven groups, each with its level, five change windows and the distance from its five-year high. Click any card and it shows the industries a rise squeezes and the industries it helps, with the US names mapped to them and the raw-material share each one filed itself.
 - **Funds**: the latest 13F filing of every fund on the list, straight from SEC EDGAR, with what changed since the quarter before.
 - **Flow**: the options tape on the US names, from CBOE's free delayed chains: put/call, the walls, the expected move, unusual strikes.
 - **Short**: FINRA short interest and the daily short-volume ratio, kept apart on purpose.

@@ -49,6 +49,7 @@ import risk
 import shortint
 import updater          # the daily version check and the one-click update
 import support          # Tell us: reports sent from the desk, and the replies that come back
+import figi             # an ISIN typed into a search box becomes its listings, through OpenFIGI
 
 # No error ends in silence: anything the desk did not expect ends with this one next step.
 NEXT_STEP = ("Reload once. If it happens again, press Tell us in the sidebar; it gathers what we need "
@@ -414,6 +415,13 @@ def search_symbols(q, region):
     if not q:
         return []
     out = []
+    if figi.is_isin(q):
+        # an ISIN is the same code in every market: its listings, home exchange first, whichever
+        # list the reader is adding to; the US list keeps only the US listing
+        hits = symbol_search(q)["hits"]
+        if region == "us":
+            hits = [h for h in hits if "." not in (h["symbol"] or "")]
+        return [{"code": h["symbol"], "name": h["name"], "exch": h["exch"]} for h in hits[:8]]
     if region == "us":
         rows = fmp_get("search-symbol", query=q, limit=10) or []
         if not rows:
@@ -2790,6 +2798,40 @@ def symbol_search(q):
     q = (q or "").strip()
     if len(q) < 1:
         return {"q": q, "hits": []}
+    if figi.is_isin(q):
+        # a statement's code, not a name: the listings that carry it, the home exchange first.
+        # Bloomberg's ticker is not always the exchange's (Infosys is INFO there, INFY on the
+        # NSE), so each candidate is checked against the free feed and the company's name
+        # goes through the ordinary search when none of them prices
+        raw = figi.lookup(q)
+        good = []
+        for h in raw[:4]:
+            if fetch_yahoo_quote(h["symbol"]):
+                good.append(h)
+        if good:
+            return {"q": q, "hits": good, "isin": q.upper()}
+        if raw and raw[0].get("name"):
+            byname = symbol_search(raw[0]["name"])
+            if byname.get("hits"):
+                home = figi.HOME.get(q.upper()[:2])
+                sfx = lambda s: ("." + s.rsplit(".", 1)[1]) if "." in s else ""   # noqa: E731
+                first = re.sub(r"[^a-z]", "", raw[0]["name"].split()[0].lower())
+                # only listings whose name carries the issuer's first word (Infosys, not HCL Infosystems)
+                hits = [h for h in byname["hits"] if re.search(r"\b" + re.escape(first) + r"\b", (h.get("name") or "").lower())] or byname["hits"]
+                # the home listing is often missing from the free feed's search while another
+                # exchange's is there: the same root on the home exchange, if it prices, comes first
+                roots = []
+                for h in hits:
+                    root = h["symbol"].rsplit(".", 1)[0]
+                    if home is not None and sfx(h["symbol"]) != home and root not in roots:
+                        roots.append(root)
+                for root in roots[:2]:
+                    cand = root + home
+                    if not any(h["symbol"] == cand for h in hits) and fetch_yahoo_quote(cand):
+                        hits.insert(0, {"symbol": cand, "name": raw[0]["name"].title(), "exch": figi.NAMES.get(home, home), "type": "EQUITY"})
+                        break
+                hits = sorted(hits, key=lambda h: 0 if (home is not None and sfx(h["symbol"]) == home) else 1)
+                return {"q": q, "hits": hits, "isin": q.upper(), "name": raw[0]["name"]}
     key = q.lower()
     hit = _symsearch_cache.get(key)
     if hit and time.time() - hit[0] < 3600:

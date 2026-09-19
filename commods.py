@@ -225,6 +225,39 @@ def fred_series(series_id):
     return [tuple(p) for p in ((old or {}).get("data") or [])]
 
 
+# ---- Frankfurter: central-bank reference exchange rates, keyless ----------------
+def frankfurter_series(pair):
+    """Daily reference rates for a pair written USD/INR (one USD in INR), from Frankfurter,
+    which publishes the ECB's and other central banks' reference rates with no key. One
+    fixing a day, so it is the history and the keyless fallback for a currency card, while
+    Yahoo stays the live source when it answers."""
+    base, _, quote = pair.replace("-", "/").upper().partition("/")
+    if not base or not quote:
+        return []
+    key = f"frankfurter_{base}{quote}"
+    data = _cget(key, HIST_TTL)
+    if data is not None:
+        return [tuple(p) for p in data]
+    out = []
+    try:
+        start = (datetime.now() - timedelta(days=365 * 8)).strftime("%Y-%m-%d")
+        r = requests.get(f"https://api.frankfurter.dev/v1/{start}..?base={base}&symbols={quote}",
+                         timeout=20, headers={"User-Agent": "greeksoup-desk"})
+        if r.status_code == 200:
+            rates = (r.json() or {}).get("rates") or {}
+            for d in sorted(rates):
+                v = rates[d].get(quote)
+                if isinstance(v, (int, float)):
+                    out.append((d, float(v)))
+    except Exception:  # noqa: BLE001
+        out = []
+    if out:
+        _cput(key, out)
+        return out
+    old = _cget_any(key)
+    return [tuple(p) for p in ((old or {}).get("data") or [])]
+
+
 # ---- Trading Economics summary sentence --------------------------------------
 _TE_LEVEL = re.compile(
     r"(?:rose|fell|increased|decreased|climbed|dropped|jumped|slipped|surged|"
@@ -397,6 +430,20 @@ def _card(c):
             return card
     if src.get("yahoo"):
         card["stale"] = True     # Yahoo answered nothing; whatever follows is a fallback
+    if src.get("frankfurter"):
+        fx = frankfurter_series(src["frankfurter"])
+        if fx:
+            st = stats(fx, daily=True)
+            card.update(st)
+            card["value"], card["date"] = fx[-1][1], fx[-1][0]
+            card["spark"] = _spark(fx)
+            card["full"] = _downsample(fx)
+            card["hist_kind"] = "daily"
+            card["hist_through"] = fx[-1][0]
+            card["src_live"] = "Frankfurter, the central bank's daily reference rate"
+            card["src_hist"] = "Frankfurter (central-bank reference rates)"
+            card["stale"] = False    # a fixing from the last business day is the record, not a stale read
+            return card
     te = te_current(src["te"]) if src.get("te") else None
     fred = fred_series(src["fred"]) if src.get("fred") else []
     if fred:

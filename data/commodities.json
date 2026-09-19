@@ -1034,7 +1034,8 @@
    "group": "Currency",
    "unit": "₹ per $",
    "sources": {
-    "yahoo": "USDINR=X"
+    "yahoo": "USDINR=X",
+    "frankfurter": "USD/INR"
    },
    "cost": [
     "Importers of dollar-priced inputs (every commodity above, in rupee terms)",
@@ -1056,7 +1057,8 @@
    "group": "Currency",
    "unit": "¥ per $",
    "sources": {
-    "yahoo": "CNY=X"
+    "yahoo": "CNY=X",
+    "frankfurter": "USD/CNY"
    },
    "cost": [
     "Indian makers competing with Chinese imports (steel, chemicals, solar modules, electronics)",
@@ -1066,6 +1068,69 @@
     "Chinese exporters"
    ],
    "note": "A rise is a weaker yuan, which makes Chinese steel, chemicals and modules cheaper on Indian shores; the China-priced cards above (steel, lithium, polypropylene, methanol) read in this currency."
+  },
+  {
+   "id": "eurusd",
+   "label": "EUR/USD",
+   "group": "Currency",
+   "unit": "$ per €",
+   "sources": {
+    "yahoo": "EURUSD=X",
+    "frankfurter": "EUR/USD"
+   },
+   "cost": [
+    "European exporters priced in dollars (autos, luxury, machinery, aerospace)",
+    "Dollar-earning European companies at translation",
+    "US importers of European goods when it falls"
+   ],
+   "revenue": [
+    "European importers of dollar-priced commodities (oil, gas, metals) when it rises",
+    "US exporters to Europe when it rises",
+    "European airlines (dollar fuel and leases) when it rises"
+   ],
+   "note": "A rise is a stronger euro. Europe's oil and gas bill is in dollars, so a stronger euro is a quiet cost cut for European industry and a quiet revenue cut for its exporters."
+  },
+  {
+   "id": "usdjpy",
+   "label": "USD/JPY",
+   "group": "Currency",
+   "unit": "¥ per $",
+   "sources": {
+    "yahoo": "JPY=X",
+    "frankfurter": "USD/JPY"
+   },
+   "cost": [
+    "Japanese importers of energy and food when it rises",
+    "Japanese consumers (imported inflation)",
+    "Foreign holders of yen assets when it rises"
+   ],
+   "revenue": [
+    "Japanese exporters (autos, machinery, electronics) when it rises",
+    "Japan-listed companies with dollar earnings at translation",
+    "Tourism into Japan"
+   ],
+   "note": "A rise is a weaker yen. Japan imports almost all its energy, so a weak yen is a fuel-cost rise at home and a windfall for every Japanese exporter's dollar sales."
+  },
+  {
+   "id": "gbpusd",
+   "label": "GBP/USD",
+   "group": "Currency",
+   "unit": "$ per £",
+   "sources": {
+    "yahoo": "GBPUSD=X",
+    "frankfurter": "GBP/USD"
+   },
+   "cost": [
+    "UK exporters and dollar earners at translation when it rises",
+    "FTSE 100 multinationals reporting in sterling when it rises",
+    "US buyers of UK goods when it rises"
+   ],
+   "revenue": [
+    "UK importers of dollar-priced fuel, food and goods when it rises",
+    "UK airlines and travel companies when it rises",
+    "UK retailers with dollar sourcing when it rises"
+   ],
+   "note": "A rise is a stronger pound. Most of the FTSE 100's earnings are in dollars, so a stronger pound lowers the index's reported profits even when the businesses are unchanged."
   }
  ]
 }

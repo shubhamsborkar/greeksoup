@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-19.111. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-19.112. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-19.112
+
+*19 September 2026, release 112.* Two keyless sources from the public record join the desk. Frankfurter, the daily reference exchange rates central banks publish, is the history behind every currency card on the Commodities board and its level when the free quote feed does not answer, so a copy with no key at all draws USD/INR with eight years behind it; and three currency pairs join the board, EUR/USD, USD/JPY and GBP/USD, each with the industries a move squeezes and helps, fifty-four cards now. OpenFIGI, Bloomberg's open identifier service, answers when what you type into a search box on Desk · Book or a watchlist is an ISIN, the code on every broker statement: the listings that carry it, the issuer's home exchange first, each checked against the free feed before it is shown, so a line pasted from a statement prices without guessing the ticker. Both named on What it talks to and Data sources.
 
 ## 2026-09-19.111
 
