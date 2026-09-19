@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-19.115. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-19.116. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-19.116
+
+*19 September 2026, release 116.* The home-market note on Settings pointed at a Feedback door the sidebar no longer has; it says Tell us now. Nothing else on the desk changes. The screenshots on greeksoup.ai and the docs were retaken on this version.
 
 ## 2026-09-19.115
 

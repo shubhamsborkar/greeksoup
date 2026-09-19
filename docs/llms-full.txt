@@ -393,7 +393,7 @@ One page per screen, with a screenshot from a copy that has no data key, so what
 - [Any ticker](https://greeksoup.ai/docs/screens/ticker/): one page a name, chart to filings.
 - [Settings](https://greeksoup.ai/docs/screens/settings/): three tabs, nothing required.
 
-Screenshots on these pages were taken on 17 September 2026 on a copy with no data key and a paper broker account, so they show the free record as it was that day.
+Screenshots on these pages were taken on 19 September 2026 on a copy with no data key and a paper broker account, so they show the free record as it was that day.
 
 ---
 
@@ -2646,7 +2646,11 @@ It places no orders, it sends nothing about you anywhere, and it assumes no brok
 
 Section: Project. URL: https://greeksoup.ai/docs/project/releases/
 
-Newest first. The current version is 2026-09-19.115. Your desk reads this same list once a day and offers the update with one click.
+Newest first. The current version is 2026-09-19.116. Your desk reads this same list once a day and offers the update with one click.
+
+## 2026-09-19.116
+
+*19 September 2026, release 116.* The home-market note on Settings pointed at a Feedback door the sidebar no longer has; it says Tell us now. Nothing else on the desk changes. The screenshots on greeksoup.ai and the docs were retaken on this version.
 
 ## 2026-09-19.115
 

@@ -37,4 +37,4 @@ lead: One page per screen, with a screenshot from a copy that has no data key, s
 - [Any ticker](/docs/screens/ticker/): one page a name, chart to filings.
 - [Settings](/docs/screens/settings/): three tabs, nothing required.
 
-Screenshots on these pages were taken on 17 September 2026 on a copy with no data key and a paper broker account, so they show the free record as it was that day.
+Screenshots on these pages were taken on 19 September 2026 on a copy with no data key and a paper broker account, so they show the free record as it was that day.
