@@ -93,6 +93,33 @@ def test_version_and_manifest_agree():
     assert manifest.get("version") == releases[0]["version"], "MANIFEST.json is behind VERSION; run scripts/make_manifest.py"
     for must in ("server.py", "updater.py", "settings.py", "ai.py"):
         assert must in manifest["files"], f"{must} not in the manifest"
+    # The website and the one-line installers never travel inside an update: a reader's
+    # antivirus reads an unpacked installer as a downloader and locks it (2026-09-19).
+    stray = [f for f in manifest["files"]
+             if f.startswith(("docs/", "site/")) or f in ("install.sh", "install.ps1")]
+    assert not stray, f"website or installer files in the update payload: {stray[:5]}"
+    assert "uninstall.sh" in manifest["files"], "Uninstall Desk.command runs the root uninstall.sh"
+
+
+def test_update_unpacks_only_what_the_manifest_lists(tmp_path):
+    """The zip carries the website and the installers; the updater leaves them in the zip,
+    so an antivirus on the reader's machine never sees an installer on disk."""
+    import zipfile
+    updater = importlib.import_module("updater")
+    z = tmp_path / "desk.zip"
+    with zipfile.ZipFile(z, "w") as zf:
+        zf.writestr("greeksoup-main/MANIFEST.json", json.dumps({"version": "x", "files": {"server.py": "h"}}))
+        zf.writestr("greeksoup-main/VERSION", "x  test\n")
+        zf.writestr("greeksoup-main/server.py", "print(1)\n")
+        zf.writestr("greeksoup-main/docs/install.ps1", "irm | iex\n")
+        zf.writestr("greeksoup-main/install.sh", "curl | bash\n")
+    out = tmp_path / "out"
+    with zipfile.ZipFile(z) as zf:
+        updater._safe_extract(zf, str(out))
+    root = out / "greeksoup-main"
+    assert (root / "server.py").is_file() and (root / "VERSION").is_file() and (root / "MANIFEST.json").is_file()
+    assert not (root / "docs").exists(), "the website was unpacked"
+    assert not (root / "install.sh").exists(), "an installer was unpacked"
 
 
 def test_ask_box_reads_every_screen_in_the_sidebar():

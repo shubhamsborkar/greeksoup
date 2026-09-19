@@ -643,7 +643,8 @@
         el.className = "fail";
         el.innerHTML = `<div class="uin"><span class="utag">Not updated</span>` +
           `<span class="utxt">The update did not go through: ${esc(rep.error || "unknown reason")}. ` +
-          `Nothing was changed. The other way is in the README under "Getting a newer version".</span>` +
+          `Your keys and lists are untouched and the desk keeps running on the version it has. ` +
+          `Clicking Update again picks up where this stopped; the other way is in the README under "Getting a newer version".</span>` +
           `<button class="ubtn ghost" id="uclose">Close</button></div>`;
         document.getElementById("uclose").onclick = () => { el.style.display = "none"; };
         return;

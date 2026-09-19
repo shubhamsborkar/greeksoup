@@ -23,10 +23,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 from updater import bytes_hash, parse_version_text  # noqa: E402
 
-SKIP = {"MANIFEST.json", ".gitignore", ".gitlab-ci.yml", "netlify.toml"}   # hosting files, not the desk
-# The website (the landing page's docs and their source) is served by GitHub
-# Pages, not by the desk, so a reader's copy never needs it in an update.
-SKIP_DIRS = ("site/", "docs/docs/")
+# Hosting files and the one-line installers are not the desk. The installers run once, on
+# install day, from greeksoup.ai; inside an update they are a liability: on 2026-09-19 a
+# reader's Bitdefender read the unpacked docs/install.ps1 as a downloader (it fetches a zip
+# and runs winget, which is what one looks like), locked it, and the update died on it.
+SKIP = {"MANIFEST.json", ".gitignore", ".gitlab-ci.yml", "netlify.toml",
+        "install.sh", "install.ps1"}
+# The website (the launch page, its images and video, and the docs source) is served by
+# GitHub Pages, not by the desk, so a reader's copy never needs any of it in an update.
+SKIP_DIRS = ("site/", "docs/")
 
 
 def git(*args):
@@ -94,7 +99,7 @@ def main():
         for line in git("ls-tree", "-r", c).splitlines():
             meta, rel = line.split("\t", 1)
             blob = meta.split()[2]
-            if rel in SKIP:
+            if rel in SKIP or rel.startswith(SKIP_DIRS):
                 continue
             if blob not in blob_hash:
                 content = subprocess.check_output(["git", "cat-file", "-p", blob], cwd=ROOT)

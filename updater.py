@@ -200,12 +200,35 @@ def auto_enabled():
 
 # ---------------------------------------------------------------- the update
 def _safe_extract(zf, dest):
+    """Unpack only what the desk will use: the files MANIFEST.json lists, plus VERSION and
+    the manifest itself. The zip also carries the website and the one-line installers, and
+    an installer unpacked on a reader's disk is what an antivirus reads as a downloader
+    (Bitdefender locked docs/install.ps1 in a reader's Temp on 2026-09-19 and the update
+    died on it). What never lands on the disk cannot be locked."""
     dest = os.path.abspath(dest)
-    for m in zf.infolist():
-        target = os.path.abspath(os.path.join(dest, m.filename))
+    names = zf.namelist()
+    for name in names:
+        target = os.path.abspath(os.path.join(dest, name))
         if not target.startswith(dest + os.sep):
-            raise ValueError("zip entry outside the folder: " + m.filename)
-    zf.extractall(dest)
+            raise ValueError("zip entry outside the folder: " + name)
+    roots = {n.split("/", 1)[0] for n in names if "/" in n}
+    if len(roots) != 1:
+        raise ValueError("unexpected ZIP layout")
+    root = roots.pop()
+    manifest = None
+    try:
+        with zf.open(root + "/MANIFEST.json") as fh:
+            manifest = json.load(fh)
+    except (KeyError, ValueError):
+        pass
+    if not manifest or "files" not in manifest:
+        zf.extractall(dest)      # an old zip without a manifest; apply() says so
+        return
+    wanted = set(manifest["files"]) | {"VERSION", "MANIFEST.json"}
+    for name in names:
+        rel = name.split("/", 1)[1] if "/" in name else ""
+        if rel in wanted:
+            zf.extract(name, dest)
 
 
 def _download(tmp):
@@ -273,6 +296,8 @@ def _keep_old(dst, rel, snap):
     if not os.path.isfile(dst):
         return
     keep = os.path.join(snap, *rel.split("/"))
+    if os.path.isfile(keep):
+        return       # a retry from the same version: the first attempt's copy is the original
     os.makedirs(os.path.dirname(keep), exist_ok=True)
     shutil.copy2(dst, keep)
 
@@ -331,7 +356,7 @@ def apply():
     tmp = tempfile.mkdtemp(prefix="desk-update-")
     started = time.time()
     rep = {"ok": False, "from": local_version(), "to": None, "copied": 0, "unchanged": 0,
-           "kept": [], "added_data": [], "refreshed_data": [], "added_rules": 0,
+           "kept": [], "skipped": [], "added_data": [], "refreshed_data": [], "added_rules": 0,
            "pip": "skipped", "error": None, "at": time.time()}
     try:
         root = _download(tmp)
@@ -342,11 +367,14 @@ def apply():
             open(os.path.join(root, "VERSION"), encoding="utf-8").read()) or [{}])[0].get("version")
         history = manifest.get("history", {})
         req_before = file_hash(os.path.join(HERE, "requirements.txt"))
+        # The snapshot of this version is not cleared: when the last attempt stopped part
+        # way (an antivirus locked a file, the network dropped), the files it had already
+        # replaced are only in that snapshot, and a second click must not throw them away.
         snap = os.path.join(PREVIOUS, rep["from"] or "unknown")
-        shutil.rmtree(snap, ignore_errors=True)
         # keep at most three previous versions
         for old in previous_versions()[2:]:
-            shutil.rmtree(os.path.join(PREVIOUS, old), ignore_errors=True)
+            if old != os.path.basename(snap):
+                shutil.rmtree(os.path.join(PREVIOUS, old), ignore_errors=True)
         deferred = []   # VERSION and MANIFEST.json go last, so a failure mid-way leaves the old version stamped
         for rel, new_hash in sorted(manifest["files"].items()):
             if _untouchable(rel):
@@ -379,8 +407,21 @@ def apply():
                 rep["kept"].append(rel)      # changed on this computer: theirs to merge
                 continue
             _keep_old(dst, rel, snap)
-            _copy_file(src, dst)
+            try:
+                _copy_file(src, dst)
+            except PermissionError:
+                # the operating system, or an antivirus, holds this one file; the rest of
+                # the version still lands, and the report names it (the strip prints it)
+                rep["skipped"].append(rel)
+                continue
             rep["copied"] += 1
+        if rep["skipped"]:
+            # the version is not stamped over a copy that is missing a file; the files that
+            # did land stay, and the next click has only the skipped ones left to bring in
+            raise PermissionError(
+                f"{rep['copied']} files came in, but the computer would not let the desk write "
+                f"{', '.join(rep['skipped'][:5])}" + (" and more" if len(rep["skipped"]) > 5 else "")
+                + ". Usually an antivirus is holding it. Wait a minute and click Update again")
         # the manifest never lists itself; VERSION and MANIFEST.json land last
         deferred.append((os.path.join(root, "MANIFEST.json"), os.path.join(HERE, "MANIFEST.json")))
         for src, dst in deferred:
