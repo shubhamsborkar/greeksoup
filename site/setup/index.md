@@ -40,4 +40,4 @@ One settings file inside the desk folder, written by this screen. Nothing is sen
 - [Your lists](/docs/setup/your-lists/): every list a screen runs on is yours; the drawer, the starters, undo.
 - [Chains](/docs/setup/chains/): your own value-chain maps, drafted by your AI and finished by you.
 - [Data providers](/docs/setup/data-providers/): what a key adds, and how another provider is one file.
-- [Data sources](/docs/setup/data-sources/): every source behind the fourteen screens, keyless or not.
+- [Data sources](/docs/setup/data-sources/): every source behind the sixteen screens, keyless or not.

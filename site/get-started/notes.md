@@ -2,7 +2,7 @@
 title: Notes and the research vault
 nav: Notes
 description: GreekSoup keeps your research as plain files in the desk folder, the notes you write and the files you bring in, each one linked to the listings it names, the project it belongs to and the notes it links to.
-lead: Fourteen screens read the record. The research vault is where you keep what you make of it, notes and files alike, and the desk connects everything in it to the names and the other notes it belongs with, so nothing you did six months ago is lost.
+lead: Fifteen screens read the record. The research vault is where you keep what you make of it, notes and files alike, and the desk connects everything in it to the names and the other notes it belongs with, so nothing you did six months ago is lost.
 ---
 
 ## The vault

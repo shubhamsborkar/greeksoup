@@ -1,6 +1,6 @@
 # GreekSoup
 
-> The one-person equity research desk: fourteen screens that read your broker, the filings, the options tape and the public record, running on your own computer. Open source under the MIT licence, your keys stay with you, and it places no orders. Twelve of the fourteen screens run with no key at all.
+> The one-person equity research desk, free and open source, for investors and analysts with no coding needed: sixteen screens that read your broker, the filings, the options tape and the public record, running on your own computer. Open source under the MIT licence, your keys stay with you, and it places no orders. Fifteen of the sixteen screens run with no key at all.
 
 Installed with one line on Mac, Windows or Linux. Six brokers connect read-only as it comes and any other is one file written to a contract in the repository. Nothing here needs an account, and no page on this site is behind a login.
 
@@ -8,7 +8,7 @@ Installed with one line on Mac, Windows or Linux. Six brokers connect read-only 
 
 - [Get started](https://greeksoup.ai/docs/get-started/): What GreekSoup is, what you need, and the three ways to get it running on your own computer.
 - [The first ten minutes](https://greeksoup.ai/docs/get-started/first-ten-minutes/): What to open first on a fresh GreekSoup desk with no keys added, and what each screen is already showing you.
-- [The fifteen screens](https://greeksoup.ai/docs/get-started/the-screens/): Every screen on the GreekSoup desk in one line each, grouped the way the sidebar groups them, with what each one reads.
+- [The sixteen screens](https://greeksoup.ai/docs/get-started/the-screens/): Every screen on the GreekSoup desk in one line each, grouped the way the sidebar groups them, with what each one reads.
 - [Notes and the research vault](https://greeksoup.ai/docs/get-started/notes/): GreekSoup keeps your research as plain files in the desk folder, the notes you write and the files you bring in, each one linked to the listings it names, the project it belongs to and the notes it links to.
 - [What runs with no key at all](https://greeksoup.ai/docs/get-started/no-key-needed/): Which GreekSoup screens are live with no broker and no data feed, and what each optional key adds.
 - [Questions readers ask](https://greeksoup.ai/docs/get-started/faq/): The questions readers ask about GreekSoup before and after installing it, answered plainly.
@@ -40,7 +40,7 @@ Installed with one line on Mac, Windows or Linux. Six brokers connect read-only 
 - [Plugins](https://greeksoup.ai/docs/setup/plugins/): A GreekSoup plugin is a folder that adds a screen to the sidebar, blocks a note can carry, or a door for the Ask box, such as the terminal door that answers through the coding agent already on your computer.
 - [Two computers](https://greeksoup.ai/docs/setup/two-computers/): How the GreekSoup research vault reaches a second computer, or a colleague, with no service and no account, through a folder you already sync.
 - [Data providers](https://greeksoup.ai/docs/setup/data-providers/): What a data provider key adds to GreekSoup, the one that ships (Financial Modeling Prep), and how any other provider is one file to a written contract.
-- [Data sources](https://greeksoup.ai/docs/setup/data-sources/): Every source behind GreekSoup's fourteen screens, what each one feeds, and which need a key.
+- [Data sources](https://greeksoup.ai/docs/setup/data-sources/): Every source behind GreekSoup's sixteen screens, what each one feeds, and which need a key.
 
 ## Brokers
 
@@ -69,6 +69,6 @@ Installed with one line on Mac, Windows or Linux. Six brokers connect read-only 
 
 ## Elsewhere
 
-- [The landing page](https://greeksoup.ai/): what the desk is, the fourteen screens, and the one-line install.
+- [The landing page](https://greeksoup.ai/): what the desk is, the sixteen screens, and the one-line install.
 - [The repository](https://github.com/shubhamsborkar/greeksoup): the whole desk, MIT licensed.
 - [What changed, newest first](https://github.com/shubhamsborkar/greeksoup/blob/main/VERSION): the same file the desk reads when it checks for an update.

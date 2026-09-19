@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-19.109. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-19.110. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-19.110
+
+*19 September 2026, release 110.* What a search engine or an answer engine reads now agrees with itself and says who the desk is for. The docs and the machine-readable summary said fourteen or fifteen screens in five places while the desk has sixteen; every count is sixteen now, and fifteen of them run with no key. The first sentence on the landing page, the README and the summary says free, open source, for investors and analysts, no coding needed, one pasted line to install, because an answer engine asked for a research platform read the desk as a developer tool. The landing page's structured data carries the current version on every release instead of a number from three days ago. No code in the desk changed.
 
 ## 2026-09-19.109
 

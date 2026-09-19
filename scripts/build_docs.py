@@ -287,9 +287,9 @@ def write_discovery(sections, pages, order, built):
 
     lines = ["# GreekSoup",
              "",
-             "> The one-person equity research desk: fourteen screens that read your broker, the filings, the "
+             "> The one-person equity research desk, free and open source, for investors and analysts with no coding needed: sixteen screens that read your broker, the filings, the "
              "options tape and the public record, running on your own computer. Open source under the MIT licence, "
-             "your keys stay with you, and it places no orders. Twelve of the fourteen screens run with no key at all.",
+             "your keys stay with you, and it places no orders. Fifteen of the sixteen screens run with no key at all.",
              "",
              "Installed with one line on Mac, Windows or Linux. Six brokers connect read-only as it comes and any "
              "other is one file written to a contract in the repository. Nothing here needs an account, and no page "
@@ -304,7 +304,7 @@ def write_discovery(sections, pages, order, built):
             lines.append(f"- [{p['title']}]({SITE_URL}{p['url']}): {desc}")
         lines.append("")
     lines += ["## Elsewhere", "",
-              f"- [The landing page]({SITE_URL}/): what the desk is, the fourteen screens, and the one-line install.",
+              f"- [The landing page]({SITE_URL}/): what the desk is, the sixteen screens, and the one-line install.",
               f"- [The repository]({REPO}): the whole desk, MIT licensed.",
               f"- [What changed, newest first]({REPO}/blob/main/VERSION): the same file the desk reads when it checks for an update.",
               ""]

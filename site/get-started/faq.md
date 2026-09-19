@@ -8,7 +8,7 @@ lead: The questions we get, in the order people ask them.
 ## Before you install
 
 **Does it cost anything?**
-No. GreekSoup is open source under the MIT licence. You bring your own keys, and without any key at all thirteen of the fifteen screens run on the free public record.
+No. GreekSoup is open source under the MIT licence. You bring your own keys, and without any key at all fifteen of the sixteen screens run on the free public record.
 
 **Do I need a broker?**
 No. Desk · Book takes a portfolio you keep by hand, in any market, and every intelligence screen reads the public record. A broker lights up Desk · Home and Watch · Home with your live account.

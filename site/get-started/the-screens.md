@@ -1,5 +1,5 @@
 ---
-title: The fifteen screens
+title: The sixteen screens
 nav: The screens
 description: Every screen on the GreekSoup desk in one line each, grouped the way the sidebar groups them, with what each one reads.
 lead: One line per screen, in the order the sidebar lists them. Every number on every screen names its source on the screen itself.

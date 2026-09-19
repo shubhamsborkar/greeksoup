@@ -37,3 +37,12 @@ os.makedirs(os.path.join(HERE, "site", "project"), exist_ok=True)
 with open(os.path.join(HERE, "site", "project", "releases.md"), "w", encoding="utf-8") as fh:
     fh.write("\n".join(out))
 print("site/project/releases.md:", len(rows), "releases")
+
+# the landing page's structured data carries the current version too, so a search or
+# answer engine reading the page sees the same number the desk does
+lp = os.path.join(HERE, "docs", "index.html")
+html = open(lp, encoding="utf-8").read()
+new = re.sub(r'"softwareVersion":"[^"]*"', f'"softwareVersion":"{rows[0][0]}"', html)
+if new != html:
+    open(lp, "w", encoding="utf-8").write(new)
+    print("docs/index.html: softwareVersion", rows[0][0])

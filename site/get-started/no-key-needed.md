@@ -7,7 +7,7 @@ lead: The desk is built to fetch whatever it can from the free record before it 
 
 ## With no key at all
 
-Thirteen of the fifteen screens are live the moment the desk starts: the US panels of Desk · Home, Desk · Book, Watch · US, Global, Risk, Macro, Funds, Flow, Short, Capitol, Chain, Commodities, Notes, and the ticker page's chart, quote, ratios and insider table.
+Fifteen of the sixteen screens are live the moment the desk starts: the US panels of Desk · Home, Desk · Book, Watch · Home once a home market is picked in Settings, Watch · US, Global, Risk, Macro, Calendar, Funds, Flow, Short, Capitol, Chain, Commodities, Notes, and the ticker page's chart, quote, ratios and insider table.
 
 | Screen | With no key | What the feed key adds |
 |---|---|---|

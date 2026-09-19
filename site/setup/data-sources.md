@@ -1,7 +1,7 @@
 ---
 title: Data sources
 nav: Data sources
-description: Every source behind GreekSoup's fourteen screens, what each one feeds, and which need a key.
+description: Every source behind GreekSoup's sixteen screens, what each one feeds, and which need a key.
 lead: The source is named on every screen. This is the same list in one place, with what each one feeds.
 ---
 
