@@ -34,6 +34,26 @@ MCX_MAP = {
     "copper": "COPPER", "zinc": "ZINC", "aluminium": "ALUMIN", "lead": "LEAD",
     "nickel": "NICKEL", "cotton": "COTTON", "steel_cn": "STEEL",
 }
+# board commodity id -> the benchmark mandi for the crop: the API's commodity name, the
+# state, the market as the API spells it, the variety that is the reference grade there,
+# and the words a reader sees. The choice of market is the trade's own: Indore for wheat
+# and soybean (the Malwa belt), Davangere for maize, Raichur for kapas, Muzaffarnagar for
+# gur. Rice is not here: mandi rows mix basmati and common grades under one name.
+MANDI_MAP = {
+    "wheat": {"commodity": "Wheat", "state": "Madhya Pradesh", "market": "Indore APMC", "variety": "Mill Quality",
+              "short": "Indore wheat, mill quality", "detail": "India mandi", "note": "the milling grade flour and biscuit makers buy, Indore APMC"},
+    "soybeans": {"commodity": "Soyabean", "state": "Madhya Pradesh", "market": "Indore APMC", "variety": "Soyabeen",
+                 "short": "Indore soybean", "detail": "India mandi", "note": "the soybean crushers' reference market, Indore APMC"},
+    "corn": {"commodity": "Maize", "state": "Karnataka", "market": "Davangere APMC", "variety": "Local",
+             "short": "Davangere maize", "detail": "India mandi", "note": "the maize hub for feed and starch, Davangere APMC"},
+    "cotton": {"commodity": "Cotton", "state": "Karnataka", "market": "Raichur APMC", "variety": "H4",
+               "short": "Raichur kapas (seed cotton)", "detail": "India mandi", "note": "kapas, seed cotton before ginning, at Raichur APMC; lint trades ex-gin"},
+    "sugar": {"commodity": "Gur(Jaggery)", "state": "Uttar Pradesh", "market": "Muzzafarnagar APMC", "variety": None,
+              "short": "Muzaffarnagar gur (jaggery)", "detail": "India mandi", "note": "gur is the mandi-traded sugar proxy; sugar itself sells ex-mill on the mills' own contracts"},
+}
+MANDI_URL = "https://mandi-api.onrender.com/v1/prices"
+MANDI_HIST_URL = "https://mandi-api.onrender.com/v1/prices/history"
+
 MCX_UNIT = {"RS/10GRMS": "₹/10g", "RS/1KGS": "₹/kg", "RS/1BBL": "₹/bbl",
             "RS/1mmBtu": "₹/MMBtu", "RS/1BALES": "₹/bale", "RS/1MT": "₹/t"}
 
@@ -119,6 +139,76 @@ def rubber_board():
 
 
 # ---- MCX contract master -----------------------------------------------------
+def _mandi_get(url, params):
+    import requests
+    r = requests.get(url, params=params, timeout=20, headers={"User-Agent": UA})
+    if r.status_code != 200:
+        return None
+    j = r.json()
+    return j.get("data") if isinstance(j, dict) and j.get("success") else None
+
+
+def mandi_prices(fetch=None):
+    """One local line per crop in MANDI_MAP, keyed by the board id: the benchmark
+    market's latest modal price in rupees per quintal (the reference variety, within
+    ten days), else the state's latest daily average across markets, marked as such;
+    the day's change against the same market's previous row; the state-wide daily
+    average as the history. Cached six hours; a failed fetch returns the last good
+    sheet, stale. `fetch(url, params)` is injectable for the tests."""
+    data = _cget("mandi_in", 6 * 3600)
+    if data:
+        return data
+    get = fetch or _mandi_get
+    out = {}
+    for cid, m in MANDI_MAP.items():
+        try:
+            rows = get(MANDI_URL, {"state": m["state"], "commodity": m["commodity"]}) or []
+            hist = get(MANDI_HIST_URL, {"state": m["state"], "commodity": m["commodity"]}) or []
+        except Exception:  # noqa: BLE001
+            continue
+        rows = [r for r in rows if r.get("modal_price") and r.get("arrival_date")]
+        if not rows:
+            continue
+        latest = max(r["arrival_date"] for r in rows)
+        cutoff = (datetime.strptime(latest, "%Y-%m-%d") - timedelta(days=10)).strftime("%Y-%m-%d")
+        mine = sorted((r for r in rows if r.get("market", "").strip() == m["market"]
+                       and (m["variety"] is None or r.get("variety") == m["variety"]) and r["arrival_date"] >= cutoff),
+                      key=lambda r: r["arrival_date"])
+        series = [[h["arrival_date"], float(h["avg_modal_price"])] for h in hist if h.get("avg_modal_price")]
+        if mine:
+            level, ts, label = float(mine[-1]["modal_price"]), mine[-1]["arrival_date"], m["short"]
+            prev = mine[-2]["modal_price"] if len(mine) > 1 else None
+            state_avg = False
+        else:
+            day = [r for r in rows if r["arrival_date"] == latest]
+            level = sum(float(r["modal_price"]) for r in day) / len(day)
+            ts, label, state_avg = latest, f"{m['state']} {m['commodity'].lower()}, state average", True
+            prev = series[-2][1] if len(series) > 1 and series[-1][0] == latest else None
+        day_pct = ((level - float(prev)) / float(prev) * 100) if prev else None
+        # the week's move is the state average against itself a week earlier, never the
+        # named market against the state, which are two different series
+        wk = None
+        fresh = series and series[-1][0] >= (datetime.strptime(ts, "%Y-%m-%d") - timedelta(days=5)).strftime("%Y-%m-%d")
+        if fresh:      # the history endpoint trails for some crops; a week's move on a stale series is no move
+            wk_ago = (datetime.strptime(series[-1][0], "%Y-%m-%d") - timedelta(days=7)).strftime("%Y-%m-%d")
+            back = next((v for d, v in reversed(series) if d <= wk_ago), None)
+            wk = ((series[-1][1] - back) / back * 100) if back else None
+        out[cid] = {"kind": "local", "tag": "INDIA", "label": f"{label} · {ts}", "short": label, "detail": m["detail"],
+                    "note": m["note"] + ("; the named market had no row in ten days, so this is the state's daily average" if state_avg else ""),
+                    "level": round(level, 2), "unit": "₹/qtl", "day_pct": (round(day_pct, 2) if day_pct is not None else None),
+                    "wk_pct": (round(wk, 2) if wk is not None else None), "ts": ts, "hist": series[-60:],
+                    "source": "Indian Mandi Prices API (agmarknet)", "stale": False}
+    if out:
+        _cput("mandi_in", out)
+        return out
+    old = _cold("mandi_in")
+    if old and old.get("data"):
+        for v in old["data"].values():
+            v["stale"] = True
+        return old["data"]
+    return {}
+
+
 def mcx_master():
     """Front-month FUTSTK per ShortName: {short: {expiry, unit, lot, name}}."""
     fresh = os.path.exists(MCX_ZIP) and time.time() - os.path.getmtime(MCX_ZIP) < 7 * 86400

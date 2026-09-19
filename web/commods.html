@@ -211,7 +211,7 @@ function cardHtml(c){
   const nn=(c.names||[]).length?`<span class="nn">${c.names.length} name${c.names.length>1?"s":""}</span>`:"";
   const loc=(c.local||[]).map(l=>{
     if(l.kind==="exchange") return `<div class="loc" title="${esc(l.note||"")}"><span class="k">${esc(l.tag||"")}</span>${fmtN(l.level)} ${esc(l.unit)} <span class="${cls(l.day_pct)}">${pct(l.day_pct)}</span> · OI ${l.oi==null?"—":Number(l.oi).toLocaleString()} · ${esc((l.ts||"").slice(5,16))}</div>`;
-    return `<div class="loc" title="${esc(l.note||"")}"><span class="k">${esc(l.tag||"")}</span>${esc(l.short||l.label||"")} ${esc(l.unit||"").replace("/kg","")}${fmtN(l.level)}${(l.unit||"").includes("/")?"/"+esc(l.unit.split("/")[1]):""}${l.usc_per_kg!=null?` · ${fmtN(l.usc_per_kg)} USc/kg`:""} · ${esc((l.ts||"").slice(5))}${l.stale?' <span class="badge stale">STALE</span>':""}</div>`;
+    return `<div class="loc" title="${esc(l.note||"")}"><span class="k">${esc(l.tag||"")}</span>${esc(l.short||l.label||"")} ${esc(l.unit||"").replace("/kg","")}${fmtN(l.level)}${(l.unit||"").includes("/")?"/"+esc(l.unit.split("/")[1]):""}${l.usc_per_kg!=null?` · ${fmtN(l.usc_per_kg)} USc/kg`:""}${l.day_pct!=null?` <span class="${cls(l.day_pct)}">${pct(l.day_pct)}</span>`:""} · ${esc((l.ts||"").slice(5))}${l.stale?' <span class="badge stale">STALE</span>':""}</div>`;
   }).join("");
   return `<div class="card" data-id="${c.id}" title="click for history and the exposure map">
     <div class="l">${esc(c.label)}${stale}${nn}</div>
@@ -320,7 +320,7 @@ function openModal(id){
   if(mCard.fred_level!=null) S("IMF monthly benchmark",fmtN(mCard.fred_level)+" "+esc(mCard.fred_unit||""),"FRED, "+(mCard.fred_date||"").slice(0,7)+" (different grade and unit)");
   for(const l of (mCard.local||[])){
     if(l.kind==="exchange") st.push(`<div class="stat loc"><div class="k">${esc(l.label)}</div><div class="n">${fmtN(l.level)} ${esc(l.unit)} <span class="${cls(l.day_pct)}">${pct(l.day_pct)}</span></div><div class="s">open interest ${l.oi==null?"—":Number(l.oi).toLocaleString()} · broker feed ${esc(l.ts||"")}</div></div>`);
-    else st.push(`<div class="stat loc"><div class="k">${esc(l.detail||"")}${l.detail?" · ":""}${esc(l.label)}</div><div class="n">${fmtN(l.level)} ${esc(l.unit||"")}</div><div class="s">${l.usc_per_kg!=null?`${fmtN(l.usc_per_kg)} USc/kg on the source's own dollar column, `:""}against ${fmtN(mCard.value)} ${esc(mCard.unit)} global${l.stale?" · STALE":""}</div></div>`);
+    else st.push(`<div class="stat loc"><div class="k">${esc(l.detail||"")}${l.detail?" · ":""}${esc(l.label)}</div><div class="n">${fmtN(l.level)} ${esc(l.unit||"")}${l.day_pct!=null?` <span class="${cls(l.day_pct)}">${pct(l.day_pct)}</span>`:""}</div><div class="s">${l.usc_per_kg!=null?`${fmtN(l.usc_per_kg)} USc/kg on the source's own dollar column, `:""}${l.wk_pct!=null?`state average ${pct(l.wk_pct)} on the week, `:""}against ${fmtN(mCard.value)} ${esc(mCard.unit)} global${l.source?" · "+esc(l.source):""}${l.stale?" · STALE":""}</div></div>`);
   }
   document.getElementById("m_stats").innerHTML=st.join("");
   const names=mCard.names||[];

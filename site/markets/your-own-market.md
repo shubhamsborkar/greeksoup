@@ -35,6 +35,7 @@ Optional, and shown when the file has it:
 - A results calendar for a list of symbols.
 - The filings block for a ticker page: quarters, shareholding, announcements.
 - The market's own macro rows and cards.
+- The market's own price lines on the Commodities board (India's benchmark mandis and the Rubber Board are the example).
 
 The contract in the repository, `markets/README.md`, gives the exact shape of each one. The shipped India file is the full example; the United States file is the minimal one.
 

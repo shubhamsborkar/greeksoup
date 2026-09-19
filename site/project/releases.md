@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-19.116. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-19.117. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-19.117
+
+*19 September 2026, release 117.* India's own prices on the Commodities board, with no broker and no key. With India as the home market six cards carry an Indian line under the global benchmark: Indore wheat (mill quality) and Indore soybean, Davangere maize, Raichur kapas and Muzaffarnagar gur, each the benchmark market's latest modal price in rupees per quintal with the day's move, from the Indian Mandi Prices API that reads agmarknet's daily arrivals; and Kottayam RSS4 from the Rubber Board, which until now needed the ICICI connection. When the named market has had no row in ten days the line is the state's daily average and says so; the card's detail shows the state average's move on the week. Rice stays out because mandi rows mix basmati and common under one name. A market file can now add its own lines through the written contract, and an Indian broker that serves MCX still adds its futures on top.
 
 ## 2026-09-19.116
 

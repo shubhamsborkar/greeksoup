@@ -26,6 +26,7 @@ lead: Fifty-four cards, grouped the way an income statement meets them: forty-ni
 | Currency pairs: level and eight years of history | Frankfurter, the daily reference rates central banks publish, with the free feed for the intraday level |
 | The industries each commodity squeezes and helps | The desk's own map, shipped with the desk and yours to edit |
 | The names on each industry and their raw-material share | The companies' own filings, mapped in a file that ships with US names |
+| India's mandi lines | The Indian Mandi Prices API, reading agmarknet's daily arrivals, five states; the Rubber Board of India's daily sheet |
 
 Nothing on this screen uses a key.
 
@@ -36,4 +37,6 @@ Nothing on this screen uses a key.
 - Click a name in the pressure panel for its [ticker page](/docs/screens/ticker/).
 - A commodity move past the alert rules lands on the alerts bar at the bottom of every screen.
 
-A local layer for another market (the names of its listed companies under each industry) is one file to the written contract. [Your own market](/docs/markets/your-own-market/).
+## The home market's own lines
+
+With India as the home market, six cards carry an Indian line under the global price with no key: the benchmark mandi for wheat, soybean, maize, kapas and gur (Indore, Indore, Davangere, Raichur, Muzaffarnagar), each the market's latest modal price in rupees per quintal with the day's move, and Kottayam RSS4 from the Rubber Board under Natural rubber. [India](/docs/markets/india/) has the detail. A market file adds its own lines and its listed names through [the written contract](/docs/markets/your-own-market/).

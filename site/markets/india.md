@@ -9,7 +9,7 @@ lead: The fuller of the two market files that ship. Either Indian broker, or a b
 <b>Index</b><span>NIFTY 50</span>
 <b>Currency</b><span>Rupees, grouped in lakhs and crores</span>
 <b>Exchanges</b><span>NSE, then BSE; a symbol is looked up on NSE first</span>
-<b>Public record</b><span>The NSE results calendar; NSE integrated filings; the ten-year yield, the repo rate and CPI</span>
+<b>Public record</b><span>The NSE results calendar; NSE integrated filings; the ten-year yield, the repo rate and CPI; the benchmark mandis and the Rubber Board on the Commodities board</span>
 </div>
 
 ## The results calendar
@@ -23,6 +23,10 @@ Open any home name and under the chart the page shows what the exchange has file
 ## The three macro cards
 
 On Macro, in a group of their own: the ten-year yield (monthly, from FRED, with a lag of about two months), the repo rate with its full change history, and headline CPI year over year. The CPI series is the 2012-base one the statistics office still publishes, which ended in December 2025 when the base changed; the card is complete to that point and says so with its date.
+
+## India's own prices on the Commodities board
+
+With India as the home market, six cards on the Commodities board carry an Indian line under the global benchmark, keyless: Indore wheat (mill quality) and Indore soybean, Davangere maize, Raichur kapas (seed cotton, before ginning) and Muzaffarnagar gur (the mandi-traded sugar proxy; sugar itself sells ex-mill), each as the benchmark market's latest modal price in rupees per quintal with the day's move, from the Indian Mandi Prices API that reads agmarknet's daily arrivals; and Kottayam RSS4 from the Rubber Board's daily sheet under Natural rubber. When the named market has had no row in ten days the line is the state's daily average and says so. Click the card for the line against the global price and the state average's move on the week. An Indian broker that serves MCX adds its front-month futures on top. Rice is not there on purpose: mandi rows mix basmati and common grades under one name.
 
 ## The economic calendar
 

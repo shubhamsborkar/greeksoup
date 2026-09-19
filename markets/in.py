@@ -239,3 +239,40 @@ def _cpi():
                 series.append((f"{year}-{mn:02d}-01", infl))
         time.sleep(0.3)
     return sorted(set(series))
+
+
+# ---- the local layer of the Commodities board, with no broker at all ----------
+def commodities_local(cards):
+    """India's own prices beside the global benchmarks, keyless: the benchmark mandi
+    for each crop the board carries (Indore wheat and soybean, Davangere maize, Raichur
+    kapas, Muzaffarnagar gur) from the Indian Mandi Prices API, and Kottayam RSS4 from
+    the Rubber Board's daily sheet. A broker file that serves MCX adds its futures on
+    top. Returns True when anything was attached."""
+    import local_in
+    try:
+        mandi = local_in.mandi_prices()
+    except Exception:  # noqa: BLE001
+        mandi = {}
+    try:
+        rb = local_in.rubber_board()
+    except Exception:  # noqa: BLE001
+        rb = None
+    hit = False
+    for c in cards:
+        loc = list(c.get("local") or [])
+        have = {l.get("short") for l in loc}
+        m = mandi.get(c["id"])
+        if m and m["short"] not in have:
+            loc.append(m)
+            hit = True
+        if c["id"] == "rubber" and rb and rb.get("grades", {}).get("RSS4") and "Kottayam RSS4" not in have:
+            g = rb["grades"]["RSS4"]
+            loc.append({"kind": "local", "tag": "INDIA", "label": f"Kottayam RSS4 · Rubber Board {rb.get('date', '')}",
+                        "short": "Kottayam RSS4", "note": "the domestic grade Indian tyre makers buy",
+                        "detail": "India domestic", "level": g["inr_per_kg"], "unit": "₹/kg", "usc_per_kg": g["usc_per_kg"],
+                        "stale": rb.get("stale", False), "ts": rb.get("date")})
+            hit = True
+        if loc:
+            c["local"] = loc
+    return hit
+

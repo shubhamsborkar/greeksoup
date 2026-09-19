@@ -2710,8 +2710,9 @@ def build_commods():
             if q:
                 nm["ltp"], nm["day_pct"] = q.get("ltp"), q.get("day_pct")
                 nm["ccy"] = "$" if nm["region"] == "us" else (home_sym or q.get("currency") or "")
-    # local reads belong to the broker's own market; with none connected the
-    # board stays global, so a reader elsewhere never sees them
+    # local reads belong to the home market: the broker's own (MCX futures through its
+    # feed) and the market file's keyless ones (the mandis, the Rubber Board). With no
+    # home market the board stays global, so a reader elsewhere never sees them.
     local_hook = _hook("commodities_local")
     live_local = False
     if local_hook and not broker_health["dead"]:
@@ -2719,6 +2720,12 @@ def build_commods():
             live_local = bool(local_hook(_client(), d["cards"]))
         except Exception:  # noqa: BLE001
             live_local = False
+    m = _market()
+    if m and hasattr(m, "commodities_local"):
+        try:
+            live_local = bool(m.commodities_local(d["cards"])) or live_local
+        except Exception:  # noqa: BLE001
+            pass
     d["local_live"] = live_local
     # the pressure ranking is rebuilt here so its rows carry the live prices
     d["pressure"] = commods.pressure(d["cards"], commods.cross_link(d["cards"]))

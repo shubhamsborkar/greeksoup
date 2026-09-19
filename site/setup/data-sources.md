@@ -18,7 +18,7 @@ lead: The source is named on every screen. This is the same list in one place, w
 - **OpenFIGI.** Bloomberg's open identifier service, keyless. When what you type into a search box on Desk · Book or a watchlist is an ISIN, the twelve-character code on every broker statement, the listings that carry it come from here, the issuer's home exchange first, each checked against the free feed before it is shown. Asked once per ISIN and kept.
 - **The BLS, the Fed and Forex Factory.** The economic calendar when the free feed's own calendar refuses the address, which it does for days at a time: the Bureau of Labor Statistics' release schedule (this month and the next two, every print with its time), the Federal Reserve's FOMC meeting calendar (the statement at two in the afternoon Eastern on the last day), and Forex Factory's public weekly file for this week's prints across the nine major currencies with the forecast and the previous. All three keyless.
 - **Trading Economics.** One dated sentence per page for the commodity benchmarks with no contract and no FRED series, for the current level and the day, month and year change.
-- **The home market's own sources.** The exchange's filings and results calendar, and the statistics office, for the market your broker trades in. India and the United States ship.
+- **The home market's own sources.** The exchange's filings and results calendar, and the statistics office, for the market your broker trades in. India and the United States ship. For India the Commodities board also reads the Indian Mandi Prices API (agmarknet's daily mandi arrivals for five states, keyless, the benchmark market's modal price per crop) and the Rubber Board of India's daily sheet.
 
 ## With a key
 

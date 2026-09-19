@@ -31,6 +31,11 @@ macro_cards()            -> cards the file builds itself (see in.py's repo rate)
 results_calendar(symbols)-> {"rows": [{"symbol", "company", "date", "purpose"}], "skipped": n}
 fundamentals(symbol)     -> {"quarters": [...], "shareholding": [...], "announcements": [...]}
                             for the home ticker page, or None when the source is down
+commodities_local(cards) -> attach the market's own price lines to the Commodities cards
+                            (c["local"], a list of {"kind": "local", "tag", "label", "short",
+                            "detail", "note", "level", "unit", "day_pct", "ts", "stale"}) and
+                            return True when anything was attached; keyless, from the public
+                            record (see in.py: the benchmark mandis, the Rubber Board)
 ```
 
 Keep the file to public sources, date-stamp anything scraped, and let a failed fetch return the last good value rather than nothing.
