@@ -3912,7 +3912,8 @@ WHAT THE READER SEES (pages)             WHAT YOU CAN READ (JSON)
 /watch?list=global  Global                  /api/watch?list=global
                                             /api/results_home     upcoming results in the home market
 /funds       Funds (13F)                    /api/funds      the followed funds' latest 13F holdings
-/flow        Flow                           /api/flow       13D/G activist and large-holder filings
+                                            /api/activist   13D/G activist and large-holder filings
+/flow        Flow                           /api/flow       the options tape on US names: put/call, walls, expected move, unusual strikes
 /short       Short                          /api/short      short interest
 /capitol     Capitol                        /api/capitol    congressional trading disclosures
 /macro       Macro                          /api/macro      the macro cards;  /api/econcal  the calendar

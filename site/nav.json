@@ -13,6 +13,30 @@
       ]
     },
     {
+      "title": "Screens",
+      "dir": "screens",
+      "pages": [
+        "index",
+        "desk-home",
+        "desk-book",
+        "risk",
+        "watch-home",
+        "watch-us",
+        "global",
+        "funds",
+        "flow",
+        "short",
+        "capitol",
+        "calendar",
+        "macro",
+        "commodities",
+        "chain",
+        "notes",
+        "ticker",
+        "settings"
+      ]
+    },
+    {
       "title": "Install",
       "dir": "install",
       "pages": [

@@ -81,7 +81,7 @@ All of them sit in the `data/` folder, plain JSON you can open in any text edito
 | `data/supply_chain.json` | Your value-chain maps (an example ships). |
 | `data/alerts.json` | Alert rules: day moves, margin used, futures expiry, earnings, price levels, insider clusters, 13Ds. Checked every minute; fires a macOS notification and an on-desk chip once per rule per day. |
 | `data/watch_levels.json` | Optional price levels per holding. |
-| `data/commodities.json` | The commodity board: 51 commodities, their free sources, and for each the industries a rise squeezes (`cost`) and helps (`revenue`). No company names, no country prices: it is the universal layer. |
+| `data/commodities.json` | The commodity board: 54 cards (49 commodities and five currency pairs), their free sources, and for each the industries a rise squeezes (`cost`) and helps (`revenue`). No company names, no country prices: it is the universal layer. |
 | `data/exposure_us.json`, `data/exposure_<market>.json` | The names behind those industries for one market, with filing-sourced figures. `data/exposure_example.json` is the template; the README has the prompt that fills one. |
 
 ## How the update works

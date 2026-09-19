@@ -355,6 +355,666 @@ Every number comes from a feed that can be wrong, late or restated, and the sour
 
 ---
 
+# The screens, one by one
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/
+
+One page per screen, with a screenshot from a copy that has no data key, so what you see here is what a fresh install shows. Each page says where every number comes from and what a broker or a feed key adds.
+
+## Desks
+
+- [Desk · Home](https://greeksoup.ai/docs/screens/desk-home/): your broker account, priced live, and the US panels under it.
+- [Desk · Book](https://greeksoup.ai/docs/screens/desk-book/): a portfolio kept by hand, any market, no broker.
+- [Risk](https://greeksoup.ai/docs/screens/risk/): every book against its index; beta, drawdown, concentration, correlation.
+
+## Watchlists
+
+- [Watch · Home](https://greeksoup.ai/docs/screens/watch-home/): your home market's grid, through the broker or the free feed.
+- [Watch · US](https://greeksoup.ai/docs/screens/watch-us/): the US grid, with the fifty and two hundred day columns on a key.
+- [Global](https://greeksoup.ai/docs/screens/global/): any symbol from any exchange on one grid.
+
+## Intelligence
+
+- [Funds](https://greeksoup.ai/docs/screens/funds/): the 13F tracker from SEC EDGAR, with what changed since last quarter.
+- [Flow](https://greeksoup.ai/docs/screens/flow/): the options tape on every US name, from CBOE.
+- [Short](https://greeksoup.ai/docs/screens/short/): FINRA short interest and the daily short-volume ratio.
+- [Capitol](https://greeksoup.ai/docs/screens/capitol/): Congress trading disclosures on your names.
+- [Calendar](https://greeksoup.ai/docs/screens/calendar/): every dated event on every name you hold or watch.
+
+## Market
+
+- [Macro](https://greeksoup.ai/docs/screens/macro/): FRED series in groups, the home market's cards, the economic calendar.
+- [Commodities](https://greeksoup.ai/docs/screens/commodities/): fifty-four cards and the industries each move squeezes or helps.
+- [Chain](https://greeksoup.ai/docs/screens/chain/): your own value-chain maps, drafted by your AI, priced live.
+
+## Research and the rest
+
+- [Notes](https://greeksoup.ai/docs/screens/notes/): the research vault as one screen.
+- [Any ticker](https://greeksoup.ai/docs/screens/ticker/): one page a name, chart to filings.
+- [Settings](https://greeksoup.ai/docs/screens/settings/): three tabs, nothing required.
+
+Screenshots on these pages were taken on 17 September 2026 on a copy with no data key and a paper broker account, so they show the free record as it was that day.
+
+---
+
+# Desk · Home: your broker account, priced live
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/desk-home/
+
+The first screen in the sidebar and the only one that needs a broker. It is your account as the broker reports it, priced live, on the desk of its own market. Under it sit the US panels, which every reader gets whatever the home market is.
+
+![Desk · Home with a paper broker account connected: the holdings, P&L and cash strip, the account block with its allocation bar, the positions table, and the US desk panels below it.](https://greeksoup.ai/img/full-home.webp)
+
+## What it shows
+
+**The strip at the top** is the broker's book in three numbers: holdings at the live mark, profit and loss since cost, and cash. Along the very top, a ticker of the names held with the day's move.
+
+**The account block** is one broker account. Two brokers in one market sit side by side; a broker in another market gets the desk of that market in its own currency, and the desks are never added across. Inside: holdings, P&L, cash, buying power where the broker reports it, an allocation bar coloured by today's move (hover a segment for the detail, click it to open the name), and the positions table with quantity, average cost, mark, value, P&L, P&L percent, day percent and weight.
+
+**Where the broker serves them**, the block also carries open futures and options at underlying value, margin used, and an options tape on the index. On a broker that issues a session key each trading day, the block shows the last saved book with live marks until the day's login, and says so.
+
+**The US desk** sits under the broker block for every reader, because a reader in any market holds and watches US names. Four panels: the US names on Desk · Book priced live, the earnings ahead on the names you hold or watch (soonest first, red within a week, amber within three), a market pulse, and the insider tape from Form 4 filings on your names, with cluster buys marked.
+
+**The alerts bar** along the bottom carries the desk's own alert lines, commodity moves among them; click it to open the list.
+
+## Where each number comes from
+
+| Number | Source |
+|---|---|
+| Holdings, cash, buying power, margin, open futures and options | Your broker, read-only, through its own API |
+| The live mark on each position | The broker's quote where it serves one; otherwise Yahoo's free feed |
+| US book positions | Desk · Book, priced from Yahoo's free feed |
+| Earnings ahead | Yahoo's free feed; the company's own date once announced, an estimate until then |
+| Insider tape and cluster buys | SEC EDGAR Form 4 filings, read by the desk |
+| Market pulse, the market-wide insider scan | The data provider key |
+
+## With and without a key
+
+Without a broker the account block is dark and says so; the US panels still run. Without a feed key the pulse is empty and the insider tape covers your names only; the key adds the scan across the whole market and the movers.
+
+## What you can do here
+
+- Click any name to open its [ticker page](https://greeksoup.ai/docs/screens/ticker/). Hover one for the ⋯ menu: watchlist, note, task, chain, ask your AI.
+- Refresh, top right, reads the broker again.
+- The index options tape has a Your list button on its panel.
+- Ask SuperAnalyst sends this screen's numbers, which here are your holdings, to the AI you chose. [Your AI](https://greeksoup.ai/docs/setup/your-ai/).
+
+Connect a broker on [Settings](https://greeksoup.ai/docs/screens/settings/); the six that ship are on [Brokers](https://greeksoup.ai/docs/brokers/). No broker, or a broker with no API: [Desk · Book](https://greeksoup.ai/docs/screens/desk-book/).
+
+---
+
+# Desk · Book: a portfolio kept by hand, in any market
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/desk-book/
+
+For anyone with no broker to connect, and for a book that spans markets. Type a company's name, pick the listing you hold, give it shares and a cost, and the desk prices it. Most broker exports paste straight in.
+
+![Desk · Book with the example lines: per-currency cards for value, today and since cost, then the positions table.](https://greeksoup.ai/img/full-book.webp)
+
+## What it shows
+
+**Per-currency cards.** Value, today's move and profit since cost, one row of cards per currency, so a book across markets adds up honestly instead of pretending one exchange rate.
+
+**The positions table.** Symbol and exchange, shares, average cost, last price, day move, value, P&L, P&L percent and weight within its currency. A cross at the end of a row removes it.
+
+**The example lines.** A fresh install carries a few example positions so the screen is not empty. They carry no view; their cost is the price on the day that version shipped. **Clear the book** removes them in one click.
+
+## Where each number comes from
+
+| Number | Source |
+|---|---|
+| Last price, day move | Yahoo's free feed; US listings close to live, most other exchanges fifteen to twenty minutes behind |
+| The listing behind a name you type | Yahoo's search, filtered to the exchange you pick; an ISIN pasted from a statement is looked up through OpenFIGI |
+| Value, P&L, weight | Your shares and cost against the live price |
+
+Nothing on this screen uses a broker or a key.
+
+## What you can do here
+
+- **Add a line**: company name or symbol, shares, average cost.
+- **Paste your holdings**: one position per line, symbol, shares, average cost, commas or tabs or spaces, a header row is fine.
+- **Clear the book** removes every line, examples included.
+- The US lines here also appear on Desk · Home's US desk, feed the [Calendar](https://greeksoup.ai/docs/screens/calendar/), [Flow](https://greeksoup.ai/docs/screens/flow/) and [Risk](https://greeksoup.ai/docs/screens/risk/), and count as held on every screen that marks held names.
+
+---
+
+# Risk: every book against its index
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/risk/
+
+How much each book moves, what moves it, and what a bad index day costs, measured on the last year of daily closes. Every number carries a line of small print saying what it means.
+
+![Risk: one book's headline block with beta, volatility, max drawdown and tracks-index, the five percent stress line, sector concentration, the correlation grid, and the per-name table.](https://greeksoup.ai/img/full-risk.webp)
+
+## What it shows
+
+**The three books.** One block per book: the broker account, the hand-kept book, the US book. Each carries the account value and cash, a leverage badge (futures count at full underlying value, so a leveraged book shows positions worth more than the account), and four numbers with their plain-English line: beta against the index, annualised volatility, the worst fall from a peak in the past year, and how much of the daily movement follows the index.
+
+**The stress line.** What a five percent index day costs this book, by beta.
+
+**Where the book is concentrated.** Net exposure by sector as a share of the account, cash included. Names the free feed cannot classify sit in Unclassified.
+
+**Do the books hedge each other.** A correlation grid of daily returns on overlapping dates: red moves together, green offsets, grey means too few overlapping days.
+
+**What is inside.** Every position with its exposure, share of the account, beta, volatility, worst drawdown and index tracking, and under it a grid of which names move together.
+
+## Where each number comes from
+
+| Number | Source |
+|---|---|
+| Daily closes for every name and index | Yahoo's free feed, about 252 trading days |
+| Positions and exposure | Your broker, Desk · Book and the US book |
+| Sectors | Yahoo's profile for each name |
+| Margin cushion | The broker, where it reports one |
+
+## The index is yours
+
+The top bar names the index each home book measures against. The home market's own index is the default; type any Yahoo index symbol and Set to change it, or Follow the market to go back. The US book always measures against the S&P 500.
+
+Needs no key. Needs at least one book with positions, and a history the feed answers.
+
+---
+
+# Watch · Home: your home market's grid
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/watch-home/
+
+A grid of names in your home market. With a broker that serves quotes it carries the order book and live ticks in market hours; without one it runs on the free feed. Names are found as you type and confirmed before they are added.
+
+## What it shows
+
+**The grid.** Symbol and exchange, last price, day move, open, high, low, previous close, volume, the fifty-two week low and high. With a broker that streams, the last price flashes green or red as it ticks and a HI or LO badge marks a name trading at the day's extreme. Where the broker serves levels, the book columns show the best bid and ask.
+
+**Results ahead.** Under the grid, the home market's results calendar for the names on the list, where the market has one (India and the United States do).
+
+**The session badge** at the top says whether the home market is open, and which market that is.
+
+## Where each number comes from
+
+| Number | Source |
+|---|---|
+| Quotes, levels, live ticks | Your broker, where it serves quotes for the market |
+| Quotes with no broker | Yahoo's free feed, filtered to your home market's exchanges |
+| Results calendar | The exchange's own calendar for markets that publish one; the free feed otherwise |
+| The listing behind a name you type | The broker's security master where it has one, else Yahoo's search |
+
+## Without a home market
+
+With no broker and no country picked in Settings the screen says so ("no home market set") and takes plain Yahoo symbols. Pick a country under Home market on [Settings](https://greeksoup.ai/docs/screens/settings/) and the grid takes that market's shape. Readers whose home market is the United States see [Watch · US](https://greeksoup.ai/docs/screens/watch-us/) instead, and this entry is hidden by default.
+
+## What you can do here
+
+- Add a name at the top; the search confirms the listing before it is added.
+- Filter the list; remove a name with the cross that appears on hover.
+- Click a name for its [ticker page](https://greeksoup.ai/docs/screens/ticker/), or hover for the ⋯ menu.
+- Read-only. This page cannot place orders.
+
+---
+
+# Watch · US: the US watch grid
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/watch-us/
+
+US tickers on one grid, found as you type by company name or symbol. Quotes cycle through the list on the free feed, faster on a short list, and three columns fill in when a feed key is set.
+
+![Watch · US: the grid with price, day move, volume, open, high, low, previous close, the fifty-two week range, and the three key columns empty on a keyless copy.](https://greeksoup.ai/img/full-watchus.webp)
+
+## What it shows
+
+Ticker and exchange, price, day percent and change, volume, open, high, low, previous close, fifty-two week low and high. Then three columns that fill with a key: distance from the fifty day average, distance from the two hundred day average, and market cap. On a keyless copy they show a dash, as in the screenshot.
+
+The last price flashes green or red when it ticks up or down since the last look, and a HI or LO badge marks a name trading at the day's high or low. The badge at the top says whether the US market is open.
+
+## Where each number comes from
+
+| Number | Source |
+|---|---|
+| Everything on a keyless copy | Yahoo's free feed |
+| The fifty and two hundred day distance, market cap | The data provider key |
+| The listing behind a name you type | Yahoo's search, US exchanges; an ISIN is looked up through OpenFIGI |
+
+## What you can do here
+
+- Add a name at the top by company name or ticker. A name added here is also on the [Flow](https://greeksoup.ai/docs/screens/flow/) tape within a minute.
+- Filter the list; remove a name with the cross on hover.
+- Click a name for its [ticker page](https://greeksoup.ai/docs/screens/ticker/), hover for the ⋯ menu.
+- Read-only. This page cannot place orders.
+
+The names on this list feed the [Calendar](https://greeksoup.ai/docs/screens/calendar/), [Short](https://greeksoup.ai/docs/screens/short/) and [Capitol](https://greeksoup.ai/docs/screens/capitol/) as watched names.
+
+---
+
+# Global: any symbol from any exchange
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/global/
+
+One grid for everything that is not a home-market or US stock. Indices, currencies, commodity futures, crypto and any listed name on any exchange, grouped by kind, priced from the free feed.
+
+![Global: the grid grouped into indices, FX, commodities and crypto, with price, day move, previous close, high, low, volume and the fifty-two week range.](https://greeksoup.ai/img/full-global.webp)
+
+## What it shows
+
+The list grouped into Indices, FX, Commodities, Crypto and Stocks, each row with price, day percent, previous close, high, low, volume, and the fifty-two week low and high. The badge at the top reads Mixed sessions when some of the list is trading and some is closed.
+
+The starters are the world's main indices, three currency pairs, crude and gold, and Bitcoin. Every one of them can go, and any Yahoo symbol can join.
+
+## Where each number comes from
+
+Yahoo's free feed, for every row. Nothing on this screen uses a key or a broker.
+
+## What you can do here
+
+- Add a name at the top: a company name in any market, an index symbol, a currency pair or a future in Yahoo's form.
+- Filter; remove with the cross on hover; click a stock for its [ticker page](https://greeksoup.ai/docs/screens/ticker/).
+- Read-only. This page cannot place orders.
+
+---
+
+# Funds: track 13F filings for free
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/funds/
+
+The latest 13F for every fund on your list, straight from SEC EDGAR, and what changed since the quarter before. The list is yours. It never uses a paid feed.
+
+![Funds: one card per fund with the filing date, position count and value, the new, exited, added and trimmed names, and the top holdings with value, own and weight.](https://greeksoup.ai/img/full-funds.webp)
+
+## What it shows
+
+**One card per fund.** The quarter it covers, the date it was filed, how many positions, the total value reported. Then the changes since the previous filing, diffed on CUSIP across the two most recent 13F-HRs: names that are new, names that were exited, names added to with the percent, names trimmed with the percent. Under that, the top holdings with value, the share of the company owned where the desk can compute it, and the weight in the fund.
+
+**The activist feed.** 13D and 13G filings on your names and by the funds you follow, plus the raw feed of recent filings, each with a link to the document on EDGAR.
+
+13Fs show US long positions only: no shorts, no cash, no non-US listings, and they arrive up to forty-five days after the quarter ends. The card says which quarter and which filing date, so nothing on it is mistaken for today.
+
+## Where each number comes from
+
+| Number | Source |
+|---|---|
+| Holdings, values, position counts | The fund's 13F-HR on SEC EDGAR, parsed by the desk |
+| Changes since last quarter | The two most recent filings, matched on CUSIP |
+| Share of the company owned | The fund's shares against shares outstanding from the free feed |
+| 13D and 13G rows | SEC EDGAR's filing index |
+
+Nothing on this screen uses a key.
+
+## What you can do here
+
+- **Your list**, top right: add a fund by name or CIK, edit one, remove one with Undo, or bring the shipped starters back. [Your lists](https://greeksoup.ai/docs/setup/your-lists/).
+- Click a holding for its [ticker page](https://greeksoup.ai/docs/screens/ticker/), hover for the ⋯ menu.
+- Ask SuperAnalyst with this screen open and the question goes with every card's numbers.
+
+---
+
+# Flow: the options tape on any US stock
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/flow/
+
+What the options market is positioned for on each of your US names, read from CBOE's free fifteen-minute-delayed chains over a ninety-day expiry window. It describes positioning only; it makes no call.
+
+![Flow: one card per name with put/call on open interest and volume, thirty-day implied volatility, the expected move, skew, the put and call walls around spot, the standing open interest split, and the unusual strikes table.](https://greeksoup.ai/img/full-flow.webp)
+
+## What it shows
+
+**One card per name.** Spot and the day's move, then five numbers: put/call on open interest, put/call on volume, thirty-day implied volatility, the expected move to the nearest expiry with its date, and skew (the put's implied volatility against the call's at the same distance).
+
+**The walls.** The strike with the most put open interest below spot and the strike with the most call open interest above it, drawn on a bar with spot between them and the paid-for expected move around it. Under the bar, how the standing open interest splits between puts and calls.
+
+**Unusual strikes.** Today's volume at least twice the existing open interest, with real premium: positions that did not exist yesterday. Expiry, put or call, strike, volume, open interest and the premium traded.
+
+**OI builds.** Open interest compared against the previous daily snapshot the desk keeps on disk, so they appear from a name's second covered day. A card on its first day says so.
+
+## Where each number comes from
+
+| Number | Source |
+|---|---|
+| Every chain | CBOE's free delayed chains, fifteen minutes behind, read by the desk |
+| Spot | The same feed |
+| Yesterday's open interest | The desk's own snapshot from the day before |
+
+Nothing on this screen uses a key.
+
+## What you can do here
+
+- Add a US name at the top; it goes on [Watch · US](https://greeksoup.ai/docs/screens/watch-us/) and its chain is read within a minute. The names on the tape are the US lines on Desk · Book and the names on Watch · US.
+- Remove a name with the cross beside it.
+- Click a name for its [ticker page](https://greeksoup.ai/docs/screens/ticker/).
+
+---
+
+# Short: FINRA short interest and the daily short-volume ratio
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/short/
+
+Two different FINRA datasets on one screen, kept apart on purpose. The left block is open short positions at the last settlement; the right block is the share of each day's off-exchange volume marked short. They answer different questions and must not be mixed.
+
+![Short: the table with short interest, change against the prior settlement, days to cover, percent of float, a six-settlement trend, then the short-volume ratio, its twenty-day average and a daily trend.](https://greeksoup.ai/img/full-short.webp)
+
+## What it shows
+
+**Short interest** (left): actual open short positions at the settlement date named in the header, the change against the prior settlement, days to cover at recent average volume, the position as a percent of float where a float count is available, and a sparkline of the last six settlements.
+
+**Short-volume ratio** (right): the latest day's share of off-exchange volume marked short, the twenty-day average, and a sparkline of the last twenty-two sessions. Forty to fifty percent is normal market-making; the signal is a change against a name's own average, and a rising arrow marks a day above its average.
+
+**Two honest notes**, printed on the screen: short interest settles twice a month and publishes about nine days later, so the settlement shown can trail today's positioning; daily short volume covers off-exchange trades only, since exchange-floor volume is not in FINRA's file. OTC names without FINRA equity data are left out.
+
+## Where each number comes from
+
+| Number | Source |
+|---|---|
+| Short interest, change, days to cover, settlement dates | FINRA's consolidated short interest files |
+| Short-volume ratio and its trend | FINRA's daily short sale volume files |
+| Percent of float | The data provider's float count, when a key is set; a dash without one |
+
+## What you can do here
+
+- Add a US name at the top. The list is the names you hold and watch plus any you add here.
+- Click a name for its [ticker page](https://greeksoup.ai/docs/screens/ticker/).
+
+---
+
+# Capitol: Congress trading disclosures on your names
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/capitol/
+
+US Congress trading disclosures on your names, and the members you follow. Members report up to forty-five days after trading, and the lag column shows how stale each filing already is.
+
+![Capitol: the Our names table with traded date, ticker, type, amount range, member, chamber, asset and lag, then the tracked members panel.](https://greeksoup.ai/img/full-capitol.webp)
+
+## What it shows
+
+**Our names.** Every filing that touches a name on your book or watchlists: the trade date, ticker, purchase or sale (full or partial), the amount band the member reported, the member and chamber, the asset as written on the form, and the lag between the trade and its disclosure.
+
+**The firehose.** Under it, the raw feed of recent disclosures across every name, the same columns.
+
+**Tracked members.** One panel per member on your list, with their filings on record.
+
+The header says what was read and when: on a keyless copy, House reports only, over the last forty-five days, with a count of reports read and of scanned reports that carried no text layer.
+
+## Where each number comes from
+
+| Number | Source |
+|---|---|
+| House disclosures | The House Clerk's public periodic transaction reports, PDFs read by the desk; the first build downloads up to a hundred and fifty recent reports once, then a few seconds a day |
+| Senate disclosures | The data provider key. The Senate's site blocks programs, so a keyless copy shows the House only |
+| Lag | The disclosure date against the trade date on the form |
+
+## What you can do here
+
+- **Your list**, top of the screen: the members you follow, add or remove with Undo, starters back in one click.
+- Click a ticker for its [ticker page](https://greeksoup.ai/docs/screens/ticker/).
+- Every row links to the filing it came from.
+
+---
+
+# Calendar: every dated event on every name you hold or watch
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/calendar/
+
+Every dated event on the names you hold or watch, ninety days ahead and a few weeks back, from the free record, reread by the desk every six hours. A results date lands on Tasks by itself.
+
+![Calendar: two month grids with results, dividend and filing dots, held names in orange, then the day-by-day agenda with the week ahead and results ahead beside it.](https://greeksoup.ai/img/full-calendar.webp)
+
+## What it shows
+
+**The next ninety days**: two month grids with a dot per event, results in orange, ex-dividend and dividend paid in green, filings in grey, and held names in orange text. The header counts the events, the results among them, and how many fall on names you hold.
+
+**Day by day**: the same events as an agenda, each with what it is, the consensus where the feed has one (EPS expected, revenue expected), and whether the name is held or watched.
+
+**This week** and **Results ahead**: the two lists a reader looks at first, beside the agenda.
+
+**Landed**: the filings that arrived at the SEC on your US names in the last weeks, each with its form and a link to the document.
+
+A results date is the company's own once announced and an estimate until then, and the agenda says which. When a data provider is connected the macro prints ahead join the agenda.
+
+## Where each number comes from
+
+| Event | Source |
+|---|---|
+| Results dates, EPS and revenue expected, ex-dividend and pay dates | Yahoo's free feed |
+| Filings landed | SEC EDGAR's filing index for each US name |
+| Home-market results calendar | The exchange's own calendar where the market publishes one (India, the United States) |
+| Macro prints ahead | The data provider key |
+
+## What you can do here
+
+- Nothing to add: the calendar follows the names you hold and watch across every book and list.
+- Click a name for its [ticker page](https://greeksoup.ai/docs/screens/ticker/); a results date is already a task on [Notes](https://greeksoup.ai/docs/screens/notes/).
+
+---
+
+# Macro: FRED series in groups, and the economic calendar
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/macro/
+
+The macro backdrop from FRED, the St. Louis Fed's public database, in six groups, with the home market's own cards beside them and an economic calendar for the prints ahead. Sparklines show two years; the delta is about one month.
+
+![Macro: the economic calendar panel, then the Rates, Inflation and Growth and labor groups, each card with its level, its one-month delta, a two-year sparkline, the FRED series id and the date of the last print.](https://greeksoup.ai/img/full-macro.webp)
+
+## What it shows
+
+**The cards.** Twenty-two US series shipped, in six groups: Rates (the two, ten and thirty year Treasuries, the 2s10s curve, Fed funds, the thirty year mortgage), Inflation (CPI year on year, the ten year breakeven, five-year-five-year forward inflation, the ten year real yield), Growth and labor (unemployment, initial claims, consumer sentiment), Credit and volatility (VIX, high yield and investment grade spreads), Commodities and dollar (WTI, Brent, Henry Hub gas, the dollar index) and Equities (the S&P 500, the Nasdaq Composite). Each card carries the level, the change over about a month, a two-year sparkline, the FRED id and the date of the last print. Click a card for the full history.
+
+**The home market's cards.** A market file can add its own: India adds the ten-year yield, the repo rate and CPI. [Markets](https://greeksoup.ai/docs/markets/).
+
+**The economic calendar.** The next sixty days of prints for your home market and the United States in full, and the ones that move markets in the euro area, Britain, Japan and China: rate decisions, inflation, jobs, growth, PMIs, in your own time zone. The calendar comes from the free feed and rests when the feed is rate-limiting, as in the screenshot; it fills again when the feed answers.
+
+## Where each number comes from
+
+| Number | Source |
+|---|---|
+| Every US card | FRED, the St. Louis Fed's public API |
+| The home market's cards | The market file's own sources (for India: the ten-year from FRED, the repo rate and CPI from the RBI's and MOSPI's public pages) |
+| The economic calendar | The free feed; the data provider key gives a fuller calendar |
+
+## What you can do here
+
+- **Your list**, top right: add any FRED series by id, edit or remove one with Undo, or bring the twenty-two starters back. [Your lists](https://greeksoup.ai/docs/setup/your-lists/).
+- Click a card for the full history.
+
+---
+
+# Commodities: fifty-four cards and who each move squeezes
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/commodities/
+
+Fifty-four cards, grouped the way an income statement meets them: forty-nine commodities, then five currency pairs at the end because every price above is a dollar price. Movers across four windows, the names within five percent of a five-year high, and who is squeezed or helped this month.
+
+![Commodities: the movers panel over four windows, the names within five percent of a five-year high, and the names-under-pressure panel with squeezed and helped names and the commodities behind each score.](https://greeksoup.ai/img/full-commods.webp)
+
+## What it shows
+
+**Movers.** The biggest moves today, this week, this month and over a year.
+
+**Within five percent of a five-year high.** Each card that is near its own peak, with the distance, the level and the date of the peak, so nobody has to remember an old high by eye.
+
+**The board.** Seven groups: Energy, Base metals, Precious, Ags and softs, Industrial inputs, Freight, Currency. Each card has its level, the change over five windows, and the distance from the five-year high. Click a card for the full history and the industries a rise squeezes (it is a cost to them) and helps (it is their revenue).
+
+**Names under commodity pressure, this month.** Every commodity a listed name sits on, added up: the names squeezed most and the names helped most, with the commodities behind each score and their move. It ships with US names mapped from their own filings; a market file adds the names of another country.
+
+## Where each number comes from
+
+| Number | Source |
+|---|---|
+| Exchange-traded contracts (crude, gold, copper, the grains and so on) | Yahoo's free feed, priced live |
+| Benchmarks without a contract (rubber, zinc, urea, freight) | Trading Economics' daily read, with FRED's monthly IMF series for the long chart |
+| Currency pairs: level and eight years of history | Frankfurter, the daily reference rates central banks publish, with the free feed for the intraday level |
+| The industries each commodity squeezes and helps | The desk's own map, shipped with the desk and yours to edit |
+| The names on each industry and their raw-material share | The companies' own filings, mapped in a file that ships with US names |
+
+Nothing on this screen uses a key.
+
+## What you can do here
+
+- **Your list**, top right: add a commodity with its Yahoo symbol, edit or remove one with Undo, starters back in one click.
+- Click any card for the full history and its industries.
+- Click a name in the pressure panel for its [ticker page](https://greeksoup.ai/docs/screens/ticker/).
+- A commodity move past the alert rules lands on the alerts bar at the bottom of every screen.
+
+A local layer for another market (the names of its listed companies under each industry) is one file to the written contract. [Your own market](https://greeksoup.ai/docs/markets/your-own-market/).
+
+---
+
+# Chain: your own value-chain maps, priced live
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/chain/
+
+Describe an industry, a product or a company and your AI drafts the map, upstream to downstream, with the listed names at each step. Every line is yours to keep, change or drop. Chains are files in your research vault and the names on them price live.
+
+![Chain: a lithium-to-electric-car map with the frame and the hunt at the top, then four numbered layers, each with what it buys, what it sells and the listed names on it, priced.](https://greeksoup.ai/img/full-chain.webp)
+
+## What it shows
+
+**The tabs** across the top: your chains, any starter you have not put away, and New chain.
+
+**One chain.** A title, a line on what it covers and when it was compiled, then two boxes: the frame (the few facts that decide who wins in this chain) and the hunt (the questions for the next pass). Under them the layers, numbered upstream to downstream. Each layer says what it makes, what it buys from the layer before and what it sells to the layer after, and carries the listed names on it with their symbol and live price.
+
+**Receipts.** Every name and every edge carries a receipt: disclosed in a filing, on record, or reported, so the reader knows how firm a link is. A name already on a watchlist is marked.
+
+## Where each number comes from
+
+| Item | Source |
+|---|---|
+| The draft of a new chain | The AI you chose in Settings, from your description, through the Ask box's engine |
+| Prices on the names | Yahoo's free feed, or your broker for home-market names it quotes |
+| The chain itself | A plain file in your research vault, `chains/<id>.json`, which your AI agent can read and write too |
+
+Drafting needs an AI connected; the rest needs no key.
+
+## What you can do here
+
+- **New chain**: describe it and press Draft it; keep, change or drop any layer, name or edge; save.
+- **Edit** and **Delete** on any chain you own; a starter can be put away and brought back.
+- Hover a name for the ⋯ menu, click it for its [ticker page](https://greeksoup.ai/docs/screens/ticker/). A name on any screen can be put on a chain from its own ⋯ menu.
+
+Chains live beside your notes and appear on the name's timeline. [Chains](https://greeksoup.ai/docs/setup/chains/) has the file shape and the way an agent adds one.
+
+---
+
+# Notes: the research vault as one screen
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/notes/
+
+Your research vault as one screen. On the left, the index: what is due, what the desk saw, and every name, project and subject with a count. On the right, every note as a table with four filters, or the note you opened, or the editor. Nothing is saved unless you save it.
+
+![Notes: the search bar across every note and file, the index on the left with the desk, names, projects and a commodity, and the note table on the right with type, title, and where each belongs.](https://greeksoup.ai/img/full-notes.webp)
+
+## What it shows
+
+**The index**, left. The desk (Tasks with the open count, the Journal with its days), then Names, Projects and every other subject, each with a count. A name's line opens its timeline: everything about it by period, twelve months back and more.
+
+**Every note**, right, as a table: updated, type (project, document, call, insight, note, risk and the rest), the title with its first line, and where it belongs, the listing or commodity or theme and the quarter it is researching. Four filters: type, subject, status, period.
+
+**A note**, opened: the text, its links, the files attached to it, and the live blocks. A block is three backticks with a spec (a chart of a name over a year, a table from a screen) and the desk draws it from live numbers every time the note opens.
+
+**The path** at the top right is the folder on your own computer where all of this lives. The first-open guide asks where you want it: beside the desk, in Documents, or in a folder a drive you already use syncs.
+
+## Where it all comes from
+
+| Item | Source |
+|---|---|
+| Notes | Markdown files you write, in the vault folder |
+| Documents | Files you bring in (annual reports, models, PDFs), stored in the vault under the name they belong to, with the text read out of them so search reaches inside |
+| Tasks | Your own lines, checkboxes inside notes, and results dates from the Calendar, which arrive on their own |
+| The journal | What the desk saw each day, written by the desk |
+| Live blocks | The desk's own screens at the moment the note opens |
+
+Needs no key. The AI you connect reads the vault when a question names a subject it holds.
+
+## What you can do here
+
+- **New note**, **Bring a file in**, and the search across every note and inside every file.
+- Open a note to edit it in place; save a chart from a ticker page or an answer from the Ask box straight into a note.
+- Open the same folder in Obsidian or any editor; the files are the same files, and your AI agent reads and writes them too.
+
+[Notes and the research vault](https://greeksoup.ai/docs/get-started/notes/) explains how a note names what it is about and links to the rest.
+
+---
+
+# Any ticker: one page a name, chart to filings
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/ticker/
+
+Press Command K and type a symbol, or click a name on any screen. One page per name, your own notes and tasks on it at the top, the chart under them, and the record down the page. Every number names its source.
+
+![A ticker page for JPM: your notes and tasks on the name at the top, the desk's own candle chart with the fifty and two hundred day averages, and the analyst, fifty-two week range and insider activity cards on the right.](https://greeksoup.ai/img/full-ticker.webp)
+
+## What it shows
+
+**Your notes on the name**, first: what you have written, the status you gave it (watchlist, researching, thesis built, invested, exited), the files attached, and the tasks due on it, with a results date already there from the Calendar.
+
+**The chart.** The desk's own: candles, bars, Heikin-Ashi, line, area or a drawdown view; daily or weekly bars; indicators from a menu; ranges from a day to the maximum history; drawings (levels, trendlines, a note on a bar) kept as a plain file beside your notes; Save chart to notes; full screen. TradingView's embedded chart at a click, with their data and their tools, where their embed carries the listing.
+
+**The cards.** Valuation, quality and balance sheet, earnings, news, the analyst street view (average target, implied move, the buy to sell count), the fifty-two week range, insider activity from Form 4, dividends, and about the company.
+
+**A home-market name** opens with the exchange's own record where the market has one: quarterly results, corporate filings, shareholding, where it trades, and the session. [Markets](https://greeksoup.ai/docs/markets/).
+
+**A name you hold** shows the held block: the position from the broker, Desk · Book or the US book, and the futures book where the broker reports one.
+
+## Where each number comes from
+
+| Card | Without a key | With a data provider key |
+|---|---|---|
+| Chart and quote | Yahoo's free feed | The same, with longer history |
+| Profile, ratios, targets, analyst counts | Yahoo's free feed, when it is not rate-limiting | The provider |
+| Insider activity | SEC EDGAR Form 4, read by the desk | The same |
+| Statements, ratio history, segments, estimates, peers, dividends history, news | Not shown | The provider, six years |
+| The DCF sandbox | Not shown | Seeded from the provider's statements, every input yours to change |
+| Exchange filings and results on a home-market name | The exchange's own record, no key | The same |
+
+When the free feed is rate-limiting, the page shows the last read it has, says so on an amber line with the time, and refreshes on its own when the feed answers again.
+
+## What you can do here
+
+- Note on the name, attach a file, add a task, set the status.
+- Ask SuperAnalyst with the page open: the question carries the page's numbers and your notes, files and chart pictures on the name.
+- The ⋯ on the name: watchlist, chain, note, task.
+
+---
+
+# Settings: three tabs, nothing required
+
+Section: Screens. URL: https://greeksoup.ai/docs/screens/settings/
+
+Everything the desk needs from you, on three tabs. Each key is optional, each one is yours, and each one stays in a file inside the desk folder on your computer. The desk writes that file for you and a new version never touches it. Nothing on this screen places an order anywhere.
+
+![Settings on the Connect tab: the broker block with a paper account connected, the home market picker, and the data provider block.](https://greeksoup.ai/img/full-settings.webp)
+
+## Connect
+
+**Broker.** One account per broker, on the desk of its market. Pick a broker to add or edit, paste its keys, Add and connect; Check the connection and Remove the keys sit beside it. A broker that issues a session key each trading day (ICICI Direct, Zerodha) has a session box under its keys that opens the broker's login and takes the day's key from the page it returns to. Any broker error carries a button that hands it to your AI. [Brokers](https://greeksoup.ai/docs/brokers/).
+
+**Home market.** Pick your country, or let the connected broker set it. The home screens take its shape: session hours, the index on Risk, the currency, the exchanges, and where the record has them, the results calendar, the filings and the market's own macro cards. [Markets](https://greeksoup.ai/docs/markets/).
+
+**Data provider.** Pick one from the list, paste the key, and a button says what your plan answers. Without one the desk gives what the free record offers; a provider adds parsed statements, estimates, segments, peers, dividends and news on the ticker page, longer price history, and the market-wide insider and Senate scans. [Data providers](https://greeksoup.ai/docs/setup/data-providers/).
+
+**Your AI.** The apps already on this computer first (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code, Cursor), each with Use it for Ask and Sign in; then a key from any of fourteen presets, models on your own computer among them; then Any other endpoint. Test it sends one line and shows what came back. [Your AI](https://greeksoup.ai/docs/setup/your-ai/).
+
+## Your desk
+
+**Screens.** Show or hide any screen except Desk · Home and Settings; screens you have not touched follow your home market.
+
+**How you invest.** A few lines in your own words that go with every question to your AI, so the answer fits you.
+
+**Where the vault lives.** The folder your notes and files are in: beside the desk, in Documents, or in a folder a drive you already use syncs.
+
+**Journal.** What the desk writes each day, and whether it does.
+
+**This desk.** The version, the update check, the startup guide, and Tell us, which gathers what we need to help and sends it.
+
+**Your files.** One zip of everything that is yours, and what an update never touches. [Back up](https://greeksoup.ai/docs/install/back-up/).
+
+**If something is wrong.** The one check that tells your agent what to fix. [If something is wrong](https://greeksoup.ai/docs/install/if-something-is-wrong/).
+
+## Plugins
+
+Screens, blocks and doors others made, switched on here. [Plugins](https://greeksoup.ai/docs/setup/plugins/).
+
+## Where the keys live
+
+In one settings file inside the desk folder, written by this screen. The update never touches it, the backup never carries it, and the page your AI reads tells it not to read it. [What it talks to](https://greeksoup.ai/docs/install/what-it-talks-to/) lists every place the desk sends a request.
+
+---
+
 # Install
 
 Section: Install. URL: https://greeksoup.ai/docs/install/
@@ -1983,7 +2643,11 @@ It places no orders, it sends nothing about you anywhere, and it assumes no brok
 
 Section: Project. URL: https://greeksoup.ai/docs/project/releases/
 
-Newest first. The current version is 2026-09-19.113. Your desk reads this same list once a day and offers the update with one click.
+Newest first. The current version is 2026-09-19.114. Your desk reads this same list once a day and offers the update with one click.
+
+## 2026-09-19.114
+
+*19 September 2026, release 114.* The Commodities board says what it holds: fifty-four cards, forty-nine commodities and five currency pairs, where the line above the board still counted fifty-one. The page an AI agent reads now describes Flow as the options tape and names the 13D and 13G feed under Funds, which is where each has always lived. Nothing else on the desk changes.
 
 ## 2026-09-19.113
 
