@@ -69,6 +69,8 @@ else
   mkdir -p "$(dirname "$DEST")"
   mv "$SRC" "$DEST"
   rm -rf "$TMP"
+  # the website and the install scripts came along in the zip; the desk never uses them
+  rm -rf "$DEST/docs" "$DEST/site" "$DEST/install.ps1" "$DEST/install.sh"
 fi
 cd "$DEST"
 

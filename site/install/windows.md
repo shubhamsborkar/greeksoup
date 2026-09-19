@@ -31,6 +31,14 @@ Set either of these in the same PowerShell window before the line, and the insta
 
 The same line on a PC that already has the desk only starts it. It never overwrites your settings file or anything in your data folder.
 
+## If your antivirus speaks up
+
+A reader's Bitdefender flagged the desk's install script as "infected" and asked to restart the PC; other antivirus programs may do the same. It is a false alarm on that one file. An install script downloads a file and runs it, which is exactly the shape an antivirus is trained to distrust. The desk's program files were not flagged.
+
+What to do: let it restart if it asks. Since the 19 September 2026 version the install script no longer travels inside updates, and the desk removes it from its own folder the first time it starts, so there is nothing left for the alarm to fire on. If an update stopped on it, nothing in your desk folder was changed: open the desk and click **Update the desk** once more. If the desk does not open after the restart, paste the install line at the top of this page again; it brings the desk up to date and starts it.
+
+No exclusions to add, no settings to change in the antivirus.
+
 ## The files in the folder
 
 Open the `GreekSoup` folder in File Explorer and you find a few files with plain names, ending in `.bat`. **Start Desk** starts the desk and keeps a small window open while it runs. **Keep Desk Running** sets it to start at logon and come back if it stops; the install already did this. **Stop Desk** switches that off. [Keep it running](/docs/install/keep-it-running/) explains them.

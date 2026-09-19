@@ -641,10 +641,16 @@
       const rep = await r.json();
       if (!rep.ok) {
         el.className = "fail";
+        /* a report with the error already in it, for a reader with no other way to reach us */
+        const tell = "https://github.com/shubhamsborkar/greeksoup/issues/new?template=bug.yml" +
+          "&title=" + encodeURIComponent("The update did not go through") +
+          "&version=" + encodeURIComponent(rep.from || "") +
+          "&what=" + encodeURIComponent("Clicked Update the desk. The strip said: " + (rep.error || "unknown reason"));
         el.innerHTML = `<div class="uin"><span class="utag">Not updated</span>` +
           `<span class="utxt">The update did not go through: ${esc(rep.error || "unknown reason")}. ` +
           `Your keys and lists are untouched and the desk keeps running on the version it has. ` +
-          `Clicking Update again picks up where this stopped; the other way is in the README under "Getting a newer version".</span>` +
+          `Clicking Update again picks up where this stopped; the other way is in the README under "Getting a newer version". ` +
+          `If it fails again, <a href="${tell}" target="_blank" rel="noopener">tell us</a>, the message is already written.</span>` +
           `<button class="ubtn ghost" id="uclose">Close</button></div>`;
         document.getElementById("uclose").onclick = () => { el.style.display = "none"; };
         return;

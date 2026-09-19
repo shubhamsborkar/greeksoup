@@ -287,6 +287,37 @@ def _untouchable(rel):
     return top in NEVER_TOUCH or rel.startswith("session_token") or top.startswith(".env")
 
 
+# The website and the one-line installers: in the repository and on greeksoup.ai, never
+# needed inside a running desk. A copy installed before 2026-09-19.103 carries them
+# because the zip did, and a Windows antivirus reads an installer on disk as a downloader
+# any day it scans. So the desk removes them from its own folder, at start and after an
+# update. Never in a git checkout: that is the author's working copy, not an install.
+NOT_THE_DESK_DIRS = ("docs", "site")
+NOT_THE_DESK_FILES = ("install.sh", "install.ps1")
+
+
+def tidy():
+    """Remove the website and installer files from an installed copy. Returns what went."""
+    gone = []
+    if os.path.isdir(os.path.join(HERE, ".git")):
+        return gone
+    for d in NOT_THE_DESK_DIRS:
+        p = os.path.join(HERE, d)
+        if os.path.isdir(p):
+            shutil.rmtree(p, ignore_errors=True)
+            if not os.path.isdir(p):
+                gone.append(d + "/")
+    for f in NOT_THE_DESK_FILES:
+        p = os.path.join(HERE, f)
+        if os.path.isfile(p):
+            try:
+                os.remove(p)
+                gone.append(f)
+            except OSError:
+                pass       # held by the antivirus this minute; the next start tries again
+    return gone
+
+
 PREVIOUS = os.path.join(HERE, "cache", "previous")
 
 
@@ -366,6 +397,25 @@ def apply():
         rep["to"] = manifest.get("version") or (parse_version_text(
             open(os.path.join(root, "VERSION"), encoding="utf-8").read()) or [{}])[0].get("version")
         history = manifest.get("history", {})
+        # Read every file in the download before writing a single one into the desk: an
+        # antivirus that holds one file in the download (it did, 2026-09-19) stops the
+        # update here, with the desk folder exactly as it was, and the strip can say so.
+        held = []
+        for rel in sorted(manifest["files"]):
+            src = os.path.join(root, *rel.split("/"))
+            if not os.path.isfile(src):
+                continue
+            try:
+                with open(src, "rb") as fh:
+                    fh.read(1)
+            except OSError:
+                held.append(rel)
+        if held:
+            raise PermissionError(
+                "the computer would not let the desk read "
+                + ", ".join(held[:5]) + (" and more" if len(held) > 5 else "")
+                + " in the download, usually because an antivirus is looking at it. Nothing "
+                "in the desk folder was changed. Wait a minute and click Update again")
         req_before = file_hash(os.path.join(HERE, "requirements.txt"))
         # The snapshot of this version is not cleared: when the last attempt stopped part
         # way (an antivirus locked a file, the network dropped), the files it had already
@@ -438,6 +488,7 @@ def apply():
             except Exception as exc:  # noqa: BLE001
                 rep["pip"] = "failed: " + str(exc)[:200]
         rep["ok"] = True
+        rep["tidied"] = tidy()
         rep["seconds"] = round(time.time() - started, 1)
         try:
             os.remove(CHECK_PATH)   # next look at GitHub starts clean

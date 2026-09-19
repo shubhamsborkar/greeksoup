@@ -122,6 +122,24 @@ def test_update_unpacks_only_what_the_manifest_lists(tmp_path):
     assert not (root / "install.sh").exists(), "an installer was unpacked"
 
 
+def test_tidy_removes_website_and_installers_but_never_from_a_checkout(tmp_path, monkeypatch):
+    """An installed copy sheds the website and the install scripts (an antivirus reads an
+    installer on disk as a downloader); the author's git checkout keeps them."""
+    updater = importlib.import_module("updater")
+    for name in ("docs/install.ps1", "site/index.md", "install.sh", "install.ps1", "uninstall.sh", "server.py"):
+        p = tmp_path / name
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("x")
+    monkeypatch.setattr(updater, "HERE", str(tmp_path))
+    gone = updater.tidy()
+    assert sorted(gone) == ["docs/", "install.ps1", "install.sh", "site/"]
+    assert (tmp_path / "uninstall.sh").is_file(), "Uninstall Desk.command runs uninstall.sh"
+    assert (tmp_path / "server.py").is_file()
+    (tmp_path / "docs").mkdir()
+    (tmp_path / ".git").mkdir()
+    assert updater.tidy() == [] and (tmp_path / "docs").is_dir(), "a checkout must keep its website"
+
+
 def test_ask_box_reads_every_screen_in_the_sidebar():
     """Every screen the sidebar offers can answer a question about itself."""
     server = importlib.import_module("server")

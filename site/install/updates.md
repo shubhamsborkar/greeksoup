@@ -23,6 +23,14 @@ Click the button and the desk brings the new version in, then restarts by itself
 
 Every file you own carries a format number: your chains, your lists, Desk · Book, your watchlists, your alert rules. A version that changes one of their shapes ships the step that brings the old shape up. At the next start the desk keeps a copy of each such file under `cache/previous`, brings the file up, and says so on the banner: which file, and where the copy is. Nothing is lost; the copy is yours to open. A file written by a newer desk than this one, which happens when two computers share a vault and one is behind, is left as it is and named on the banner, so you know to update this one.
 
+## If the update stops
+
+The desk reads every file in the download before it writes a single one into your folder. If it cannot, the strip says so, nothing in your folder has changed, and one more click on **Update the desk** finishes the job. If a file cannot be written part way, the version is not stamped until every file is in; the strip names the file and asks for one more click, which brings in only what is missing. Your keys and your lists are never part of any of this.
+
+On Windows the usual reason is the antivirus. See [antivirus on Windows](/docs/install/windows/#if-your-antivirus-speaks-up).
+
+If the desk stops answering after an update, the always-on service on Windows notices a desk that will not start, brings the current version in by itself and starts it again; nobody has to click. On a Mac the desk keeps the files it replaced, and `python updater.py rollback` in the desk folder goes back one version.
+
 ## Without the click
 
 Switch on *Newer versions* on the Settings screen. The desk then brings a new version in the day it appears and tells you what changed the next time you open it.

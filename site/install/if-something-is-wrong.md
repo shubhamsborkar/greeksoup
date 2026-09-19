@@ -26,6 +26,7 @@ If you would rather not open a terminal, tell your agent: "run the check in this
 - **"The desk is already running."** Another copy is on the same port. Open the address; it is that copy. To run two, give the second one another port in its settings file.
 - **A Mac says the file "cannot be opened because it is from an unidentified developer."** Right-click the file, choose Open, then Open again. Once is enough.
 - **Windows asks about running scripts.** The one-line install runs in PowerShell as Microsoft documents it. If a policy blocks it, the [with an agent](/docs/install/with-an-agent/) path needs no script at all.
+- **Windows antivirus says a file in the desk is "infected".** A false alarm on the install script, which downloads and runs things the way every installer does. Let it restart if it asks, then click **Update the desk** once more. [Antivirus on Windows](/docs/install/windows/#if-your-antivirus-speaks-up) has the whole of it.
 - **The update failed, or the new version misbehaves.** The desk keeps the files it replaced. Tell your agent "go back to the previous version of the desk", or in the desk folder type `python updater.py rollback`, then start the desk. [Updates](/docs/install/updates/) explains what is kept.
 - **Capitol is slow the first time.** It downloads and reads the recent House disclosures once. A minute or two, then seconds.
 - **A commodity card says stale.** The scraped source changed its page. The last good value stays, dated, until the source is read again.

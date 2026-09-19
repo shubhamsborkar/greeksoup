@@ -77,6 +77,11 @@ if (Test-Path (Join-Path $Dest "server.py")) {
   New-Item -ItemType Directory -Path (Split-Path $Dest) -Force | Out-Null
   Move-Item -Path $Src.FullName -Destination $Dest
   Remove-Item -Recurse -Force $Tmp
+  # The website and the install scripts came along in the zip; the desk never uses them,
+  # and an antivirus reads an install script on disk as a downloader. Out they go.
+  foreach ($x in @("docs", "site", "install.ps1", "install.sh")) {
+    Remove-Item -Recurse -Force (Join-Path $Dest $x) -ErrorAction SilentlyContinue
+  }
 }
 Set-Location $Dest
 

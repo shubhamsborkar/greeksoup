@@ -4857,6 +4857,12 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    try:
+        gone = updater.tidy()
+        if gone:
+            print("removed from the desk folder (the website and the installers, not needed here): " + ", ".join(gone))
+    except Exception as exc:  # noqa: BLE001 - tidying must never stop the desk
+        print("tidy skipped:", exc)
     mig = desk_migrate.run(updater.local_version())
     try:
         for nm in desk_plugins.refresh_shipped():
