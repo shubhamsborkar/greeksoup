@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GreekSoup vs Perplexity for stock research · GreekSoup docs</title>
+<meta name="description" content="How GreekSoup, the free open-source research desk, differs from Perplexity Finance for researching a stock with AI. One searches the web and writes an answer; the other puts the record on a screen and lets the AI you already use read it.">
+<meta property="og:title" content="GreekSoup vs Perplexity for stock research · GreekSoup docs">
+<meta property="og:description" content="How GreekSoup, the free open-source research desk, differs from Perplexity Finance for researching a stock with AI. One searches the web and writes an answer; the other puts the record on a screen and lets the AI you already use read it.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://greeksoup.ai/docs/compare/vs-perplexity/">
+<meta property="og:image" content="https://greeksoup.ai/img/og.jpg">
+<link rel="canonical" href="https://greeksoup.ai/docs/compare/vs-perplexity/">
+<link rel="icon" href="../../../img/greeksoup-favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="../../../img/greeksoup-favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/docs.css">
+<script>try{var t=localStorage.getItem("gs-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;}catch(e){}</script>
+<!-- Cloudflare Web Analytics: counts page views and visits for greeksoup.ai, no cookie, no personal data --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "2e8be72dd4814f2e8301f4ffb36140e5"}'></script>
+</head>
+<body data-rel="../../">
+<a class="skip" href="#content">Skip to content</a>
+<header class="top">
+  <button class="menu" id="menu" aria-label="Open the contents"><span></span><span></span><span></span></button>
+  <a class="brand" href="../../../" aria-label="GreekSoup, home"><svg class="gsm" viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l16 22-16 22" stroke="#ED5A24" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter" fill="none"/><rect x="48" y="66" width="12" height="20"/><rect x="66" y="50" width="12" height="36"/><rect x="84" y="34" width="12" height="52"/></svg><span>greeksoup<b>/</b></span></a>
+  <a class="docs-tag" href="../../">docs</a>
+  <button class="search" id="search-open" aria-label="Search the docs"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="4.6"/><path d="M10.5 10.5L14 14"/></svg><span>Search</span><kbd>⌘K</kbd></button>
+  <nav class="links">
+    <a href="../../../#install">Install</a>
+    <a href="../../project/security/">Security</a>
+    <button class="theme" id="theme" aria-label="Switch between light and dark"><svg class="sun" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg><svg class="moon" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13.5 10.2A6 6 0 015.8 2.5a6 6 0 107.7 7.7z"/></svg></button>
+    <a class="gh" href="https://github.com/shubhamsborkar/greeksoup" aria-label="GreekSoup on GitHub" title="GitHub"><svg viewBox="0 0 16 16"  fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+    <a class="gh" href="https://gitlab.com/shikshan-nivesh/greeksoup" aria-label="GreekSoup on GitLab, the mirror" title="GitLab mirror"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.65 14.39 12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 0 1 4.82 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.49h8.1l2.44-7.51A.42.42 0 0 1 18.6 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.51L23 13.45a.84.84 0 0 1-.35.94z"/></svg></a>
+    <a class="btn" href="../../../#install">Install</a>
+  </nav>
+</header>
+<div class="frame">
+  <aside class="side" id="side">
+    <div class="side-in"><div class="sec"><div class="sec-t">Get started</div><ul><li><a href="../../get-started/">Overview</a></li><li><a href="../../get-started/first-ten-minutes/">The first ten minutes</a></li><li><a href="../../get-started/the-screens/">The screens</a></li><li><a href="../../get-started/notes/">Notes</a></li><li><a href="../../get-started/no-key-needed/">No key needed</a></li><li><a href="../../get-started/faq/">FAQ</a></li></ul></div><div class="sec"><div class="sec-t">Install</div><ul><li><a href="../../install/">Overview</a></li><li><a href="../../install/mac/">Mac</a></li><li><a href="../../install/windows/">Windows</a></li><li><a href="../../install/linux/">Linux</a></li><li><a href="../../install/with-an-agent/">With an AI agent</a></li><li><a href="../../install/from-source/">From source</a></li><li><a href="../../install/keep-it-running/">Keep it running</a></li><li><a href="../../install/updates/">Updates</a></li><li><a href="../../install/back-up/">Back up</a></li><li><a href="../../install/uninstall/">Uninstall</a></li><li><a href="../../install/what-it-talks-to/">What it talks to</a></li><li><a href="../../install/your-computer-or-a-server/">Your computer or a server</a></li><li><a href="../../install/if-something-is-wrong/">If something is wrong</a></li><li><a href="../../install/known-issues/">Known issues</a></li><li><a href="../../install/the-page-is-blank/">The page is blank</a></li></ul></div><div class="sec"><div class="sec-t">Setup</div><ul><li><a href="../../setup/">Overview</a></li><li><a href="../../setup/your-ai/">Your AI</a></li><li><a href="../../setup/your-lists/">Your lists</a></li><li><a href="../../setup/chains/">Chains</a></li><li><a href="../../setup/plugins/">Plugins</a></li><li><a href="../../setup/two-computers/">Two computers</a></li><li><a href="../../setup/data-providers/">Data providers</a></li><li><a href="../../setup/data-sources/">Data sources</a></li></ul></div><div class="sec"><div class="sec-t">Brokers</div><ul><li><a href="../../brokers/">Overview</a></li><li><a href="../../brokers/alpaca/">Alpaca</a></li><li><a href="../../brokers/icici-direct/">ICICI Direct</a></li><li><a href="../../brokers/interactive-brokers/">Interactive Brokers</a></li><li><a href="../../brokers/tradier/">Tradier</a></li><li><a href="../../brokers/trading-212/">Trading 212</a></li><li><a href="../../brokers/zerodha/">Zerodha</a></li><li><a href="../../brokers/another-broker/">Another broker</a></li></ul></div><div class="sec"><div class="sec-t">Markets</div><ul><li><a href="../../markets/">Overview</a></li><li><a href="../../markets/india/">India</a></li><li><a href="../../markets/united-states/">United States</a></li><li><a href="../../markets/your-own-market/">Your own market</a></li></ul></div><div class="sec"><div class="sec-t">Compare</div><ul><li><a href="../../compare/">Overview</a></li><li><a href="../../compare/bloomberg-alternatives/">Bloomberg alternatives</a></li><li class="on"><a href="../../compare/vs-perplexity/">vs Perplexity</a></li><li><a href="../../compare/open-source-equity-research-software/">Open-source field</a></li><li><a href="../../compare/research-a-stock-with-ai/">AI without made-up numbers</a></li><li><a href="../../compare/for-developers/">For developers?</a></li></ul></div><div class="sec"><div class="sec-t">Project</div><ul><li><a href="../../project/">Overview</a></li><li><a href="../../project/releases/">Releases</a></li><li><a href="../../project/contributing/">Contributing</a></li><li><a href="../../project/security/">Security</a></li></ul></div></div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+  <main class="content" id="content">
+    <div class="crumb">Compare</div>
+    <article class="prose">
+      <h1>GreekSoup vs Perplexity for stock research</h1>
+      <p class="lead">Both put an AI in front of a stock question. They do it from opposite ends. Perplexity searches the web and its data partners and writes you an answer. GreekSoup fetches the record onto a screen on your own computer and lets whichever AI you already use read that screen. Which one is better depends on the question.</p>
+      <h2 id="the-one-difference-that-decides-it">The one difference that decides it</h2>
+<p>Ask Perplexity about a company and it goes looking: the web, news, filings it can reach, and the market data its partners license to it (FactSet, S&amp;P Global, Morningstar, LSEG and Financial Modeling Prep are among the names it lists). It reads what it finds and writes an answer with citations. The answer is only as good as what the search turned up, and for a thinly covered name the search turns up less.</p>
+<p>Ask the same question in GreekSoup and the desk sends the AI the numbers already on the screen you are on, the ones you can see, each with its source named beside it. The AI reads those and answers. It is told to say so when the screen does not answer the question rather than fill the gap. The answer is only as good as the screen, and the screen is the record: SEC EDGAR for the 13F and insider tables, CBOE for the options chain, FINRA for short interest, FRED for the macro series, your broker for your book.</p>
+<p>So one reads the record and the other searches the web, and everything below follows from that.</p>
+<h2 id="where-perplexity-is-the-better-tool">Where Perplexity is the better tool</h2>
+<ul>
+<li><strong>A name you have never looked at.</strong> Perplexity's screener, earnings hub and profile pages give a first read in a minute, with no setup.</li>
+<li><strong>Why a stock moved today.</strong> News is Perplexity's home ground. GreekSoup shows headlines on the ticker page with a feed key and nothing more.</li>
+<li><strong>Transcripts.</strong> Perplexity's earnings hub carries call transcripts and slides. The desk does not.</li>
+<li><strong>Nothing to install.</strong> It is a web page and an app; the finance hub is largely free and the twenty-dollar plan adds the model picker and file uploads.</li>
+<li><strong>Screening in plain English.</strong> Perplexity's screener covers US and Indian equities. The desk has no screener.</li>
+</ul>
+<h2 id="where-greeksoup-is-the-better-tool">Where GreekSoup is the better tool</h2>
+<ul>
+<li><strong>Your own book.</strong> Six brokers connect read-only, and a hand-kept book in any market prices from the free feed. Risk, the calendar and the insider tape then run on your names. Perplexity's portfolio feature links a brokerage through Plaid on a paid plan; the desk reads yours on your own computer and sends it nowhere unless you ask a question about it.</li>
+<li><strong>The owners and the tape.</strong> The 13F tracker reads EDGAR itself, quarter over quarter, for the funds you follow. The options tape, short interest and Congress trades sit on their own screens, live from the public files. These are tables you scan, and a search engine is a poor way to scan a table.</li>
+<li><strong>A number you can check.</strong> Every figure on every screen names its source. The Ask box's answer carries a line saying which addresses it read. When a number looks wrong you go to the file it came from.</li>
+<li><strong>Notes that compound.</strong> Every answer worth keeping saves as a note, a plain file in your research vault, linked to the name it is about. Next quarter you open the name and last quarter's note is there, which a chat history does not do.</li>
+<li><strong>Any AI, including one on your computer.</strong> The Ask box goes through Claude Code, Codex, Gemini CLI or another app you already pay for, a key from any of fourteen labs, or a model running on your own computer that sends nothing out. Perplexity answers with the models it offers.</li>
+<li><strong>No account, no login, no telemetry.</strong> The desk is open source under MIT and talks only to the sources you connect.</li>
+</ul>
+<h2 id="both-in-practice">Both, in practice</h2>
+<p>Most readers who use the desk also use an answer engine, and the split is natural: Perplexity for the first look and for today's news, the desk for the names you own and watch, where the question is what the record says and whether the AI read it right. <a href="../../compare/research-a-stock-with-ai/">How to research a stock with AI without the numbers being made up</a> is the method that works in either tool.</p>
+    </article>
+    <nav class="pn">
+      <a class="prev" href="../../compare/bloomberg-alternatives/"><small>Previous</small><b>Free Bloomberg terminal alternatives for individual investors</b></a>
+      <a class="next" href="../../compare/open-source-equity-research-software/"><small>Next</small><b>Open-source equity research software: what exists</b></a>
+    </nav>
+    <footer class="foot">
+      <span>GreekSoup: the one-person equity research desk. A <a href="https://shikshannivesh.com">Shikshan Nivesh</a> product. For investors who refuse to settle.</span>
+      <span class="mono">version 2026-09-19.113 · built 2026-09-19 · <a href="https://github.com/shubhamsborkar/greeksoup/edit/main/site/compare/vs-perplexity.md">edit this page</a></span>
+    </footer>
+  </main>
+  <aside class="rail">
+    <div class="rail-t">On this page</div><ul><li><a href="#the-one-difference-that-decides-it">The one difference that decides it</a></li><li><a href="#where-perplexity-is-the-better-tool">Where Perplexity is the better tool</a></li><li><a href="#where-greeksoup-is-the-better-tool">Where GreekSoup is the better tool</a></li><li><a href="#both-in-practice">Both, in practice</a></li></ul>
+  </aside>
+</div>
+<div class="modal" id="modal" hidden>
+  <div class="box" role="dialog" aria-label="Search the docs">
+    <input id="q" placeholder="Search the docs…" autocomplete="off" spellcheck="false">
+    <div class="hits" id="hits"></div>
+    <div class="hint">↑↓ to move · Enter to open · Esc to close</div>
+  </div>
+</div>
+<script src="../../assets/docs.js"></script>
+</body>
+</html>

@@ -60,6 +60,15 @@ Installed with one line on Mac, Windows or Linux. Six brokers connect read-only 
 - [United States](https://greeksoup.ai/docs/markets/united-states/): What the United States market file gives the GreekSoup home screens when a US broker is connected.
 - [Your own market](https://greeksoup.ai/docs/markets/your-own-market/): Add a market GreekSoup does not ship, with one short file written by an AI agent to the markets contract.
 
+## Compare
+
+- [GreekSoup beside the tools you already know](https://greeksoup.ai/docs/compare/): Where GreekSoup sits beside Bloomberg, Koyfin, TradingView, Perplexity and the open-source field, said plainly, with what it does not do.
+- [Free Bloomberg terminal alternatives for individual investors](https://greeksoup.ai/docs/compare/bloomberg-alternatives/): The free tools an individual investor can use instead of a Bloomberg terminal in 2026, what each covers, what none of them cover, and where GreekSoup, the free and open-source research desk, fits.
+- [GreekSoup vs Perplexity for stock research](https://greeksoup.ai/docs/compare/vs-perplexity/): How GreekSoup, the free open-source research desk, differs from Perplexity Finance for researching a stock with AI. One searches the web and writes an answer; the other puts the record on a screen and lets the AI you already use read it.
+- [Open-source equity research software: what exists](https://greeksoup.ai/docs/compare/open-source-equity-research-software/): The open-source equity research software an individual can actually run in September 2026: OpenBB after its wind-down, Ghostfolio, Portfolio Performance, the backtesting engines, and GreekSoup, the free one-person research desk. Licence, install effort and what each covers.
+- [How to research a stock with AI without the numbers being made up](https://greeksoup.ai/docs/compare/research-a-stock-with-ai/): A five-step method for researching a stock with an AI so that every number in the answer comes from the record rather than the model's memory, and how the GreekSoup desk is built around it.
+- [Is GreekSoup for developers?](https://greeksoup.ai/docs/compare/for-developers/): No. GreekSoup is a free, open-source equity research desk for investors and analysts who do not write code. One pasted line installs it, the settings are a screen, and an AI agent makes any change. What a developer gets is listed too.
+
 ## Project
 
 - [The project](https://greeksoup.ai/docs/project/): Who is behind GreekSoup, the licence, what is free, and how to take part.
