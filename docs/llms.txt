@@ -90,6 +90,25 @@ Installed with one line on Mac, Windows or Linux. Six brokers connect read-only 
 - [How to research a stock with AI without the numbers being made up](https://greeksoup.ai/docs/compare/research-a-stock-with-ai/): A five-step method for researching a stock with an AI so that every number in the answer comes from the record rather than the model's memory, and how the GreekSoup desk is built around it.
 - [Is GreekSoup for developers?](https://greeksoup.ai/docs/compare/for-developers/): No. GreekSoup is a free, open-source equity research desk for investors and analysts who do not write code. One pasted line installs it, the settings are a screen, and an AI agent makes any change. What a developer gets is listed too.
 
+## Reference
+
+- [Reference](https://greeksoup.ai/docs/reference/): The reference pages for GreekSoup, the free open-source research desk: the files that are yours, the settings file, every address the desk answers at, the three contracts a broker, a market or a data provider is written to, the words on the screens, and the keys and menus.
+- [The files that are yours](https://greeksoup.ai/docs/reference/your-files/): Every file GreekSoup keeps for the reader, plain JSON and markdown in the desk folder on your own computer, what each one holds, and which of them an update never touches.
+- [The settings file](https://greeksoup.ai/docs/reference/settings-file/): Every line the GreekSoup Settings screen writes to the .env file in the desk folder, by name, with what each one does, so a reader or an AI agent can read or set one directly.
+- [The addresses](https://greeksoup.ai/docs/reference/addresses/): Every page GreekSoup serves and every plain-JSON address behind it, on your own computer, the same list the desk hands an AI agent, all read-only.
+- [The three contracts](https://greeksoup.ai/docs/reference/contracts/): What a broker file, a market file and a data provider file must answer for GreekSoup to light up its screens, each a short file written to a README in the repository, usually by an AI agent from the provider's own documentation.
+- [The words on the screens](https://greeksoup.ai/docs/reference/glossary/): What the terms on the GreekSoup screens mean, as the desk uses them: 13F, 13D and 13G, Form 4, cluster buy, put wall and call wall, expected move, skew, open interest, days to cover, short-volume ratio, 2s10s, breakeven, OAS, beta, drawdown, tracks index, DCF, PTR.
+- [Keys and menus](https://greeksoup.ai/docs/reference/keys-and-menus/): The keyboard shortcuts and the menus on the GreekSoup desk: Command K for the palette and any ticker, Command I for the Ask box, the ⋯ on any name, the Your list button, hiding a screen, the theme.
+
+## Help
+
+- [Help](https://greeksoup.ai/docs/help/): Where to get help with GreekSoup, the free open-source research desk: the symptom pages, the one check, the Tell us page inside the desk, Known issues, Discussions and the support address. No error ends in silence.
+- [The free feed is resting, or \"retry in a few minutes\](https://greeksoup.ai/docs/help/the-feed-is-resting/): Why a GreekSoup screen says the free feed is resting or asks you to retry in a few minutes, what Yahoo's rate limit does to a fresh desk, which screens it touches, what the desk does on its own, and what to do if it lasts.
+- [The broker will not connect](https://greeksoup.ai/docs/help/broker-will-not-connect/): What to do when a broker will not connect to GreekSoup: the Check button on Settings, keys pasted with a stray space, the read-only key kind, the daily login on ICICI Direct and Zerodha, a paper or sandbox account's own pair, and the button that hands the error to your AI.
+- [The update failed](https://greeksoup.ai/docs/help/update-failed/): What to do when a GreekSoup update stops, an antivirus flags a file, the strip says a file could not be written, or the new version misbehaves: what an update never touches, the retry, the rollback, and the report the strip links.
+- [The Ask box does not answer](https://greeksoup.ai/docs/help/ask-box-does-not-answer/): What to do when the GreekSoup Ask box does not answer: the app card on Settings says the app is not on this computer, the sign-in window, a key that fails Test it, a model on your own computer that is not running, and the line at the top of the box that says who is answering.
+- [A number looks wrong](https://greeksoup.ai/docs/help/a-number-looks-wrong/): What to do when a number on a GreekSoup screen looks wrong: read the source the screen names, know which feeds are delayed or restated, check one figure against the primary record, and report a misread with the screen and the symbol.
+
 ## Project
 
 - [The project](https://greeksoup.ai/docs/project/): Who is behind GreekSoup, the licence, what is free, and how to take part.

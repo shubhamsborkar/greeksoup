@@ -108,6 +108,31 @@
       ]
     },
     {
+      "title": "Reference",
+      "dir": "reference",
+      "pages": [
+        "index",
+        "your-files",
+        "settings-file",
+        "addresses",
+        "contracts",
+        "glossary",
+        "keys-and-menus"
+      ]
+    },
+    {
+      "title": "Help",
+      "dir": "help",
+      "pages": [
+        "index",
+        "the-feed-is-resting",
+        "broker-will-not-connect",
+        "update-failed",
+        "ask-box-does-not-answer",
+        "a-number-looks-wrong"
+      ]
+    },
+    {
       "title": "Project",
       "dir": "project",
       "pages": [

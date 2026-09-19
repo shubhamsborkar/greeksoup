@@ -2612,6 +2612,488 @@ The desk is plain files in one folder. A broker is one file to [a written contra
 
 ---
 
+# Reference
+
+Section: Reference. URL: https://greeksoup.ai/docs/reference/
+
+The short pages to look something up in. What each file in the folder is, what each line in the settings file does, every address the desk answers at, the contracts, and what the words on the screens mean.
+
+- [The files that are yours](https://greeksoup.ai/docs/reference/your-files/): every file the desk keeps for you, what it holds, and what an update never touches.
+- [The settings file](https://greeksoup.ai/docs/reference/settings-file/): every line the Settings screen writes, by name.
+- [The addresses](https://greeksoup.ai/docs/reference/addresses/): every page and every plain-JSON address on the desk, the same list an AI agent reads.
+- [The three contracts](https://greeksoup.ai/docs/reference/contracts/): what a broker file, a market file and a data provider file must answer.
+- [The words on the screens](https://greeksoup.ai/docs/reference/glossary/): 13F, Form 4, put wall, days to cover, 2s10s, beta and the rest, as the desk uses them.
+- [Keys and menus](https://greeksoup.ai/docs/reference/keys-and-menus/): the palette, the Ask box, the ⋯ on a name, the Your list button.
+
+---
+
+# The files that are yours
+
+Section: Reference. URL: https://greeksoup.ai/docs/reference/your-files/
+
+Everything the desk keeps for you is a plain file in the desk folder, readable in any text editor and by your AI agent. This page lists them, and says which an update never writes.
+
+## In the data folder
+
+| File | What it holds |
+|---|---|
+| `data/book.json` | Desk · Book: symbols from any market, shares, average cost, cash per currency. |
+| `data/watchlist.json`, `data/watchlist_us.json`, `data/watchlist_global.json` | The three watch grids. Home codes are your broker's codes when it serves quotes, else the exchange's symbols, else Yahoo's. |
+| `data/fno_watchlist.json` | The names for the home options tape, read by a broker file that serves chains. |
+| `data/funds.json` | The 13F filers you follow, name and CIK. |
+| `data/members.json` | The Congress members you track. |
+| `data/supply_chain.json` | The starter value chain; your own chains live in the research vault. |
+| `data/alerts.json` | The alert rules: day moves, margin, futures expiry, earnings, price levels, insider clusters, 13Ds, commodity moves. |
+| `data/watch_levels.json` | Price levels per holding, optional. |
+| `data/commodities.json` | The commodity board: fifty-four cards, their free sources, and the industries a rise squeezes and helps. |
+| `data/exposure_us.json`, `data/exposure_<market>.json` | The listed names behind those industries for one market, with the raw-material share from filings. `exposure_example.json` is the template. |
+
+## The research vault
+
+One folder, wherever you put it (beside the desk, in Documents, or in a folder a drive syncs; Settings, under Where the vault lives). Inside: your notes as markdown, one folder per name for the files you bring in, `chains/` for your value-chain maps, `tasks.md`, the journal, and the drawings from the ticker page's chart. [Notes and the research vault](https://greeksoup.ai/docs/get-started/notes/).
+
+## The settings file and the day's token
+
+`.env` in the desk folder holds every key and setting the Settings screen writes. A broker that issues a session key each trading day keeps that day's key in a second small file beside it. [The settings file](https://greeksoup.ai/docs/reference/settings-file/).
+
+## What an update never touches
+
+`.env`, the day's token, `cache/`, `logs/`, `output/`, the virtual environment, and every file under `data/` that is yours. Three reference tables the desk ships (`commodities.json`, `exposure_us.json`, `exposure_example.json`) are refreshed only when your copy is byte-for-byte a shipped version; `alerts.json` is merged rule by rule so a threshold you tuned survives. When a version changes the shape of a file you own, the desk keeps a copy first and says so on the strip. [Getting a newer version](https://greeksoup.ai/docs/install/updates/).
+
+## Back up
+
+Settings, Your desk, Your files: one zip of everything above, without the keys. [Back up](https://greeksoup.ai/docs/install/back-up/).
+
+---
+
+# The settings file
+
+Section: Reference. URL: https://greeksoup.ai/docs/reference/settings-file/
+
+The Settings screen writes one file, `.env`, in the desk folder. Nothing in it is required. This is every line by name, for a reader who would rather read the file than the screen, and for the agent that sets one on your behalf.
+
+## The desk
+
+| Line | What it does |
+|---|---|
+| `DESK_PORT` | The door number the desk answers on. `8765` unless you run two copies. |
+| `HOME_MARKET` | Your country, as a two-letter code, when no broker sets it. |
+| `SCREENS` | Screens you hid, as `chain:off,short:off`. |
+| `RISK_BENCHMARK`, `RISK_BENCHMARK_LABEL` | The index Risk measures the home book against, and its name. |
+| `JOURNAL` | Whether the desk writes its daily journal: `ask`, `always` or `never`. |
+| `EDGAR_CONTACT` | The e-mail the SEC asks for with each request to EDGAR. Yours, set once. |
+
+## Your broker
+
+Each broker file names its own keys, listed in `brokers/README.md`; the ones that ship are `ALPACA_KEY`, `ALPACA_SECRET`, `ALPACA_PAPER`; `BREEZE_API_KEY`, `BREEZE_API_SECRET` (ICICI Direct); `IBKR_FLEX_TOKEN`, `IBKR_FLEX_QUERY`; `TRADIER_TOKEN`, `TRADIER_ACCOUNT`, `TRADIER_SANDBOX`; `T212_KEY`, `T212_SECRET`, `T212_DEMO`; `KITE_API_KEY`, `KITE_API_SECRET` (Zerodha). `BROKER` names the one on Desk · Home, `BROKERS` the list when more than one is connected. A broker with a daily session keeps the day's key in its own small file beside `.env`.
+
+## Your data provider
+
+| Line | What it does |
+|---|---|
+| `FMP_API_KEY` | The Financial Modeling Prep key, the provider that ships. |
+| `DATA_PROVIDER`, `DATA_API_KEY`, `DATA_BASE_URL` | Another provider written to [the contract](https://greeksoup.ai/docs/reference/contracts/): its name, its key, where it answers. |
+
+## Your AI
+
+| Line | What it does |
+|---|---|
+| `AI_PROVIDER`, `AI_MODEL`, `AI_API_KEY` | The lab, the model and the key from Settings, Your AI. |
+| `AI_BASE_URL`, `AI_FORMAT` | For Any other endpoint: where it answers and how it is spoken to. |
+| `AI_DOOR` | The app on this computer that answers the Ask box (Claude Code, Codex and the rest) when you chose one instead of a key. |
+
+## Updates and plugins
+
+| Line | What it does |
+|---|---|
+| `DESK_AUTO_UPDATE` | `on` applies a newer version without the click. |
+| `DESK_UPDATE_VERSION_URL`, `DESK_UPDATE_ZIP_URL` | Point a fork or a private mirror at its own version file and zip. |
+| `PLUGIN_LIST_URL` | Where the Plugins tab reads its list. |
+
+The file is never carried by an update or a backup, and the page your AI agent reads tells it not to read it. [What it talks to](https://greeksoup.ai/docs/install/what-it-talks-to/).
+
+---
+
+# The addresses
+
+Section: Reference. URL: https://greeksoup.ai/docs/reference/addresses/
+
+The desk answers at one address on your own computer, `http://localhost:8765/` unless you changed the door number, and every screen has a plain-JSON address behind it. This is the list, the same one the desk hands an AI agent at `/agent`. Everything is read-only; nothing here places an order or changes an account.
+
+## Pages and what stands behind them
+
+| Page | Screen | JSON behind it |
+|---|---|---|
+| `/` | Desk · Home and the US panels | `/api/snapshot` the broker book; `/api/usbook` the US book priced; `/api/earnings` the earnings ahead; `/api/insiders` the insider tape; `/api/pulse` the market pulse |
+| `/book` | Desk · Book | `/api/book` |
+| `/risk` | Risk | `/api/risk` |
+| `/watch` | Watch · Home | `/api/watch?list=home`, `/api/results_home` |
+| `/watch?list=us` | Watch · US | `/api/watch?list=us` |
+| `/watch?list=global` | Global | `/api/watch?list=global` |
+| `/funds` | Funds | `/api/funds` the 13F holdings; `/api/activist` the 13D and 13G feed |
+| `/flow` | Flow | `/api/flow` |
+| `/short` | Short | `/api/short` |
+| `/capitol` | Capitol | `/api/capitol` |
+| `/calendar` | Calendar | `/api/calendar` |
+| `/macro` | Macro | `/api/macro` the cards; `/api/econcal` the economic calendar |
+| `/commods` | Commodities | `/api/commods` |
+| `/chain` | Chain | `/api/chain` |
+| `/notes` | Notes | `/api/notes?symbol=&project=&kind=&period=&about=&type=&q=`; `/api/notes/get?id=`; `/api/notes/graph?symbol=`; `/api/research/tasks`, `/api/research/journal`, `/api/research/timeline?symbol=`, `/api/research/context?symbol=`, `/api/research/status?symbol=`, `/api/research/file?path=`, `/api/research/text?path=`, `/api/research/block?spec=` |
+| `/t?symbol=X` | A ticker page | the ticker page's own reads |
+| `/settings` | Settings | `/api/settings`, `/api/nav`, `/api/update`, `/api/doctor` |
+| `/report` | Tell us | `/api/report/list` |
+| `/agent` | The page for an AI agent | the same list as this page, as plain text, with the file shapes |
+
+## Who can reach them
+
+Only this computer. Every request must name it as its host, and a request from a browser must come from the desk's own pages; anything else is refused before it is read. That is what lets the desk run with no login. [Security](https://greeksoup.ai/docs/project/security/) explains both guards, and [Your computer or a server](https://greeksoup.ai/docs/install/your-computer-or-a-server/) says why a server turns the story around.
+
+## For an agent
+
+Open `/agent` in a browser, or hand its text to your AI: it lists every address above with the shape of each answer, the research vault's file layout, and the rule that every figure names its source on the screen it came from. [Your AI](https://greeksoup.ai/docs/setup/your-ai/#the-page-your-ai-app-reads).
+
+---
+
+# The three contracts
+
+Section: Reference. URL: https://greeksoup.ai/docs/reference/contracts/
+
+A broker, a market or a data provider the desk does not ship is one short file, written to a README that is its contract. An AI agent writes it from the provider's documentation in an afternoon. This page is the three contracts in outline; each README in the repository is the full one.
+
+## A broker: `brokers/<name>.py`
+
+**Required**: `META` (the broker's name, its market as a region code, what it needs from the reader), `connect`, `label`, `equity` (the holdings) and `funds` (the cash and margin), plus one line in the registry. With those, Desk · Home, Risk and Watch · Home light up.
+
+**Optional, and each appears on the screens when the file has it**: `quote`, `history`, `intraday`, `futures`, `futures_quote`, `sparks`, `tape`, `stream`, `stream_healthy`, `resolve`, `search`, `extra_accounts`, `commodities_local`. A broker whose codes differ from exchange symbols wants `resolve` and `search`; a broker that serves a book wants `quote`; a broker with a daily session keeps the day's key in its own file and Settings grows the login box for it.
+
+The contract: `brokers/README.md`. The six that ship are the examples; the ICICI Direct file is the full one. [Another broker](https://greeksoup.ai/docs/brokers/another-broker/).
+
+## A market: `markets/<region>.py`
+
+**Required**: `META` (session hours, the index, the currency, the locale, the exchanges, Yahoo's suffix), `is_open`, `ysym` (the Yahoo symbol for an exchange code), and one line in the registry. The broker file's `META["region"]` names the same code, or the reader picks the country on Settings.
+
+**Optional**: `results_calendar`, `fundamentals` (the exchange's own filings and results for a ticker page), `macro_series` and `macro_cards` (the market's own cards on Macro), and a local layer of the commodity board.
+
+The contract: `markets/README.md`. The India file is the full example, the US file the minimal one. [Your own market](https://greeksoup.ai/docs/markets/your-own-market/).
+
+## A data provider: `data_providers/<name>.py`
+
+One file that answers the same questions the shipped provider answers, each returning plain Python or `None` when the provider does not have it, never raising: `quote`, `profile`, `income`, `balance`, `cashflow`, `ratios_ttm`, `estimates`, `segments`, `peers`, `dividends`, `news`, `history`, `insiders_latest`, `senate_latest`, `shares_float`. Settings keeps the provider's name, key and address. A read the provider cannot answer leaves one plain line on the screen.
+
+The contract: `data_providers/CONTRACT.md`. [Data providers](https://greeksoup.ai/docs/setup/data-providers/).
+
+## How to have one written
+
+Open the desk folder in Claude Code, Codex, Gemini CLI or another agent, give it the provider's API documentation and the README, and say which of the three you want. From inside the desk, the Ask box in Build mode does the same. [Contributing](https://greeksoup.ai/docs/project/contributing/) is the way to send it back so the next reader has it.
+
+---
+
+# The words on the screens
+
+Section: Reference. URL: https://greeksoup.ai/docs/reference/glossary/
+
+Every term as the desk uses it, one paragraph each, with the screen it lives on. Where a number is computed, the arithmetic is here.
+
+## Ownership and filings
+
+**13F** (Funds). The quarterly holdings report a US investment manager with more than a hundred million dollars files with the SEC, due forty-five days after the quarter ends. It lists US long positions only: no shorts, no cash, no non-US listings, and it is a snapshot as of the quarter's last day.
+
+**13D and 13G** (Funds). The forms filed within days of crossing five percent of a company's shares: 13D when the holder may seek to influence the company, 13G when it holds passively.
+
+**Form 4** (Desk · Home, the ticker page). The SEC form an officer, director or ten-percent holder files within two business days of buying or selling the company's stock. **Cluster buy**: several insiders buying in the same short window, which the desk marks on the insider tape.
+
+**PTR** (Capitol). A periodic transaction report, the form a member of Congress files within forty-five days of a trade over a thousand dollars, with the amount as a band rather than a figure. The **lag** column is the days between the trade and the disclosure.
+
+**CIK** (Funds). The SEC's number for a filer, which is how a fund is added to your list.
+
+## The options tape (Flow)
+
+**Open interest** is the number of contracts standing at a strike. **Put/call on open interest** is total put open interest over total call open interest; **put/call on volume** the same on today's traded contracts.
+
+**Put wall** and **call wall**: the strike below spot with the most put open interest, and the strike above spot with the most call open interest, within the ninety-day window.
+
+**Expected move**: the move the options market has priced to the nearest expiry, from the at-the-money straddle, shown as a percent of spot with the expiry date.
+
+**IV30**: implied volatility thirty days out, annualised. **Skew**: the implied volatility of a put against a call at the same distance from spot; positive when puts are dearer.
+
+**Unusual strikes**: today's volume at least twice the standing open interest, with real premium; positions that did not exist yesterday. **OI build**: open interest against the previous day's snapshot on disk.
+
+## Short interest (Short)
+
+**Short interest**: open short positions at the settlement date, from FINRA's consolidated report, twice a month, published about nine days after settlement.
+
+**Days to cover**: short interest divided by average daily volume; how many days of normal trading it would take to buy the short position back.
+
+**Short-volume ratio**: the share of one day's off-exchange volume that was marked short, from FINRA's daily file. Forty to fifty percent is normal market-making; the signal is a change against a name's own twenty-day average. It is flow, not open positions, and the desk keeps it on its own side of the screen.
+
+## Macro (Macro)
+
+**2s10s**: the ten-year Treasury yield minus the two-year, in percentage points; negative means the curve is inverted.
+
+**10Y breakeven**: the ten-year Treasury yield minus the ten-year inflation-protected yield; the inflation the bond market has priced. **5y5y forward**: the same, for the five years starting five years from now. **10Y real yield**: the inflation-protected ten-year itself.
+
+**OAS**: option-adjusted spread, the extra yield a corporate bond index pays over Treasuries, high yield and investment grade on separate cards.
+
+**Delta** on a card: the change over about a month. The sparkline is two years.
+
+## Risk (Risk)
+
+**Beta**: how much the book moves for a one percent move in its index, from the last year of daily closes; 0.5 means a one percent index day is half a percent here.
+
+**Volatility**: the annualised standard deviation of daily returns; a normal day is about that figure divided by sixteen.
+
+**Max drawdown**: the worst fall from a peak in the past year.
+
+**Tracks index**: the correlation of the book's daily returns with the index's; the square of it is the share of daily movement the index explains.
+
+**The five percent line**: beta times five percent times the account, what a five percent index day costs by that estimate.
+
+**Leverage**: positions at full underlying value over the account; futures count at underlying value, so a leveraged book shows more than the account.
+
+## The ticker page
+
+**DCF sandbox**: a discounted cash flow, seeded from the provider's statements, every input yours to change; it needs a data provider key.
+
+**Street view**: the average analyst target and the count of strong buy, buy, hold, sell and strong sell, from the free feed or the provider.
+
+**Receipt** (Chain): how firm a link on a value chain is: disclosed in a filing, on record, or reported.
+
+---
+
+# Keys and menus
+
+Section: Reference. URL: https://greeksoup.ai/docs/reference/keys-and-menus/
+
+The few things on the desk that are not a screen: the palette, the Ask box, the small ⋯ that appears on a name, the Your list button, and the sidebar's own controls.
+
+## Keys
+
+| Key | What it does |
+|---|---|
+| ⌘K (Ctrl+K on Windows and Linux) | The palette: type a symbol to open its ticker page, or a screen's name to go there; the startup guide comes back from here too. |
+| ⌘I (Ctrl+I) | The Ask box on the current screen. |
+| Enter in the Ask box | Sends the question with the screen's numbers to the AI you chose. Nothing is sent before that. |
+| Esc | Closes the palette, the Ask box or a modal. |
+
+## The ⋯ on any name
+
+Hover a name on any screen and a small ⋯ appears with the next thing to do from right there: open its ticker page, add it to a watchlist, a note on it, a task on it, put it on one of your chains, ask your AI about it. The way back from each lives where the action happened: a note opens on the name, a watchlist row has its cross, a chain has its Edit.
+
+## The Your list button
+
+Funds, Capitol, Macro and Commodities carry it in the top bar, and the index options tape on Desk · Home has one on its panel. Add a row, edit one, remove one (Undo brings it back), or bring the shipped starters back. The three watchlists, Flow and Short take a name at the top instead, found as you type. [Your lists](https://greeksoup.ai/docs/setup/your-lists/).
+
+## The sidebar
+
+- **Hide a screen**: hover it and click the cross; it moves to Hidden at the foot of the sidebar with a Show beside it. Desk · Home and Settings stay.
+- **Ask SuperAnalyst**: the Ask box. The picker at the top of the box names who answers.
+- **Tell us**: runs the check and sends a report, with the reply coming back to the same page.
+- **Theme**: graphite, the dark one, or alpha, the light one; the choice is remembered in your browser.
+- **Collapse**: narrows the sidebar to its icons.
+
+## The alerts bar
+
+Along the bottom of every screen: the alert lines the rules in `data/alerts.json` fire, one per rule per day, commodity moves among them. Click it for the list.
+
+---
+
+# Help
+
+Section: Help. URL: https://greeksoup.ai/docs/help/
+
+Find what you are seeing in the list below, or run the one check and hand it to your agent. Anything the pages do not answer goes through Tell us inside the desk, and the reply comes back to the same page.
+
+## By what you see
+
+- [The page is blank](https://greeksoup.ai/docs/install/the-page-is-blank/): the address does not open, or opens to nothing.
+- [If something is wrong](https://greeksoup.ai/docs/install/if-something-is-wrong/): every line a screen can say, and what each means.
+- [The free feed is resting, or "retry in a few minutes"](https://greeksoup.ai/docs/help/the-feed-is-resting/): quotes, a chart or the calendar are missing.
+- [The broker will not connect](https://greeksoup.ai/docs/help/broker-will-not-connect/): keys, the daily session, the Check button.
+- [The update failed](https://greeksoup.ai/docs/help/update-failed/): the strip stopped, an antivirus spoke up, or the new version misbehaves.
+- [The Ask box does not answer](https://greeksoup.ai/docs/help/ask-box-does-not-answer/): the app is not found, the sign-in, the key test.
+- [A number looks wrong](https://greeksoup.ai/docs/help/a-number-looks-wrong/): stale, restated, or misread, and how to check it against the source.
+- [Known issues](https://greeksoup.ai/docs/install/known-issues/): what readers have hit, dated, with the fix beside it.
+
+## The one check
+
+In the desk folder, `python doctor.py` prints what the desk can see about itself: the Python version, whether the desk is answering, which keys are set by name, the start-at-login entry, the last error lines, which sources it can reach. Nothing in it is private. Give it to your agent with "read README.md in this folder, then fix what the check found". Tell us runs the same check for you.
+
+## Tell us
+
+The last entry in the sidebar, or `/report` on the desk. It runs the check, shows you the report, and Send files it where we answer it in the open; the reply comes back under Your reports on the same page, and the sidebar shows a mark when one is waiting. Your email is optional, kept privately for ninety days, never on the report. Email it and Copy sit beside Send for anyone who prefers them.
+
+## Elsewhere
+
+- [Discussions](https://github.com/shubhamsborkar/greeksoup/discussions): a question or an idea, asked in the open so the answer serves the next reader.
+- [Issues](https://github.com/shubhamsborkar/greeksoup/issues): something wrong, a broker you want, a market you want.
+- Email: info@shikshannivesh.com, for anything you would rather not put on GitHub.
+- [Security](https://greeksoup.ai/docs/project/security/): how to report a problem privately.
+
+---
+
+# The free feed is resting, or \"retry in a few minutes\
+
+Section: Help. URL: https://greeksoup.ai/docs/help/the-feed-is-resting/
+
+Quotes and charts on the desk come from Yahoo's free feed, which has no contract behind it and rate-limits an address that asks too often. A fresh desk asks for everything at once, so the first few page loads can show this. The desk backs off and retries by itself.
+
+## What you see
+
+- **"retry in a few minutes"** on a watch grid or a ticker page.
+- **An amber line on a ticker page**: "The free feed is resting, so this is the page as read at 14:01. It refreshes on its own once the feed answers again."
+- **The economic calendar panel on Macro** with a note instead of rows.
+- A chart that shows the last read it has rather than today's bars.
+
+## What is happening
+
+Yahoo's endpoints answer "too many requests" to an address that asked for too much in a short window. The desk caches what it read, shows the last read with the time it was read, backs off, and asks again on a timer. Nothing is lost; the page refreshes on its own when the feed answers. On a fresh install the first Capitol build and the first commodity board are the heaviest asks, and both are once.
+
+Some of Yahoo's endpoints refuse an address for days while the others answer. The calendar endpoint is one; when it refuses, the economic calendar fills from the public record instead (the BLS schedule, the Fed's meeting calendar, Forex Factory's weekly file) and the panel names which one answered.
+
+## What to do
+
+1. Nothing, for ten minutes. Most of it clears on its own.
+2. Do not reload repeatedly; each reload is another burst.
+3. If a grid stays empty for an hour, run the check: `python doctor.py` in the desk folder says which sources it can reach. Give the printout to your agent or to Tell us.
+4. If you want a contract behind your prices: a connected broker prices the names it knows, and a data provider key adds the statements and longer history. [Data providers](https://greeksoup.ai/docs/setup/data-providers/).
+
+## What it never means
+
+It is not a fault in your keys, your broker or your install, and it is not the desk sending anything anywhere. [What it talks to](https://greeksoup.ai/docs/install/what-it-talks-to/) lists every address; Yahoo's is one of them.
+
+---
+
+# The broker will not connect
+
+Section: Help. URL: https://greeksoup.ai/docs/help/broker-will-not-connect/
+
+A broker connects on Settings with what it hands out from its own dashboard, and the Check button tells you in one line whether it did. This page is the short list of what stops it, in the order they happen.
+
+## First, the Check button
+
+Settings, Connect, next to the broker's name. It asks the broker for the account and prints what came back. A working broker says "connected as" and the account. A failing one says what the broker said, and beside the line is a button that hands that error, with the broker's name and the desk's README, to the AI you chose, which reads the broker's documentation and says what to change.
+
+## The things that stop it
+
+**A stray space or a missing character in a key.** Keys are pasted, and a copy from a web page can carry a space at either end. Remove the keys, paste each again, Check.
+
+**The wrong key kind.** Each broker page says which key the desk wants. A paper account (Alpaca) or a sandbox (Tradier) has its own pair and its own switch on Settings; a live key with the paper switch on connects to nothing. Trading 212 wants a key generated in the app with the account scopes. Interactive Brokers wants a Flex Web Service token and a query id, not the gateway login. [Brokers](https://greeksoup.ai/docs/brokers/).
+
+**The daily login.** ICICI Direct and Zerodha issue a session key each trading day. Until today's login, Desk · Home shows the last saved book with live marks and says the session is off. Settings has the box under the broker's keys: Open the broker login, sign in on the broker's page, and the desk takes the day's key from the page it returns to (by itself when the redirect address in your broker app points at the desk). That is the broker's rule, not a fault.
+
+**The broker's site is down or slow.** Check says so with the broker's own words. Wait, then Check again.
+
+**Two copies of the desk.** "The desk is already running" means another copy is on the same door number, and the one that opens may not be the one whose Settings you filled. Stop one, or give the second its own door number in its settings file.
+
+## What it never is
+
+The desk does not place orders and asks for no trading permission, so a connection that fails is never about that. A key with trading scope is not needed anywhere; where the broker offers a read-only kind, use it.
+
+## Still nothing
+
+Run the check, `python doctor.py` in the desk folder; it names which keys are set (never their values) and which sources it can reach. Give it to your agent or to Tell us in the sidebar, with the broker's name.
+
+---
+
+# The update failed
+
+Section: Help. URL: https://greeksoup.ai/docs/help/update-failed/
+
+An update replaces the desk's own files and never yours. When it stops partway, nothing of yours has changed, the strip says which files were skipped and why, and one more click finishes it. When the new version misbehaves, one line goes back.
+
+## What an update touches, and what it never touches
+
+It copies the desk's program files and pages, and adds any file under `data/` that you lack. It never writes your settings file, the day's token, your lists, your research vault, `cache/`, `logs/` or a file you or your agent changed. Since the 19 September 2026 versions the update carries no installers and no website files, so nothing in it downloads or runs anything; it reads every file it is about to write before it writes any, and a hold on one file stops the copy before it begins. [Getting a newer version](https://greeksoup.ai/docs/install/updates/).
+
+## "An antivirus spoke up"
+
+A reader's Bitdefender flagged the install script and asked to restart. The script no longer travels inside updates, and the desk removes it from its own folder at start, so there is nothing left for the alarm to fire on. Let it restart if it asks, open the desk, click **Update the desk** once more. No exclusion to add. [If your antivirus speaks up](https://greeksoup.ai/docs/install/windows/#if-your-antivirus-speaks-up).
+
+## "One file could not be written"
+
+The strip names it. Something on the computer holds that file open (an antivirus scan, an editor, a sync client). The version is not stamped, so the desk asks for one more click; close what holds the file and click again. The report the strip links carries the count of files already copied, which is the answer to the first question anyone will ask.
+
+## The new version misbehaves
+
+The desk keeps the files each update replaced, three versions back. Tell your agent "go back to the previous version of the desk", or in the desk folder type:
+
+```
+python updater.py rollback
+```
+
+then start the desk. Your files stay as they are either way. Then tell us what misbehaved, through Tell us in the sidebar or [an issue](https://github.com/shubhamsborkar/greeksoup/issues/new/choose), so the next version does not.
+
+## On Windows, when the desk stops coming back
+
+The always-on service applies a pending update by itself after the desk exits three times within a minute, so a half-applied update heals on the next start. If the address stays blank, [The page is blank](https://greeksoup.ai/docs/install/the-page-is-blank/) has the four things to try.
+
+## A copy from before the strip
+
+A desk installed before updates had a strip has no button. Paste the install line for your system again; it brings the desk up to date and keeps your files. [Install](https://greeksoup.ai/docs/install/).
+
+---
+
+# The Ask box does not answer
+
+Section: Help. URL: https://greeksoup.ai/docs/help/ask-box-does-not-answer/
+
+The Ask box goes through whichever AI you picked on Settings, and the picker at the top of the box says which. When nothing comes back, the cause is one of five, and each has its own line on Settings.
+
+## Look at the picker first
+
+The top of the Ask box names who answers: the key on Settings, or one of the apps on this computer (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code, Cursor). An app that is greyed is not installed. Pick another for this one question, or fix the one you want below.
+
+## The five causes
+
+**The app is not on this computer.** Settings, Your AI, the app's card says so and links to where to get it. Install it, reopen Settings, and the card finds it.
+
+**The app is installed but not signed in.** The card's Sign in button opens a terminal window running the app's own sign-in, which continues in your browser. The desk never sees the login. When the window says you are in, close it and ask again.
+
+**The key fails Test it.** Under the apps, the provider's key with a Test it button that sends one small line and shows what came back. A wrong key, a model name the lab does not offer, or a lab that needs credit on the account each come back as the lab's own words. Fix the one it names.
+
+**A model on your own computer is not running.** Ollama and LM Studio answer only while their app is open and the model is loaded. Open the app, load the model, Test it.
+
+**The maker's rules changed.** An app on a subscription answers under that maker's terms. If a maker stops the print mode the desk uses, switch the Ask box to a key or a local model and nothing else on the desk changes. [Is this allowed by the app's maker](https://greeksoup.ai/docs/setup/your-ai/#is-this-allowed-by-the-apps-maker-and-is-my-account-safe).
+
+## The answer came back, and it is wrong
+
+The Ask box sends your question with the screen's numbers and is told to answer from them and to say so when they do not answer the question. A figure in the answer should match the screen and the source the screen names; check it there. A wrong answer with the right numbers is the model's reading, and asking it which line it used is the fastest way to see where it went. [How to research a stock with AI without the numbers being made up](https://greeksoup.ai/docs/compare/research-a-stock-with-ai/).
+
+## Nothing sent, nothing stored
+
+Nothing goes anywhere until you press Enter, and it goes to the one place you chose. The conversation stays in the box while the screen is open; an answer worth keeping is saved only when you press Save as note. [Your AI](https://greeksoup.ai/docs/setup/your-ai/).
+
+---
+
+# A number looks wrong
+
+Section: Help. URL: https://greeksoup.ai/docs/help/a-number-looks-wrong/
+
+Every number on every screen names its source, and every source can be wrong, late or restated. This page is the order to check in, and the line between a feed's fault and the desk's.
+
+## Read the source the screen names
+
+Under or beside the number: Yahoo, your broker, SEC EDGAR, CBOE, FINRA, FRED, Nasdaq, Frankfurter, Trading Economics, the exchange, the provider. The date or time it was read is on the screen too. [Data sources](https://greeksoup.ai/docs/setup/data-sources/) says what each one gives and how fresh it is.
+
+## The usual reasons
+
+- **Delayed.** Yahoo's quotes are near live for US listings and fifteen to twenty minutes behind on most other exchanges; CBOE's chains are fifteen minutes delayed; FINRA's short interest settles twice a month and publishes about nine days later; a 13F is a quarter-end snapshot filed up to forty-five days after.
+- **Restated.** A filing amends an earlier one; the desk shows the latest it read, and the earlier figure you remember was the earlier filing.
+- **The feed is resting.** An amber line says the page is the last read with its time. [The feed is resting](https://greeksoup.ai/docs/help/the-feed-is-resting/).
+- **A currency.** Desk · Book adds up per currency and never across; a total that looks small is one currency's.
+- **A results date is an estimate.** Until the company announces, the Calendar shows an estimate and says so.
+- **Futures at underlying value.** Risk counts a future at the full value of what it controls, so a leveraged book shows positions worth more than the account.
+
+## Check one number against the primary record
+
+The filing on EDGAR, the exchange's page for the listing, the central bank's series on FRED, the broker's own statement. One number, and if it matches, the rest of the screen is drawing from the same place. If it does not match, note the screen, the symbol, the number shown and the number in the record.
+
+## Tell us
+
+If the desk misread something, the source is right and the screen is wrong, that is ours to fix. Tell us in the sidebar sends the report with the screen and the symbol, or [file an issue](https://github.com/shubhamsborkar/greeksoup/issues/new/choose). If the source is wrong, the desk cannot make it right; it can only name it, which it does.
+
+---
+
 # The project
 
 Section: Project. URL: https://greeksoup.ai/docs/project/
