@@ -1234,9 +1234,28 @@ def test_econ_calendar_keyless_sixty_days(monkeypatch):
     assert all(c != "AU" for c, _, _ in got)                                                          # not a major, not home
     assert out["days"] == 60 and out["home"] == "IN" and out["source"] == "free feed" and out["_ttl"] is None
     assert out["rows"][0]["event"] == "MBA Mortgage Applications" or out["rows"][0]["date"] <= out["rows"][-1]["date"]
+    import econ_public
     monkeypatch.setattr(freefeed, "econ_calendar", lambda days=60, high_only=False: [])
+    monkeypatch.setattr(econ_public, "calendar", lambda days=60: [])
     empty = server.build_econcal()
     assert empty["rows"] == [] and "resting" in empty["note"] and empty["_ttl"] == 600
+    # the feed refuses the address and the record itself answers: the BLS schedule, the Fed and
+    # Forex Factory fill the weeks ahead, named as the source, and the panel carries no note
+    public = [{"date": "2026-10-14", "time": "12:30", "country": "US", "event": "Consumer Price Index", "impact": "High", "estimate": None, "previous": None, "actual": None, "period": "September 2026", "unit": ""},
+              {"date": "2026-10-20", "time": "14:00", "country": "US", "event": "Employee Tenure", "impact": "Medium", "estimate": None, "previous": None, "actual": None, "period": "", "unit": ""},
+              {"date": "2026-10-28", "time": "18:00", "country": "US", "event": "FOMC rate decision and statement", "impact": "High", "estimate": None, "previous": None, "actual": None, "period": "", "unit": ""},
+              {"date": "2026-10-15", "time": "06:00", "country": "GB", "event": "Claimant Count Change", "impact": "Low", "estimate": "20.0K", "previous": "17.4K", "actual": None, "period": "", "unit": ""}]
+    monkeypatch.setattr(econ_public, "calendar", lambda days=60: public)
+    filled = server.build_econcal()
+    got = [(r["country"], r["event"]) for r in filled["rows"]]
+    assert ("US", "Consumer Price Index") in got and ("US", "FOMC rate decision and statement") in got
+    assert ("US", "Employee Tenure") not in got and ("GB", "Claimant Count Change") not in got     # the noise stays out, low-impact abroad stays out
+    assert filled["source"] == "public record" and filled["note"] == "" and filled["_ttl"] is None
+    # the page fallback hands back yesterday's prints: they do not pass as today's
+    stale = [{"date": "2000-01-01", "time": "06:00", "country": "GB", "event": "CPI YY", "period": "", "estimate": None, "previous": "3.4", "actual": "3.1"}]
+    monkeypatch.setattr(freefeed, "econ_calendar", lambda days=60, high_only=False: stale)
+    monkeypatch.setattr(econ_public, "calendar", lambda days=60: [])
+    assert server.build_econcal()["rows"] == []
 
 
 def test_us_desk_on_home_only_where_the_reader_has_it(monkeypatch, tmp_path):

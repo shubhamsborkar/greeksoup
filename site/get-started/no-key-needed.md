@@ -11,7 +11,7 @@ Fifteen of the sixteen screens are live the moment the desk starts: the US panel
 
 | Screen | With no key | What the feed key adds |
 |---|---|---|
-| The US panels of Desk · Home | Positions priced from Yahoo; earnings countdown from Yahoo; insider tape from SEC EDGAR on your names; market pulse empty | The insider scan across the whole market; the movers and sector pulse |
+| The US panels of Desk · Home | Positions priced from Yahoo; earnings countdown from Yahoo; insider tape from SEC EDGAR on your names; market pulse from Nasdaq's public screener | The insider scan across the whole market |
 | Watch · US, Global | Yahoo quotes, any Yahoo symbol from any exchange | The fifty and two hundred day distance and market cap columns |
 | Ticker page | Chart and quote from Yahoo; profile, ratios, targets and analyst counts from Yahoo when it is not rate-limiting; insider table from EDGAR | Statements, ratio history, segments, estimates, peers, dividends, news, the DCF seeds |
 | Funds | 13F and 13D/G straight from EDGAR | Nothing; it never uses the feed |

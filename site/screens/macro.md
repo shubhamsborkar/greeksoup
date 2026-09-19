@@ -13,7 +13,7 @@ lead: The macro backdrop from FRED, the St. Louis Fed's public database, in six 
 
 **The home market's cards.** A market file can add its own: India adds the ten-year yield, the repo rate and CPI. [Markets](/docs/markets/).
 
-**The economic calendar.** The next sixty days of prints for your home market and the United States in full, and the ones that move markets in the euro area, Britain, Japan and China: rate decisions, inflation, jobs, growth, PMIs, in your own time zone. The calendar comes from the free feed and rests when the feed is rate-limiting, as in the screenshot; it fills again when the feed answers.
+**The economic calendar.** The next sixty days of prints for your home market and the United States in full, and the ones that move markets in the euro area, Britain, Japan and China: rate decisions, inflation, jobs, growth, PMIs, in your own time zone. The free feed's own calendar answers when it is not refusing the address; when it is, the weeks ahead come from the record itself: the Bureau of Labor Statistics' release schedule and the Fed's meeting calendar for the US, and Forex Factory's public weekly file for this week across the majors.
 
 ## Where each number comes from
 
@@ -21,7 +21,7 @@ lead: The macro backdrop from FRED, the St. Louis Fed's public database, in six 
 |---|---|
 | Every US card | FRED, the St. Louis Fed's public API |
 | The home market's cards | The market file's own sources (for India: the ten-year from FRED, the repo rate and CPI from the RBI's and MOSPI's public pages) |
-| The economic calendar | The free feed; the data provider key gives a fuller calendar |
+| The economic calendar | The free feed's calendar; when it refuses, the BLS schedule, the Fed's FOMC calendar and Forex Factory's weekly file; a data provider key gives the fullest calendar |
 
 ## What you can do here
 

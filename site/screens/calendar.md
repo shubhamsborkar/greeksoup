@@ -23,7 +23,8 @@ A results date is the company's own once announced and an estimate until then, a
 
 | Event | Source |
 |---|---|
-| Results dates, EPS and revenue expected, ex-dividend and pay dates | Yahoo's free feed |
+| Results dates, ex-dividend and pay dates on US names | Nasdaq's public pages, read by the desk |
+| EPS and revenue expected | Yahoo's free feed |
 | Filings landed | SEC EDGAR's filing index for each US name |
 | Home-market results calendar | The exchange's own calendar where the market publishes one (India, the United States) |
 | Macro prints ahead | The data provider key |

@@ -28,11 +28,12 @@ lead: The first screen in the sidebar and the only one that needs a broker. It i
 | US book positions | Desk · Book, priced from Yahoo's free feed |
 | Earnings ahead | Yahoo's free feed; the company's own date once announced, an estimate until then |
 | Insider tape and cluster buys | SEC EDGAR Form 4 filings, read by the desk |
-| Market pulse, the market-wide insider scan | The data provider key |
+| Market pulse (gainers, losers, most active, sectors) | Nasdaq's public screener, no key |
+| The market-wide insider scan, the movers with a key | The data provider key |
 
 ## With and without a key
 
-Without a broker the account block is dark and says so; the US panels still run. Without a feed key the pulse is empty and the insider tape covers your names only; the key adds the scan across the whole market and the movers.
+Without a broker the account block is dark and says so; the US panels still run. Without a feed key the insider tape covers your names only; the key adds the scan across the whole market.
 
 ## What you can do here
 

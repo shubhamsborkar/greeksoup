@@ -1968,16 +1968,38 @@ def build_econcal():
             source = "free feed" if span > (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d") else "free feed, today only"
             high = {(r["country"], r["event"], r["date"]) for r in freefeed.econ_calendar(days, high_only=True)}
             for r in free:
+                if (r.get("date") or "") < frm:
+                    continue      # the page fallback can hand back yesterday's prints
                 is_high = (r["country"], r["event"], r["date"]) in high
                 if not _econ_keep(r["country"], r["event"], is_high, countries):
                     continue
                 if r["country"] in countries and not is_high and not any(w in (r["event"] or "").lower() for w in ECON_KEY_WORDS):
                     continue      # at home and in the US, the low-impact noise (rig counts, weekly mortgage index) stays out
                 keep.append({**r, "impact": "High" if is_high else "Medium", "unit": ""})
+        if source != "free feed":
+            # the feed's calendar endpoint refuses an address for days at a time while quotes still
+            # answer, so the weeks ahead come from the record itself: Forex Factory's weekly file
+            # for the majors, the BLS schedule and the Fed's meeting calendar for the US
+            import econ_public
+            have = {(r["date"], r["country"], (r.get("event") or "").lower()) for r in keep}
+            n = 0
+            for r in econ_public.calendar(days):
+                is_high = r["impact"] == "High"
+                if not _econ_keep(r["country"], r["event"], is_high, countries):
+                    continue
+                if r["country"] in countries and not is_high and not any(w in (r["event"] or "").lower() for w in ECON_KEY_WORDS):
+                    continue
+                if (r["date"], r["country"], (r["event"] or "").lower()) in have:
+                    continue
+                keep.append(r)
+                n += 1
+            if n:
+                source = "public record" if source == "" else "free feed today, the public record ahead"
     keep.sort(key=lambda r: (r["date"] or "", r.get("time") or ""))
+    thin = not keep or source.endswith("today only")
     return {"rows": keep[:400], "days": days, "home": home, "source": source, "ts": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "_ttl": 600 if (not keep or source.endswith("today only")) else None,     # a thin answer is retried in ten minutes, not six hours
-            "note": ("" if keep else ("The free feed is resting; the calendar fills when it answers again." if not os.getenv("FMP_API_KEY", "").strip() else "The provider returned no prints for the window."))
+            "_ttl": 600 if thin else None,     # a thin answer is retried in ten minutes, not six hours
+            "note": ("" if keep else ("The free feed is resting and the public schedules did not answer; the calendar fills when one of them does." if not os.getenv("FMP_API_KEY", "").strip() else "The provider returned no prints for the window."))
                     if not source.endswith("today only") else "The free feed is handing out today's prints only just now; the weeks ahead fill when it answers in full again."}
 
 

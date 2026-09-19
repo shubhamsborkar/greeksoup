@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-19.114. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-19.115. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-19.115
+
+*19 September 2026, release 115.* The economic calendar on Macro fills again with no key. The free feed's own calendar has been refusing addresses for days at a time while quotes still answer, and the desk had nothing behind it, so the panel sat on "resting". Now the weeks ahead come from the record itself when the feed refuses: the Bureau of Labor Statistics' release schedule (this month and the next two, every print with its time), the Federal Reserve's meeting calendar (the statement at two in the afternoon Eastern), and Forex Factory's public weekly file for this week's prints across the nine major currencies with the forecast and the previous. The panel names which of them answered. Yesterday's prints no longer pass as today's. What it talks to and Data sources name the three addresses.
 
 ## 2026-09-19.114
 

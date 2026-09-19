@@ -252,7 +252,7 @@ Fifteen of the sixteen screens are live the moment the desk starts: the US panel
 
 | Screen | With no key | What the feed key adds |
 |---|---|---|
-| The US panels of Desk · Home | Positions priced from Yahoo; earnings countdown from Yahoo; insider tape from SEC EDGAR on your names; market pulse empty | The insider scan across the whole market; the movers and sector pulse |
+| The US panels of Desk · Home | Positions priced from Yahoo; earnings countdown from Yahoo; insider tape from SEC EDGAR on your names; market pulse from Nasdaq's public screener | The insider scan across the whole market |
 | Watch · US, Global | Yahoo quotes, any Yahoo symbol from any exchange | The fifty and two hundred day distance and market cap columns |
 | Ticker page | Chart and quote from Yahoo; profile, ratios, targets and analyst counts from Yahoo when it is not rate-limiting; insider table from EDGAR | Statements, ratio history, segments, estimates, peers, dividends, news, the DCF seeds |
 | Funds | 13F and 13D/G straight from EDGAR | Nothing; it never uses the feed |
@@ -426,11 +426,12 @@ The first screen in the sidebar and the only one that needs a broker. It is your
 | US book positions | Desk · Book, priced from Yahoo's free feed |
 | Earnings ahead | Yahoo's free feed; the company's own date once announced, an estimate until then |
 | Insider tape and cluster buys | SEC EDGAR Form 4 filings, read by the desk |
-| Market pulse, the market-wide insider scan | The data provider key |
+| Market pulse (gainers, losers, most active, sectors) | Nasdaq's public screener, no key |
+| The market-wide insider scan, the movers with a key | The data provider key |
 
 ## With and without a key
 
-Without a broker the account block is dark and says so; the US panels still run. Without a feed key the pulse is empty and the insider tape covers your names only; the key adds the scan across the whole market and the movers.
+Without a broker the account block is dark and says so; the US panels still run. Without a feed key the insider tape covers your names only; the key adds the scan across the whole market.
 
 ## What you can do here
 
@@ -770,7 +771,8 @@ A results date is the company's own once announced and an estimate until then, a
 
 | Event | Source |
 |---|---|
-| Results dates, EPS and revenue expected, ex-dividend and pay dates | Yahoo's free feed |
+| Results dates, ex-dividend and pay dates on US names | Nasdaq's public pages, read by the desk |
+| EPS and revenue expected | Yahoo's free feed |
 | Filings landed | SEC EDGAR's filing index for each US name |
 | Home-market results calendar | The exchange's own calendar where the market publishes one (India, the United States) |
 | Macro prints ahead | The data provider key |
@@ -796,7 +798,7 @@ The macro backdrop from FRED, the St. Louis Fed's public database, in six groups
 
 **The home market's cards.** A market file can add its own: India adds the ten-year yield, the repo rate and CPI. [Markets](https://greeksoup.ai/docs/markets/).
 
-**The economic calendar.** The next sixty days of prints for your home market and the United States in full, and the ones that move markets in the euro area, Britain, Japan and China: rate decisions, inflation, jobs, growth, PMIs, in your own time zone. The calendar comes from the free feed and rests when the feed is rate-limiting, as in the screenshot; it fills again when the feed answers.
+**The economic calendar.** The next sixty days of prints for your home market and the United States in full, and the ones that move markets in the euro area, Britain, Japan and China: rate decisions, inflation, jobs, growth, PMIs, in your own time zone. The free feed's own calendar answers when it is not refusing the address; when it is, the weeks ahead come from the record itself: the Bureau of Labor Statistics' release schedule and the Fed's meeting calendar for the US, and Forex Factory's public weekly file for this week across the majors.
 
 ## Where each number comes from
 
@@ -804,7 +806,7 @@ The macro backdrop from FRED, the St. Louis Fed's public database, in six groups
 |---|---|
 | Every US card | FRED, the St. Louis Fed's public API |
 | The home market's cards | The market file's own sources (for India: the ten-year from FRED, the repo rate and CPI from the RBI's and MOSPI's public pages) |
-| The economic calendar | The free feed; the data provider key gives a fuller calendar |
+| The economic calendar | The free feed's calendar; when it refuses, the BLS schedule, the Fed's FOMC calendar and Forex Factory's weekly file; a data provider key gives the fullest calendar |
 
 ## What you can do here
 
@@ -1444,7 +1446,7 @@ The desk runs on your computer and answers only to your computer. This is the wh
 ## The list
 
 - **Your broker**, only if you connected one, with the keys you gave it, read-only. Each shipped broker file uses that broker's documented read endpoints and none of them can place an order.
-- **The public record**: SEC EDGAR for filings, FINRA for short interest, CBOE for delayed option chains, FRED for macro series, the Senate and House disclosure sites for Congress trades, Yahoo Finance for quotes and history, Nasdaq for US earnings dates, dividends and the market pulse, Trading Economics for a few commodity benchmarks, Frankfurter for central-bank reference exchange rates, OpenFIGI when you search by ISIN, and the India sources named on the Macro screen.
+- **The public record**: SEC EDGAR for filings, FINRA for short interest, CBOE for delayed option chains, FRED for macro series, the Senate and House disclosure sites for Congress trades, Yahoo Finance for quotes and history, Nasdaq for US earnings dates, dividends and the market pulse, Trading Economics for a few commodity benchmarks, Frankfurter for central-bank reference exchange rates, OpenFIGI when you search by ISIN, the Bureau of Labor Statistics' release schedule and the Federal Reserve's meeting calendar for the US prints ahead, Forex Factory's public weekly file for the majors' prints this week, and the India sources named on the Macro screen.
 - **The website, not the desk**: greeksoup.ai counts its own page views and visits with Cloudflare Web Analytics, which sets no cookie and keeps no personal data, so we know how many people read the page. The desk itself sends nothing to Cloudflare or to us.
 - **On Yahoo Finance, plainly**: the filings, the short interest, the option chains, the macro series and the Congress trades come from the bodies that publish them. Quotes and price history come from Yahoo's free feed, which has no contract behind it, throttles when asked too often, and can change without notice. The desk caches what it read and falls back where it can, a connected broker prices the names it knows, and a data provider key adds the statements and ratios. If you want a contract behind your prices, connect the broker or the provider; the free feed is where the desk starts.
 - **Your data provider**, only if you gave it a key. Financial Modeling Prep ships today.
@@ -1922,6 +1924,7 @@ The source is named on every screen. This is the same list in one place, with wh
 - **Nasdaq.** The earnings date and the dividend record of each US name on the Calendar, and the US market pulse on Desk · Home: every large and mega cap with today's move, volume and sector, from which the gainers, the losers, the most active by dollars traded and the sector snapshot are read.
 - **Frankfurter.** The daily reference exchange rates that central banks publish (the ECB's among them), keyless and open source, for the history behind the five currency cards on the Commodities board and their level when the free quote feed does not answer. One fixing a day, so the level is the last business day's.
 - **OpenFIGI.** Bloomberg's open identifier service, keyless. When what you type into a search box on Desk · Book or a watchlist is an ISIN, the twelve-character code on every broker statement, the listings that carry it come from here, the issuer's home exchange first, each checked against the free feed before it is shown. Asked once per ISIN and kept.
+- **The BLS, the Fed and Forex Factory.** The economic calendar when the free feed's own calendar refuses the address, which it does for days at a time: the Bureau of Labor Statistics' release schedule (this month and the next two, every print with its time), the Federal Reserve's FOMC meeting calendar (the statement at two in the afternoon Eastern on the last day), and Forex Factory's public weekly file for this week's prints across the nine major currencies with the forecast and the previous. All three keyless.
 - **Trading Economics.** One dated sentence per page for the commodity benchmarks with no contract and no FRED series, for the current level and the day, month and year change.
 - **The home market's own sources.** The exchange's filings and results calendar, and the statistics office, for the market your broker trades in. India and the United States ship.
 
@@ -2643,7 +2646,11 @@ It places no orders, it sends nothing about you anywhere, and it assumes no brok
 
 Section: Project. URL: https://greeksoup.ai/docs/project/releases/
 
-Newest first. The current version is 2026-09-19.114. Your desk reads this same list once a day and offers the update with one click.
+Newest first. The current version is 2026-09-19.115. Your desk reads this same list once a day and offers the update with one click.
+
+## 2026-09-19.115
+
+*19 September 2026, release 115.* The economic calendar on Macro fills again with no key. The free feed's own calendar has been refusing addresses for days at a time while quotes still answer, and the desk had nothing behind it, so the panel sat on "resting". Now the weeks ahead come from the record itself when the feed refuses: the Bureau of Labor Statistics' release schedule (this month and the next two, every print with its time), the Federal Reserve's meeting calendar (the statement at two in the afternoon Eastern), and Forex Factory's public weekly file for this week's prints across the nine major currencies with the forecast and the previous. The panel names which of them answered. Yesterday's prints no longer pass as today's. What it talks to and Data sources name the three addresses.
 
 ## 2026-09-19.114
 
