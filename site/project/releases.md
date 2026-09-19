@@ -2,12 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-19.103. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-19.109. Your desk reads this same list once a day and offers the update with one click.
 ---
 
-## 2026-09-19.103
+## 2026-09-19.109
 
-*19 September 2026, release 103.* The website now counts its own visits. greeksoup.ai and the docs pages carry Cloudflare Web Analytics, which counts page views and visits with no cookie and no personal data, and What it talks to says so in one line; the desk itself still sends nothing to anyone. No code changed.
+*19 September 2026, release 109.* The website now counts its own visits. greeksoup.ai and the docs pages carry Cloudflare Web Analytics, which counts page views and visits with no cookie and no personal data, and What it talks to says so in one line; the desk itself still sends nothing to anyone. No code changed.
 
 ## 2026-09-19.108
 

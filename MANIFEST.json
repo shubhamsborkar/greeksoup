@@ -1,7 +1,7 @@
 {
- "version": "2026-09-19.103",
- "generated": "2026-09-19 10:38",
- "commits_scanned": 175,
+ "version": "2026-09-19.109",
+ "generated": "2026-09-19 10:39",
+ "commits_scanned": 176,
  "files": {
   ".env.example": "64f2414bb802a9187cfafb59b2ea60d067ee4cf54a843b4dcae6956ae60fa794",
   ".github/ISSUE_TEMPLATE/broker.yml": "7a078be513076d3e7262364df80aac5adef7c815889efeb33c84ade7c4f2a409",
@@ -26,7 +26,7 @@
   "TECHNICAL.md": "24ad9d02b2df8a855b59a25fafb9cfd3a71bbd9e0fa6df95bf55d98afdd6189c",
   "Uninstall Desk.bat": "f4c66f6ff96f4649ddb7f0374e7c7ac5c73d59a7f6255a0e36c2580da2fe9ed9",
   "Uninstall Desk.command": "0fe82587340a9add4ceca9b5ff0fe49d6f20d008a6b7d0bb559c8afb34c74188",
-  "VERSION": "6b68e4d30790aa4d766c8f5842a3b680d8f99ee16dc3af4d243d3b0768b6f4e1",
+  "VERSION": "70d80fd9151a1f74f101f7481b35a8cb3ead6cd60da6e9dfcf2d870717659ee3",
   "activist.py": "78089c14f53da696553d3c3cd74f88553496d2504b7ebc94a36e6ec4f4db1062",
   "ai.py": "6a2886697846a39b72dee453d2e3749b724aab0e3e4c2d869373088827c70817",
   "breeze_session.py": "9062187bd4b808c7b224845705cf75facb01261b9e56ea0844ff09e4ccec074a",
@@ -348,6 +348,7 @@
    "6b68e4d30790aa4d766c8f5842a3b680d8f99ee16dc3af4d243d3b0768b6f4e1",
    "6d0a9b9f7336be4ba596c2c34c5773d83a2580a0a950f1d3f230ad4c2508e6a4",
    "6ee07803c6d92030fa51d28e76d3be41a1b55ad12e5512c3b5f277d53ae048f2",
+   "70d80fd9151a1f74f101f7481b35a8cb3ead6cd60da6e9dfcf2d870717659ee3",
    "716bfb36e97b29b470ee0a977415ffa16c22881f2ec712416b9706a056133f6a",
    "7190bf3dda3fe5073f28709d94094f2d134390d12b78a293ac7d246f83cf862f",
    "719f4e209f03efde8dd2e503e80b53a5e849f323063767b16cdfad1bcfaf7268",
