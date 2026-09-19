@@ -20,7 +20,7 @@ import requests
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPORTS_PATH = os.path.join(HERE, "data", "reports.json")   # the reader's own: which reports this desk sent
 REPO = "shubhamsborkar/greeksoup"
-SUPPORT_URL = (os.getenv("DESK_SUPPORT_URL") or "").strip() or ""   # filled in the release that switches it on
+SUPPORT_URL = (os.getenv("DESK_SUPPORT_URL") or "").strip() or "https://greeksoup-support.mute-cloud-a367.workers.dev/report"
 FRESH = 600            # seconds a fetched issue is kept before the desk asks GitHub again
 _lock = threading.Lock()
 _cache = {}            # number -> (fetched_at, issue view)

@@ -1,7 +1,7 @@
 {
- "version": "2026-09-19.112",
- "generated": "2026-09-19 12:59",
- "commits_scanned": 179,
+ "version": "2026-09-19.113",
+ "generated": "2026-09-19 13:15",
+ "commits_scanned": 180,
  "files": {
   ".env.example": "64f2414bb802a9187cfafb59b2ea60d067ee4cf54a843b4dcae6956ae60fa794",
   ".github/ISSUE_TEMPLATE/broker.yml": "7a078be513076d3e7262364df80aac5adef7c815889efeb33c84ade7c4f2a409",
@@ -26,7 +26,7 @@
   "TECHNICAL.md": "24ad9d02b2df8a855b59a25fafb9cfd3a71bbd9e0fa6df95bf55d98afdd6189c",
   "Uninstall Desk.bat": "f4c66f6ff96f4649ddb7f0374e7c7ac5c73d59a7f6255a0e36c2580da2fe9ed9",
   "Uninstall Desk.command": "0fe82587340a9add4ceca9b5ff0fe49d6f20d008a6b7d0bb559c8afb34c74188",
-  "VERSION": "0da5d17258b8d74f5d05f938fca3ea54f30ab2256079d60cb0c21c53c2c2bec1",
+  "VERSION": "70fa4361f74343d04a3e1d7aac502a683cd5d47c0bfe5a4c22edd7b89dd129e1",
   "activist.py": "78089c14f53da696553d3c3cd74f88553496d2504b7ebc94a36e6ec4f4db1062",
   "ai.py": "6a2886697846a39b72dee453d2e3749b724aab0e3e4c2d869373088827c70817",
   "breeze_session.py": "9062187bd4b808c7b224845705cf75facb01261b9e56ea0844ff09e4ccec074a",
@@ -115,7 +115,7 @@
   "settings.py": "d0b00cd883081b5ff6ddae7b91818d47b2d05d348d618f4a9d886b66fb2164b5",
   "shortint.py": "2059cdda722621881d9592708e74411f0cbaa3fee134a4b93b1bb80a7b6da98f",
   "stream_in.py": "8d69a1fd4acb7ee3e051b05bca68b87a76b9a0f5a07adcf14bd5ffe56902226a",
-  "support.py": "36177148d079cd6f2dce8f05f317f8fca6b9c46ecf469a161a55f22227cbdbf0",
+  "support.py": "8fb0e930bfa532e7635a581463ec7249da4b10e54ce68a88dd5ec0e7270afab3",
   "tests/test_contracts.py": "4b190f4edcc74119e203af200c551533bf3e772a3aece20223083b0ae22d7f61",
   "uninstall.sh": "6bf7c8bb0719aaac83020df34c224eea47cd050c559c124c3422f8cc248fc12d",
   "updater.py": "8ef7023422fe60f56fe8200f71b9875afef1d08a28cde275e72576bea6c5348e",
@@ -356,6 +356,7 @@
    "6d0a9b9f7336be4ba596c2c34c5773d83a2580a0a950f1d3f230ad4c2508e6a4",
    "6ee07803c6d92030fa51d28e76d3be41a1b55ad12e5512c3b5f277d53ae048f2",
    "70d80fd9151a1f74f101f7481b35a8cb3ead6cd60da6e9dfcf2d870717659ee3",
+   "70fa4361f74343d04a3e1d7aac502a683cd5d47c0bfe5a4c22edd7b89dd129e1",
    "716bfb36e97b29b470ee0a977415ffa16c22881f2ec712416b9706a056133f6a",
    "7190bf3dda3fe5073f28709d94094f2d134390d12b78a293ac7d246f83cf862f",
    "719f4e209f03efde8dd2e503e80b53a5e849f323063767b16cdfad1bcfaf7268",
@@ -956,7 +957,8 @@
    "6ed973738bb43e0d1a2e6f5a16b5b014717a6a457635e35dfef4f22ffbb07f9e"
   ],
   "support.py": [
-   "36177148d079cd6f2dce8f05f317f8fca6b9c46ecf469a161a55f22227cbdbf0"
+   "36177148d079cd6f2dce8f05f317f8fca6b9c46ecf469a161a55f22227cbdbf0",
+   "8fb0e930bfa532e7635a581463ec7249da4b10e54ce68a88dd5ec0e7270afab3"
   ],
   "tests/test_contracts.py": [
    "0093277f12ea2cf960c945503010e9a1c6daa13be5a1f0e0ffabe7ac86dc3fe2",

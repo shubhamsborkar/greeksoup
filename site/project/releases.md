@@ -2,8 +2,12 @@
 title: Releases
 nav: Releases
 description: What changed in GreekSoup, newest first, read from the same VERSION file your desk reads when it checks for an update.
-lead: Newest first. The current version is 2026-09-19.112. Your desk reads this same list once a day and offers the update with one click.
+lead: Newest first. The current version is 2026-09-19.113. Your desk reads this same list once a day and offers the update with one click.
 ---
+
+## 2026-09-19.113
+
+*19 September 2026, release 113.* The Send button is on. Tell us now sends the report with one press to our support address, which files it in the open where we answer it and hands back the number and the link on the spot; the reply comes back to the same page under Your reports, and the sidebar entry shows a mark when one is waiting. Your email is optional, kept privately for ninety days, and never appears on the report. Email it and Copy stay beside it for anyone who prefers them. The first report through it was our own test, number 2, answered and closed.
 
 ## 2026-09-19.112
 

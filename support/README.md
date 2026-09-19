@@ -19,5 +19,8 @@ Setting it up, once (about fifteen minutes):
    `support.py` as the default `SUPPORT_URL`. Release. From that version on the Send button
    appears on every reader's Tell us page.
 
+Done on 2026-09-19: the Worker is `greeksoup-support` on the Shikshan Nivesh Cloudflare account,
+the store is `greeksoup-support-emails`, and the address is in `support.py`. Issue #2 was the test.
+
 Reading a reader's email when a reply needs one: Cloudflare dashboard, Workers & Pages, KV,
 the `EMAILS` namespace, key `email:<issue number>`.
