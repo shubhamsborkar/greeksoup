@@ -1301,6 +1301,44 @@ def build_fin(symbol):
             "ts": datetime.now().strftime("%H:%M:%S")}
 
 
+def period_for_note(symbol=""):
+    """The period a one-click note is filed under when the reader did not type one
+    (2026-09-21, his feedback on the ask panel: "in one click the user will be able to save
+    it... if it is about stock, it will get saved in stock... in whatever relevant quarter").
+    For a listing: the latest quarter in its statements, read from the fin cache on disk only,
+    so a save never waits on a provider; a name with no cached statements, or no listing at
+    all, files under the calendar quarter we are in. The reader can change it afterwards."""
+    sym = (symbol or "").upper().strip()
+    if sym:
+        rows = []
+        for src in (_fin_cache.get(sym), None):
+            data = src[1] if src else None
+            if data is None:
+                try:
+                    with open(os.path.join(HIST_CACHE_DIR, f"api_fin_{sym}.json")) as fh:
+                        c = json.load(fh)
+                    # statements move once a quarter; a week-old read still names the right one
+                    data = (c.get("data") or {}) if time.time() - c.get("at", 0) < 7 * 86400 else {}
+                except (OSError, ValueError, AttributeError):
+                    data = {}
+            rows = data.get("inc_q") or data.get("bs_q") or data.get("cf_q") or []
+            if rows:
+                break
+        # the provider lists newest first, the free record oldest first: take the latest date
+        rows = [r for r in rows if isinstance(r, dict)] if isinstance(rows, list) else []
+        row = max(rows, key=lambda r: str(r.get("date") or "")) if rows else None
+        if row:
+            year = str(row.get("fiscalYear") or row.get("calendarYear") or row.get("date", "")[:4] or "")[-2:]
+            part = str(row.get("period") or "").upper().strip()
+            m = re.match(r"^Q([1-4])$", part)
+            if m and year.isdigit():
+                return f"Q{m.group(1)} FY{year}"
+            if part == "FY" and year.isdigit():
+                return f"FY{year}"
+    now = datetime.now()
+    return f"Q{(now.month - 1) // 3 + 1} {now.year}"
+
+
 def cached_fin(symbol):
     """Per-symbol, disk-backed 12h cache; never caches a failure."""
     now = time.time()
@@ -4760,6 +4798,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(json.dumps({"ok": True, **build_guide()}).encode(), "application/json")
             if self.path == "/api/notes/save":
                 try:
+                    if body.get("auto_period") and not str(body.get("period") or "").strip():
+                        syms = body.get("symbols") or []
+                        body["period"] = period_for_note(syms[0] if syms else "")
                     note = desk_notes.save(body)
                     j = journal("note", (note.get("symbols") or [""])[0] or "", note_moment(note)) if note.get("new") else None
                     return self._send(json.dumps({"ok": True, "note": note, "journal": j}).encode(), "application/json")

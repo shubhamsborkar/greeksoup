@@ -1541,3 +1541,55 @@ def test_currency_cards_carry_a_keyless_history():
     for c in cur:
         pair = c["sources"].get("frankfurter", "")
         assert "/" in pair and len(pair) == 7, c["id"]
+
+
+def test_one_click_note_files_itself(tmp_path, monkeypatch):
+    """Save as note is one click (2026-09-21): the period is the listing's latest reported
+    quarter from the fin cache on disk, a stale or missing cache files under the calendar
+    quarter we are in, and a save that names no period asks for that default. The card stays
+    for a reader who wants it filed differently and updates the same note."""
+    import json
+    import time
+    import notes as desk_notes
+    import server
+    monkeypatch.setattr(server, "HIST_CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(server, "_fin_cache", {})
+    json.dump({"at": time.time(), "data": {"inc_q": [{"date": "2026-06-28", "fiscalYear": "2026", "period": "Q2"}]}},
+              open(tmp_path / "api_fin_FRESH.json", "w"))
+    # the free record lists oldest first; the latest date wins, not the first row
+    json.dump({"at": time.time(), "data": {"free": True, "inc_q": [{"date": "2025-09-30", "fiscalYear": "2025", "period": "Q3"},
+                                                                    {"date": "2026-06-30", "fiscalYear": "2026", "period": "Q2"}]}},
+              open(tmp_path / "api_fin_ASC.json", "w"))
+    json.dump({"at": time.time() - 30 * 86400, "data": {"inc_q": [{"date": "2025-06-28", "fiscalYear": "2025", "period": "Q2"}]}},
+              open(tmp_path / "api_fin_OLD.json", "w"))
+    json.dump({"at": time.time(), "data": {"inc_q": [{"date": "2025-12-31", "fiscalYear": "2025", "period": "FY"}]}},
+              open(tmp_path / "api_fin_ANNUAL.json", "w"))
+    now = time.localtime()
+    this_quarter = f"Q{(now.tm_mon - 1) // 3 + 1} {now.tm_year}"
+    assert server.period_for_note("fresh") == "Q2 FY26"
+    assert server.period_for_note("ANNUAL") == "FY25"
+    assert server.period_for_note("ASC") == "Q2 FY26"
+    assert server.period_for_note("OLD") == this_quarter
+    assert server.period_for_note("NOSUCH") == this_quarter
+    assert server.period_for_note("") == this_quarter
+    keep = desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR
+    desk_notes.RESEARCH_DIR = str(tmp_path / "research")
+    desk_notes.NOTES_DIR = str(tmp_path / "research" / "notes")
+    try:
+        desk_notes.index(force=True)
+        body = {"title": "when did the CEO buy", "kind": "stock", "type": "answer", "symbols": ["FRESH"],
+                "period": "", "auto_period": True, "tags": ["ask"], "body": "> q\n\na\n"}
+        if body.get("auto_period") and not str(body.get("period") or "").strip():   # the endpoint's own two lines
+            body["period"] = server.period_for_note(body["symbols"][0])
+        n = desk_notes.save(body)
+        assert n["period"] == "Q2 FY26" and n["kind"] == "stock" and n["symbols"] == ["FRESH"] and n["new"]
+        # Change: the same note, refiled, not a second one
+        m = desk_notes.save({"id": n["id"], "title": n["title"], "kind": "stock", "type": "answer",
+                             "symbols": ["FRESH"], "period": "Q1 FY26", "tags": ["ask"], "body": n["body"]})
+        assert m["id"] == n["id"] and m["period"] == "Q1 FY26" and not m["new"]
+        assert len(desk_notes.index(force=True)) == 1
+        # Undo: gone
+        assert desk_notes.delete(n["id"]) and not desk_notes.index(force=True)
+    finally:
+        desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR = keep
+        desk_notes.index(force=True)

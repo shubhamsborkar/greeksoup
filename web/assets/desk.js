@@ -1084,8 +1084,52 @@
     sv.className = "sv";
     sv.innerHTML = `<button type="button" class="svb">Save as note</button> <button type="button" class="svb svt2">Save as task</button>`;
     box.appendChild(sv);
-    sv.querySelector(".svb").onclick = () => saveForm(sv, question, out, query, screen);
+    sv.querySelector(".svb").onclick = () => saveNow(sv, question, out, query, screen);
     sv.querySelector(".svt2").onclick = () => taskForm(sv, question, out, query, screen);
+  }
+  /* What a saved answer carries: the question quoted, the answer, and where and when it was asked */
+  function noteBody(question, out, screen) {
+    const when = new Date();
+    const stamp = when.getFullYear() + "-" + String(when.getMonth() + 1).padStart(2, "0") + "-" + String(when.getDate()).padStart(2, "0");
+    return "> " + question.replace(/\n/g, "\n> ") + "\n\n" + out.answer.trim() + "\n\n" +
+      `*Asked on ${screen}, ${stamp}; answered by ${out.model || "your AI"}. Verify against the source the screen names.*\n`;
+  }
+  /* One click files the answer (his ruling 2026-09-21: "in one click the user will be able to
+     save it, not even opening this kind of a window"). The screen decides what the note is
+     about: a ticker page files a stock note under its listing, the Commodities board a commodity
+     note, Macro and Chain theirs; the period is the listing's latest reported quarter, or the
+     quarter we are in. The way back is on the same line: Change opens the card, Undo removes it. */
+  async function saveNow(sv, question, out, query, screen) {
+    const page = askPage().page;
+    const sym = (query.symbol || "").toUpperCase();
+    const kind = ASK_KIND[page] || (sym ? "stock" : "general");
+    const note = { title: question.replace(/\s+/g, " ").trim().slice(0, 90), kind, type: "answer", period: "", auto_period: true,
+      symbols: kind === "stock" && sym ? [sym] : [], about: "", tags: ["ask"], body: noteBody(question, out, screen) };
+    sv.innerHTML = `<small class="svm">Saving…</small>`;
+    try {
+      const r = await fetch("/api/notes/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(note) });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error || ("could not save " + window.NEXT_STEP));
+      savedLine(sv, d.note, question, out, query, screen);
+      if (d.journal) window.deskJournal(d.journal);
+    } catch (e) {
+      sv.innerHTML = `<small class="svm">Not saved: ${esc(e.message || "the desk did not answer.")}</small> `;
+      const b = document.createElement("button"); b.type = "button"; b.className = "svb"; b.textContent = "Try again";
+      b.onclick = () => saveNow(sv, question, out, query, screen); sv.appendChild(b);
+    }
+  }
+  function savedLine(sv, n, question, out, query, screen) {
+    const where = [KIND_LABEL[n.kind] || n.kind, (n.symbols || []).join(", ") || n.about || "", n.period || ""].filter(Boolean).join(" · ");
+    sv.innerHTML = `<small class="svm">Saved as ${esc(where)}. <a href="/notes?id=${encodeURIComponent(n.id)}">Open the note</a> · <a href="#" class="svch">Change</a> · <a href="#" class="svun">Undo</a></small>`;
+    sv.querySelector(".svch").onclick = e => { e.preventDefault(); saveForm(sv, question, out, query, screen, n); };
+    sv.querySelector(".svun").onclick = async e => {
+      e.preventDefault();
+      try {
+        const d = await (await fetch("/api/notes/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: n.id }) })).json();
+        if (!d.ok) throw new Error("the note is already gone");
+        const box = sv.parentNode; sv.remove(); offerSave(box, question, out, query, screen);
+      } catch (err) { sv.querySelector(".svm").textContent = "Not removed: " + (err.message || "the desk did not answer."); }
+    };
   }
   /* Save as task: the reader names the thing to do and when; the task carries the name and
      where it came from, and lands in tasks.md with the rest */
@@ -1112,45 +1156,44 @@
     };
     sv.querySelector(".svt").focus();
   }
-  function saveForm(sv, question, out, query, screen) {
+  /* The card, for a reader who wants to file it differently: prefilled from the note just
+     saved (Change), so a save here updates that note rather than making a second one */
+  function saveForm(sv, question, out, query, screen, saved) {
     const page = askPage().page;
-    const sym = (query.symbol || "").toUpperCase();
-    const kind0 = ASK_KIND[page] || "general";
-    let lastPeriod = "";
-    try { lastPeriod = localStorage.getItem("gs.period") || ""; } catch (e) { /* private window */ }
-    const title0 = question.replace(/\s+/g, " ").trim().slice(0, 90);
+    const sym = saved ? (saved.symbols || []).join(", ") : (query.symbol || "").toUpperCase();
+    const kind0 = saved ? saved.kind : (ASK_KIND[page] || "general");
+    const lastPeriod = saved ? (saved.period || "") : "";
+    const title0 = saved ? saved.title : question.replace(/\s+/g, " ").trim().slice(0, 90);
     sv.innerHTML =
       `<div class="svf">` +
       `<input class="svt" placeholder="Title" value="${esc(title0)}">` +
       `<div class="svr"><select class="svk" title="what the note is about">${Object.keys(KIND_LABEL).map(k => `<option value="${k}"${k === kind0 ? " selected" : ""}>${KIND_LABEL[k]}</option>`).join("")}</select>` +
       `<input class="svs" placeholder="symbols, comma separated" value="${esc(sym)}" title="the listings the note is about">` +
-      `<input class="sva" placeholder="${esc(ABOUT_HINT[kind0] || "")}" title="the commodity, sector or theme">` +
+      `<input class="sva" placeholder="${esc(ABOUT_HINT[kind0] || "")}" value="${esc(saved ? (saved.about || "") : "")}" title="the commodity, sector or theme">` +
       `<input class="svp" placeholder="Q2 FY26" value="${esc(lastPeriod)}" title="the quarter or year being researched"></div>` +
       `<div class="svr"><button type="button" class="svgo">Save</button><button type="button" class="svno">Cancel</button><small class="svm">Files the question and this answer in your research vault.</small></div></div>`;
     const k = sv.querySelector(".svk"), s = sv.querySelector(".svs"), a = sv.querySelector(".sva");
     const showKind = () => { const st = k.value === "stock"; s.hidden = !st; a.hidden = st; a.placeholder = ABOUT_HINT[k.value] || ""; };
     k.onchange = showKind; showKind();
-    sv.querySelector(".svno").onclick = () => { const box = sv.parentNode; sv.remove(); offerSave(box, question, out, query, screen); };
+    sv.querySelector(".svno").onclick = () => {
+      if (saved) { savedLine(sv, saved, question, out, query, screen); return; }
+      const box = sv.parentNode; sv.remove(); offerSave(box, question, out, query, screen);
+    };
     sv.querySelector(".svgo").onclick = async () => {
       const msg = sv.querySelector(".svm");
       const title = sv.querySelector(".svt").value.trim();
       if (!title) { msg.textContent = "A title first."; return; }
       const period = sv.querySelector(".svp").value.trim();
-      const when = new Date();
-      const stamp = when.getFullYear() + "-" + String(when.getMonth() + 1).padStart(2, "0") + "-" + String(when.getDate()).padStart(2, "0");
-      const body = "> " + question.replace(/\n/g, "\n> ") + "\n\n" + out.answer.trim() + "\n\n" +
-        `*Asked on ${screen}, ${stamp}; answered by ${out.model || "your AI"}. Verify against the source the screen names.*\n`;
-      const note = { title, kind: k.value, type: "answer", period,
+      const note = { id: saved ? saved.id : "", title, kind: k.value, type: "answer", period, auto_period: !period,
         symbols: k.value === "stock" ? s.value.split(",").map(x => x.trim().toUpperCase()).filter(Boolean) : [],
-        about: k.value === "stock" ? "" : a.value.trim(), tags: ["ask"], body };
+        about: k.value === "stock" ? "" : a.value.trim(), tags: ["ask"], body: saved ? saved.body : noteBody(question, out, screen) };
       sv.querySelector(".svgo").disabled = true; msg.textContent = "Saving…";
       try {
         const r = await fetch("/api/notes/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(note) });
         const d = await r.json();
         if (!d.ok) throw new Error(d.error ||("could not save "+window.NEXT_STEP));
-        try { if (d.note.period) localStorage.setItem("gs.period", d.note.period); } catch (e) { /* fine */ }
-        sv.innerHTML = `<small class="svm">Saved. <a href="/notes?id=${encodeURIComponent(d.note.id)}">Open the note</a> · <span class="mono">${esc(d.note.path)}</span></small>`;
-        window.deskJournal(d.journal);
+        savedLine(sv, d.note, question, out, query, screen);
+        if (d.journal) window.deskJournal(d.journal);
       } catch (e) {
         sv.querySelector(".svgo").disabled = false; msg.textContent = "Not saved: " + (e.message || "the desk did not answer.");
       }
