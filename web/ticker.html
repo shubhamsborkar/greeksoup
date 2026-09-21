@@ -821,7 +821,7 @@ async function loadSiteLink(d){
     q.append("symbol",SYM); if(d.exchange_symbol) q.append("symbol",d.exchange_symbol);
     const s=await (await fetch("/api/site/link?"+q)).json();
     if(!s.url) return;
-    a.href=s.url; a.textContent=s.symbol+" on greeksoup.ai ↗";
+    a.href=s.url+"?from=desk&port="+(location.port||"80"); a.textContent=s.symbol+" on greeksoup.ai ↗";   // the marker lets the site offer Open in your desk in this browser
     a.title="This name's public record on greeksoup.ai: statements, filings, holders and insiders, twelve years across. Opens in a new tab.";
     a.hidden=false;
   }catch(e){ /* the site being unreachable never marks the page */ }

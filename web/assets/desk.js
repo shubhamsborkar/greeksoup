@@ -57,6 +57,9 @@
     ["/settings", "Settings", "Setup", I.settings, "settings"],
   ];
   const external = href => /^https:\/\//.test(href);
+  // a link from the desk to the website says it came from a desk, and on which port, so the
+  // site's stock pages can offer "Open in your desk" in this browser and nowhere else
+  const withDesk = href => external(href) ? href + (href.includes("?") ? "&" : "?") + "from=desk&port=" + (location.port || "80") : href;
   /* Screens the reader hid, or the home market hides for them. The last answer from
      /api/nav is kept in this browser so the rail paints right on the first frame, and
      the desk is asked again on every page for the current truth. */
@@ -106,7 +109,7 @@
       groups.map(g =>
         `<div class="rgt">${g.name}</div>` +
         g.items.map(it =>
-          `<a class="rlink${it.on ? " on" : ""}" href="${it.href}" title="${external(it.href) ? "The names the desk reads, laid out on greeksoup.ai: statements, filings, holders and insiders, facts only. Opens in a new tab." : it.label}" data-key="${it.key}"${external(it.href) ? ' target="_blank" rel="noopener"' : ""}>` +
+          `<a class="rlink${it.on ? " on" : ""}" href="${withDesk(it.href)}" title="${external(it.href) ? "The names the desk reads, laid out on greeksoup.ai: statements, filings, holders and insiders, facts only. Opens in a new tab." : it.label}" data-key="${it.key}"${external(it.href) ? ' target="_blank" rel="noopener"' : ""}>` +
           `${svg(it.icon)}<span>${it.label}</span>` +
           (FIXED.has(it.key) ? "" : `<button class="rhide" data-key="${it.key}" title="Hide ${it.label} from the sidebar. It moves to Hidden, below, and one click brings it back.">${svg(HIDE_ICON)}</button>`) +
           `</a>`).join("")
@@ -412,7 +415,7 @@
   function go(item) {
     if (!item) return;
     if (item.href === "#guide") { openCmdk(false); window.deskGuide.show(); return; }
-    if (external(item.href)) { openCmdk(false); window.open(item.href, "_blank", "noopener"); return; }
+    if (external(item.href)) { openCmdk(false); window.open(withDesk(item.href), "_blank", "noopener"); return; }
     location.href = item.href;
   }
   function moveSel(d) {

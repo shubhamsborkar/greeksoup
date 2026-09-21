@@ -1602,9 +1602,10 @@ def test_the_website_is_two_doors_from_the_desk(monkeypatch):
     carries it: a home name against the home market's id, a US name against us, the rest nothing."""
     import server
     js = open(os.path.join(HERE, "web", "assets", "desk.js"), encoding="utf-8").read()
-    assert '"https://greeksoup.ai/stocks/"' in js and 'target="_blank" rel="noopener"' in js and "window.open(item.href" in js
+    assert '"https://greeksoup.ai/stocks/"' in js and 'target="_blank" rel="noopener"' in js and "window.open(withDesk(item.href)" in js
     assert ("site", "https://greeksoup.ai/stocks/", "greeksoup.ai ↗") in server.SCREENS and "site" not in server.ALWAYS_SHOWN
     ticker = open(os.path.join(HERE, "web", "ticker.html"), encoding="utf-8").read()
+    assert "from=desk&port=" in js and "from=desk&port=" in ticker, "the desk's links to the site carry the marker that lets a stock page offer Open in your desk"
     assert 'id="sitelink"' in ticker and "/api/site/link" in ticker and '"/api/site/link"' in open(os.path.join(HERE, "server.py"), encoding="utf-8").read()
 
     class R:
