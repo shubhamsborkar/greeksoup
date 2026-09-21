@@ -10,6 +10,7 @@ import os
 import pytest
 import re
 import sys
+import time
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, HERE)
@@ -1593,3 +1594,36 @@ def test_one_click_note_files_itself(tmp_path, monkeypatch):
     finally:
         desk_notes.RESEARCH_DIR, desk_notes.NOTES_DIR = keep
         desk_notes.index(force=True)
+
+
+def test_the_website_is_two_doors_from_the_desk(monkeypatch):
+    """The rail carries Stocks on greeksoup.ai as a screen (hideable, kept in SCREENS, opens in a
+    new tab), and a ticker page links the same name's page on the site only when the site
+    carries it: a home name against the home market's id, a US name against us, the rest nothing."""
+    import server
+    js = open(os.path.join(HERE, "web", "assets", "desk.js"), encoding="utf-8").read()
+    assert '"https://greeksoup.ai/stocks/"' in js and 'target="_blank" rel="noopener"' in js and "window.open(item.href" in js
+    assert ("site", "https://greeksoup.ai/stocks/", "greeksoup.ai ↗") in server.SCREENS and "site" not in server.ALWAYS_SHOWN
+    ticker = open(os.path.join(HERE, "web", "ticker.html"), encoding="utf-8").read()
+    assert 'id="sitelink"' in ticker and "/api/site/link" in ticker and '"/api/site/link"' in open(os.path.join(HERE, "server.py"), encoding="utf-8").read()
+
+    class R:
+        def json(self):
+            return {"built": "2026-09-20", "names": [
+                {"market": "us", "symbol": "AAPL", "name": "Apple Inc.", "url": "/stocks/us/aapl/"},
+                {"market": "in", "symbol": "RELIANCE", "name": "Reliance Industries Ltd.", "url": "/stocks/in/reliance/"}]}
+    monkeypatch.setattr(server.requests, "get", lambda url, timeout=10: R())
+    server._site_names_cache.update(at=0.0, data=None)
+    monkeypatch.setattr(server, "_home_id", lambda: "in")
+    assert server.site_link("aapl", "us") == {"url": "https://greeksoup.ai/stocks/us/aapl/", "symbol": "AAPL"}
+    assert server.site_link("RELIANCE", "home") == {"url": "https://greeksoup.ai/stocks/in/reliance/", "symbol": "RELIANCE"}
+    assert server.site_link("RELIANCE", "us") == {} and server.site_link("SAP.DE", "global") == {} and server.site_link("", "us") == {}
+    monkeypatch.setattr(server, "_home_id", lambda: "uk")
+    assert server.site_link("RELIANCE", "home") == {}
+    # the site unreachable: no link, no error, and the next page asks again soon
+    def boom(url, timeout=10):
+        raise OSError("down")
+    monkeypatch.setattr(server.requests, "get", boom)
+    server._site_names_cache.update(at=0.0, data=None)
+    assert server.site_link("AAPL", "us") == {} and server._site_names_cache["at"] < time.time() - 80000
+    server._site_names_cache.update(at=0.0, data=None)

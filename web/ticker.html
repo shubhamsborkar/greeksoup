@@ -15,6 +15,9 @@ a{color:var(--cyan);text-decoration:none} a:hover{text-decoration:underline}
 input#go{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);
   border-radius:8px;padding:7px 12px;font-size:13px;width:150px;text-transform:uppercase;outline:none}
 input#go:focus{border-color:var(--accent)}
+/* the same name's public-record page on greeksoup.ai, shown only when the site carries it */
+a.sitelink{color:var(--ink2);font-size:12px;letter-spacing:.03em;padding:6px 10px;border:1px solid var(--line2);border-radius:8px}
+a.sitelink:hover{color:var(--accent);border-color:var(--accent);text-decoration:none}
 
 main{max-width:1280px;margin:0 auto;padding:18px 22px}
 .hero{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:6px}
@@ -125,6 +128,7 @@ tbody tr:last-child td{border-bottom:none}
   <div class="brand">RESEARCH <span>DESK</span></div>
   <nav></nav>
   <div class="right">
+    <a id="sitelink" class="sitelink" hidden target="_blank" rel="noopener"></a>
     <input id="go" placeholder="Ticker… ⏎">
   </div>
 </header>
@@ -801,10 +805,26 @@ async function load(){
   // the desk decides which page a name gets: a home name carries the home market's blocks; a name
   // from another exchange, or a contract, is the free feed's page whatever door it came in by
   if(d.region) HOME = d.region==="home";
+  loadSiteLink(d);
   HIST=[...(d.history||[])].reverse();
   INTRA=d.intraday||{};
   if(HOME) renderHome(d,app); else renderUS(d,app);
   bindChart();
+}
+
+/* The same name on greeksoup.ai: its public record laid out as a page, twelve years across. The
+   link shows only when the site carries the name; a broker's own code is tried beside the exchange's. */
+async function loadSiteLink(d){
+  const a=document.getElementById("sitelink"); if(!a) return;
+  try{
+    const q=new URLSearchParams(); q.set("region",HOME?"home":REG);
+    q.append("symbol",SYM); if(d.exchange_symbol) q.append("symbol",d.exchange_symbol);
+    const s=await (await fetch("/api/site/link?"+q)).json();
+    if(!s.url) return;
+    a.href=s.url; a.textContent=s.symbol+" on greeksoup.ai ↗";
+    a.title="This name's public record on greeksoup.ai: statements, filings, holders and insiders, twelve years across. Opens in a new tab.";
+    a.hidden=false;
+  }catch(e){ /* the site being unreachable never marks the page */ }
 }
 
 /* Your own notes about this name, from the research vault (data/research), and the other names they connect it to. */

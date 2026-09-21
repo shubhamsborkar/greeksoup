@@ -33,6 +33,7 @@
     book: '<path d="M3 2.5h7.5a2 2 0 012 2v9H5a2 2 0 01-2-2z"/><path d="M3 11.5a2 2 0 012-2h7.5"/><path d="M6 5.5h4"/>',
     notes: '<path d="M3.5 2.5h7l2.5 2.5v8.5h-9.5z"/><path d="M10.5 2.5V5H13"/><path d="M5.5 8h5M5.5 10.5h3.5"/>',
     settings: '<circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6l1.4 1.4M11 11l1.4 1.4M3.6 12.4L5 11M11 5l1.4-1.4"/>',
+    site: '<circle cx="8" cy="8" r="6.2"/><path d="M4.5 10.5l2.3-3 1.9 1.6 2.8-3.6"/>',
   };
   const TABS = [
     /* [href, label, group, icon, key]. "Home" is your broker account (whatever market), "US" is the US public-record desk. Rename here. */
@@ -51,8 +52,11 @@
     ["/commods", "Commodities", "Market", I.commods, "commods"],
     ["/chain", "Chain", "Market", I.chain, "chain"],
     ["/notes", "Notes", "Research", I.notes, "notes"],
+    // the desk's own public-record readers laid out per name on the website, facts only; an https href opens in a new tab and the desk stays
+    ["https://greeksoup.ai/stocks/", "greeksoup.ai ↗", "Research", I.site, "site"],
     ["/settings", "Settings", "Setup", I.settings, "settings"],
   ];
+  const external = href => /^https:\/\//.test(href);
   /* Screens the reader hid, or the home market hides for them. The last answer from
      /api/nav is kept in this browser so the rail paints right on the first frame, and
      the desk is asked again on every page for the current truth. */
@@ -102,7 +106,7 @@
       groups.map(g =>
         `<div class="rgt">${g.name}</div>` +
         g.items.map(it =>
-          `<a class="rlink${it.on ? " on" : ""}" href="${it.href}" title="${it.label}" data-key="${it.key}">` +
+          `<a class="rlink${it.on ? " on" : ""}" href="${it.href}" title="${external(it.href) ? "The names the desk reads, laid out on greeksoup.ai: statements, filings, holders and insiders, facts only. Opens in a new tab." : it.label}" data-key="${it.key}"${external(it.href) ? ' target="_blank" rel="noopener"' : ""}>` +
           `${svg(it.icon)}<span>${it.label}</span>` +
           (FIXED.has(it.key) ? "" : `<button class="rhide" data-key="${it.key}" title="Hide ${it.label} from the sidebar. It moves to Hidden, below, and one click brings it back.">${svg(HIDE_ICON)}</button>`) +
           `</a>`).join("")
@@ -408,6 +412,7 @@
   function go(item) {
     if (!item) return;
     if (item.href === "#guide") { openCmdk(false); window.deskGuide.show(); return; }
+    if (external(item.href)) { openCmdk(false); window.open(item.href, "_blank", "noopener"); return; }
     location.href = item.href;
   }
   function moveSel(d) {

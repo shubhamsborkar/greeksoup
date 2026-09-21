@@ -767,6 +767,42 @@ def plugin_list():
     return out
 
 
+SITE_NAMES_URL = os.getenv("SITE_NAMES_URL", "https://greeksoup.ai/stocks/names.json")
+_site_names_cache = {"at": 0.0, "data": None}
+
+
+def site_names():
+    """The names greeksoup.ai carries a public-record page for, read once a day when a ticker
+    page asks: {(market, SYMBOL): url}. An empty answer when the site cannot be read, so a
+    page simply shows no link; nothing about the reader goes out with the request."""
+    now = time.time()
+    if _site_names_cache["data"] is not None and now - _site_names_cache["at"] < 86400:
+        return _site_names_cache["data"]
+    out = {}
+    try:
+        r = requests.get(SITE_NAMES_URL, timeout=10)
+        base = SITE_NAMES_URL.rsplit("/stocks/", 1)[0]
+        for row in (r.json().get("names") or []):
+            if isinstance(row, dict) and row.get("symbol") and str(row.get("url", "")).startswith("/"):
+                out[(str(row.get("market", "")).lower(), str(row["symbol"]).upper())] = base + row["url"]
+    except Exception:  # noqa: BLE001 - the site being unreachable never marks a page
+        pass
+    # a failed read is retried in ten minutes, a good one kept for the day
+    _site_names_cache.update(at=now if out else now - 86400 + 600, data=out)
+    return out
+
+
+def site_link(symbol, region="us"):
+    """Where this name's page is on greeksoup.ai, if the site has one: a home name against the
+    home market's id (in, us), a US name against us, any other exchange nothing."""
+    market = _home_id() if region == "home" else ("us" if region == "us" else "")
+    sym = (symbol or "").upper().strip()
+    if not market or not sym:
+        return {}
+    url = site_names().get((market, sym))
+    return {"url": url, "symbol": sym} if url else {}
+
+
 def install_from_list(name):
     lst = plugin_list()
     row = next((x for x in lst.get("plugins", []) if x.get("name") == name), None)
@@ -3618,6 +3654,7 @@ SCREENS = [
     ("short", "/short", "Short"), ("capitol", "/capitol", "Capitol"), ("macro", "/macro", "Macro"),
     ("calendar", "/calendar", "Calendar"),
     ("commods", "/commods", "Commodities"), ("chain", "/chain", "Chain"), ("notes", "/notes", "Notes"),
+    ("site", "https://greeksoup.ai/stocks/", "greeksoup.ai ↗"),   # the website's public-record pages; opens in a new tab
     ("settings", "/settings", "Settings"),
 ]
 ALWAYS_SHOWN = {"home", "settings"}
@@ -4198,6 +4235,16 @@ class Handler(BaseHTTPRequestHandler):
                                               "list_url": PLUGIN_LIST_URL}).encode(), "application/json")
             elif path == "/api/plugins/list":
                 return self._send(json.dumps(plugin_list()).encode(), "application/json")
+            elif path == "/api/site/link":
+                # the same name on greeksoup.ai, when the site carries it; the page tries the
+                # exchange symbol too, for a broker whose code differs from the exchange's
+                reg = (qs.get("region", ["us"])[0] or "us").lower()
+                found = {}
+                for sym in qs.get("symbol", []):
+                    found = site_link(sym, reg)
+                    if found:
+                        break
+                return self._send(json.dumps(found).encode(), "application/json")
             elif path == "/api/research/block":
                 spec = (qs.get("spec", [""])[0] or "")[:200]
                 try:
