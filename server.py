@@ -3561,9 +3561,11 @@ def connect_broker_now(bid=None, at_boot=False):
         return {"ok": False, "error": "Save the broker's keys first."}
     cfg = brokers.config(bid)
     token = brokers.read_token(bid) if mod.META["daily_login"] else None
+    # A few brokers hand out a sign-in that outlasts the day; Schwab's is a week.
+    span = "this week" if brokers.login_days(bid) > 1 else "today"
     if mod.META["daily_login"] and not token:
         broker_health["dead"] = not clients
-        return {"ok": False, "need_token": True, "error": "No login for today yet. Open the broker login below and paste what it hands back."}
+        return {"ok": False, "need_token": True, "error": f"No login for {span} yet. Open the broker login below and paste what it hands back."}
     try:
         cli = mod.connect(cfg, token)
     except brokers.BrokerError as exc:
@@ -3571,7 +3573,7 @@ def connect_broker_now(bid=None, at_boot=False):
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": "Could not connect: " + str(exc)[:160]}
     if cli is None:
-        return {"ok": False, "need_token": True, "error": "The broker did not accept today's login. It may be from an earlier day, or pasted with a character missing."}
+        return {"ok": False, "need_token": True, "error": f"The broker did not accept {span}'s login. It may be an older one, or pasted with a character missing."}
     clients[bid] = cli
     try:
         ACCOUNT_LABELS[bid] = mod.label(cli)
@@ -3632,6 +3634,7 @@ def broker_state(bid=None):
                    "token_param": m.get("token_param", ""), "region": m.get("region", ""),
                    "desk": desk_of(m.get("region", ""))})
         if m["daily_login"]:
+            st["login_days"] = brokers.login_days(bid)
             st["token_today"] = brokers.read_token(bid) is not None
             st["login_url"] = mod.login_url(cfg) if (st["configured"] and hasattr(mod, "login_url")) else ""
     return st

@@ -42,23 +42,28 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
 # Alphabetical by label. Adding a broker = one file here + one line in this list.
-REGISTRY = ["alpaca", "icici_breeze", "ibkr_flex", "tradier", "trading212", "zerodha_kite"]
+REGISTRY = ["alpaca", "angel_one", "schwab", "dhan", "groww", "icici_breeze", "ibkr_flex",
+            "longbridge", "questrade", "saxo", "tastytrade", "tradier", "trading212",
+            "upstox", "zerodha_kite"]
 
 # Brokers the desk knows about but does not ship a file for, and the honest path
 # for each. Shown on the Settings screen under "Another broker".
 OTHERS = [
-    # Checked 2026-09-17 against each broker's own developer page; a price is the broker's, and can change.
-    ("Groww", "An API for individuals, ₹499 a month plus tax, keys from Settings on Groww; portfolio, orders and live data. Your agent writes it from groww.in/trade-api/docs."),
-    ("Dhan", "A free API for individuals with a token from web.dhan.co; holdings, positions and funds. Your agent writes it from dhanhq.co/docs."),
-    ("Upstox, Angel One (SmartAPI), Fyers, 5paisa", "Each has a free API with a daily login, the same pattern as the two Indian brokers shipped here; the same market file serves all of them. Your agent writes it from their documentation."),
+    # Checked 2026-09-17 against each broker's own developer page, the Indian rows 2026-09-22
+    # and the rest of the world 2026-09-23; a price is the broker's, and can change.
+    ("Fyers, 5paisa", "Each has a free API with a daily login, the same pattern as the Indian brokers shipped here; the same market file serves all of them. Your agent writes it from their documentation."),
     ("Kotak Neo, HDFC Securities (InvestRight)", "Free APIs for their own clients; keys from developer portals (developer.hdfcsec.com for HDFC). Your agent writes the file the same way."),
     ("Zerodha", "Shipped here. The personal API is free for holdings, positions and funds; live and historical data through it is ₹500 a month, and the desk prices the book from the free feed without it."),
-    ("Charles Schwab", "An API for individuals, no fee; the login has to be repeated every seven days, so your agent writes this one from Schwab's documentation and keeps the weekly login."),
-    ("tastytrade, Public, Webull, moomoo", "Each has an official API for its own clients (moomoo through its OpenD gateway on this computer). Your agent writes the file from their documentation."),
+    ("Groww", "Shipped here. The trading API is a paid subscription, and Groww asks you to approve the key on its keys page each day."),
+    ("Public, Webull, moomoo", "Each has an official API for its own clients; Webull asks individuals to apply and approves in a day or two, and moomoo goes through its OpenD gateway on this computer. Your agent writes the file from their documentation."),
+    ("Tiger Brokers", "An official API across Singapore, Australia, New Zealand and Hong Kong. Its requests are signed with a key pair rather than a secret, so the file needs one more library than the desk ships."),
     ("E*TRADE", "An API exists, with an approval process and a balance minimum. Export the holdings into Desk · Book unless you already have access."),
     ("Fidelity, Vanguard", "No API for individuals. Export the holdings to a file and paste them into Desk · Book; most exports paste straight in."),
     ("Robinhood", "No API for stocks (only for crypto). Export the holdings into Desk · Book, or have your agent connect Robinhood's own agent server."),
-    ("Saxo", "OpenAPI for its clients across Europe and Asia, OAuth login. Your agent writes it from developer.saxo."),
+    ("Nordnet", "The Nordic one with an API, but it is closed to new applicants. If you already have access, your agent writes the file from nordnet.se/externalapi/docs."),
+    ("XTB", "It withdrew the API on 14 March 2025 and has not replaced it; the broker now points clients at its own platform. Export the holdings into Desk · Book."),
+    ("Trade Republic, Scalable Capital, DEGIRO, Revolut, eToro", "No API for individuals, whatever a third-party library claims. Export the holdings into Desk · Book."),
+    ("Brazil and the rest of South America", "No broker there publishes a self-serve API for individuals. Access to the exchange goes through a vendor your broker has to authorise for you, account by account. Interactive Brokers, shipped here, is the way in that does not need one; otherwise Desk · Book takes an export."),
     ("Any other broker", "If it publishes an API, your agent writes the file from its documentation; the shape it has to return is in brokers/README.md. If it does not, Desk · Book takes an export."),
 ]
 
@@ -129,6 +134,8 @@ def configured(broker_id):
 # One file per broker, session_token_<broker>.txt, a date line then the token; gitignored.
 # The home broker also reads the older session_token_primary.txt, so a copy that logged in
 # before brokers had files of their own keeps its session.
+# Most brokers' regulators want the login repeated every trading day, which is the default.
+# A broker whose session lasts longer says so with META["login_days"]; Schwab's is seven.
 TOKEN_PATH = os.path.join(ROOT, "session_token_primary.txt")
 
 
@@ -136,26 +143,44 @@ def _today():
     return datetime.now().strftime("%Y-%m-%d")
 
 
+def login_days(broker_id=None):
+    m = load(broker_id or active_id())
+    try:
+        return max(1, int((m.META.get("login_days") if m else 1) or 1))
+    except (TypeError, ValueError):
+        return 1
+
+
 def token_path(broker_id=None):
     bid = (broker_id or active_id() or "").strip().lower()
     return os.path.join(ROOT, f"session_token_{bid}.txt") if bid else TOKEN_PATH
 
 
-def _read_token_file(path):
+def _read_token_file(path, days=1):
     try:
         with open(path, encoding="utf-8") as fh:
             date_line = fh.readline().strip()
             token = fh.readline().strip()
     except OSError:
         return None
-    return token if (date_line == _today() and token) else None
+    if not token:
+        return None
+    if days <= 1:
+        return token if date_line == _today() else None
+    try:
+        made = datetime.strptime(date_line, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+    age = (datetime.now().date() - made).days
+    return token if 0 <= age < days else None
 
 
 def read_token(broker_id=None):
     bid = broker_id or active_id()
-    tok = _read_token_file(token_path(bid))
+    days = login_days(bid)
+    tok = _read_token_file(token_path(bid), days)
     if tok is None and bid == active_id():
-        tok = _read_token_file(TOKEN_PATH)
+        tok = _read_token_file(TOKEN_PATH, days)
     return tok
 
 
@@ -196,3 +221,31 @@ def derive(row):
 def last4(s):
     s = str(s or "")
     return f"A/C ··{s[-4:]}" if len(s) >= 4 else "account"
+
+
+def totp_now(secret, broker="This broker", digits=6, period=30):
+    """The six digits an authenticator app would be showing right now.
+
+    Several brokers make a code from an authenticator app part of the sign-in. The
+    reader saves the secret behind that QR code once, in .env with the rest of the
+    broker's keys, and the desk works the digits out here (RFC 6238) rather than
+    asking for them every morning. No key leaves this computer.
+    """
+    import base64
+    import hashlib
+    import hmac
+    import struct
+    import time
+
+    key = "".join((secret or "").split()).upper()
+    try:
+        raw = base64.b32decode(key + "=" * (-len(key) % 8), casefold=True)
+    except (ValueError, TypeError) as exc:
+        raise BrokerError(f"{broker}'s authenticator secret is not readable. It is the "
+                          "letters shown beside the QR code when you turned it on, not the six digits.") from exc
+    if not raw:
+        raise BrokerError(f"{broker} needs the authenticator secret before it can sign in.")
+    mac = hmac.new(raw, struct.pack(">Q", int(time.time()) // period), hashlib.sha1).digest()
+    off = mac[-1] & 0x0F
+    code = (struct.unpack(">I", mac[off:off + 4])[0] & 0x7FFFFFFF) % (10 ** digits)
+    return str(code).zfill(digits)

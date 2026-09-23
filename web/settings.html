@@ -99,7 +99,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
       <div class="msg" id="b_msg"></div>
     </div>
     <div class="body" id="b_tokenblock" style="border-top:1px solid var(--line);display:none">
-      <div class="row"><label>Today's login</label><div class="kv" id="b_tok"></div></div>
+      <div class="row"><label id="b_toktitle">Today's login</label><div class="kv" id="b_tok"></div></div>
       <div class="row"><span></span><div class="hint" id="b_tokhint"></div></div>
       <div class="row"><label for="b_token" id="b_toklbl">Paste it here</label><input class="mono" id="b_token" autocomplete="off" spellcheck="false"></div>
       <div class="btns"><button class="ghost" id="b_login">Open the broker login</button><button id="b_connect">Connect</button></div>
@@ -337,12 +337,16 @@ function brokerFields(id){
    the US desk, the global desk), never added together. The list shows what is connected; the
    picker below adds another or edits one. */
 const DESK_NAME={home:"home desk",us:"US desk",global:"global desk"};
+/* most brokers want the login back every trading day; a few last longer, so the
+   screen says which span this one is on rather than "today" for all of them */
+const span=c=>((c&&c.login_days>1)?"this week":"today");
 function brokerLine(c){
   const mk=((S.markets||[]).find(m=>m.id===c.region)||{}).label||c.region||"";
-  const state=c.connected?`connected as ${esc(c.account||"account")}`:c.configured?(c.daily_login?(c.token_today?"today's login saved, session not up":"keys saved, no login today"):"keys saved, not connected"):"keys not saved";
+  const w=span(c);
+  const state=c.connected?`connected as ${esc(c.account||"account")}`:c.configured?(c.daily_login?(c.token_today?`${w}'s login saved, session not up`:`keys saved, no login ${w}`):"keys saved, not connected"):"keys not saved";
   return `<div class="row" style="align-items:center"><label>${esc(c.label)}</label><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px">
     <span class="dim">${esc(mk)} · ${DESK_NAME[c.desk]||"its own desk"}</span><span class="${c.connected?"ok":"warn"}" style="color:${c.connected?"var(--pos)":"var(--amber)"}">${state}</span>
-    <button class="ghost" data-edit="${c.id}" type="button" style="padding:3px 9px;font-size:11.5px">${c.daily_login&&!c.connected&&c.configured?"Log in today":"Keys"}</button>
+    <button class="ghost" data-edit="${c.id}" type="button" style="padding:3px 9px;font-size:11.5px">${c.daily_login&&!c.connected&&c.configured?`Log in ${w}`:"Keys"}</button>
     <button class="ghost" data-check="${c.id}" type="button" style="padding:3px 9px;font-size:11.5px" ${c.configured?"":"disabled"}>Check</button>
     <button class="ghost" data-rm="${c.id}" type="button" style="padding:3px 9px;font-size:11.5px">Remove</button></div></div>`;
 }
@@ -421,11 +425,12 @@ function onPick(silent){
   // so the reader sees the third thing the broker asks for before the first two go in
   const daily = !!(m && m.daily_login);
   $("b_tokenblock").style.display = daily ? "" : "none";
-  if(daily){ const b=bb;
+  if(daily){ const b=bb; const w=span(m), weekly=(m.login_days>1);
+    $("b_toktitle").textContent = weekly ? "This week's login" : "Today's login";
     $("b_toklbl").textContent = b.token_param ? `Session key (${b.token_param})` : "Session key";
-    $("b_tokhint").innerHTML = esc(b.token_hint||"") + ` If the redirect address in your broker app is <span class="mono">http://localhost:${S.desk.port}/settings</span>, it arrives here by itself.`;
+    $("b_tokhint").innerHTML = esc(b.token_hint||"") + (weekly ? "" : ` If the redirect address in your broker app is <span class="mono">http://localhost:${S.desk.port}/settings</span>, it arrives here by itself.`);
     $("b_token").placeholder = b.token_param ? `the value after ${b.token_param}=` : "the token";
-    $("b_tok").innerHTML = b.connected ? `<b>Live.</b> The account is connected for today${b.account?" as "+esc(b.account):""}.` : b.token_today ? `<b>Saved for today</b>, but the session is not up. Log in again for a fresh one.` : b.configured ? `<b>Not yet today.</b> Desk · Home shows the last saved book until you log in.` : `<b>Needs the keys first.</b> Save them above; the broker then hands out a session key at each day's login, and it goes here.`;
+    $("b_tok").innerHTML = b.connected ? `<b>Live.</b> The account is connected for ${w}${b.account?" as "+esc(b.account):""}.` : b.token_today ? `<b>Saved for ${w}</b>, but the session is not up. Log in again for a fresh one.` : b.configured ? `<b>Not yet ${w}.</b> Desk · Home shows the last saved book until you log in.` : `<b>Needs the keys first.</b> Save them above; the broker then hands out a session key at each ${weekly?"":"day's "}login, and it goes here.`;
     $("b_login").disabled=!b.login_url; $("b_connect").disabled=!b.configured; $("b_token").disabled=!b.configured;
   }
   $("b_test").disabled = !(c && c.configured);

@@ -2,7 +2,7 @@
 
 The desk reads a broker account through one file in this folder. The reader picks the broker on the Settings screen, pastes what that broker hands out, and Desk · Home fills. Nothing here places an order.
 
-Shipped: Alpaca, ICICI Direct (Breeze), Interactive Brokers (Flex Web Service), Tradier, Trading 212, Zerodha (Kite Connect). Each file's docstring names the documentation it was written from.
+Shipped: Alpaca, Angel One (SmartAPI), Charles Schwab, Dhan, Groww, ICICI Direct (Breeze), Interactive Brokers (Flex Web Service), Longbridge, Questrade, Saxo Bank, tastytrade, Tradier, Trading 212, Upstox, Zerodha (Kite Connect). Each file's docstring names the documentation it was written from.
 
 ## Writing one for another broker
 
@@ -14,6 +14,9 @@ META
   where          "United States" / "India" / "worldwide" ...  (plain words, shown to the reader)
   region         "us" or "in": which ticker page a holding opens on
   daily_login    True when the broker wants a fresh login every trading day
+  login_days     (optional, default 1) how many days that login lasts, when the
+                 broker's is not a daily one: Schwab's key runs seven days, and
+                 the Settings screen says "this week" instead of "today"
   docs           the broker's own API page
   how            one sentence: where the reader gets the keys
   fields         [{"env": "MYBROKER_KEY", "label": "API key", "secret": True}, ...]
@@ -62,5 +65,9 @@ A row:
 ```
 
 Leave `ltp` as None when the broker gives no price: the desk marks the line from Yahoo through `ysym`, and `derive()` in `__init__.py` fills value, profit and profit percent from what is there. `ysym` is Yahoo Finance's symbol for the same share (AAPL, RELIANCE.NS, RR.L, 0700.HK).
+
+A broker that replaces its key every time it is used (Saxo and Questrade both do) keeps the replacement with `brokers.write_token(new_key, "<broker>")` and reads it back with `brokers.read_token("<broker>")`, so the reader pastes one only when the chain has been broken for longer than `login_days`.
+
+Some brokers put a code from an authenticator app in the sign-in rather than a redirect. The reader saves the secret behind that QR code once, in `.env` with the broker's other keys, and `totp_now(secret, "Broker")` in `__init__.py` works the six digits out on this computer; Angel One, Dhan and Groww use it. Nothing about it leaves the machine.
 
 Keep the file to the broker's own documented endpoints, catch its refusals and turn them into one plain sentence, and never write a key anywhere but the environment the desk hands you.

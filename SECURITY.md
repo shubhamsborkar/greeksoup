@@ -6,7 +6,7 @@ GreekSoup runs on your own computer and answers only at an address your own comp
 
 The desk makes outbound requests to these places, and to nothing else:
 
-- **Your broker**, only if you connected one, with the keys you gave it, read-only. The six shipped adapters (Alpaca, ICICI Direct, Interactive Brokers, Tradier, Trading 212, Zerodha) use each broker's documented read endpoints. None of them places an order.
+- **Your broker**, only if you connected one, with the keys you gave it, read-only. The fifteen shipped adapters (Alpaca, Angel One, Charles Schwab, Dhan, Groww, ICICI Direct, Interactive Brokers, Longbridge, Questrade, Saxo Bank, tastytrade, Tradier, Trading 212, Upstox, Zerodha) use each broker's documented read endpoints. None of them places an order. Where a broker signs in with a code from an authenticator app, the secret behind that app sits in `.env` with the broker's other keys and the six digits are worked out on this computer; the secret goes nowhere.
 - **The public record**: SEC EDGAR, FINRA, CBOE's delayed chains, FRED, the Senate and House disclosure sites, Yahoo Finance quotes, Trading Economics, and the India sources named on the Macro screen.
 - **Your data provider**, only if you gave it a key (Financial Modeling Prep today).
 - **Your AI**, only if you chose one: a key from a lab, an app you already pay for on this computer (Claude Code, Codex, Gemini CLI, Kimi Code, Grok Build, Qwen Code, Cursor, which reach their own providers under your own account), or a model running on your computer. What goes is your question and the numbers on the screen you asked from, when you press Enter.

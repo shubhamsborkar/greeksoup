@@ -49,6 +49,66 @@ def test_no_broker_places_orders():
         assert not hits, f"brokers/{name} mentions an order path: {hits}"
 
 
+def test_a_login_lasts_as_long_as_the_broker_says(tmp_path, monkeypatch):
+    """Most brokers' regulators want the login back every trading day, and a token file
+    written yesterday is refused. Schwab's key runs seven days, so the same file is still
+    read on day six and refused on day seven."""
+    import brokers
+    from datetime import datetime, timedelta
+    monkeypatch.setattr(brokers, "ROOT", str(tmp_path))
+
+    def written(bid, days_ago):
+        stamp = (datetime.now() - timedelta(days=days_ago)).strftime("%Y-%m-%d")
+        (tmp_path / f"session_token_{bid}.txt").write_text(f"{stamp}\nTOK\n", encoding="utf-8")
+        return brokers.read_token(bid)
+
+    assert brokers.login_days("zerodha_kite") == 1 and brokers.login_days("schwab") == 7
+    assert written("zerodha_kite", 0) == "TOK" and written("zerodha_kite", 1) is None
+    assert written("schwab", 6) == "TOK" and written("schwab", 7) is None
+    (tmp_path / "session_token_schwab.txt").write_text("not-a-date\nTOK\n", encoding="utf-8")
+    assert brokers.read_token("schwab") is None      # an unreadable date is not a live session
+
+
+def test_the_totp_helper_matches_the_standard(monkeypatch):
+    """Angel One, Dhan and Groww sign in with a code from an authenticator app, worked out
+    on this computer. The four RFC 6238 test vectors, so a wrong code is never the desk's."""
+    import time as _time
+    import brokers
+    secret = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"          # "12345678901234567890"
+    for when, want in ((59, "287082"), (1111111109, "081804"),
+                       (1234567890, "005924"), (2000000000, "279037")):
+        monkeypatch.setattr(_time, "time", lambda w=when: w)
+        assert brokers.totp_now(secret) == want
+    monkeypatch.undo()
+    with pytest.raises(brokers.BrokerError):
+        brokers.totp_now("not base32 at all !!")
+
+
+def test_longbridge_signs_the_way_its_broker_publishes():
+    """Longbridge signs every request, and a signature that is one character out is refused
+    with nothing to read from the refusal. This is the vendor's own reference function,
+    copied from its access page, held against ours."""
+    import hashlib
+    import hmac as _hmac
+    from brokers import longbridge
+
+    def theirs(method, uri, headers, params, body, secret):
+        ts, access_token, app_key = headers["X-Timestamp"], headers["Authorization"], headers["X-Api-Key"]
+        canonical = (method.upper() + "|" + uri + "|" + params + "|authorization:" + access_token
+                     + "\nx-api-key:" + app_key + "\nx-timestamp:" + ts
+                     + "\n|authorization;x-api-key;x-timestamp|")
+        if body != "":
+            canonical += hashlib.sha1(body.encode("utf-8")).hexdigest()
+        sign_str = "HMAC-SHA256|" + hashlib.sha1(canonical.encode("utf-8")).hexdigest()
+        sig = _hmac.new(secret.encode("utf-8"), sign_str.encode("utf-8"), hashlib.sha256).hexdigest()
+        return "HMAC-SHA256 SignedHeaders=authorization;x-api-key;x-timestamp, Signature=" + sig
+
+    cfg = {"LONGBRIDGE_APP_KEY": "AK", "LONGBRIDGE_APP_SECRET": "SEC"}
+    for uri, params in (("/v1/asset/stock", ""), ("/v1/asset/account", "currency=HKD")):
+        head = {"Authorization": "TOK", "X-Api-Key": "AK", "X-Timestamp": "1539095200.123"}
+        assert longbridge._sign(cfg, "GET", uri, params, head) == theirs("GET", uri, head, params, "", "SEC")
+
+
 def test_every_market_keeps_the_contract():
     markets = importlib.import_module("markets")
     for key in markets.REGISTRY:          # the files and every table-built country alike
