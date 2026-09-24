@@ -9,6 +9,7 @@ the market that broker trades in is served by one file in markets/. Nothing
 in this file assumes a particular broker, market or data provider.
 """
 
+import hashlib
 import json
 import os
 import sys
@@ -301,6 +302,66 @@ def save_watchlist_us(names):
         json.dump({"_comment": "Edit in the Watch US page.", "format": 1, "names": names}, fh, indent=2)
 
 
+# ---- FMP's daily allowance ----------------------------------------------------
+# FMP's FAQ: the free plan "will allow users to make up to 250 market data API requests per
+# day". A free key spent on a ten-second price sweep is gone in minutes and every screen that
+# reads FMP goes quiet for the day, so the desk counts its calls and, until a key has shown
+# it is on a paid plan (more than 250 answered calls in one day), the US price sweep spends
+# at most FMP_SWEEP_SHARE of the day's allowance, spread across the session.
+FMP_FREE_DAILY = 250
+FMP_SWEEP_SHARE = 150
+US_SESSION_SECONDS = 6.5 * 3600
+FMP_PLAN_PATH = os.path.join(HERE, "cache", "fmp_plan.json")
+_fmp_day = {"date": "", "calls": 0, "ok": 0}
+_fmp_sweep = {"at": 0.0}
+
+
+def _fmp_key_id():
+    key = os.getenv("FMP_API_KEY", "").strip()
+    return hashlib.sha256(key.encode()).hexdigest()[:16] if key else ""
+
+
+def fmp_paid():
+    """True once this key has answered more calls in a day than the free plan allows."""
+    kid = _fmp_key_id()
+    try:
+        with open(FMP_PLAN_PATH) as fh:
+            return bool(kid) and json.load(fh).get(kid) == "paid"
+    except (OSError, ValueError):
+        return False
+
+
+def _fmp_count(answered):
+    today = datetime.now().strftime("%Y-%m-%d")
+    if _fmp_day["date"] != today:
+        _fmp_day.update(date=today, calls=0, ok=0)
+    _fmp_day["calls"] += 1
+    _fmp_day["ok"] += 1 if answered else 0
+    if _fmp_day["ok"] == FMP_FREE_DAILY + 1 and not fmp_paid():
+        try:
+            with open(FMP_PLAN_PATH) as fh:
+                plans = json.load(fh)
+        except (OSError, ValueError):
+            plans = {}
+        plans[_fmp_key_id()] = "paid"
+        try:
+            os.makedirs(os.path.dirname(FMP_PLAN_PATH), exist_ok=True)
+            with open(FMP_PLAN_PATH, "w") as fh:
+                json.dump(plans, fh)
+        except OSError:
+            pass
+
+
+def fmp_sweep_gap(n_names, session_open):
+    """Seconds between two FMP price sweeps of the US list: none on a paid key, and on a key
+    not yet known to be paid, enough that the session's sweeps stay inside the share."""
+    if fmp_paid() or n_names <= 0:
+        return 0
+    if not session_open:
+        return 6 * 3600
+    return US_SESSION_SECONDS * n_names / FMP_SWEEP_SHARE
+
+
 def fetch_us_quote(symbol):
     """One FMP quote, normalized to the watch-grid schema. None if nothing."""
     key = os.getenv("FMP_API_KEY", "").strip()
@@ -310,6 +371,7 @@ def fetch_us_quote(symbol):
         r = requests.get(
             "https://financialmodelingprep.com/stable/quote",
             params={"symbol": symbol, "apikey": key}, timeout=10)
+        _fmp_count(r.status_code == 200)
         if r.status_code == 429:          # rate-limited: back off 5 min
             _fmp_backoff["until"] = time.time() + 300
             return None
@@ -412,6 +474,7 @@ def fmp_get(path, **params):
     try:
         r = requests.get(f"https://financialmodelingprep.com/stable/{path}",
                          params=params, timeout=12)
+        _fmp_count(r.status_code == 200)
         if r.status_code != 200:
             return None
         return r.json()
@@ -1546,9 +1609,14 @@ def us_watch_loop():
             first_cycle = False
             time.sleep(10 if open_ else 60)     # one call for the whole list; ten seconds keeps the grid live without wearing out the free feed
             continue
-        # FMP fallback: sweep in parallel, then rest
+        # FMP fallback: sweep in parallel, then rest. A key not yet known to be paid spends
+        # FMP only once per fmp_sweep_gap; in between, the free feed is asked name by name
+        spend = time.time() - _fmp_sweep["at"] >= fmp_sweep_gap(len(names), open_)
+        if spend:
+            _fmp_sweep["at"] = time.time()
+        pick = (lambda c: fetch_us_quote(c) or freefeed.quote(c)) if spend else freefeed.quote
         with ThreadPoolExecutor(max_workers=8) as ex:
-            for code, q in zip(names, ex.map(lambda c: fetch_us_quote(c) or freefeed.quote(c), names)):
+            for code, q in zip(names, ex.map(pick, names)):
                 if q:
                     with _watch_lock:
                         WATCH_US[code] = q
