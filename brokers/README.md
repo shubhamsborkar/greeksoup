@@ -39,6 +39,10 @@ futures(client)          -> open futures and options: [{"underlying", "contract"
                             "side", "qty", "avg", "ltp", "notional", "mtm", "mtm_pct"}]
 quote(client, code, exch)-> a live quote for the home watch grid and the home ticker page,
                             with bid/offer and their sizes when the broker gives a book
+                            (code is the exchange symbol; a broker that names stocks by ISIN
+                            or by the exchange's number gets it from brokers/instruments.py;
+                            build the answer with quote_row(), and call quotes_refused(client)
+                            when the account has no market-data plan, so the free feed takes over)
 history(client, code, exch, years) -> daily candles newest first [{"date","price","o","h","l","v"}]
 intraday(client, code, exch)       -> {"1D": [...], "5D": [...]} minute candles, same shape
 futures_quote(client, code, expiry)-> bid, ask and open interest on one futures contract

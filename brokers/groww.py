@@ -11,11 +11,12 @@ from Yahoo and reads them as NSE names. Source: groww.in/trade-api/docs.
 Nothing in this file places a trade."""
 
 import hashlib
+import re
 import time
 
 import requests
 
-from brokers import BrokerError, derive, num, totp_now
+from brokers import BrokerError, derive, instruments, num, pace, quote_result, quote_row, quotes_off, totp_now
 
 META = {
     "label": "Groww",
@@ -111,3 +112,37 @@ def funds(client):
     d = d if isinstance(d, dict) else {}
     return {"cash": num(d.get("clear_cash")), "currency": "INR",
             "buying_power": num(d.get("clear_cash"))}
+
+
+def _ohlc(v):
+    """Groww sends ohlc as text, "{open: 149.50,high: 150.50,low: 148.50,close: 149.50}"."""
+    if isinstance(v, dict):
+        return v
+    return {k: num(x) for k, x in re.findall(r"(\w+)\s*:\s*([-\d.]+)", str(v or ""))}
+
+
+def quote(client, code, exch="NSE"):
+    """A live price with the order book, from GET /v1/live-data/quote (segment CASH), part
+    of the paid Trading API subscription. Groww takes the exchange symbol as it is. The
+    previous close is last price less day_change. Live data allows ten calls a second."""
+    if quotes_off(client):
+        return None
+    exch = (exch or "NSE").upper()
+    pace("groww-quote", 0.12)
+    try:
+        r = requests.get(BASE + "/live-data/quote", headers=client["headers"],
+                         params={"exchange": exch, "segment": "CASH", "trading_symbol": str(code).upper()},
+                         timeout=10)
+        j = r.json() if r.content else {}
+    except (requests.RequestException, ValueError):
+        return None
+    if r.status_code in (401, 403):
+        return None
+    if r.status_code != 200 or str(j.get("status", "")).upper() != "SUCCESS":
+        return quote_result(client, None)
+    q = j.get("payload") or {}
+    ltp, chg = num(q.get("last_price")), num(q.get("day_change"))
+    o = _ohlc(q.get("ohlc"))
+    return quote_result(client, quote_row(code, exch, ltp, (ltp - chg) if (ltp and chg is not None) else None,
+                                          o.get("open"), o.get("high"), o.get("low"),
+                                          q.get("depth"), q.get("volume")))

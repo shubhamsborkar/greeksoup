@@ -108,6 +108,14 @@ def _hook(name, live=True):
     return getattr(mod, name, None)
 
 
+def _broker_quotes():
+    """The broker's live-price hook while it is still serving prices this session; None
+    when the file has none, the session is down, or the broker has said no to prices on
+    this account (the free feed prices the names then, at the free feed's pace)."""
+    hook = _hook("quote")
+    return None if (hook is None or brokers.quotes_off(_client())) else hook
+
+
 def _market():
     """The home market file: the reader's own choice (HOME_MARKET in .env) first, else the
     home broker's market. A reader with a US broker and a home in India keeps India."""
@@ -238,10 +246,12 @@ def _home_quote(code, exch=None, tries=1):
         m = _market()
         split = m.from_ysym(code) if (m and hasattr(m, "from_ysym")) else None
         back = _hook("code_of", live=False)
-        ask = (back(split[0], split[1]) if (split and back) else None) or ""
+        # a broker with no symbol master of its own takes the exchange symbol as it is
+        # (its file maps that to the ISIN or the exchange's number through brokers/instruments.py)
+        ask = ((back(split[0], split[1]) if back else split[0]) if split else None) or ""
         if ask and not exch:
             exch = split[1]
-    if hook and cli and not broker_health["dead"] and ask:
+    if hook and cli and not broker_health["dead"] and ask and not brokers.quotes_off(cli):
         m = _market()
         exchanges = [exch] if exch else []
         exchanges += [e for e in (m.META["exchanges"] if m else []) if e not in exchanges]
@@ -1563,7 +1573,7 @@ def watch_loop():
     first_cycle = True
     while True:
         names = load_watchlist()
-        quote_hook = _hook("quote")
+        quote_hook = _broker_quotes()
         if quote_hook is None:
             for entry in names:
                 q = _home_quote(entry["code"], entry.get("exch") or None)
@@ -4483,7 +4493,7 @@ class Handler(BaseHTTPRequestHandler):
                                 "market_open": True}
                     else:
                         names = load_watchlist()
-                        has_broker = _hook("quote") is not None
+                        has_broker = _broker_quotes() is not None
                         # a name that came through a broker is a broker code (RELIND), which only
                         # that broker can price; on a desk with no broker connected the row says
                         # so instead of sitting blank
@@ -5004,7 +5014,7 @@ class Handler(BaseHTTPRequestHandler):
                 exch = str(body.get("exch", "")).strip().upper() or (m.META["exchanges"][0] if m else "")
                 if any(n["code"] == code for n in names):
                     return self._send(b'{"ok":false,"error":"already on the list"}', "application/json")
-                via_broker = _hook("quote") is not None
+                via_broker = _broker_quotes() is not None
                 q = _home_quote(code, exch or None)
                 if not q and not via_broker and "." not in code and m is None:
                     q = fetch_yahoo_quote(code)

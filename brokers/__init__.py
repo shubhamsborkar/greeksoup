@@ -36,6 +36,8 @@ cfg is a dict of the adapter's fields read from the environment (.env).
 
 import importlib
 import os
+import threading
+import time
 from datetime import datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -198,6 +200,68 @@ def clear_token(broker_id=None):
 
 
 # ---- helpers shared by the adapters ------------------------------------------
+def quote_row(code, exch, ltp, prev=None, o=None, h=None, l=None, depth=None, volume=None):
+    """A live price in the watch-grid shape every broker's quote() returns. depth is the
+    broker's {"buy": [{"price", "quantity"}], "sell": [...]}; its first level fills the
+    bid and the offer."""
+    ltp, prev = num(ltp), num(prev)
+    if not ltp:
+        return None
+    book = depth if isinstance(depth, dict) else {}
+    buy = (book.get("buy") or [{}])[0] or {}
+    sell = (book.get("sell") or [{}])[0] or {}
+    return {
+        "code": code, "exch": exch, "ltp": ltp, "prev": prev,
+        "day_pct": (ltp - prev) / prev * 100 if prev else None,
+        "bid": num(buy.get("price")) or None, "bid_qty": num(buy.get("quantity")),
+        "offer": num(sell.get("price")) or None, "offer_qty": num(sell.get("quantity")),
+        "open": num(o), "high": num(h), "low": num(l), "ttq": num(volume),
+        "ts": time.strftime("%H:%M:%S"),
+    }
+
+
+def quotes_refused(client):
+    """The broker said no to prices on this account (no market-data plan): the desk stops
+    asking for the rest of the session and prices the names from the free feed."""
+    if isinstance(client, dict):
+        client["quotes_off"] = True
+    return None
+
+
+MISS_LIMIT = 8
+
+
+def quote_result(client, row):
+    """Count the answers: a broker that has priced nothing for MISS_LIMIT names in a row,
+    on a session that is otherwise alive, is treated as having said no, whatever words it
+    used. One good price resets the count."""
+    if isinstance(client, dict):
+        if row:
+            client["quote_misses"] = 0
+        else:
+            client["quote_misses"] = client.get("quote_misses", 0) + 1
+            if client["quote_misses"] >= MISS_LIMIT:
+                client["quotes_off"] = True
+    return row
+
+
+def quotes_off(client):
+    return isinstance(client, dict) and bool(client.get("quotes_off"))
+
+
+_paced = {}
+_pace_lock = threading.Lock()
+
+
+def pace(key, gap):
+    """Keep calls under a broker's stated rate: at least gap seconds between two."""
+    with _pace_lock:
+        wait = _paced.get(key, 0) + gap - time.time()
+        if wait > 0:
+            time.sleep(wait)
+        _paced[key] = time.time()
+
+
 def num(v):
     try:
         return float(v) if v not in (None, "") else None

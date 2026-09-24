@@ -10,7 +10,7 @@ Nothing in this file places a trade."""
 
 import requests
 
-from brokers import BrokerError, derive, num, totp_now
+from brokers import BrokerError, derive, instruments, num, pace, quote_result, quote_row, quotes_off, quotes_refused, totp_now
 
 META = {
     "label": "Dhan",
@@ -111,3 +111,38 @@ def funds(client):
         cash = num(d.get("availableBalance"))
     return {"cash": cash, "currency": "INR",
             "buying_power": num(d.get("withdrawableBalance")) or cash}
+
+
+def quote(client, code, exch="NSE"):
+    """A live price with the order book, from POST /v2/marketfeed/quote. Dhan charges for
+    its Data APIs (₹499 a month); without them it answers DH-902, "User has not subscribed
+    to Data APIs", and the desk switches prices off for the session and uses the free feed.
+    Dhan names a stock by the exchange's number for it, which the shared instrument list
+    supplies. One quote call a second."""
+    if quotes_off(client):
+        return None
+    exch = (exch or "NSE").upper()
+    inst = instruments.lookup(code, exch)
+    if not inst or not inst["token"]:
+        return None
+    seg = f"{exch}_EQ"
+    pace("dhan-quote", 1.05)
+    try:
+        r = requests.post(BASE + "/marketfeed/quote", headers=client["headers"],
+                          json={seg: [int(inst["token"])]}, timeout=10)
+        j = r.json() if r.content else {}
+    except (requests.RequestException, ValueError):
+        return None
+    err = str(j.get("errorCode") or (j.get("data") or {}).get("errorCode") or "") if isinstance(j, dict) else ""
+    if err == "DH-902":
+        return quotes_refused(client)
+    if r.status_code in (401, 403) or err == "DH-901":
+        return None
+    if r.status_code != 200:
+        return quote_result(client, None)
+    q = (((j.get("data") or {}).get(seg) or {}).get(str(inst["token"]))) or {}
+    ltp, chg = num(q.get("last_price")), num(q.get("net_change"))
+    o = q.get("ohlc") or {}
+    return quote_result(client, quote_row(code, exch, ltp, (ltp - chg) if (ltp and chg is not None) else None,
+                                          o.get("open"), o.get("high"), o.get("low"),
+                                          q.get("depth"), q.get("volume")))

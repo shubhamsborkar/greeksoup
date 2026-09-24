@@ -15,7 +15,7 @@ import uuid
 
 import requests
 
-from brokers import BrokerError, derive, num, totp_now
+from brokers import BrokerError, derive, instruments, num, pace, quote_result, quote_row, quotes_off, totp_now
 
 META = {
     "label": "Angel One (SmartAPI)",
@@ -123,3 +123,32 @@ def funds(client):
     return {"cash": num(d.get("availablecash")), "currency": "INR",
             "buying_power": num(d.get("availablelimitmargin")) or num(d.get("availablecash")),
             "equity": num(d.get("net"))}
+
+
+def quote(client, code, exch="NSE"):
+    """A live price with the order book, from POST /market/v1/quote in FULL mode, which
+    SmartAPI serves free. Angel One names a stock by the exchange's number for it (2885 for
+    RELIANCE on NSE), which the shared instrument list supplies. close is the previous
+    session's close (the documented example: ltp 568.2, close 567.4, netChange 0.8)."""
+    if quotes_off(client):
+        return None
+    exch = (exch or "NSE").upper()
+    inst = instruments.lookup(code, exch)
+    if not inst or not inst["token"]:
+        return None
+    pace("angel-quote", 1.05)
+    try:
+        r = requests.post(BASE + "/rest/secure/angelbroking/market/v1/quote/", headers=client["headers"],
+                          json={"mode": "FULL", "exchangeTokens": {exch: [inst["token"]]}}, timeout=10)
+        j = r.json() if r.content else {}
+    except (requests.RequestException, ValueError):
+        return None
+    if r.status_code in (401, 403):
+        return None
+    if r.status_code != 200 or j.get("status") is False:
+        return quote_result(client, None)
+    rows = ((j.get("data") or {}).get("fetched")) or []
+    q = rows[0] if rows else {}
+    return quote_result(client, quote_row(code, exch, q.get("ltp"), q.get("close"),
+                                          q.get("open"), q.get("high"), q.get("low"),
+                                          q.get("depth"), q.get("tradeVolume")))

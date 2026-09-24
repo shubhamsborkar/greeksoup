@@ -11,7 +11,7 @@ import os
 
 import requests
 
-from brokers import BrokerError, derive, num
+from brokers import BrokerError, derive, instruments, num, pace, quote_result, quote_row, quotes_off
 
 META = {
     "label": "Upstox",
@@ -116,3 +116,34 @@ def funds(client):
     eq = d.get("equity") or d.get("commodity") or {}
     return {"cash": num(eq.get("available_margin")), "currency": "INR",
             "buying_power": num(eq.get("available_margin"))}
+
+
+def quote(client, code, exch="NSE"):
+    """A live price with the order book, from GET /v2/market-quote/quotes, which Upstox
+    serves free ("All trading + data APIs are free of cost"). Upstox names a stock by its
+    ISIN (NSE_EQ|INE002A01018), which the shared instrument list supplies. The previous
+    close is last price less net_change, "the absolute change from yesterday's close"."""
+    if quotes_off(client):
+        return None
+    exch = (exch or "NSE").upper()
+    inst = instruments.lookup(code, exch)
+    if not inst or not inst["isin"]:
+        return None
+    pace("upstox-quote", 0.1)
+    try:
+        r = requests.get(BASE + "/market-quote/quotes", headers=client["headers"],
+                         params={"instrument_key": f"{exch}_EQ|{inst['isin']}"}, timeout=10)
+        j = r.json() if r.content else {}
+    except (requests.RequestException, ValueError):
+        return None
+    if r.status_code in (401, 403):
+        return None
+    if r.status_code != 200 or j.get("status") != "success":
+        return quote_result(client, None)
+    data = j.get("data") or {}
+    q = data.get(f"{exch}_EQ:{str(code).upper()}") or (next(iter(data.values())) if data else {})
+    ltp, chg = num(q.get("last_price")), num(q.get("net_change"))
+    o = q.get("ohlc") or {}
+    return quote_result(client, quote_row(code, exch, ltp, (ltp - chg) if (ltp and chg is not None) else None,
+                                          o.get("open"), o.get("high"), o.get("low"),
+                                          q.get("depth"), q.get("volume")))

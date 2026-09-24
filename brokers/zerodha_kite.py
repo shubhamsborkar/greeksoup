@@ -10,7 +10,7 @@ import hashlib
 
 import requests
 
-from brokers import BrokerError, derive, num
+from brokers import BrokerError, derive, num, pace, quote_result, quote_row, quotes_off, quotes_refused
 
 META = {
     "label": "Zerodha (Kite Connect)",
@@ -93,3 +93,29 @@ def funds(client):
     avail = eq.get("available") or {}
     return {"cash": num(avail.get("cash")), "currency": "INR",
             "buying_power": num(avail.get("live_balance")), "equity": num(eq.get("net"))}
+
+
+def quote(client, code, exch="NSE"):
+    """A live price with the order book, from GET /quote?i=NSE:SYMBOL, which Kite Connect
+    serves on the paid plan (₹500 a month per app key); the free Personal plan "does not
+    include live market data". A refusal switches prices off for the session and the desk
+    uses the free feed. Kite allows one quote call a second."""
+    if quotes_off(client):
+        return None
+    exch = (exch or "NSE").upper()
+    key = f"{exch}:{str(code).upper()}"
+    pace("kite-quote", 1.05)
+    try:
+        r = requests.get(BASE + "/quote", headers=client["headers"], params={"i": key}, timeout=10)
+        j = r.json() if r.content else {}
+    except (requests.RequestException, ValueError):
+        return None
+    if r.status_code == 403 and j.get("error_type") != "TokenException":
+        return quotes_refused(client)
+    if r.status_code != 200 or j.get("status") != "success":
+        return quote_result(client, None) if r.status_code != 403 else None
+    q = (j.get("data") or {}).get(key) or {}
+    o = q.get("ohlc") or {}
+    return quote_result(client, quote_row(code, exch, q.get("last_price"), o.get("close"),
+                                          o.get("open"), o.get("high"), o.get("low"),
+                                          q.get("depth"), q.get("volume")))
