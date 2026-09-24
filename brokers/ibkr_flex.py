@@ -20,6 +20,7 @@ META = {
     "region": "us",
     "daily_login": False,
     "docs": "https://www.interactivebrokers.com/campus/ibkr-api-page/flex-web-service/",
+    "prices": "Live prices: this connection reads your statements through Interactive Brokers' Flex service, which carries no live prices, so the desk prices your watchlist from the free feed. Interactive Brokers' Web API does serve live prices, through the Client Portal Gateway, a small program Interactive Brokers gives you to run on your computer. Your agent can add it from Interactive Brokers' Web API documentation, and the market data subscriptions on your Interactive Brokers login decide what it shows.",
     "how": "In Client Portal: Performance & Reports, Flex Queries. Create an Activity Flex Query with the Open Positions section (add Cash Report for the cash line), note its Query ID, then switch on Flex Web Service on the same page and copy the token. Positions are as of the previous close; the desk prices them live.",
     "fields": [
         {"env": "IBKR_FLEX_TOKEN", "label": "Flex Web Service token", "secret": True},

@@ -17,6 +17,7 @@ META = {
     "region": "us",
     "daily_login": False,
     "docs": "https://docs.trading212.com/api",
+    "prices": "Live prices: Trading 212's API has no price call, so the desk prices your watchlist from the free feed, and each holding carries the price Trading 212 gives the position.",
     "how": "In the Trading 212 app: menu, Settings, API, Generate API key, with the account-data and portfolio permissions. You get a key and a secret. Invest and ISA accounts only.",
     "fields": [
         {"env": "T212_KEY", "label": "API key", "secret": True},

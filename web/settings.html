@@ -320,7 +320,7 @@ function metaOf(id){ return (S.brokers||[]).find(b=>b.id===id); }
 function brokerFields(id){
   const m=metaOf(id); const active=(S.connected||[]).find(c=>c.id===id) || (S.broker.id===id ? S.broker : null);
   if(!m){ $("b_fields").innerHTML=""; $("b_how").textContent=""; return; }
-  $("b_how").innerHTML=esc(m.how)+(m.docs?` <a href="${esc(m.docs)}" target="_blank" rel="noopener" style="color:var(--accent)">The broker's own page.</a>`:"");
+  $("b_how").innerHTML=esc(m.how)+(m.docs?` <a href="${esc(m.docs)}" target="_blank" rel="noopener" style="color:var(--accent)">The broker's own page.</a>`:"")+(m.prices?`<br><br>${esc(m.prices)}`:"");
   let h="";
   for(const f of m.fields){
     const saved = active ? (active.fields.find(x=>x.env===f.env)||{}).saved : "";

@@ -28,6 +28,7 @@ META = {
     "daily_login": True,
     "login_days": 7,
     "docs": "https://developer.schwab.com/",
+    "prices": "Live prices: the desk reads your Schwab holdings and prices your watchlist from the free feed for now. Schwab's Trader API has a market data product, so your agent can add live prices to this broker's file from Schwab's developer documentation, which you read signed in to your Schwab developer account.",
     "how": "developer.schwab.com: create an app, add the Accounts and Trading product, and set its callback address (it has to start with https, and https://127.0.0.1 is allowed). Schwab approves the app by hand, which takes a day or two; when it says Ready for Use, copy the app key and secret. Then sign in once a week from this screen.",
     "fields": [
         {"env": "SCHWAB_APP_KEY", "label": "App key", "secret": True},

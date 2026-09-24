@@ -23,6 +23,7 @@ META = {
     "region": "hk",
     "daily_login": False,
     "docs": "https://open.longbridge.com/docs",
+    "prices": "Live prices: Longbridge serves them through its own quote connection rather than a plain web request, so the desk prices your watchlist from the free feed for now. Your agent can add that quote connection from Longbridge's documentation, and Longbridge includes US real-time prices with OpenAPI at no extra charge.",
     "how": "Longbridge's developer page: switch OpenAPI on for the account, then copy the app key, the app secret and the access token. Longbridge issues the token for ninety days; it tells you when it is near the end and a new one goes in the same box.",
     "fields": [
         {"env": "LONGBRIDGE_APP_KEY", "label": "App key", "secret": True},
