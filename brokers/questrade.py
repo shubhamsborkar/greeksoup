@@ -16,7 +16,7 @@ import time
 import requests
 
 import brokers
-from brokers import BrokerError, derive, last4, num
+from brokers import BrokerError, derive, last4, num, quote_result, quote_row, quotes_off
 
 META = {
     "label": "Questrade",
@@ -132,3 +132,44 @@ def funds(client):
     pick = next((b for b in rows if (b.get("currency") or "").upper() == "CAD"), None) or (rows[0] if rows else {})
     return {"cash": num(pick.get("cash")), "currency": (pick.get("currency") or "CAD").upper(),
             "buying_power": num(pick.get("buyingPower")), "equity": num(pick.get("totalEquity"))}
+
+
+def _symbol_id(client, code):
+    """Questrade names a stock by its own number: /v1/symbols/search?prefix= finds it, and the
+    number and the previous close (on /v1/symbols/{id}) are kept for the day."""
+    ids = client.setdefault("symbol_ids", {})
+    sym = str(code).upper()
+    if sym not in ids:
+        rows = (_get(client, "v1/symbols/search?prefix=" + sym) or {}).get("symbols") or []
+        hit = next((r for r in rows if str(r.get("symbol", "")).upper() == sym), rows[0] if rows else None)
+        ids[sym] = hit.get("symbolId") if hit else None
+    return ids[sym]
+
+
+def _prev_close(client, sid):
+    day = time.strftime("%Y-%m-%d")
+    held = client.setdefault("prev_close", {})
+    if held.get(sid, (None, ""))[1] != day:
+        rows = (_get(client, f"v1/symbols/{sid}") or {}).get("symbols") or [{}]
+        held[sid] = (num(rows[0].get("prevDayClosePrice")), day)
+    return held[sid][0]
+
+
+def quote(client, code, exch=None):
+    """A live price from GET /v1/markets/quotes/{id}. Real time needs Questrade's real-time
+    data package; without it the quote is a snap quote, delayed once the snap limit is
+    reached (the answer's "delay" field says so). Market data allows 20 calls a second."""
+    if quotes_off(client):
+        return None
+    try:
+        sid = _symbol_id(client, code)
+        if not sid:
+            return quote_result(client, None)
+        rows = (_get(client, f"v1/markets/quotes/{sid}") or {}).get("quotes") or []
+        prev = _prev_close(client, sid)
+    except (BrokerError, requests.RequestException):
+        return None
+    q = rows[0] if rows else {}
+    book = {"buy": [{"price": q.get("bidPrice"), "quantity": q.get("bidSize")}], "sell": [{"price": q.get("askPrice"), "quantity": q.get("askSize")}]}
+    return quote_result(client, quote_row(code, exch or "", q.get("lastTradePrice"), prev, q.get("openPrice"),
+                                          q.get("highPrice"), q.get("lowPrice"), book, q.get("volume")))

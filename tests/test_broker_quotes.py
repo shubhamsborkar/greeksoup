@@ -144,3 +144,74 @@ def test_a_broker_that_prices_nothing_is_let_go(monkeypatch):
 def test_every_indian_broker_prices():
     for mod in (zerodha_kite, upstox, angel_one, dhan, groww):
         assert callable(getattr(mod, "quote", None)), mod.__name__
+
+
+# ---- the brokers outside India: answers are the examples in each broker's docs ----------
+from brokers import alpaca, questrade, saxo, tastytrade, tradier  # noqa: E402
+
+
+def test_alpaca_snapshot(monkeypatch):
+    sent = []
+    _answer(monkeypatch, alpaca, 200, {"latestTrade": {"p": 172.55, "s": 229}, "latestQuote": {"ap": 172.65, "as": 1, "bp": 172.51, "bs": 1},
+                                       "dailyBar": {"o": 172.62, "h": 173.71, "l": 171.6618, "c": 173.03, "v": 56457696},
+                                       "prevDailyBar": {"c": 173.19}, "symbol": "AAPL"}, sent)
+    q = alpaca.quote(_client(), "AAPL")
+    assert sent[0][0] == "https://data.alpaca.markets/v2/stocks/AAPL/snapshot"
+    assert q["ltp"] == 172.55 and q["prev"] == 173.19 and q["bid"] == 172.51 and q["offer"] == 172.65 and q["ttq"] == 56457696
+
+
+def test_alpaca_without_the_data_plan_falls_back(monkeypatch):
+    c = _client()
+    _answer(monkeypatch, alpaca, 403, {"message": "forbidden"})
+    assert alpaca.quote(c, "AAPL") is None and brokers.quotes_off(c)
+
+
+def test_tradier_quote(monkeypatch):
+    _answer(monkeypatch, tradier, 200, {"quotes": {"quote": {"symbol": "AAPL", "last": 273.47, "volume": 47994892, "open": 275,
+                                                             "high": 275.73, "low": 271.7, "bid": 273.53, "ask": 273.59,
+                                                             "prevclose": 275.25, "bidsize": 100, "asksize": 200}}})
+    q = tradier.quote({"base": "https://api.tradier.com", "headers": {}}, "AAPL")
+    assert q["ltp"] == 273.47 and q["prev"] == 275.25 and q["bid_qty"] == 100
+
+
+def test_tastytrade_reads_dasherized_text(monkeypatch):
+    monkeypatch.setattr(tastytrade, "_access", lambda client: "t")
+    _answer(monkeypatch, tastytrade, 200, {"data": {"items": [{"symbol": "AAPL", "bid": "210.55", "bid-size": "2.0", "ask": "210.6",
+                                                              "last": "210.511", "open": "208.693", "day-high-price": "212.24",
+                                                              "day-low-price": "208.37", "prev-close": "210.14", "volume": "35348839.0"}]}})
+    q = tastytrade.quote({"cfg": {}}, "AAPL")
+    assert q["ltp"] == 210.511 and q["prev"] == 210.14 and q["high"] == 212.24
+
+
+def test_questrade_finds_the_number_then_prices(monkeypatch):
+    def fake(client, path):
+        if path.startswith("v1/symbols/search"):
+            return {"symbols": [{"symbol": "THI.TO", "symbolId": 38738}]}
+        if path == "v1/symbols/38738":
+            return {"symbols": [{"prevDayClosePrice": 83.2}]}
+        return {"quotes": [{"symbol": "THI.TO", "bidPrice": 83.65, "bidSize": 6500, "askPrice": 83.67, "askSize": 9100,
+                            "lastTradePrice": 83.66, "volume": 80483500, "openPrice": 83.66, "highPrice": 83.86, "lowPrice": 83.66}]}
+    monkeypatch.setattr(questrade, "_get", fake)
+    q = questrade.quote({}, "THI.TO")
+    assert q["ltp"] == 83.66 and q["prev"] == 83.2 and q["offer"] == 83.67
+
+
+def test_saxo_finds_the_uic_then_prices(monkeypatch):
+    def fake(client, path, **params):
+        if path == "/ref/v1/instruments":
+            return {"Data": [{"Symbol": "AAPL:xmil", "Identifier": 1}, {"Symbol": "AAPL:xnas", "Identifier": 211}]}
+        assert params["Uic"] == 211
+        return {"Quote": {"Ask": 597, "Bid": 596.5, "Mid": 596.75, "DelayedByMinutes": 15},
+                "PriceInfo": {"High": 600, "Low": 590}, "PriceInfoDetails": {"LastTraded": 596.8, "LastClose": 590.1, "Open": 591}}
+    monkeypatch.setattr(saxo, "_get", fake)
+    q = saxo.quote({}, "AAPL")
+    assert q["ltp"] == 596.8 and q["prev"] == 590.1 and q["bid"] == 596.5
+
+
+def test_brokers_with_no_price_call_say_so_in_their_file():
+    # Trading 212 has no quote endpoint, Longbridge prices only over its own socket
+    # protocol, Interactive Brokers' Flex service carries statements; these stay on the
+    # free feed until a way in exists
+    from brokers import ibkr_flex, longbridge, trading212
+    for mod in (trading212, longbridge, ibkr_flex):
+        assert not hasattr(mod, "quote")

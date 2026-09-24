@@ -5,7 +5,7 @@ price, so the desk marks them from Yahoo. Source: docs.tradier.com."""
 
 import requests
 
-from brokers import BrokerError, derive, last4, num
+from brokers import BrokerError, derive, last4, num, pace, quote_result, quote_row, quotes_off
 
 META = {
     "label": "Tradier",
@@ -94,3 +94,26 @@ def funds(client):
         bp = num(sub.get("stock_buying_power")) or num(sub.get("cash_available")) or bp
     return {"cash": num(b.get("total_cash")), "currency": "USD", "buying_power": bp,
             "equity": num(b.get("total_equity"))}
+
+
+def quote(client, code, exch=None):
+    """A live price from GET /v1/markets/quotes. Real-time for Tradier Brokerage account
+    holders; the sandbox is fifteen minutes late. Market data allows 120 calls a minute."""
+    if quotes_off(client):
+        return None
+    pace("tradier-quote", 0.55)
+    try:
+        r = requests.get(client["base"] + "/v1/markets/quotes", headers=client["headers"],
+                         params={"symbols": str(code).upper()}, timeout=10)
+        j = r.json() if r.content else {}
+    except (requests.RequestException, ValueError):
+        return None
+    if r.status_code in (401, 403):
+        return None
+    if r.status_code != 200:
+        return quote_result(client, None)
+    rows = _as_list(((j.get("quotes") or {}).get("quote")))
+    q = rows[0] if rows else {}
+    book = {"buy": [{"price": q.get("bid"), "quantity": q.get("bidsize")}], "sell": [{"price": q.get("ask"), "quantity": q.get("asksize")}]}
+    return quote_result(client, quote_row(code, exch or "US", q.get("last"), q.get("prevclose"),
+                                          q.get("open"), q.get("high"), q.get("low"), book, q.get("volume")))

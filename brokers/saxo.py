@@ -20,7 +20,7 @@ from urllib.parse import parse_qs, unquote, urlencode, urlparse
 import requests
 
 import brokers
-from brokers import BrokerError, derive, last4, num
+from brokers import BrokerError, derive, last4, num, quote_result, quote_row, quotes_off
 
 META = {
     "label": "Saxo Bank",
@@ -188,3 +188,38 @@ def funds(client):
     return {"cash": num(b.get("CashBalance")), "currency": b.get("Currency") or "",
             "buying_power": num(b.get("MarginAvailableForTrading")) or num(b.get("CashAvailableForTrading")),
             "equity": num(b.get("TotalValue"))}
+
+
+def _uic(client, code):
+    """Saxo names a stock by its own number (the Uic): /ref/v1/instruments?Keywords= finds it,
+    kept for the session. Saxo writes a US share as AAPL:xnas."""
+    uics = client.setdefault("uics", {})
+    sym = str(code).upper()
+    if sym not in uics:
+        rows = (_get(client, "/ref/v1/instruments", Keywords=sym, AssetTypes="Stock") or {}).get("Data") or []
+        mine = [r for r in rows if str(r.get("Symbol", "")).upper().split(":")[0] == sym]
+        us = [r for r in mine if str(r.get("Symbol", "")).lower().split(":")[-1] in SUFFIX and not SUFFIX[str(r.get("Symbol", "")).lower().split(":")[-1]]]
+        hit = (us or mine or [None])[0]
+        uics[sym] = hit.get("Identifier") if hit else None
+    return uics[sym]
+
+
+def quote(client, code, exch=None):
+    """A price from GET /trade/v1/infoprices. Saxo's prices depend on the account's feed
+    subscription and on the session's trade level: an API login starts at OrdersOnly, and
+    then "prices for non-FX products will always be delayed". The answer carries
+    DelayedByMinutes, so a delayed price is still a price, never a refusal."""
+    if quotes_off(client):
+        return None
+    try:
+        uic = _uic(client, code)
+        if not uic:
+            return quote_result(client, None)
+        j = _get(client, "/trade/v1/infoprices", Uic=uic, AssetType="Stock",
+                 FieldGroups="Quote,PriceInfo,PriceInfoDetails") or {}
+    except (BrokerError, requests.RequestException):
+        return None
+    q, pi, d = j.get("Quote") or {}, j.get("PriceInfo") or {}, j.get("PriceInfoDetails") or {}
+    book = {"buy": [{"price": q.get("Bid"), "quantity": q.get("BidSize")}], "sell": [{"price": q.get("Ask"), "quantity": q.get("AskSize")}]}
+    return quote_result(client, quote_row(code, exch or "", d.get("LastTraded") or q.get("Mid"), d.get("LastClose"),
+                                          d.get("Open"), pi.get("High"), pi.get("Low"), book, d.get("Volume")))

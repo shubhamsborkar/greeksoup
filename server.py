@@ -1601,6 +1601,25 @@ def us_watch_loop():
             time.sleep(30)
             continue
         open_ = us_market_open()
+        # a connected US broker prices the list first, through the reader's own account
+        mod = ADAPTER["mod"]
+        hook = _broker_quotes() if (mod is not None and mod.META.get("region") == "us") else None
+        if hook and (open_ or first_cycle):
+            got = {}
+            for code in names:
+                try:
+                    q = hook(_client(), code, "US")
+                except Exception:  # noqa: BLE001 - one bad answer never stops the list
+                    q = None
+                if q:
+                    got[code] = q
+            if got:
+                with _watch_lock:
+                    WATCH_US.update(got)
+                if len(got) == len(names):
+                    first_cycle = False
+                    time.sleep(10)
+                    continue
         batch = fetch_us_batch(names)
         if batch is not None:
             if batch:

@@ -14,7 +14,7 @@ import time
 
 import requests
 
-from brokers import BrokerError, derive, last4, num
+from brokers import BrokerError, derive, last4, num, pace, quote_result, quote_row, quotes_off, quotes_refused
 
 META = {
     "label": "tastytrade",
@@ -126,3 +126,29 @@ def funds(client):
     return {"cash": num(b.get("cash-balance")), "currency": b.get("currency") or "USD",
             "buying_power": num(b.get("equity-buying-power")),
             "equity": num(b.get("net-liquidating-value"))}
+
+
+def quote(client, code, exch=None):
+    """A live price from GET /market-data/by-type?equity=. tastytrade serves it to funded
+    accounts only ("no delayed quotes are served over REST"); a refusal switches prices off
+    for the session and the desk uses the free feed. Keys come dasherized, prices as text."""
+    if quotes_off(client):
+        return None
+    pace("tasty-quote", 0.5)
+    try:
+        r = requests.get(_base(client["cfg"]) + "/market-data/by-type", timeout=10,
+                         params={"equity": str(code).upper()},
+                         headers={"User-Agent": AGENT, "Accept": "application/json",
+                                  "Authorization": "Bearer " + _access(client)})
+        j = r.json() if r.content else {}
+    except (requests.RequestException, ValueError, BrokerError):
+        return None
+    if r.status_code == 403:
+        return quotes_refused(client)
+    if r.status_code != 200:
+        return quote_result(client, None) if r.status_code != 401 else None
+    rows = ((j.get("data") or {}).get("items")) or []
+    q = rows[0] if rows else {}
+    book = {"buy": [{"price": q.get("bid"), "quantity": q.get("bid-size")}], "sell": [{"price": q.get("ask"), "quantity": q.get("ask-size")}]}
+    return quote_result(client, quote_row(code, exch or "US", q.get("last"), q.get("prev-close"), q.get("open"),
+                                          q.get("day-high-price"), q.get("day-low-price"), book, q.get("volume")))

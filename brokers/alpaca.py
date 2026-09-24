@@ -4,7 +4,7 @@ account works the same way with its own keys. Reads /v2/account and
 
 import requests
 
-from brokers import BrokerError, derive, last4, num
+from brokers import BrokerError, derive, last4, num, pace, quote_result, quote_row, quotes_off, quotes_refused
 
 META = {
     "label": "Alpaca",
@@ -78,3 +78,30 @@ def funds(client):
     client["account"] = a
     return {"cash": num(a.get("cash")), "currency": a.get("currency") or "USD",
             "buying_power": num(a.get("buying_power")), "equity": num(a.get("equity"))}
+
+
+DATA = "https://data.alpaca.markets"
+
+
+def quote(client, code, exch=None):
+    """A live price from the Market Data API, GET /v2/stocks/{symbol}/snapshot, with the same
+    keys as the account. The free Basic plan serves the IEX exchange ("for equities only the
+    IEX exchange"), which is the default feed for keys without the paid plan. The previous
+    close is the previous daily bar's close."""
+    if quotes_off(client):
+        return None
+    sym = str(code).upper()
+    pace("alpaca-quote", 0.35)
+    try:
+        r = requests.get(f"{DATA}/v2/stocks/{sym}/snapshot", headers=client["headers"], timeout=10)
+        j = r.json() if r.content else {}
+    except (requests.RequestException, ValueError):
+        return None
+    if r.status_code == 403:
+        return quotes_refused(client)
+    if r.status_code != 200:
+        return quote_result(client, None) if r.status_code != 401 else None
+    t, q, d = j.get("latestTrade") or {}, j.get("latestQuote") or {}, j.get("dailyBar") or {}
+    book = {"buy": [{"price": q.get("bp"), "quantity": q.get("bs")}], "sell": [{"price": q.get("ap"), "quantity": q.get("as")}]}
+    return quote_result(client, quote_row(code, exch or "US", t.get("p"), (j.get("prevDailyBar") or {}).get("c"),
+                                          d.get("o"), d.get("h"), d.get("l"), book, d.get("v")))
