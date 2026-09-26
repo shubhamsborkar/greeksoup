@@ -206,6 +206,8 @@ function render(){
   let html="";
   for(const r of rows){
     if(r._head){ html+=`<tr class="grphead"><td colspan="${COLS.length}">${r._head}</td></tr>`; continue; }
+    // a currency, or anything priced under 1, moves in the fourth decimal, so it prints four
+    const dp = (REGION==="global"&&gGroup(r.code)==="FX") || (r.ltp!=null&&r.ltp!==0&&Math.abs(r.ltp)<1) ? 4 : 2;
     const up = r.day_pct==null?null:r.day_pct>=0;
     const atHigh = r.ltp!=null && r.high!=null && r.ltp>=r.high;
     const atLow  = r.ltp!=null && r.low!=null && r.ltp<=r.low && !atHigh;
@@ -223,44 +225,44 @@ function render(){
       <td class="arrow ${cls(r.day_pct)}">${up==null?"·":(up?"▲":"▼")}</td>`;
     if(REGION==="us"){
       html+=`<tr>${sym}
-        <td class="mono" style="font-weight:700" data-k="l${r.code}">${inr(r.ltp)}</td>
+        <td class="mono" style="font-weight:700" data-k="l${r.code}">${inr(r.ltp,dp)}</td>
         <td class="mono ${cls(r.day_pct)}" data-k="d${r.code}">${pct(r.day_pct)}</td>
-        <td class="mono ${cls(r.chg)}" data-k="c${r.code}">${r.chg!=null?(r.chg>=0?"+":"−")+inr(Math.abs(r.chg)):"—"}</td>
+        <td class="mono ${cls(r.chg)}" data-k="c${r.code}">${r.chg!=null?(r.chg>=0?"+":"−")+inr(Math.abs(r.chg),dp):"—"}</td>
         <td class="mono dim" data-k="v${r.code}">${r.ttq!=null?inr(r.ttq,0):"—"}</td>
-        <td class="mono dim">${inr(r.open)}</td>
-        <td class="mono dim">${inr(r.high)}</td>
-        <td class="mono dim">${inr(r.low)}</td>
-        <td class="mono dim">${inr(r.prev)}</td>
-        <td class="mono dim">${inr(r.ylow)}</td>
-        <td class="mono dim">${inr(r.yhigh)}</td>
+        <td class="mono dim">${inr(r.open,dp)}</td>
+        <td class="mono dim">${inr(r.high,dp)}</td>
+        <td class="mono dim">${inr(r.low,dp)}</td>
+        <td class="mono dim">${inr(r.prev,dp)}</td>
+        <td class="mono dim">${inr(r.ylow,dp)}</td>
+        <td class="mono dim">${inr(r.yhigh,dp)}</td>
         <td class="mono ${cls(r.vs50)}">${pct(r.vs50)}</td>
         <td class="mono ${cls(r.vs200)}">${pct(r.vs200)}</td>
         <td class="mono dim">${mcapFmt(r.mcap)}</td>
         <td><button class="rm" data-c="${r.code}" title="Remove">×</button></td></tr>`;
     }else if(REGION==="global"){
       html+=`<tr>${sym}
-        <td class="mono" style="font-weight:700" data-k="l${r.code}">${inr(r.ltp)}</td>
+        <td class="mono" style="font-weight:700" data-k="l${r.code}">${inr(r.ltp,dp)}</td>
         <td class="mono ${cls(r.day_pct)}" data-k="d${r.code}">${pct(r.day_pct)}</td>
-        <td class="mono dim">${inr(r.prev)}</td>
-        <td class="mono dim">${inr(r.high)}</td>
-        <td class="mono dim">${inr(r.low)}</td>
+        <td class="mono dim">${inr(r.prev,dp)}</td>
+        <td class="mono dim">${inr(r.high,dp)}</td>
+        <td class="mono dim">${inr(r.low,dp)}</td>
         <td class="mono dim" data-k="v${r.code}">${r.ttq!=null?inr(r.ttq,0):"—"}</td>
-        <td class="mono dim">${inr(r.ylow)}</td>
-        <td class="mono dim">${inr(r.yhigh)}</td>
+        <td class="mono dim">${inr(r.ylow,dp)}</td>
+        <td class="mono dim">${inr(r.yhigh,dp)}</td>
         <td><button class="rm" data-c="${r.code}" title="Remove">×</button></td></tr>`;
     }else{
       html+=`<tr>${sym}
         ${data.has_book?`<td class="mono dim" data-k="bq${r.code}">${r.bid_qty!=null?inr(r.bid_qty,0):"—"}</td>
-        <td class="mono" data-k="b${r.code}">${inr(r.bid)}</td>
-        <td class="mono" data-k="o${r.code}">${inr(r.offer)}</td>
+        <td class="mono" data-k="b${r.code}">${inr(r.bid,dp)}</td>
+        <td class="mono" data-k="o${r.code}">${inr(r.offer,dp)}</td>
         <td class="mono dim" data-k="oq${r.code}">${r.offer_qty!=null?inr(r.offer_qty,0):"—"}</td>`:""}
-        <td class="mono" style="font-weight:700" data-k="l${r.code}">${inr(r.ltp)}</td>
+        <td class="mono" style="font-weight:700" data-k="l${r.code}">${inr(r.ltp,dp)}</td>
         <td class="mono ${cls(r.day_pct)}" data-k="d${r.code}">${pct(r.day_pct)}</td>
         <td class="mono dim" data-k="v${r.code}">${r.ttq!=null?inr(r.ttq,0):"—"}</td>
-        <td class="mono dim">${inr(r.open)}</td>
-        <td class="mono dim">${inr(r.high)}</td>
-        <td class="mono dim">${inr(r.low)}</td>
-        <td class="mono dim">${inr(r.prev)}</td>
+        <td class="mono dim">${inr(r.open,dp)}</td>
+        <td class="mono dim">${inr(r.high,dp)}</td>
+        <td class="mono dim">${inr(r.low,dp)}</td>
+        <td class="mono dim">${inr(r.prev,dp)}</td>
         <td><button class="rm" data-c="${r.code}" title="Remove">×</button></td></tr>`;
     }
   }

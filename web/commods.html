@@ -173,8 +173,10 @@ and pricing power are.</footer>
 <script>
 "use strict";
 let DATA=null, CARDS=[];
-const fmtN=v=>{ if(v==null)return "—"; const a=Math.abs(v);
-  const dp=a<10?2:(a<1000?2:0); return v.toLocaleString("en-US",{minimumFractionDigits:dp,maximumFractionDigits:dp}); };
+// a currency, or anything priced under 1, moves in the fourth decimal, so it prints four
+let CCY=new Set();
+const fmtN=(v,id)=>{ if(v==null)return "—"; const a=Math.abs(v);
+  const dp=(CCY.has(id)||(a>0&&a<1))?4:(a<1000?2:0); return v.toLocaleString("en-US",{minimumFractionDigits:dp,maximumFractionDigits:dp}); };
 // a move that prints as zero is flat: no sign, no colour
 const flat=(p,eps=0.05)=>p!=null&&Math.abs(p)<eps;
 const pct=(p,dp=1)=>p==null?"—":flat(p,0.5*Math.pow(10,-dp))?(0).toFixed(dp)+"%":(p>=0?"+":"")+p.toFixed(dp)+"%";
@@ -199,9 +201,9 @@ function peakLine(c){
   const when=(c.hi5y.date||"").slice(0,7);
   const mo=c.peak_basis==="monthly"?" <span class=\"badge mo\" title=\"five-year high read off the monthly IMF series (its own grade and unit), not the daily level above\">MONTHLY</span>":"";
   const pu=c.peak_basis==="monthly"&&c.peak_unit?" "+esc(c.peak_unit):"";
-  if(f>=-1) return `<div class="peak"><span class="at">AT 5Y HIGH</span> ${fmtN(c.hi5y.v)}${pu} · ${when}${mo}</div>`;
+  if(f>=-1) return `<div class="peak"><span class="at">AT 5Y HIGH</span> ${fmtN(c.hi5y.v,c.id)}${pu} · ${when}${mo}</div>`;
   const near=f>=-5?"near":"";
-  return `<div class="peak"><span class="${near}">${pct(f)}</span> vs 5Y high ${fmtN(c.hi5y.v)}${pu} (${when})${mo}</div>`;
+  return `<div class="peak"><span class="${near}">${pct(f)}</span> vs 5Y high ${fmtN(c.hi5y.v,c.id)}${pu} (${when})${mo}</div>`;
 }
 function cardHtml(c){
   const ch=c.chg||{};
@@ -215,7 +217,7 @@ function cardHtml(c){
   }).join("");
   return `<div class="card" data-id="${c.id}" title="click for history and the exposure map">
     <div class="l">${esc(c.label)}${stale}${nn}</div>
-    <div class="row"><span class="v mono">${fmtN(c.value)}</span><span class="u">${esc(c.unit)}</span>${d1}</div>
+    <div class="row"><span class="v mono">${fmtN(c.value,c.id)}</span><span class="u">${esc(c.unit)}</span>${d1}</div>
     <div class="chips">${chips}</div>
     ${peakLine(c)}
     ${spark(c.spark)}
@@ -269,7 +271,7 @@ function renderMovers(){
   document.getElementById("movers").innerHTML=html||'<div class="loading" style="padding:24px">No moves yet.</div>';
   const np=(DATA.near_peak||[]);
   document.getElementById("nearpk").innerHTML=np.length?`<span class="dim" style="font-size:11px;align-self:center">Within 5% of a five-year high:</span>`+
-    np.map(r=>`<span class="pk" data-id="${r.id}"><b>${esc(r.label)}</b><span class="m">${r.from>=-1?"at high":pct(r.from)} · ${fmtN(r.peak.v)}${r.basis==="monthly"&&r.peak_unit?" "+esc(r.peak_unit):""} (${(r.peak.date||"").slice(0,7)})${r.basis==="monthly"?" · monthly series":""}</span></span>`).join(""):"";
+    np.map(r=>`<span class="pk" data-id="${r.id}"><b>${esc(r.label)}</b><span class="m">${r.from>=-1?"at high":pct(r.from)} · ${fmtN(r.peak.v,r.id)}${r.basis==="monthly"&&r.peak_unit?" "+esc(r.peak_unit):""} (${(r.peak.date||"").slice(0,7)})${r.basis==="monthly"?" · monthly series":""}</span></span>`).join(""):"";
   document.querySelectorAll(".mv .r, .nearpk .pk").forEach(el=>el.onclick=()=>openModal(el.dataset.id));
   renderPressure();
 }
@@ -289,6 +291,7 @@ async function load(){
   const r=await fetch("/api/commods"); DATA=await r.json();
   document.getElementById("asof").textContent="as of "+DATA.ts;
   CARDS=DATA.cards||[];
+  CCY=new Set(CARDS.filter(c=>c.group==="Currency").map(c=>c.id));
   renderMovers(); render();
 }
 document.getElementById("q").addEventListener("input",render);
@@ -303,7 +306,7 @@ function openModal(id){
   mCard=CARDS.find(c=>c.id===id); if(!mCard) return;
   document.getElementById("modal").style.display="flex";
   document.getElementById("m_title").textContent=mCard.label;
-  document.getElementById("m_val").textContent=fmtN(mCard.value)+" "+mCard.unit+"  ("+(mCard.date||"")+")";
+  document.getElementById("m_val").textContent=fmtN(mCard.value,mCard.id)+" "+mCard.unit+"  ("+(mCard.date||"")+")";
   const has=mCard.full&&mCard.full.length>1;
   document.getElementById("m_ranges").innerHTML=has?Object.keys(RANGES).map(r=>`<button class="${r===mRange?"on":""}" data-r="${r}">${r}</button>`).join("")+
     `<span class="src">${esc(mCard.src_hist||"")}${mCard.hist_kind==="monthly"?" · monthly, through "+esc(mCard.hist_through||""):""}</span>`+
@@ -314,13 +317,13 @@ function openModal(id){
   const S=(k,n,s)=>st.push(`<div class="stat"><div class="k">${k}</div><div class="n">${n}</div>${s?`<div class="s">${s}</div>`:""}</div>`);
   for(const k of ["1d","1w","1m","3m","1y"]) if(ch[k]!=null) S(k.toUpperCase()+" change",`<span class="${cls(ch[k])}">${pct(ch[k],2)}</span>`,"");
   const mo=mCard.peak_basis==="monthly", pu=mo&&mCard.peak_unit?" "+esc(mCard.peak_unit):"", ms=mo?" · monthly series":"";
-  if(mCard.hi52&&mCard.lo52) S("52-week range",`${fmtN(mCard.lo52.v)} – ${fmtN(mCard.hi52.v)}${pu}`,mo?"monthly series":"");
-  if(mCard.hi5y) S("5-year high",fmtN(mCard.hi5y.v)+pu,(mCard.hi5y.date||"").slice(0,7)+(mCard.from_5y_high!=null?" · now "+pct(mCard.from_5y_high):"")+ms);
-  if(mCard.hiall&&mCard.years) S(`High, ${mCard.years}y of data`,fmtN(mCard.hiall.v)+pu,(mCard.hiall.date||"").slice(0,7)+(mCard.from_all_high!=null?" · now "+pct(mCard.from_all_high):"")+ms);
+  if(mCard.hi52&&mCard.lo52) S("52-week range",`${fmtN(mCard.lo52.v,mCard.id)} – ${fmtN(mCard.hi52.v,mCard.id)}${pu}`,mo?"monthly series":"");
+  if(mCard.hi5y) S("5-year high",fmtN(mCard.hi5y.v,mCard.id)+pu,(mCard.hi5y.date||"").slice(0,7)+(mCard.from_5y_high!=null?" · now "+pct(mCard.from_5y_high):"")+ms);
+  if(mCard.hiall&&mCard.years) S(`High, ${mCard.years}y of data`,fmtN(mCard.hiall.v,mCard.id)+pu,(mCard.hiall.date||"").slice(0,7)+(mCard.from_all_high!=null?" · now "+pct(mCard.from_all_high):"")+ms);
   if(mCard.fred_level!=null) S("IMF monthly benchmark",fmtN(mCard.fred_level)+" "+esc(mCard.fred_unit||""),"FRED, "+(mCard.fred_date||"").slice(0,7)+" (different grade and unit)");
   for(const l of (mCard.local||[])){
     if(l.kind==="exchange") st.push(`<div class="stat loc"><div class="k">${esc(l.label)}</div><div class="n">${fmtN(l.level)} ${esc(l.unit)} <span class="${cls(l.day_pct)}">${pct(l.day_pct)}</span></div><div class="s">open interest ${l.oi==null?"—":Number(l.oi).toLocaleString()} · broker feed ${esc(l.ts||"")}</div></div>`);
-    else st.push(`<div class="stat loc"><div class="k">${esc(l.detail||"")}${l.detail?" · ":""}${esc(l.label)}</div><div class="n">${fmtN(l.level)} ${esc(l.unit||"")}${l.day_pct!=null?` <span class="${cls(l.day_pct)}">${pct(l.day_pct)}</span>`:""}</div><div class="s">${l.usc_per_kg!=null?`${fmtN(l.usc_per_kg)} USc/kg on the source's own dollar column, `:""}${l.wk_pct!=null?`state average ${pct(l.wk_pct)} on the week, `:""}against ${fmtN(mCard.value)} ${esc(mCard.unit)} global${l.source?" · "+esc(l.source):""}${l.stale?" · STALE":""}</div></div>`);
+    else st.push(`<div class="stat loc"><div class="k">${esc(l.detail||"")}${l.detail?" · ":""}${esc(l.label)}</div><div class="n">${fmtN(l.level)} ${esc(l.unit||"")}${l.day_pct!=null?` <span class="${cls(l.day_pct)}">${pct(l.day_pct)}</span>`:""}</div><div class="s">${l.usc_per_kg!=null?`${fmtN(l.usc_per_kg)} USc/kg on the source's own dollar column, `:""}${l.wk_pct!=null?`state average ${pct(l.wk_pct)} on the week, `:""}against ${fmtN(mCard.value,mCard.id)} ${esc(mCard.unit)} global${l.source?" · "+esc(l.source):""}${l.stale?" · STALE":""}</div></div>`);
   }
   document.getElementById("m_stats").innerHTML=st.join("");
   const names=mCard.names||[];
@@ -352,7 +355,7 @@ function drawBig(){
   const step=niceStep(max-min);
   for(let v=Math.ceil(min/step)*step; v<=max; v+=step){
     grid+=`<line x1="${PL}" y1="${Y(v)}" x2="${W-PR}" y2="${Y(v)}" stroke="var(--grid)" stroke-width="1"/>`;
-    labels+=`<text x="${PL-8}" y="${Y(v)+3.5}" text-anchor="end" font-size="10.5" fill="var(--muted)" font-family="Menlo,monospace">${Math.abs(v)<10?v.toFixed(2):v.toLocaleString("en-US",{maximumFractionDigits:0})}</text>`;
+    labels+=`<text x="${PL-8}" y="${Y(v)+3.5}" text-anchor="end" font-size="10.5" fill="var(--muted)" font-family="Menlo,monospace">${Math.abs(v)<10?v.toFixed(CCY.has(mCard.id)?4:2):v.toLocaleString("en-US",{maximumFractionDigits:0})}</text>`;
   }
   for(const [t,lbl] of deskTimeTicks(TS.t0,TS.t1,Math.max(3,Math.floor((W-PL-PR)/110)))){
     const x=TS.xt(t); const anchor=x<PL+24?"start":(x>W-PR-24?"end":"middle");
@@ -363,7 +366,7 @@ function drawBig(){
   let pk="";
   if(mCard.hi5y&&mCard.hi5y.v<=max&&mCard.hi5y.v>=min){
     pk=`<line x1="${PL}" y1="${Y(mCard.hi5y.v)}" x2="${W-PR}" y2="${Y(mCard.hi5y.v)}" stroke="#e8a13c" stroke-width="1" stroke-dasharray="4,4"/>
-        <text x="${PL+6}" y="${Y(mCard.hi5y.v)-4}" font-size="10" fill="#e8a13c" font-family="Menlo,monospace">5Y high ${fmtN(mCard.hi5y.v)}</text>`;
+        <text x="${PL+6}" y="${Y(mCard.hi5y.v)-4}" font-size="10" fill="#e8a13c" font-family="Menlo,monospace">5Y high ${fmtN(mCard.hi5y.v,mCard.id)}</text>`;
   }
   const line=pts.map((p,i)=>`${X(i).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(" ");
   const area=`${PL},${Y(vals[0]).toFixed(1)} ${line} ${(W-PR).toFixed(1)},${(H-PB)} ${PL},${H-PB}`;
@@ -388,7 +391,7 @@ function drawBig(){
     if(mx<PL||mx>W-PR){xh.style.display="none";return;}
     const i=TS.at(TS.t(mx));
     const px=X(i), py=Y(pts[i][1]);
-    const label=`${pts[i][0]}  ${fmtN(pts[i][1])}`;
+    const label=`${pts[i][0]}  ${fmtN(pts[i][1],mCard.id)}`;
     const tw=label.length*6.6+16; const tx=Math.max(PL+tw/2,Math.min(W-PR-tw/2,px));
     xh.style.display="";
     document.getElementById("xh_v").setAttribute("x1",px); document.getElementById("xh_v").setAttribute("x2",px);
