@@ -44,7 +44,7 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
   <div class="right"><span id="asof"></span></div>
 </header>
 <main>
-  <div class="sub">Two different FINRA datasets, kept apart on purpose.
+  <div class="sub"><span id="scope">Reading the active holdings universe.</span> Two different FINRA datasets, kept apart on purpose.
   <b style="color:var(--ink2)">Short INTEREST</b> (left block) is the bi-monthly consolidated
   settlement report: actual open short positions, settled <b class="mono" id="settle"></b>, change
   vs the prior settlement, days-to-cover at recent volume, and the position against FMP's float
@@ -88,6 +88,11 @@ function spark(series,w=120,h=30,col){
 }
 async function load(){
   const r=await fetch("/api/short"); const d=await r.json();
+  const meridian=d.universe==="MERIDIAN_PORTFOLIO";
+  document.getElementById("scope").innerHTML=meridian
+    ?`Showing actual <b style="color:var(--ink2)">Meridian portfolio holdings</b>; GreekSoup's example Book and starter watchlist are excluded.`
+    :`Showing names from Desk · Book and Watch · US.`;
+  document.getElementById("addf").style.display=meridian?"none":"flex";
   document.getElementById("asof").textContent="as of "+d.ts;
   document.getElementById("settle").textContent=d.settlement||"—";
   if(!d.names||!d.names.length){
@@ -121,6 +126,9 @@ async function load(){
     </tr>`;
   }
   h+="</tbody></table></div>";
+  const shown=new Set((d.names||[]).map(n=>n.symbol));
+  const missing=(d.requested_symbols||[]).filter(s=>!shown.has(s));
+  if(meridian&&missing.length) h+=`<div class="dim" style="font-size:11px;margin-top:12px">No FINRA equity row available: ${missing.join(", ")}</div>`;
   document.getElementById("body").innerHTML=h;
   document.querySelectorAll("[data-rm]").forEach(b=>b.onclick=async()=>{
     const code=b.dataset.rm; b.disabled=true;

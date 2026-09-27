@@ -1688,3 +1688,46 @@ def test_the_website_is_two_doors_from_the_desk(monkeypatch):
     server._site_names_cache.update(at=0.0, data=None)
     assert server.site_link("AAPL", "us") == {} and server._site_names_cache["at"] < time.time() - 80000
     server._site_names_cache.update(at=0.0, data=None)
+
+
+def test_meridian_holdings_replace_example_book_and_starter_watchlist(tmp_path, monkeypatch):
+    import server
+    folder = tmp_path / "research" / "plugins" / "meridian-operations"
+    folder.mkdir(parents=True)
+    (folder / "holdings.json").write_text(json.dumps({
+        "authority": "MERIDIAN_OWNER_CONFIRMED_ACTUAL",
+        "authority_flags": {"read_only": True},
+        "positions": [
+            {"asset_type": "STOCK", "instrument_id": "FUBO"},
+            {"asset_type": "ETF", "instrument_id": "IBIT"},
+            {"asset_type": "STOCK", "instrument_id": "FISKER_INC_CL_A"},
+            {"asset_type": "OPTION", "instrument_id": "FUBO1"},
+        ],
+    }), encoding="utf-8")
+    monkeypatch.setattr(server, "DATA_DIR", str(tmp_path))
+    assert server.meridian_portfolio_symbols() == {"FUBO", "IBIT"}
+
+    monkeypatch.setattr(server, "us_book_positions", lambda: [{"symbol": "COST"}])
+    monkeypatch.setattr(server, "load_watchlist_us", lambda: [{"code": "NVDA"}])
+    monkeypatch.setattr(server.shortint, "build", lambda syms, held, float_lookup: {"names": []})
+    result = server.build_short()
+    assert result["requested_symbols"] == ["FUBO", "IBIT"]
+    assert result["universe"] == "MERIDIAN_PORTFOLIO"
+
+
+def test_invalid_meridian_export_preserves_original_short_universe(tmp_path, monkeypatch):
+    import server
+    folder = tmp_path / "research" / "plugins" / "meridian-operations"
+    folder.mkdir(parents=True)
+    (folder / "holdings.json").write_text(json.dumps({
+        "authority": "UNVERIFIED",
+        "authority_flags": {"read_only": True},
+        "positions": [{"asset_type": "STOCK", "instrument_id": "FUBO"}],
+    }), encoding="utf-8")
+    monkeypatch.setattr(server, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(server, "us_book_positions", lambda: [{"symbol": "COST"}])
+    monkeypatch.setattr(server, "load_watchlist_us", lambda: [{"code": "NVDA"}])
+    monkeypatch.setattr(server.shortint, "build", lambda syms, held, float_lookup: {"names": []})
+    result = server.build_short()
+    assert result["requested_symbols"] == ["COST", "NVDA"]
+    assert result["universe"] == "DESK_BOOK_AND_WATCHLIST"

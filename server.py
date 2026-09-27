@@ -3317,13 +3317,43 @@ def build_activist():
 FLOW_TTL = 3600
 
 
+def meridian_portfolio_symbols():
+    """Return actual US stock and ETF symbols from Meridian's read-only export.
+
+    A valid Meridian export replaces GreekSoup's example Book and starter watchlist
+    as the universe for holdings-aware research screens. Missing or invalid exports
+    leave the desk's original behavior unchanged.
+    """
+    path = os.path.join(DATA_DIR, "research", "plugins", "meridian-operations", "holdings.json")
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            payload = json.load(fh)
+    except (OSError, ValueError, TypeError):
+        return set()
+    flags = payload.get("authority_flags") or {}
+    if payload.get("authority") != "MERIDIAN_OWNER_CONFIRMED_ACTUAL" or flags.get("read_only") is not True:
+        return set()
+    symbols = set()
+    for position in payload.get("positions") or []:
+        symbol = str(position.get("instrument_id") or "").strip().upper()
+        if position.get("asset_type") not in {"STOCK", "ETF"}:
+            continue
+        if re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,11}", symbol):
+            symbols.add(symbol)
+    return symbols
+
+
 def build_flow():
-    """Options positioning across the US book + watchlist. The daily snapshot
+    """Options positioning across the active US holdings universe. The daily snapshot
     lands on disk inside options_us.build, so day-over-day OI builds appear
     from the second day a name is covered."""
-    held = {p["symbol"] for p in us_book_positions()}
-    syms = sorted(held | {n["code"] for n in load_watchlist_us()})
-    return options_us.build(syms, held)
+    meridian = meridian_portfolio_symbols()
+    held = meridian or {p["symbol"] for p in us_book_positions()}
+    syms = sorted(held if meridian else held | {n["code"] for n in load_watchlist_us()})
+    result = options_us.build(syms, held)
+    result["universe"] = "MERIDIAN_PORTFOLIO" if meridian else "DESK_BOOK_AND_WATCHLIST"
+    result["requested_symbols"] = syms
+    return result
 
 
 # ---- short interest + daily short-volume ratio (FINRA, free) -----------------
@@ -3344,9 +3374,13 @@ def _float_shares(sym):
 
 
 def build_short():
-    held = {p["symbol"] for p in us_book_positions()}
-    syms = sorted(held | {n["code"] for n in load_watchlist_us()})
-    return shortint.build(syms, held, float_lookup=_float_shares)
+    meridian = meridian_portfolio_symbols()
+    held = meridian or {p["symbol"] for p in us_book_positions()}
+    syms = sorted(held if meridian else held | {n["code"] for n in load_watchlist_us()})
+    result = shortint.build(syms, held, float_lookup=_float_shares)
+    result["universe"] = "MERIDIAN_PORTFOLIO" if meridian else "DESK_BOOK_AND_WATCHLIST"
+    result["requested_symbols"] = syms
+    return result
 
 
 # ---- US market pulse (movers + sector heat; audited working on Starter) ------
@@ -3596,6 +3630,21 @@ def _cached(kind, ttl, builder):
                 break
         time.sleep(0.5)
     return _cache[kind][1] if _cache[kind][1] is not None else {}
+
+
+def _portfolio_cached(kind, ttl, builder):
+    """Do not serve a saved example/watchlist universe after Meridian is active."""
+    data = _cached(kind, ttl, builder)
+    meridian = meridian_portfolio_symbols()
+    if meridian and (
+        not isinstance(data, dict)
+        or data.get("universe") != "MERIDIAN_PORTFOLIO"
+        or set(data.get("requested_symbols") or []) != meridian
+    ):
+        fresh = builder()
+        _store(kind, fresh)
+        return fresh
+    return data
 
 
 # ---- Settings: the broker connected from the page, not the terminal ---------
@@ -4483,7 +4532,7 @@ class Handler(BaseHTTPRequestHandler):
                 with open(os.path.join(HERE, "web", "flow.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/flow":
-                self._send(json.dumps(_cached("flow", FLOW_TTL, build_flow)).encode(), "application/json")
+                self._send(json.dumps(_portfolio_cached("flow", FLOW_TTL, build_flow)).encode(), "application/json")
             elif path == "/calendar":
                 with open(os.path.join(HERE, "web", "calendar.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
@@ -4493,7 +4542,7 @@ class Handler(BaseHTTPRequestHandler):
                 with open(os.path.join(HERE, "web", "short.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/short":
-                self._send(json.dumps(_cached("short", SHORT_TTL, build_short)).encode(), "application/json")
+                self._send(json.dumps(_portfolio_cached("short", SHORT_TTL, build_short)).encode(), "application/json")
             elif path == "/api/guide":
                 self._send(json.dumps(build_guide()).encode(), "application/json")
             elif path == "/api/ai/app/check":
