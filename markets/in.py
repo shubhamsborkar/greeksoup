@@ -167,7 +167,7 @@ def _repo():
         r = subprocess.run(
             ["curl", "-s", "-m", "25", "-A", _UA,
              "https://www.bankbazaar.com/home-loan/repo-rate.html"],
-            capture_output=True, text=True, timeout=30)
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         cells = [re.sub(r"<[^>]+>", "", c).strip()
                  for c in re.findall(r"<td[^>]*>(.*?)</td>", r.stdout, re.S)]
         for i, c in enumerate(cells):
@@ -192,7 +192,7 @@ def _repo():
         r = subprocess.run(
             ["curl", "-s", "-m", "25", "-A", _UA,
              "https://tradingeconomics.com/india/interest-rate"],
-            capture_output=True, text=True, timeout=30)
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         m = re.search(r"benchmark interest rate in india was last recorded at\s*"
                       r"([0-9]+(?:\.[0-9]+)?)\s*percent", r.stdout, re.I)
         if m:
@@ -225,7 +225,7 @@ def _cpi():
                "&state_code=99&limit=20")
         try:
             r = subprocess.run(["curl", "-s", "-m", "25", "-A", "Mozilla/5.0", url],
-                               capture_output=True, text=True, timeout=30)
+                               capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
             rows = json.loads(r.stdout).get("data", [])
         except Exception:  # noqa: BLE001
             rows = []

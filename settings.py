@@ -382,7 +382,7 @@ WIN_TASK = "Research Desk"
 
 def _run(cmd, **kw):
     try:
-        return subprocess.run(cmd, capture_output=True, text=True, timeout=20, **kw)
+        return subprocess.run(cmd, capture_output=True, text=True, errors="replace", timeout=20, **kw)
     except Exception:  # noqa: BLE001
         return None
 

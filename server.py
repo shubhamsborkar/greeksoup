@@ -4415,7 +4415,8 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/doctor":
                 try:
-                    p = subprocess.run([sys.executable, os.path.join(HERE, "doctor.py")], capture_output=True, text=True, timeout=90, cwd=HERE)
+                    p = subprocess.run([sys.executable, os.path.join(HERE, "doctor.py")], capture_output=True, text=True, encoding="utf-8", errors="replace",
+                                       timeout=90, cwd=HERE, env={**os.environ, "PYTHONIOENCODING": "utf-8"})
                     self._send(json.dumps({"ok": p.returncode == 0, "text": (p.stdout or "") + (p.stderr or "")}).encode(), "application/json")
                 except Exception as exc:  # noqa: BLE001
                     self._send(json.dumps({"ok": False, "error": f"The check did not run ({exc}). In the desk folder, run: python doctor.py"}).encode(), "application/json")

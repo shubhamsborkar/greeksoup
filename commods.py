@@ -207,7 +207,7 @@ def fred_series(series_id):
         # FRED's CDN stalls python-requests' TLS fingerprint; curl is fine.
         r = subprocess.run(["curl", "-s", "-m", "25",
                             f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"],
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         for ln in r.stdout.strip().splitlines()[1:]:
             d, _, v = ln.partition(",")
             v = v.strip()
@@ -281,7 +281,7 @@ def te_current(slug):
     try:
         r = subprocess.run(["curl", "-s", "-m", "25", "-A", UA,
                             f"https://tradingeconomics.com/commodity/{slug}"],
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         html = r.stdout.replace("&#39;", "'").replace("&amp;", "&")
     except Exception:  # noqa: BLE001
         pass

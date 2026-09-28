@@ -190,7 +190,7 @@ def main():
         except (OSError, LookupError):
             pass
         try:
-            p = subprocess.run(["schtasks", "/Query", "/TN", "Research Desk", "/XML"], capture_output=True, text=True, timeout=10)
+            p = subprocess.run(["schtasks", "/Query", "/TN", "Research Desk", "/XML"], capture_output=True, text=True, errors="replace", timeout=10)
             if p.returncode == 0 and mine(p.stdout):
                 say(OK, "start-at-login task present, and it points at this folder")
             elif lnk_mine:

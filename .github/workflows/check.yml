@@ -27,3 +27,15 @@ jobs:
       - uses: actions/checkout@v4
       - shell: pwsh
         run: .\scripts\windows_smoke.ps1
+
+  windows-text:
+    # Windows reads a child program's output in its own character set; these tests run
+    # the desk's web-page and FRED reads there, where issue #5 happened
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -q -r requirements.txt pytest
+      - run: python -m pytest tests/test_subprocess_text.py -q
