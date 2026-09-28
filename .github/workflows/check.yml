@@ -38,4 +38,4 @@ jobs:
         with:
           python-version: "3.13"
       - run: python -m pip install -q -r requirements.txt pytest
-      - run: python -m pytest tests/test_subprocess_text.py -q
+      - run: python -m pytest tests/test_subprocess_text.py tests/test_errlog.py -q

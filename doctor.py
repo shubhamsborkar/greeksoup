@@ -7,6 +7,7 @@ Prints plain lines, never a key, never a position. Copy everything it prints
 and give it to your agent, or paste it into a bug report.
 """
 import json
+import re
 import os
 import platform
 import shutil
@@ -18,15 +19,25 @@ import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OFFLINE = "--offline" in sys.argv
+# an error line can carry any character, and a piped Windows window prints in its own
+# character set, so a character it lacks prints as ? instead of stopping the check
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(errors="replace")
+    except (AttributeError, ValueError):
+        pass
 OK, WARN, BAD = "ok  ", "look", "fix "
 lines = []
 problems = 0
+looks = 0
 
 
 def say(mark, text):
-    global problems
+    global problems, looks
     if mark == BAD:
         problems += 1
+    elif mark == WARN:
+        looks += 1
     lines.append(f"[{mark}] {text}")
     print(lines[-1])
 
@@ -232,12 +243,34 @@ def main():
         for l in bad:
             print("      " + l[:200])
 
+    # the errors the desk recorded itself (errlog.py), whichever way it was started: a desk
+    # run from Start Desk prints only to its window, so this is the one place they show
+    errs = []
+    try:
+        import errlog
+        errs = errlog.recent(hours=24)
+    except Exception:  # noqa: BLE001
+        pass
+    if errs:
+        # one fault repeats with a different position or count each time (issue #5: byte 0x81
+        # at 242313, 242952, ...), so numbers of three or more digits do not make a new kind
+        kinds = {}
+        for e in errs:
+            kinds.setdefault(re.sub(r"\b\d{3,}\b", "…", e["last"]), []).append(e)
+        say(WARN, f"the desk hit {len(errs)} error(s) in the last day, {len(kinds)} kind(s); logs/desk-errors.log has them all")
+        for last, group in sorted(kinds.items(), key=lambda kv: -len(kv[1])):
+            print(f"      {len(group)} x {last[:170]}  (latest {group[-1]['at']}, {group[-1]['where']})")
+        print("      the newest, in full:")
+        for l in errs[-1]["text"].splitlines()[-14:]:
+            print("        " + l[:200])
+    elif installed:
+        say(OK, "the desk recorded no errors in the last day")
+
     # the network, small and anonymous
     if not OFFLINE:
         probes = [("GitHub (the version check)", "https://raw.githubusercontent.com/shubhamsborkar/greeksoup/main/VERSION"),
                   ("SEC EDGAR", "https://www.sec.gov/"),
-                  ("Yahoo Finance quotes", "https://query1.finance.yahoo.com/"),
-                  ("FRED", "https://fred.stlouisfed.org/")]
+                  ("Yahoo Finance quotes", "https://query1.finance.yahoo.com/")]
         for label, url in probes:
             try:
                 req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": "GreekSoup doctor"})
@@ -247,12 +280,29 @@ def main():
                 say(OK if exc.code < 500 else WARN, f"{label} answered {exc.code}")
             except Exception as exc:  # noqa: BLE001
                 say(WARN, f"{label} not reachable from here ({type(exc).__name__})")
+        # FRED stalls Python's own requests but serves curl, which is how the desk reads it,
+        # so the check asks the same way (a Python probe here timed out on every computer)
+        try:
+            r = subprocess.run(["curl", "-s", "-m", "15", "-o", os.devnull, "-w", "%{http_code}",
+                                "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10"],
+                               capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20)
+            code = (r.stdout or "").strip()
+            say(OK if code == "200" else WARN, "FRED reachable (200)" if code == "200"
+                else f"FRED did not answer the way the desk reads it ({code or 'no answer'})")
+        except (OSError, subprocess.SubprocessError) as exc:
+            say(WARN, f"FRED not checked: curl did not run ({type(exc).__name__})")
 
     print()
     if problems:
         print(f"{problems} thing(s) marked [fix ]. Copy everything above and give it to your AI agent with: 'Read README.md in this folder, then fix what the check found.'")
+    elif errs:
+        print("Nothing here is yours to fix, but the desk hit the errors shown above, and those are ours to fix. "
+              "Send this check through Tell us, or copy everything above into a bug report.")
     elif not installed:
         print("Nothing to fix. These are the desk's files; to install a desk here, read the Install section of README.md.")
+    elif looks:
+        print(f"Nothing to fix. {looks} line(s) marked [look] above are worth a glance. If a screen still looks wrong, "
+              "copy everything above into a bug report or give it to your agent.")
     else:
         print("Nothing to fix. If a screen still looks wrong, copy everything above into a bug report or give it to your agent.")
     return problems

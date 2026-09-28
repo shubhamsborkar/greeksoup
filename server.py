@@ -44,6 +44,7 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 import activist
 import commods
+import errlog
 import insiders
 import options_us
 import risk
@@ -5144,6 +5145,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    errlog.install()      # every uncaught error also lands in logs/desk-errors.log, which the check reads
     try:
         gone = updater.tidy()
         if gone:
@@ -5227,7 +5229,15 @@ def main():
         # "localhost" is usually the IPv6 one first, so a desk listening only on the
         # IPv4 address can look absent to anything that does not fall back. Neither
         # address is reachable from another machine.
-        class _Localhost6(ThreadingHTTPServer):
+        class _Server(ThreadingHTTPServer):
+            def handle_error(self, request, client_address):
+                # a screen that failed is recorded for the check; a tab closed mid-answer is not an error
+                exc_type, exc, tb = sys.exc_info()
+                if exc_type is not None and not issubclass(exc_type, ConnectionError):
+                    errlog.write("answering a screen", exc_type, exc, tb)
+                    super().handle_error(request, client_address)
+
+        class _Localhost6(_Server):
             address_family = socket.AF_INET6
 
         try:
@@ -5235,7 +5245,7 @@ def main():
             threading.Thread(target=six.serve_forever, daemon=True).start()
         except OSError:
             pass          # no IPv6 on this computer, or already answering there
-        four = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+        four = _Server(("127.0.0.1", PORT), Handler)
         # Once the door is ours, leave this process number in the folder, so Stop Desk
         # and Uninstall Desk can find exactly this copy. On Windows a desk started
         # through its .venv runs as a child of a launcher, so neither its program path
