@@ -1715,6 +1715,53 @@ def test_meridian_holdings_replace_example_book_and_starter_watchlist(tmp_path, 
     assert result["universe"] == "MERIDIAN_PORTFOLIO"
 
 
+def test_meridian_actual_holdings_replace_example_book_on_risk(tmp_path, monkeypatch):
+    import server
+    folder = tmp_path / "research" / "plugins" / "meridian-operations"
+    folder.mkdir(parents=True)
+    (folder / "holdings.json").write_text(json.dumps({
+        "authority": "MERIDIAN_OWNER_CONFIRMED_ACTUAL",
+        "authority_flags": {"read_only": True},
+        "accounts": [{"currency": "USD", "cash": "25.50"}],
+        "positions": [
+            {"account_id": "a", "asset_type": "STOCK", "instrument_id": "FUBO"},
+            {"account_id": "b", "asset_type": "STOCK", "instrument_id": "FUBO"},
+            {"account_id": "a", "asset_type": "ETF", "instrument_id": "IBIT"},
+        ],
+        "supplemental": {"limitations": ["options separate"]},
+    }), encoding="utf-8")
+    (folder / "intelligence.json").write_text(json.dumps({
+        "authority": {"holdings": "MERIDIAN_PORTFOLIO_TRUTH", "live_trade_authority": False},
+        "risk": {"positions": [
+            {"account_id": "a", "instrument_id": "FUBO", "mark_status": "COMPLETE", "market_value": "100"},
+            {"account_id": "b", "instrument_id": "FUBO", "mark_status": "COMPLETE", "market_value": "50"},
+            {"account_id": "a", "instrument_id": "IBIT", "mark_status": "MISSING", "market_value": None},
+        ]},
+    }), encoding="utf-8")
+    monkeypatch.setattr(server, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(server.risk, "yahoo_history", lambda s: [("2026-09-24", 9.0), ("2026-09-25", 10.0)])
+    book = server.meridian_risk_book()
+    assert book["label"] == "Meridian actual portfolio"
+    assert book["cash"] == 25.5 and book["nav"] == 175.5
+    assert [(p["code"], p["exposure"]) for p in book["positions"]] == [("FUBO", 150.0)]
+    assert "1 symbols have one or more account positions without a dated mark" in book["note"]
+    assert "options" in book["note"]
+
+
+def test_invalid_meridian_export_does_not_create_risk_book(tmp_path, monkeypatch):
+    import server
+    folder = tmp_path / "research" / "plugins" / "meridian-operations"
+    folder.mkdir(parents=True)
+    (folder / "holdings.json").write_text(json.dumps({
+        "authority": "UNVERIFIED", "authority_flags": {"read_only": True}, "positions": []
+    }), encoding="utf-8")
+    (folder / "intelligence.json").write_text(json.dumps({
+        "authority": {"holdings": "MERIDIAN_PORTFOLIO_TRUTH", "live_trade_authority": False}
+    }), encoding="utf-8")
+    monkeypatch.setattr(server, "DATA_DIR", str(tmp_path))
+    assert server.meridian_risk_book() is None
+
+
 def test_invalid_meridian_export_preserves_original_short_universe(tmp_path, monkeypatch):
     import server
     folder = tmp_path / "research" / "plugins" / "meridian-operations"

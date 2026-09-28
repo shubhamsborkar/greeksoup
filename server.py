@@ -3167,6 +3167,83 @@ def sector_of(key, fetch):
 RISK_TTL = 1800
 
 
+def meridian_risk_book():
+    """Build one consolidated, read-only risk book from Meridian's actual holdings.
+
+    Dated market values come from the Meridian intelligence export. Positions with
+    no mark remain visible in the note and are excluded from the risk arithmetic;
+    they are never silently valued at zero.
+    """
+    folder = os.path.join(DATA_DIR, "research", "plugins", "meridian-operations")
+    try:
+        with open(os.path.join(folder, "holdings.json"), "r", encoding="utf-8") as fh:
+            holdings = json.load(fh)
+        with open(os.path.join(folder, "intelligence.json"), "r", encoding="utf-8") as fh:
+            intelligence = json.load(fh)
+    except (OSError, ValueError, TypeError):
+        return None
+    flags = holdings.get("authority_flags") or {}
+    intel_auth = intelligence.get("authority") or {}
+    if (holdings.get("authority") != "MERIDIAN_OWNER_CONFIRMED_ACTUAL"
+            or flags.get("read_only") is not True
+            or intel_auth.get("holdings") != "MERIDIAN_PORTFOLIO_TRUTH"
+            or intel_auth.get("live_trade_authority") is not False):
+        return None
+
+    all_actual = {}
+    for p in holdings.get("positions") or []:
+        symbol = str(p.get("instrument_id") or "").strip().upper()
+        if p.get("asset_type") not in {"STOCK", "ETF"}:
+            continue
+        key = (str(p.get("account_id") or ""), symbol)
+        all_actual[key] = p
+
+    risk_rows = (intelligence.get("risk") or {}).get("positions") or []
+    row_keys = {(str(r.get("account_id") or ""), str(r.get("instrument_id") or "").strip().upper())
+                for r in risk_rows}
+    marked, marked_rows, missing_marks = {}, 0, set()
+    for row in risk_rows:
+        key = (str(row.get("account_id") or ""), str(row.get("instrument_id") or "").strip().upper())
+        if key not in all_actual:
+            continue
+        value = _num(row.get("market_value"))
+        if row.get("mark_status") == "COMPLETE" and value is not None:
+            marked_rows += 1
+            marked[key[1]] = marked.get(key[1], 0.0) + value
+        else:
+            missing_marks.add(key[1])
+    missing_marks |= {symbol for account, symbol in all_actual if (account, symbol) not in row_keys}
+
+    positions = []
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        history_symbols = [symbol for symbol in marked if re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,11}", symbol)]
+        histories = dict(zip(history_symbols, ex.map(risk.yahoo_history, history_symbols)))
+    history_missing = set()
+    for symbol, exposure in sorted(marked.items()):
+        series = histories.get(symbol) or []
+        if not series:
+            history_missing.add(symbol)
+        positions.append({"code": symbol, "name": "", "kinds": ["EQ"],
+                          "exposure": exposure, "sector": None, "series": series})
+    if not positions:
+        return None
+    cash = sum(_num(a.get("cash")) or 0.0 for a in holdings.get("accounts") or []
+               if str(a.get("currency") or "").upper() == "USD")
+    included = len(positions)
+    note = (f"actual Meridian holdings; {marked_rows} dated account positions across {included} symbols included"
+            f"; {len(missing_marks)} symbols have one or more account positions without a dated mark")
+    if history_missing:
+        n_history = len(history_missing)
+        note += f"; historical risk unavailable for {n_history} symbol{'s' if n_history != 1 else ''}"
+    limitations = (holdings.get("supplemental") or {}).get("limitations") or []
+    if limitations:
+        note += "; supplemental options and Principal plan detail are outside this risk book"
+    return {"key": "meridian_portfolio", "label": "Meridian actual portfolio", "currency": "$",
+            "bench": "^GSPC", "bench_label": "S&P 500", "region": "us",
+            "nav": cash + sum(p["exposure"] for p in positions), "cash": cash,
+            "positions": positions, "margin": None, "note": note}
+
+
 def build_risk():
     """Risk analytics across the books: the broker account(s) on Desk · Home
     (equity plus futures at notional, the margin cushion where the broker
@@ -3258,6 +3335,9 @@ def build_risk():
             "margin": ({**funds, "util_pct": (blocked / limit_total * 100) if limit_total else None}
                        if limit_total else None),
         })
+    meridian_book = meridian_risk_book()
+    if meridian_book:
+        books.append(meridian_book)
     try:
         usb = load_book()
         frm = (datetime.now() - timedelta(days=500)).strftime("%Y-%m-%d")
@@ -3282,7 +3362,7 @@ def build_risk():
                               "series": series})
         cash = sum(float(c.get("amount") or 0) for c in usb.get("cash", [])
                    if str(c.get("currency", "")).upper() == "USD")
-        if positions:
+        if positions and not meridian_book:
             books.append({"key": "us_book", "label": "Desk · Book, US names", "currency": "$",
                           "bench": "^GSPC", "bench_label": "S&P 500", "region": "us",
                           "nav": cash + sum(p["exposure"] for p in positions),
@@ -3643,6 +3723,18 @@ def _portfolio_cached(kind, ttl, builder):
     ):
         fresh = builder()
         _store(kind, fresh)
+        return fresh
+    return data
+
+
+def _risk_cached():
+    """Do not serve a saved empty/manual Risk book after Meridian is active."""
+    data = _cached("risk", RISK_TTL, build_risk)
+    meridian = meridian_portfolio_symbols()
+    books = data.get("books") if isinstance(data, dict) else []
+    if meridian and not any(b.get("key") == "meridian_portfolio" for b in (books or [])):
+        fresh = build_risk()
+        _store("risk", fresh)
         return fresh
     return data
 
@@ -4525,7 +4617,7 @@ class Handler(BaseHTTPRequestHandler):
                 with open(os.path.join(HERE, "web", "risk.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/risk":
-                self._send(json.dumps(_cached("risk", RISK_TTL, build_risk)).encode(), "application/json")
+                self._send(json.dumps(_risk_cached()).encode(), "application/json")
             elif path == "/api/activist":
                 self._send(json.dumps(_cached("act13d", ACT_TTL, build_activist)).encode(), "application/json")
             elif path == "/flow":
