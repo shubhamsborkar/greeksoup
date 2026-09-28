@@ -20,6 +20,9 @@ optional (README.md lists each one's shape; the desk shows what a file has):
   resolve, search                     a symbol master, when broker codes differ from
                                       exchange symbols
   extra_accounts, commodities_local   several accounts; local commodity reads
+  crypto                              crypto the account holds, for the Crypto block on
+                                      Desk · Home (never the stock book): rows in the
+                                      ROW shape, ysym the free feed's pair (BTC-USD)
 
 ROW (one holding):
   code       the broker's own symbol         name    company name if the broker gives it
@@ -45,7 +48,7 @@ ROOT = os.path.dirname(HERE)
 
 # Alphabetical by label. Adding a broker = one file here + one line in this list.
 REGISTRY = ["alpaca", "angel_one", "schwab", "dhan", "groww", "icici_breeze", "ibkr_flex",
-            "longbridge", "questrade", "saxo", "tastytrade", "tradier", "trading212",
+            "longbridge", "questrade", "robinhood", "saxo", "tastytrade", "tradier", "trading212",
             "upstox", "zerodha_kite"]
 
 # Brokers the desk knows about but does not ship a file for, and the honest path
@@ -61,7 +64,7 @@ OTHERS = [
     ("Tiger Brokers", "An official API across Singapore, Australia, New Zealand and Hong Kong. Its requests are signed with a key pair rather than a secret, so the file needs one more library than the desk ships."),
     ("E*TRADE", "An API exists, with an approval process and a balance minimum. Export the holdings into Desk · Book unless you already have access."),
     ("Fidelity, Vanguard", "No API for individuals. Export the holdings to a file and paste them into Desk · Book; most exports paste straight in."),
-    ("Robinhood", "No API for stocks (only for crypto). Export the holdings into Desk · Book, or have your agent connect Robinhood's own agent server."),
+    ("Robinhood", "Shipped here, through Robinhood's own agent server: one sign-in on Robinhood's page, no keys. The first time, Robinhood asks you to open its Agentic account, which is free and can stay empty."),
     ("Nordnet", "The Nordic one with an API, but it is closed to new applicants. If you already have access, your agent writes the file from nordnet.se/externalapi/docs."),
     ("XTB", "It withdrew the API on 14 March 2025 and has not replaced it; the broker now points clients at its own platform. Export the holdings into Desk · Book."),
     ("Trade Republic, Scalable Capital, DEGIRO, Revolut, eToro", "No API for individuals, whatever a third-party library claims. Export the holdings into Desk · Book."),

@@ -483,7 +483,7 @@ def apply():
             try:
                 p = subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r",
                                     os.path.join(HERE, "requirements.txt")],
-                                   capture_output=True, text=True, timeout=600, cwd=HERE)
+                                   capture_output=True, text=True, errors="replace", timeout=600, cwd=HERE)
                 rep["pip"] = "ok" if p.returncode == 0 else "failed: " + (p.stderr or "")[-300:]
             except Exception as exc:  # noqa: BLE001
                 rep["pip"] = "failed: " + str(exc)[:200]

@@ -11,7 +11,7 @@ def csv(series):
         r = subprocess.run(
             ["curl", "-s", "-m", "25",
              f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}"],
-            capture_output=True, text=True, timeout=30)
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         lines = r.stdout.strip().splitlines()[1:]
         out = []
         for ln in lines:

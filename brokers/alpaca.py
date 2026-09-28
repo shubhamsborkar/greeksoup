@@ -73,6 +73,25 @@ def equity(client):
     return rows
 
 
+def crypto(client):
+    """Crypto positions (asset_class crypto), for the Crypto block on Desk · Home. Alpaca
+    writes a pair as BTC/USD or BTCUSD; the coin is the part before the quote currency."""
+    rows = []
+    for p in _get(client, "/v2/positions") or []:
+        if str(p.get("asset_class", "")).lower() != "crypto":
+            continue
+        pair = str(p.get("symbol") or "").upper().replace("/", "").replace("-", "")
+        base = next((pair[:-len(q)] for q in ("USDT", "USDC", "USD") if pair.endswith(q) and len(pair) > len(q)), pair)
+        if not base:
+            continue
+        rows.append(derive({
+            "code": base, "name": "", "exch": "Alpaca", "qty": num(p.get("qty")),
+            "avg": num(p.get("avg_entry_price")), "ltp": None, "value": None,
+            "pnl": None, "pnl_pct": None, "day_pct": None, "currency": "USD", "ysym": f"{base}-USD",
+        }))
+    return rows
+
+
 def funds(client):
     a = _get(client, "/v2/account")
     client["account"] = a

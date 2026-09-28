@@ -103,7 +103,7 @@ def rubber_board():
     try:
         r = subprocess.run(["curl", "-s", "-m", "25", "-A", UA,
                             "https://rubberboard.gov.in/public"],
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         html = r.stdout
     except Exception:  # noqa: BLE001
         pass

@@ -2,7 +2,7 @@
 
 The desk reads a broker account through one file in this folder. The reader picks the broker on the Settings screen, pastes what that broker hands out, and Desk · Home fills. Nothing here places an order.
 
-Shipped: Alpaca, Angel One (SmartAPI), Charles Schwab, Dhan, Groww, ICICI Direct (Breeze), Interactive Brokers (Flex Web Service), Longbridge, Questrade, Saxo Bank, tastytrade, Tradier, Trading 212, Upstox, Zerodha (Kite Connect). Each file's docstring names the documentation it was written from.
+Shipped: Alpaca, Angel One (SmartAPI), Charles Schwab, Dhan, Groww, ICICI Direct (Breeze), Interactive Brokers (Flex Web Service), Longbridge, Questrade, Robinhood (its agent server), Saxo Bank, tastytrade, Tradier, Trading 212, Upstox, Zerodha (Kite Connect). Each file's docstring names the documentation it was written from.
 
 ## Writing one for another broker
 
@@ -54,7 +54,13 @@ stream_healthy()         -> True while ticks arrive
 resolve(code)            -> {"symbol", "exch", "name", "ysym", "meta"} for a broker code whose
                             exchange symbol differs from it (a symbol master)
 search(q)                -> [{"code","name","exch"}] search-as-you-type over that master
-extra_accounts(client, live_names) -> {name: block} other accounts at the same broker
+extra_accounts(client, live_names) -> {name: block} other accounts at the same broker; a block
+                            may carry "region" (its desk) and "crypto" as well
+crypto(client)           -> crypto the account holds, for the Crypto block on Desk · Home, kept
+                            out of the stock book, Risk and the sectors: rows in the holding
+                            shape with ysym set to the free feed's pair (BTC-USD), avg the
+                            average cost where the broker gives one, and "avg_partial": True
+                            when that average covers only the units bought (not transfers)
 commodities_local(client, cards)   -> attach local price lines to the Commodities cards
 ```
 

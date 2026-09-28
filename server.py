@@ -44,6 +44,7 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 import activist
 import commods
+import errlog
 import insiders
 import options_us
 import risk
@@ -1789,6 +1790,21 @@ def _fill_marks(rows):
     return rows
 
 
+def _crypto_reads(cli, account=None):
+    """Crypto the account's broker holds, marked from the free feed around the clock. It goes
+    to the Crypto block on Desk · Home and never into the stock totals, Risk or the sectors."""
+    mod = _mod_of(account)
+    if mod is None or not hasattr(mod, "crypto"):
+        return []
+    try:
+        return _fill_marks(mod.crypto(cli) or [])
+    except brokers.BrokerError as exc:
+        print(f"  broker crypto: {exc}")
+    except Exception as exc:  # noqa: BLE001 - crypto missing is not the book missing
+        print(f"  broker crypto read failed: {exc}")
+    return []
+
+
 def _reads(cli, account=None):
     """equity, futures, funds through the account's own broker file."""
     mod = _mod_of(account)
@@ -1831,6 +1847,7 @@ def build_snapshot():
             "equity": equity,
             "futures": futures,
             "funds": funds,
+            "crypto": _crypto_reads(cli, name),
             "totals": {
                 "equity_value": eq_value,
                 "equity_pnl": eq_pnl,
@@ -1847,14 +1864,24 @@ def build_snapshot():
     # A broker file that supports several accounts hands back the others with
     # no session today: the last saved book, marks re-priced through the live
     # session, funds and margin as the broker last reported them.
-    extra_hook = _hook("extra_accounts")
-    if alive and extra_hook:
-        live_names = [n for n, a in accounts.items()
-                      if a.get("equity") or a.get("futures") or (a.get("funds") or {}).get("cash") is not None]
+    live_names = [n for n, a in accounts.items()
+                  if a.get("equity") or a.get("futures") or (a.get("funds") or {}).get("cash") is not None]
+    extras = {}
+    for bname, bcli in (list(clients.items()) if alive else []):
+        bmod = _mod_of(bname)
+        hook = getattr(bmod, "extra_accounts", None) if bmod else None
+        if not hook or bname not in live_names:
+            continue
         try:
-            extras = extra_hook(clients.get(ADAPTER["id"]) or live_client, live_names) or {}   # the home broker's other accounts
+            got = hook(bcli, live_names) or {}          # this broker's other accounts
         except Exception:  # noqa: BLE001
-            extras = {}
+            got = {}
+        for k, block in got.items():
+            block.setdefault("broker", bmod.META["label"])
+            if block.get("region") and "desk" not in block:
+                block["desk"] = desk_of(block["region"])
+            extras[k] = block
+    if extras:
         for name, block in extras.items():
             funds = block.get("funds") or {}
             equity = block.get("equity", [])
@@ -1875,6 +1902,7 @@ def build_snapshot():
             block.setdefault("desk", "home")
             block.setdefault("broker", ADAPTER["mod"].META["label"] if ADAPTER["mod"] else "")
             block.setdefault("currency", funds.get("currency") or (equity[0].get("currency") if equity else "") or "")
+            block["crypto"] = _fill_marks(block.get("crypto") or [])
             accounts[name] = block
 
     # Sparklines under the open futures, where the broker serves intraday candles.
@@ -1895,6 +1923,8 @@ def build_snapshot():
         "session_dead": not alive,
         "accounts": accounts,
         "sparks": sparks,
+        "crypto": [{**r, "acct": n, "acct_label": a.get("label", n), "broker": a.get("broker", "")}
+                   for n, a in accounts.items() for r in (a.get("crypto") or [])],
     }
     if alive:
         try:
@@ -3899,6 +3929,14 @@ SCREENS = [
     ("settings", "/settings", "Settings"),
 ]
 ALWAYS_SHOWN = {"home", "settings"}
+# Blocks inside Desk · Home that a reader can hide with the x on the block or on Settings;
+# the choice sits in the same SCREENS line as the screens. Shown until the reader says no.
+HOME_BLOCKS = [("crypto", "Crypto on Desk · Home")]
+
+
+def block_choices():
+    choices = screen_choices()
+    return {k: choices.get(k, True) for k, _ in HOME_BLOCKS}
 
 
 def screen_choices():
@@ -3906,7 +3944,7 @@ def screen_choices():
     for part in (os.getenv("SCREENS", "") or desk_settings.read_env().get("SCREENS", "") or "").split(","):
         if ":" in part:
             k, v = part.strip().split(":", 1)
-            if k in {s[0] for s in SCREENS}:
+            if k in {s[0] for s in SCREENS} | {b[0] for b in HOME_BLOCKS}:
                 out[k] = v.strip().lower() == "on"
     return out
 
@@ -3932,7 +3970,8 @@ def nav_state():
     return {"hidden": hidden, "default_hidden": sorted(default_hidden), "choices": choices, "journal_pending": journal_pending,
             "plugin_screens": plugin_screens,
             "home_market": hm_id,
-            "screens": [{"key": k, "href": h, "label": l, "shown": k not in hidden, "fixed": k in ALWAYS_SHOWN} for k, h, l in SCREENS]}
+            "screens": [{"key": k, "href": h, "label": l, "shown": k not in hidden, "fixed": k in ALWAYS_SHOWN} for k, h, l in SCREENS],
+            "blocks": [{"key": k, "label": l, "shown": block_choices()[k]} for k, l in HOME_BLOCKS]}
 
 
 def settings_state():
@@ -4369,6 +4408,14 @@ def agent_page():
 
 
 class Handler(BaseHTTPRequestHandler):
+    def _plain(self, status, text):
+        body = text.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def _send(self, body, ctype):
         self.send_response(200)
         self.send_header("Content-Type", ctype)
@@ -4549,6 +4596,18 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/settings":
                 with open(os.path.join(HERE, "web", "settings.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
+            elif path == "/broker/login":
+                bid = (parse_qs(urlparse(self.path).query).get("broker") or [""])[0].strip().lower()
+                mod = brokers.load(bid) if bid in brokers.active_ids() else None
+                if not mod or not hasattr(mod, "start_login"):
+                    return self._plain(404, "That broker does not sign in from here. Go back to Settings.")
+                try:
+                    url = mod.start_login(brokers.config(bid), f"http://localhost:{PORT}/settings?broker={bid}")
+                except brokers.BrokerError as exc:
+                    return self._plain(502, "Could not start the sign-in: " + str(exc) + " Go back to Settings and press Log in again.")
+                self.send_response(302)
+                self.send_header("Location", url)
+                self.end_headers()
             elif path == "/report":
                 # Tell us: the page a reader with no GitHub account uses. It runs the check,
                 # shows all of it, and sends nothing; the reader emails it from their own app.
@@ -4556,7 +4615,8 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/doctor":
                 try:
-                    p = subprocess.run([sys.executable, os.path.join(HERE, "doctor.py")], capture_output=True, text=True, timeout=90, cwd=HERE)
+                    p = subprocess.run([sys.executable, os.path.join(HERE, "doctor.py")], capture_output=True, text=True, encoding="utf-8", errors="replace",
+                                       timeout=90, cwd=HERE, env={**os.environ, "PYTHONIOENCODING": "utf-8"})
                     self._send(json.dumps({"ok": p.returncode == 0, "text": (p.stdout or "") + (p.stderr or "")}).encode(), "application/json")
                 except Exception as exc:  # noqa: BLE001
                     self._send(json.dumps({"ok": False, "error": f"The check did not run ({exc}). In the desk folder, run: python doctor.py"}).encode(), "application/json")
@@ -4739,7 +4799,9 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(json.dumps(data).encode(), "application/json")
             elif path == "/api/snapshot":
                 data = _cached("snap", SNAP_TTL, build_snapshot)
-                self._send(json.dumps(data).encode(), "application/json")
+                # the reader's choice of blocks is read at every ask, so a hidden block stays hidden
+                # on a cached or a weekend snapshot too
+                self._send(json.dumps({**(data or {}), "blocks": block_choices()}).encode(), "application/json")
             elif self.path == "/api/tape":
                 data = _cached("tape", TAPE_TTL, build_tape)
                 self._send(json.dumps(data).encode(), "application/json")
@@ -4849,7 +4911,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/api/settings/screens":
             # one screen shown or hidden; the choice outlives updates because it lives in .env
             key = str(body.get("key", "")).strip().lower()
-            if key not in {sc[0] for sc in SCREENS} or key in ALWAYS_SHOWN:
+            if key not in {sc[0] for sc in SCREENS} | {b[0] for b in HOME_BLOCKS} or key in ALWAYS_SHOWN:
                 return self._send(b'{"ok":false,"error":"not a screen that can be hidden"}', "application/json")
             choices = screen_choices()
             if body.get("reset"):
@@ -5284,6 +5346,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    errlog.install()      # every uncaught error also lands in logs/desk-errors.log, which the check reads
     try:
         gone = updater.tidy()
         if gone:
@@ -5367,7 +5430,15 @@ def main():
         # "localhost" is usually the IPv6 one first, so a desk listening only on the
         # IPv4 address can look absent to anything that does not fall back. Neither
         # address is reachable from another machine.
-        class _Localhost6(ThreadingHTTPServer):
+        class _Server(ThreadingHTTPServer):
+            def handle_error(self, request, client_address):
+                # a screen that failed is recorded for the check; a tab closed mid-answer is not an error
+                exc_type, exc, tb = sys.exc_info()
+                if exc_type is not None and not issubclass(exc_type, ConnectionError):
+                    errlog.write("answering a screen", exc_type, exc, tb)
+                    super().handle_error(request, client_address)
+
+        class _Localhost6(_Server):
             address_family = socket.AF_INET6
 
         try:
@@ -5375,7 +5446,7 @@ def main():
             threading.Thread(target=six.serve_forever, daemon=True).start()
         except OSError:
             pass          # no IPv6 on this computer, or already answering there
-        four = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+        four = _Server(("127.0.0.1", PORT), Handler)
         # Once the door is ours, leave this process number in the folder, so Stop Desk
         # and Uninstall Desk can find exactly this copy. On Windows a desk started
         # through its .venv runs as a child of a launcher, so neither its program path

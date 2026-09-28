@@ -191,7 +191,7 @@ def app_models(key, path):
     else:
         live = []
         try:
-            r = subprocess.run([path] + a["list_cmd"], capture_output=True, text=True, timeout=20)
+            r = subprocess.run([path] + a["list_cmd"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20)
             for line in (r.stdout or "").splitlines():
                 m = re.match(r"^\s*[*\-]?\s*([A-Za-z][A-Za-z0-9._:/-]{2,60})(\s+\(default\))?\s*$", line)
                 if m and ("." in m.group(1) or "-" in m.group(1)):
@@ -241,7 +241,7 @@ def signed_in(app):
     env.pop("CLAUDECODE", None)
     if app in STATUS_CMD:
         try:
-            r = subprocess.run([path] + STATUS_CMD[app], capture_output=True, text=True, timeout=20, env=env)
+            r = subprocess.run([path] + STATUS_CMD[app], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20, env=env)
         except (subprocess.TimeoutExpired, OSError) as exc:
             return {"state": "unknown", "text": f"the status command did not answer ({type(exc).__name__})"}
         text = ((r.stdout or "") + "\n" + (r.stderr or "")).strip()
@@ -467,7 +467,7 @@ def run_door(name, prompt, timeout=240, mode="research", model="", ask_id=""):
     ask_id = str(ask_id or "")
     try:
         cwd = HERE if mode == "build" else (desk_notes.RESEARCH_DIR if os.path.isdir(desk_notes.RESEARCH_DIR) else HERE)
-        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env, cwd=cwd)
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace", env=env, cwd=cwd)
         if ask_id:
             _running[ask_id] = proc
         try:

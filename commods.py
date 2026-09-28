@@ -207,7 +207,7 @@ def fred_series(series_id):
         # FRED's CDN stalls python-requests' TLS fingerprint; curl is fine.
         r = subprocess.run(["curl", "-s", "-m", "25",
                             f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"],
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         for ln in r.stdout.strip().splitlines()[1:]:
             d, _, v = ln.partition(",")
             v = v.strip()
@@ -262,8 +262,10 @@ def frankfurter_series(pair):
 _TE_LEVEL = re.compile(
     r"(?:rose|fell|increased|decreased|climbed|dropped|jumped|slipped|surged|"
     r"plunged|edged\s+(?:up|down)|was\s+unchanged|remained\s+(?:unchanged|flat)|"
-    r"held\s+steady|hovered)\s+(?:to|at|around|near)?\s*([\d,]+(?:\.\d+)?)\s*"
+    r"held\s+steady|hovered|traded\s+flat)\s+(?:to|at|around|near)?\s*([\d,]+(?:\.\d+)?)\s*"
     r"([A-Za-z€$£¥][^<\n,]{0,28}?)\s+on\s+([A-Z][a-z]+\s+\d{1,2},\s+\d{4})")
+# a flat day ("traded flat at 39,640 USD/T") names no day move: it is 0.0
+_TE_FLAT = re.compile(r"^(?:traded\s+flat|was\s+unchanged|remained\s+(?:unchanged|flat)|held\s+steady)")
 _TE_DAY = re.compile(r"(up|down)\s+([\d.]+)%\s+from\s+the\s+previous\s+day")
 _TE_MONTH = re.compile(r"past\s+month[^.]*?(risen|fallen|increased|decreased|gained|lost)\s+([\d.]+)%")
 _TE_YEAR_A = re.compile(r"is\s+(up|down)\s+([\d.]+)%\s+compared\s+to\s+the\s+same\s+time\s+last\s+year")
@@ -281,7 +283,7 @@ def te_current(slug):
     try:
         r = subprocess.run(["curl", "-s", "-m", "25", "-A", UA,
                             f"https://tradingeconomics.com/commodity/{slug}"],
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
         html = r.stdout.replace("&#39;", "'").replace("&amp;", "&")
     except Exception:  # noqa: BLE001
         pass
@@ -295,12 +297,15 @@ def te_current(slug):
         if level is not None:
             unit = re.sub(r"\s+", " ", m.group(2)).strip()
             sign = lambda w: 1 if w in ("up", "risen", "increased", "gained", "higher") else -1  # noqa: E731
-            d = _TE_DAY.search(html)
-            mo = _TE_MONTH.search(html)
-            ya = _TE_YEAR_A.search(html)
-            yb = _TE_YEAR_B.search(html)
+            # the moves come from the same summary, never from another sentence on the page
+            para = html[m.start():m.start() + 600]
+            d = _TE_DAY.search(para)
+            mo = _TE_MONTH.search(para)
+            ya = _TE_YEAR_A.search(para)
+            yb = _TE_YEAR_B.search(para)
+            flat = not d and _TE_FLAT.match(m.group(0))
             out = {"level": level, "unit": unit, "date": date,
-                   "d1": sign(d.group(1)) * float(d.group(2)) if d else None,
+                   "d1": sign(d.group(1)) * float(d.group(2)) if d else (0.0 if flat else None),
                    "m1": sign(mo.group(1)) * float(mo.group(2)) if mo else None,
                    "y1": (sign(ya.group(1)) * float(ya.group(2)) if ya else
                           (sign(yb.group(2)) * float(yb.group(1)) if yb else None)),
