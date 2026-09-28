@@ -1,7 +1,7 @@
 {
- "version": "2026-09-28.126",
- "generated": "2026-09-28 08:58",
- "commits_scanned": 204,
+ "version": "2026-09-28.127",
+ "generated": "2026-09-28 18:06",
+ "commits_scanned": 203,
  "files": {
   ".env.example": "556b60743a53a7fed64ca13095b310043aa260a27c384a84d20a6ccffb90a5b0",
   ".github/ISSUE_TEMPLATE/broker.yml": "7a078be513076d3e7262364df80aac5adef7c815889efeb33c84ade7c4f2a409",
@@ -26,7 +26,7 @@
   "TECHNICAL.md": "cd8e9a3e520378cfcf7d814160e9233dfe903fdc0528144d578a8dde2e6efa24",
   "Uninstall Desk.bat": "f4c66f6ff96f4649ddb7f0374e7c7ac5c73d59a7f6255a0e36c2580da2fe9ed9",
   "Uninstall Desk.command": "0fe82587340a9add4ceca9b5ff0fe49d6f20d008a6b7d0bb559c8afb34c74188",
-  "VERSION": "37f13f7f9bdb522b746f7b5922d68731a6c6e25dd3fa0499fae5c0cab36971f3",
+  "VERSION": "6f0d1a8bb5fab4a1fb30710bde9b8184a60ee8cf6fee6f8d0028a495a042e36e",
   "activist.py": "78089c14f53da696553d3c3cd74f88553496d2504b7ebc94a36e6ec4f4db1062",
   "ai.py": "6a2886697846a39b72dee453d2e3749b724aab0e3e4c2d869373088827c70817",
   "breeze_session.py": "9062187bd4b808c7b224845705cf75facb01261b9e56ea0844ff09e4ccec074a",
@@ -123,13 +123,14 @@
   "settings.py": "05ada7de9da788fd542b480bef87b1bafc53485e76ca0283fadb30bab275b484",
   "shortint.py": "2059cdda722621881d9592708e74411f0cbaa3fee134a4b93b1bb80a7b6da98f",
   "stream_in.py": "8d69a1fd4acb7ee3e051b05bca68b87a76b9a0f5a07adcf14bd5ffe56902226a",
-  "support.py": "8fb0e930bfa532e7635a581463ec7249da4b10e54ce68a88dd5ec0e7270afab3",
+  "support.py": "cdbe268d05ecc4711a991bb6ab88f14e481c96a3ac2bc512cdb262eea1a8bdf6",
   "tests/test_broker_quotes.py": "0149376634471e98a7591df28af1b9ac7eeeac6d64e43fc0deb6a21d1c1fe0b4",
   "tests/test_contracts.py": "78e81ce0b12098a36edee813a3dc2be275dbfbb841e4743e7d85cc963321c46d",
   "tests/test_econ_public.py": "73b81e23af59ebfd1c234403b29eccf841917e566e82eecf574ce3a91a8a1f2c",
   "tests/test_fmp_allowance.py": "752569b336345c1dfecbb8c7f982f36f41ab0ba55fdf1f2cfc429b0c71724b3d",
   "tests/test_mandi_local.py": "28f487a3cca6aa01ad161209c979b12bcaf5ffb85ff3ccf4111c8cfc4c411515",
   "tests/test_subprocess_text.py": "6320ebfe51afc67d1ab18f4bcb9676683477336b68835efe74d1747a93e34f78",
+  "tests/test_support_reply.py": "74a6a35fdf702387406e961914cceb61950b64ab78a0ec5f6457d9292c6f524d",
   "tests/test_te_sentence.py": "af5444b3fd109e5757259466ebccb29df84df8fcf8f14b4bf20302d907cf8289",
   "uninstall.sh": "6bf7c8bb0719aaac83020df34c224eea47cd050c559c124c3422f8cc248fc12d",
   "updater.py": "fcaf6329694a3122e2fb1661cb8cc85554d6821dfd4abf86beef49a38b88276e",
@@ -152,7 +153,7 @@
   "web/index.html": "63140ed6a44e23bccaade0afe684f4e8eb8dc4f0d9f0278665dd997be9c84363",
   "web/macro.html": "a47a798c9e776a7d7cfafdd36d5361983bf399811f1b6acd6aecd190f2bae468",
   "web/notes.html": "365aaf132561cb8fd439aa66498fc44b49e8caac51fec9fb7a89682f8d0e7170",
-  "web/report.html": "30b3d38c2c2668bf87e4e9c3caf73b5111fd4dbbeabefec12f26cd208a861bee",
+  "web/report.html": "2a7a214ee65ec1869512934af03e9f7a8706de79b877442880fabee49955226c",
   "web/risk.html": "ec87e0d388a31e5c78983cfcf214e8a86089a51d1e9da87ae65cb0d279209332",
   "web/settings.html": "f67cfb13057a7c7a9a9b87f925542ff705fa8c25531e4d50e9c2fd6d2e880ec6",
   "web/short.html": "a3d15a129115e11a357ab0c5c831bfc302fb1cdb24157ce57d42fe84ed0fddf7",
@@ -191,9 +192,6 @@
    "40d2f82a7b4cb6dc31591eaa1f719d97c27105272a2b7ef8899fadadb2f6afa0",
    "55a0b1a8027565253d7345e62e2219250e072b185eecbf8f911b69bf51945390",
    "e8f22ee0df9088d77b4b715f4e162a3ceb3ee79822cc7e4114b6e87a6fee8117"
-  ],
-  ".github/workflows/windows-proof.yml": [
-   "aca605277d007b87817263f199d88827645c7d8890e7aca5f9e7f42eb4c88d9a"
   ],
   "AGENTS.md": [
    "1489a877f585ddc76d14a4c2975a673a0ed8ad53f2eb2aa5a9eb15253b2fe6af",
@@ -391,6 +389,7 @@
    "6b68e4d30790aa4d766c8f5842a3b680d8f99ee16dc3af4d243d3b0768b6f4e1",
    "6d0a9b9f7336be4ba596c2c34c5773d83a2580a0a950f1d3f230ad4c2508e6a4",
    "6ee07803c6d92030fa51d28e76d3be41a1b55ad12e5512c3b5f277d53ae048f2",
+   "6f0d1a8bb5fab4a1fb30710bde9b8184a60ee8cf6fee6f8d0028a495a042e36e",
    "70d80fd9151a1f74f101f7481b35a8cb3ead6cd60da6e9dfcf2d870717659ee3",
    "70fa4361f74343d04a3e1d7aac502a683cd5d47c0bfe5a4c22edd7b89dd129e1",
    "716bfb36e97b29b470ee0a977415ffa16c22881f2ec712416b9706a056133f6a",
@@ -1075,7 +1074,8 @@
   ],
   "support.py": [
    "36177148d079cd6f2dce8f05f317f8fca6b9c46ecf469a161a55f22227cbdbf0",
-   "8fb0e930bfa532e7635a581463ec7249da4b10e54ce68a88dd5ec0e7270afab3"
+   "8fb0e930bfa532e7635a581463ec7249da4b10e54ce68a88dd5ec0e7270afab3",
+   "cdbe268d05ecc4711a991bb6ab88f14e481c96a3ac2bc512cdb262eea1a8bdf6"
   ],
   "tests/test_broker_quotes.py": [
    "0149376634471e98a7591df28af1b9ac7eeeac6d64e43fc0deb6a21d1c1fe0b4",
@@ -1154,6 +1154,9 @@
   ],
   "tests/test_subprocess_text.py": [
    "6320ebfe51afc67d1ab18f4bcb9676683477336b68835efe74d1747a93e34f78"
+  ],
+  "tests/test_support_reply.py": [
+   "74a6a35fdf702387406e961914cceb61950b64ab78a0ec5f6457d9292c6f524d"
   ],
   "tests/test_te_sentence.py": [
    "af5444b3fd109e5757259466ebccb29df84df8fcf8f14b4bf20302d907cf8289"
@@ -1406,6 +1409,7 @@
    "ec03bc33091664a901399da97bdfd5db5666c81ec203c667909e5146ebd61556"
   ],
   "web/report.html": [
+   "2a7a214ee65ec1869512934af03e9f7a8706de79b877442880fabee49955226c",
    "30b3d38c2c2668bf87e4e9c3caf73b5111fd4dbbeabefec12f26cd208a861bee",
    "d7332c4a11eea503fe6cbd5b5acce050991884bd65b2a72dbb2987646fe25f42"
   ],

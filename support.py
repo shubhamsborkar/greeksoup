@@ -21,6 +21,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPORTS_PATH = os.path.join(HERE, "data", "reports.json")   # the reader's own: which reports this desk sent
 REPO = "shubhamsborkar/greeksoup"
 SUPPORT_URL = (os.getenv("DESK_SUPPORT_URL") or "").strip() or "https://greeksoup-support.mute-cloud-a367.workers.dev/report"
+REPLY_MAX = 8000       # characters of a reply the desk carries; beyond that the page links to GitHub
 FRESH = 600            # seconds a fetched issue is kept before the desk asks GitHub again
 _lock = threading.Lock()
 _cache = {}            # number -> (fetched_at, issue view)
@@ -99,7 +100,10 @@ def _fetch(number):
                 if c.status_code == 200 and c.json():
                     last = c.json()[0]
                     view["last"] = {"who": (last.get("user") or {}).get("login", ""), "at": (last.get("created_at") or "")[:10],
-                                    "text": (last.get("body") or "")[:600]}
+                                    # the whole reply, so the page can show its start and open the rest;
+                                    # capped only against a runaway comment, and the page says when it is
+                                    "text": (last.get("body") or "")[:REPLY_MAX],
+                                    "cut": len(last.get("body") or "") > REPLY_MAX}
     except requests.RequestException:
         pass
     if view is not None:

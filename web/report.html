@@ -9,6 +9,8 @@
 <script src="/assets/desk.js" defer></script>
 <style>
 body{padding-bottom:50px}
+.reply{margin-top:6px;white-space:pre-line}
+.reply .rm{margin-left:4px;white-space:nowrap}
 main{max-width:860px;margin:0 auto;padding:20px 22px}
 .sub{color:var(--muted);font-size:12px;margin-bottom:18px;line-height:1.55;max-width:760px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
@@ -110,11 +112,30 @@ a{color:var(--accent)}
     $("mstate").className = "st" + (list.waiting ? " on" : "");
     $("mlist").innerHTML = list.reports.map(r => {
       const st = r.state === "closed" ? "answered and closed" : (r.comments ? "replied" : "sent, no reply yet");
-      const last = r.last ? `<p style="margin-top:6px"><b>${esc(r.last.who)}</b>, ${esc(r.last.at)}: ${esc(r.last.text)}</p>` : "";
+      const last = r.last ? `<p class="reply"><b>${esc(r.last.who)}</b>, ${esc(r.last.at)}: ${reply(r.last, r.url)}</p>` : "";
       return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><p><a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.number}</a> · ${esc(r.title)} · ${esc(r.at)} · ${st}${r.new ? ' · <b style="color:var(--pos)">new reply</b>' : ""}</p>${last}</div>`;
     }).join("");
     list.reports.filter(r => r.new).forEach(r => fetch("/api/report/seen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ number: r.number }) }));
   };
+  // a long reply shows its opening, cut where a sentence or paragraph ends, and Read more opens the rest in place
+  const SHORT = 600;
+  const reply = (last, url) => {
+    const t = String(last.text || "");
+    const whole = last.cut ? ` <a href="${esc(url)}" target="_blank" rel="noopener">The whole reply is on GitHub.</a>` : "";
+    if (t.length <= SHORT + 80) return esc(t) + whole;
+    const head = t.slice(0, SHORT);
+    const at = Math.max(head.lastIndexOf("\n\n"), head.lastIndexOf(". "), head.lastIndexOf(".\n"));
+    const cut = at > 200 ? at + 1 : SHORT;
+    return `${esc(t.slice(0, cut))}<span class="more" hidden>${esc(t.slice(cut))}${whole}</span> <a href="#" class="rm">Read more</a>`;
+  };
+  $("mlist").addEventListener("click", e => {
+    const a = e.target.closest(".rm");
+    if (!a) return;
+    e.preventDefault();
+    const more = a.parentElement.querySelector(".more");
+    more.hidden = !more.hidden;
+    a.textContent = more.hidden ? "Read more" : "Show less";
+  });
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   fetch("/api/report/list", { cache: "no-store" }).then(r => r.json()).then(list => {
     if (list.enabled) { $("sendhelp").hidden = false; $("sendrow").hidden = false; }
