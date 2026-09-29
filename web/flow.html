@@ -68,10 +68,8 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
   <div class="right"><span id="asof"></span></div>
 </header>
 <main>
-  <div class="sub">What the US options market is positioned for on each of your names, read from CBOE's free
-  15-minute-delayed chains (<span id="win"></span>-day expiry window). The names are the US lines on
-  <a href="/book" style="color:var(--ink2)">Desk · Book</a> and the names on <a href="/watch?list=us" style="color:var(--ink2)">Watch · US</a>;
-  a name added below goes on Watch · US and its chain is read within a minute. <b style="color:var(--ink2)">Unusual
+  <div class="sub"><span id="scope">Reading the active holdings universe.</span> What the US options market is positioned for on each name, read from CBOE's free
+  15-minute-delayed chains (<span id="win"></span>-day expiry window). <b style="color:var(--ink2)">Unusual
   strikes</b> = today's volume at least twice the existing open interest with real premium: positions
   that did not exist yesterday. <b style="color:var(--ink2)">OI builds</b> compare open interest against
   the previous daily snapshot on disk, so they appear from a name's second covered day. Describes
@@ -154,6 +152,11 @@ function rowsHTML(rows,kind,vs){
 }
 async function load(){
   const r=await fetch("/api/flow"); const d=await r.json();
+  const meridian=d.universe==="MERIDIAN_PORTFOLIO";
+  document.getElementById("scope").innerHTML=meridian
+    ?`Showing actual <b style="color:var(--ink2)">Meridian portfolio holdings</b>; GreekSoup's example Book and starter watchlist are excluded.`
+    :`Showing names from Desk · Book and Watch · US.`;
+  document.getElementById("addf").style.display=meridian?"none":"flex";
   document.getElementById("asof").textContent="as of "+d.ts;
   document.getElementById("win").textContent=d.window_days;
   if(!d.names.length){

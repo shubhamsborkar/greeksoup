@@ -37,9 +37,6 @@
   };
   const TABS = [
     /* [href, label, group, icon, key]. "Home" is your broker account (whatever market), "US" is the US public-record desk. Rename here. */
-    ["/", "Desk · Home", "Desks", I.deskin, "home"],   // carries the US panels too, for every reader
-    ["/book", "Desk · Book", "Desks", I.book, "book"],
-    ["/risk", "Risk", "Desks", I.risk, "risk"],
     ["/watch", "Watch · Home", "Watchlists", I.watch, "watch"],
     ["/watch?list=us", "Watch · US", "Watchlists", I.list, "watchus"],
     ["/watch?list=global", "Global", "Watchlists", I.globe, "global"],
@@ -54,6 +51,9 @@
     ["/notes", "Notes", "Research", I.notes, "notes"],
     // the desk's own public-record readers laid out per name on the website, facts only; an https href opens in a new tab and the desk stays
     ["https://greeksoup.ai/stocks/", "greeksoup.ai ↗", "Research", I.site, "site"],
+    ["/", "Desk · Home", "GreekSoup Desk", I.deskin, "home"],
+    ["/book", "Desk · Book", "GreekSoup Desk", I.book, "book"],
+    ["/risk", "Risk", "GreekSoup Desk", I.risk, "risk"],
     ["/settings", "Settings", "Setup", I.settings, "settings"],
   ];
   const external = href => /^https:\/\//.test(href);
@@ -67,7 +67,11 @@
   let PLUGIN_TABS = [];   // screens that plugins add, from /api/nav: [href, label, group, icon, key]
   try { PLUGIN_TABS = JSON.parse(store.getItem("desk_plugin_tabs") || "[]"); } catch (e) { /* first visit */ }
   const PLUG_ICON = '<path d="M5 2.5v3M11 2.5v3"/><path d="M3.5 5.5h9v3a4.5 4.5 0 01-9 0z"/><path d="M8 13v1.5"/>';
-  const allTabs = () => TABS.concat(PLUGIN_TABS);
+  const MERIDIAN_ORDER = ["plugin:meridian-overview","plugin:meridian-portfolio","plugin:meridian-risk","plugin:meridian-funds","plugin:meridian-flow","plugin:meridian-short","plugin:meridian-calendar","plugin:meridian-research","plugin:meridian-operations"];
+  const allTabs = () => PLUGIN_TABS.slice().sort((a,b) => {
+    const ai = MERIDIAN_ORDER.indexOf(a[4]), bi = MERIDIAN_ORDER.indexOf(b[4]);
+    return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+  }).concat(TABS);
   let hidden = new Set();
   try { hidden = new Set(JSON.parse(store.getItem("desk_hidden") || "[]")); } catch (e) { /* first visit */ }
   const HIDE_ICON = '<path d="M4 4l8 8M12 4l-8 8"/>';

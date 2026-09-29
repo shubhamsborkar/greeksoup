@@ -3197,6 +3197,83 @@ def sector_of(key, fetch):
 RISK_TTL = 1800
 
 
+def meridian_risk_book():
+    """Build one consolidated, read-only risk book from Meridian's actual holdings.
+
+    Dated market values come from the Meridian intelligence export. Positions with
+    no mark remain visible in the note and are excluded from the risk arithmetic;
+    they are never silently valued at zero.
+    """
+    folder = os.path.join(DATA_DIR, "research", "plugins", "meridian-operations")
+    try:
+        with open(os.path.join(folder, "holdings.json"), "r", encoding="utf-8") as fh:
+            holdings = json.load(fh)
+        with open(os.path.join(folder, "intelligence.json"), "r", encoding="utf-8") as fh:
+            intelligence = json.load(fh)
+    except (OSError, ValueError, TypeError):
+        return None
+    flags = holdings.get("authority_flags") or {}
+    intel_auth = intelligence.get("authority") or {}
+    if (holdings.get("authority") != "MERIDIAN_OWNER_CONFIRMED_ACTUAL"
+            or flags.get("read_only") is not True
+            or intel_auth.get("holdings") != "MERIDIAN_PORTFOLIO_TRUTH"
+            or intel_auth.get("live_trade_authority") is not False):
+        return None
+
+    all_actual = {}
+    for p in holdings.get("positions") or []:
+        symbol = str(p.get("instrument_id") or "").strip().upper()
+        if p.get("asset_type") not in {"STOCK", "ETF"}:
+            continue
+        key = (str(p.get("account_id") or ""), symbol)
+        all_actual[key] = p
+
+    risk_rows = (intelligence.get("risk") or {}).get("positions") or []
+    row_keys = {(str(r.get("account_id") or ""), str(r.get("instrument_id") or "").strip().upper())
+                for r in risk_rows}
+    marked, marked_rows, missing_marks = {}, 0, set()
+    for row in risk_rows:
+        key = (str(row.get("account_id") or ""), str(row.get("instrument_id") or "").strip().upper())
+        if key not in all_actual:
+            continue
+        value = _num(row.get("market_value"))
+        if row.get("mark_status") == "COMPLETE" and value is not None:
+            marked_rows += 1
+            marked[key[1]] = marked.get(key[1], 0.0) + value
+        else:
+            missing_marks.add(key[1])
+    missing_marks |= {symbol for account, symbol in all_actual if (account, symbol) not in row_keys}
+
+    positions = []
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        history_symbols = [symbol for symbol in marked if re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,11}", symbol)]
+        histories = dict(zip(history_symbols, ex.map(risk.yahoo_history, history_symbols)))
+    history_missing = set()
+    for symbol, exposure in sorted(marked.items()):
+        series = histories.get(symbol) or []
+        if not series:
+            history_missing.add(symbol)
+        positions.append({"code": symbol, "name": "", "kinds": ["EQ"],
+                          "exposure": exposure, "sector": None, "series": series})
+    if not positions:
+        return None
+    cash = sum(_num(a.get("cash")) or 0.0 for a in holdings.get("accounts") or []
+               if str(a.get("currency") or "").upper() == "USD")
+    included = len(positions)
+    note = (f"actual Meridian holdings; {marked_rows} dated account positions across {included} symbols included"
+            f"; {len(missing_marks)} symbols have one or more account positions without a dated mark")
+    if history_missing:
+        n_history = len(history_missing)
+        note += f"; historical risk unavailable for {n_history} symbol{'s' if n_history != 1 else ''}"
+    limitations = (holdings.get("supplemental") or {}).get("limitations") or []
+    if limitations:
+        note += "; supplemental options and Principal plan detail are outside this risk book"
+    return {"key": "meridian_portfolio", "label": "Meridian actual portfolio", "currency": "$",
+            "bench": "^GSPC", "bench_label": "S&P 500", "region": "us",
+            "nav": cash + sum(p["exposure"] for p in positions), "cash": cash,
+            "positions": positions, "margin": None, "note": note}
+
+
 def build_risk():
     """Risk analytics across the books: the broker account(s) on Desk · Home
     (equity plus futures at notional, the margin cushion where the broker
@@ -3288,6 +3365,9 @@ def build_risk():
             "margin": ({**funds, "util_pct": (blocked / limit_total * 100) if limit_total else None}
                        if limit_total else None),
         })
+    meridian_book = meridian_risk_book()
+    if meridian_book:
+        books.append(meridian_book)
     try:
         usb = load_book()
         frm = (datetime.now() - timedelta(days=500)).strftime("%Y-%m-%d")
@@ -3312,7 +3392,7 @@ def build_risk():
                               "series": series})
         cash = sum(float(c.get("amount") or 0) for c in usb.get("cash", [])
                    if str(c.get("currency", "")).upper() == "USD")
-        if positions:
+        if positions and not meridian_book:
             books.append({"key": "us_book", "label": "Desk · Book, US names", "currency": "$",
                           "bench": "^GSPC", "bench_label": "S&P 500", "region": "us",
                           "nav": cash + sum(p["exposure"] for p in positions),
@@ -3347,13 +3427,43 @@ def build_activist():
 FLOW_TTL = 3600
 
 
+def meridian_portfolio_symbols():
+    """Return actual US stock and ETF symbols from Meridian's read-only export.
+
+    A valid Meridian export replaces GreekSoup's example Book and starter watchlist
+    as the universe for holdings-aware research screens. Missing or invalid exports
+    leave the desk's original behavior unchanged.
+    """
+    path = os.path.join(DATA_DIR, "research", "plugins", "meridian-operations", "holdings.json")
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            payload = json.load(fh)
+    except (OSError, ValueError, TypeError):
+        return set()
+    flags = payload.get("authority_flags") or {}
+    if payload.get("authority") != "MERIDIAN_OWNER_CONFIRMED_ACTUAL" or flags.get("read_only") is not True:
+        return set()
+    symbols = set()
+    for position in payload.get("positions") or []:
+        symbol = str(position.get("instrument_id") or "").strip().upper()
+        if position.get("asset_type") not in {"STOCK", "ETF"}:
+            continue
+        if re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,11}", symbol):
+            symbols.add(symbol)
+    return symbols
+
+
 def build_flow():
-    """Options positioning across the US book + watchlist. The daily snapshot
+    """Options positioning across the active US holdings universe. The daily snapshot
     lands on disk inside options_us.build, so day-over-day OI builds appear
     from the second day a name is covered."""
-    held = {p["symbol"] for p in us_book_positions()}
-    syms = sorted(held | {n["code"] for n in load_watchlist_us()})
-    return options_us.build(syms, held)
+    meridian = meridian_portfolio_symbols()
+    held = meridian or {p["symbol"] for p in us_book_positions()}
+    syms = sorted(held if meridian else held | {n["code"] for n in load_watchlist_us()})
+    result = options_us.build(syms, held)
+    result["universe"] = "MERIDIAN_PORTFOLIO" if meridian else "DESK_BOOK_AND_WATCHLIST"
+    result["requested_symbols"] = syms
+    return result
 
 
 # ---- short interest + daily short-volume ratio (FINRA, free) -----------------
@@ -3374,9 +3484,13 @@ def _float_shares(sym):
 
 
 def build_short():
-    held = {p["symbol"] for p in us_book_positions()}
-    syms = sorted(held | {n["code"] for n in load_watchlist_us()})
-    return shortint.build(syms, held, float_lookup=_float_shares)
+    meridian = meridian_portfolio_symbols()
+    held = meridian or {p["symbol"] for p in us_book_positions()}
+    syms = sorted(held if meridian else held | {n["code"] for n in load_watchlist_us()})
+    result = shortint.build(syms, held, float_lookup=_float_shares)
+    result["universe"] = "MERIDIAN_PORTFOLIO" if meridian else "DESK_BOOK_AND_WATCHLIST"
+    result["requested_symbols"] = syms
+    return result
 
 
 # ---- US market pulse (movers + sector heat; audited working on Starter) ------
@@ -3626,6 +3740,33 @@ def _cached(kind, ttl, builder):
                 break
         time.sleep(0.5)
     return _cache[kind][1] if _cache[kind][1] is not None else {}
+
+
+def _portfolio_cached(kind, ttl, builder):
+    """Do not serve a saved example/watchlist universe after Meridian is active."""
+    data = _cached(kind, ttl, builder)
+    meridian = meridian_portfolio_symbols()
+    if meridian and (
+        not isinstance(data, dict)
+        or data.get("universe") != "MERIDIAN_PORTFOLIO"
+        or set(data.get("requested_symbols") or []) != meridian
+    ):
+        fresh = builder()
+        _store(kind, fresh)
+        return fresh
+    return data
+
+
+def _risk_cached():
+    """Do not serve a saved empty/manual Risk book after Meridian is active."""
+    data = _cached("risk", RISK_TTL, build_risk)
+    meridian = meridian_portfolio_symbols()
+    books = data.get("books") if isinstance(data, dict) else []
+    if meridian and not any(b.get("key") == "meridian_portfolio" for b in (books or [])):
+        fresh = build_risk()
+        _store("risk", fresh)
+        return fresh
+    return data
 
 
 # ---- Settings: the broker connected from the page, not the terminal ---------
@@ -4536,14 +4677,14 @@ class Handler(BaseHTTPRequestHandler):
                 with open(os.path.join(HERE, "web", "risk.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/risk":
-                self._send(json.dumps(_cached("risk", RISK_TTL, build_risk)).encode(), "application/json")
+                self._send(json.dumps(_risk_cached()).encode(), "application/json")
             elif path == "/api/activist":
                 self._send(json.dumps(_cached("act13d", ACT_TTL, build_activist)).encode(), "application/json")
             elif path == "/flow":
                 with open(os.path.join(HERE, "web", "flow.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/flow":
-                self._send(json.dumps(_cached("flow", FLOW_TTL, build_flow)).encode(), "application/json")
+                self._send(json.dumps(_portfolio_cached("flow", FLOW_TTL, build_flow)).encode(), "application/json")
             elif path == "/calendar":
                 with open(os.path.join(HERE, "web", "calendar.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
@@ -4553,7 +4694,7 @@ class Handler(BaseHTTPRequestHandler):
                 with open(os.path.join(HERE, "web", "short.html"), "rb") as fh:
                     self._send(fh.read(), "text/html; charset=utf-8")
             elif path == "/api/short":
-                self._send(json.dumps(_cached("short", SHORT_TTL, build_short)).encode(), "application/json")
+                self._send(json.dumps(_portfolio_cached("short", SHORT_TTL, build_short)).encode(), "application/json")
             elif path == "/api/guide":
                 self._send(json.dumps(build_guide()).encode(), "application/json")
             elif path == "/api/ai/app/check":
