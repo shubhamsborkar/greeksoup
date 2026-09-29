@@ -59,6 +59,8 @@ main{max-width:1440px;margin:0 auto;padding:18px 22px}
   padding:11px 15px;border-bottom:1px solid var(--line)}
 .panel-h h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2)}
 .panel-h .sub{font-size:11px;color:var(--muted)}
+.panel-h .xbtn{margin-left:auto;background:none;border:0;color:var(--muted);font-size:17px;line-height:1;cursor:pointer;padding:0 4px}
+.panel-h .xbtn:hover{color:var(--ink)}
 .panel-b{padding:13px 15px}
 
 /* ---------- tiles ---------- */
@@ -308,6 +310,47 @@ function futuresTable(accounts, sparks){
   return html+"</tbody></table></div>";
 }
 
+/* ---------- crypto: its own block, never the stock book ---------- */
+// Crypto any connected broker holds (Robinhood and Alpaca today), priced from the free feed
+// around the clock. The x hides it for good (kept with the screens in Settings), and while
+// nothing is held it says so and how to hide it.
+function cryptoPanel(snap){
+  if((snap.blocks||{}).crypto===false) return "";
+  const rows = snap.crypto||[];
+  const x = `<button type="button" class="xbtn" title="Hide this block; Settings brings it back" aria-label="Hide the Crypto block" onclick="hideBlock('crypto')">×</button>`;
+  const head = sub => `<div class="panel-h"><h2>Crypto</h2><span class="sub" style="margin-left:12px">${sub}</span>${x}</div>`;
+  if(!rows.length) return `<section class="panel" id="crypto_block" style="margin-top:14px">${head("from your connected brokers")}
+    <div class="panel-b dim" style="font-size:12.5px;line-height:1.6">Crypto you hold at a connected broker shows here, priced around the clock: Robinhood and Alpaca today, from <a href="/settings" style="color:var(--accent)">Settings</a>. It stays out of your stock totals and Risk. Don't hold crypto? Press × and this block stays hidden; Settings brings it back.</div></section>`;
+  const value = rows.reduce((s,r)=>s+(r.value||0),0);
+  const pnl = rows.reduce((s,r)=>s+(r.pnl||0),0);
+  const id="crypto", many = new Set(rows.map(r=>r.acct)).size>1;
+  const st = sortState[id]||{key:"value",dir:-1}; sortState[id]=st;
+  const sorted = sortRows(rows.map(r=>({...r,key:r.acct+r.code})),id,"value");
+  const dpx = v => v!=null&&Math.abs(v)<1 ? 4 : 2;       // a coin under a dollar moves in the fourth decimal
+  let html=`<div class="scroll"><table><thead><tr>
+    ${th(id,"code","Coin",st)}${many?"<th>Account</th>":""}${th(id,"qty","Qty",st)}${th(id,"avg","Avg",st)}
+    ${th(id,"ltp","Mark",st)}${th(id,"value","Value",st)}${th(id,"pnl","P&L",st)}
+    ${th(id,"pnl_pct","P&L %",st)}${th(id,"day_pct","Day %",st)}</tr></thead><tbody>`;
+  for(const r of sorted){
+    const k=r.key;
+    html+=`<tr><td class="name" title="${r.name||""}">${r.code}${r.broker?` <span class="mini dim">${r.broker}</span>`:""}</td>
+      ${many?`<td class="dim">${r.acct_label||r.acct}</td>`:""}
+      ${cell("cq"+k, inr(r.qty, r.qty!=null&&Math.abs(r.qty)<10?6:2))}
+      <td class="mono" data-k="ca${k}" ${r.avg_partial?'title="The average covers the units bought; transfers and rewards carry no cost"':""}>${inr(r.avg,dpx(r.avg))}${r.avg_partial?"*":""}</td>
+      ${cell("cm"+k, inr(r.ltp,dpx(r.ltp)))}
+      ${cell("cv"+k, money(r.value,0,r.currency||"USD"))}
+      ${cell("cp"+k, signed(r.pnl), cls(r.pnl))}
+      ${cell("cpp"+k, pct(r.pnl_pct), cls(r.pnl_pct))}
+      ${cell("cd"+k, pct(r.day_pct), cls(r.day_pct))}</tr>`;
+  }
+  html+="</tbody></table></div>";
+  return `<section class="panel" id="crypto_block" style="margin-top:14px">${head(`${money(value,0,"USD")} · P&amp;L ${signed(pnl)} · marked from the free feed, around the clock`)}${html}</section>`;
+}
+async function hideBlock(key){
+  try{ await fetch("/api/settings/screens",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key,show:false})}); }catch(e){}
+  if(lastSnap){ lastSnap.blocks={...(lastSnap.blocks||{}),[key]:false}; render(lastSnap); }
+}
+
 function equityTable(acct, eq){
   if(!eq.length) return '<div class="panel-b dim">No holdings.</div>';
   const total = eq.reduce((s,e)=>s+(e.value||0),0);
@@ -534,6 +577,7 @@ function render(snap){
     </div>`:""}
     ${otherGroups.map(deskBlock).join("")}
     ${!placeUSBroker() ? `<div id="us_broker_wait">${window.US_BROKER_HTML}</div>` : ""}
+    ${cryptoPanel(snap)}
     ${resultsAvail===false?"":`<section class="panel" style="margin-top:14px">
       <div class="panel-h"><h2>Upcoming results · Home</h2>
         <span class="sub" id="einsub">results dates for the home watchlist, from the exchange's public calendar</span></div>
