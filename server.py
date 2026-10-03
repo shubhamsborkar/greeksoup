@@ -60,6 +60,7 @@ import settings as desk_settings   # the Settings screen: keys, token, switches
 import ai as desk_ai               # the reader's own AI key, tested here
 import brokers                     # the broker layer: one file per broker, read-only
 import markets                     # the market layer: one file per home market
+import holdings as desk_holdings   # every source the reader's positions come from, in any market
 import fred                        # FRED, keyless
 import freefeed          # keyless Yahoo fallbacks for the US pages
 import sec_form4         # keyless Form 4 from EDGAR
@@ -556,24 +557,21 @@ _ticker_cache = {}
 def us_book_positions():
     """The US names on Desk · Book, the one hand-kept book: a symbol Yahoo lists
     with no market suffix (AAPL, BRK-B), with shares, and not a shipped example.
-    The separate US file was folded into Desk · Book on 2026-09-16."""
-    out = []
-    for p in load_book().get("positions", []):
-        sym = str(p.get("symbol") or "").upper().strip()
-        try:
-            shares = float(p.get("shares") or 0)
-            avg = float(p.get("avg_cost") or 0)
-        except (TypeError, ValueError):
-            continue
-        if not sym or shares == 0 or "." in sym or p.get("example"):
-            continue
-        out.append({"symbol": sym, "name": p.get("name") or "", "shares": shares, "avg_cost": avg})
-    return out
+    The separate US file was folded into Desk · Book on 2026-09-16; the book is
+    read per market by book_positions(), and this is the US answer."""
+    return book_positions("us")
 
 
 def held_sets():
     """Every name the desk can see the reader holds or watches: Desk · Book, the
-    broker's last snapshot, and the three watch grids. Symbols and broker codes, upper case."""
+    broker's last snapshot, the positions brought in from a file, and the three
+    watch grids. Symbols and broker codes, upper case.
+
+    This is what decides whether a name reads as one the reader owns, everywhere
+    on the desk: its status, its notes, its ticker page. A source of positions
+    missing from here would show on Risk and nowhere else, so the reader would
+    be told they hold nothing on a name they do hold.
+    """
     book, watch = set(), set()
     try:
         for p in load_book().get("positions", []):
@@ -581,6 +579,8 @@ def held_sets():
                 book.add(str(p["symbol"]).upper())
     except (OSError, ValueError):
         pass
+    for p in desk_holdings.positions(DATA_DIR):
+        book.add(p["symbol"])
     snap = load_last_snapshot() or {}
     for acc in ((snap.get("data") or {}).get("accounts") or {}).values():
         for row in acc.get("equity") or []:
@@ -598,6 +598,107 @@ def held_sets():
 
 
 WATCH_LABEL = {"us": "Watch · US", "global": "Global", "home": "Watch · Home"}
+
+
+def universe(market="us", watch=True):
+    """Every name the reader holds or watches in one market, and where each came from.
+
+    The one answer for every screen that works off the reader's own names, so a
+    source of positions added once reaches all of them instead of being wired
+    into each. Today that is Desk · Book, the watch grid for the market, and any
+    positions file the reader brought in on Settings; a broker's own snapshot
+    already has its own book on Risk.
+
+    `held` are the names with shares behind them and `watch` the ones only being
+    followed, because a screen reads them differently: a short-interest build on
+    a name in the book is a position, on a watched name it is a lead. `sources`
+    says in plain words where each name came from, for the line the screen prints
+    so the reader is never guessing which names they are looking at.
+    """
+    market = (market or "us").lower()
+    held, watched, sources = set(), set(), {}
+
+    def note(sym, where):
+        sources.setdefault(sym, [])
+        if where not in sources[sym]:
+            sources[sym].append(where)
+
+    for p in book_positions(market):
+        held.add(p["symbol"])
+        note(p["symbol"], "Desk · Book")
+    for p in desk_holdings.positions(DATA_DIR, market):
+        held.add(p["symbol"])
+        note(p["symbol"], p.get("source") or "a positions file")
+    if watch:
+        # Watch · US holds US symbols as they are; Watch · Home holds the exchange's own
+        # code (RELIANCE, not RELIANCE.NS) so nobody has to know the suffix, and the
+        # market file turns it into the symbol the record is read under.
+        grids = []
+        if market == "us":
+            grids.append((load_watchlist_us, WATCH_LABEL["us"], None))
+        home = markets.active()
+        if home and str(home.META.get("id") or "").lower() == market and market != "us":
+            grids.append((load_watchlist, WATCH_LABEL["home"], home))
+        for loader, label, mkt in grids:
+            try:
+                rows = loader()
+            except (OSError, ValueError):
+                continue
+            for n in rows:
+                code = n.get("code") if isinstance(n, dict) else n
+                if not code:
+                    continue
+                sym = str(mkt.ysym(str(code)) if mkt else code).upper()
+                watched.add(sym)
+                note(sym, label)
+    watched -= held
+    return {"market": market, "symbols": sorted(held | watched), "held": held, "watch": watched,
+            "tag": {s: ("held" if s in held else "watch") for s in held | watched},
+            "sources": sources}
+
+
+def scope_line(u):
+    """Where the names on a screen came from, in the reader's own words.
+
+    A screen that reads the reader's own names used to say so in fixed words on
+    the page, which went wrong the moment the names could come from somewhere
+    else. The screen asks for this line instead, so what it says and what it
+    shows can never drift apart.
+    """
+    counts = {}
+    for places in u["sources"].values():
+        for where in places:
+            counts[where] = counts.get(where, 0) + 1
+    if not counts:
+        return ""
+    parts = [f"{where} ({n})" for where, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))]
+    names = f"{len(u['symbols'])} name" + ("" if len(u["symbols"]) == 1 else "s")
+    joined = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
+    return f"{names}, from {joined}"
+
+
+def book_positions(market="us"):
+    """The names on Desk · Book that trade in one market, with shares behind them.
+
+    Desk · Book is one book across every market the reader owns in, so the market
+    is read off each symbol the way Yahoo writes it: a bare symbol is a US
+    listing, BHP.AX is on the ASX. A line with no shares, and a shipped example,
+    are not positions.
+    """
+    out = []
+    for p in load_book().get("positions", []):
+        sym = str(p.get("symbol") or "").upper().strip()
+        try:
+            shares = float(p.get("shares") or 0)
+            avg = float(p.get("avg_cost") or 0)
+        except (TypeError, ValueError):
+            continue
+        if not sym or shares == 0 or p.get("example"):
+            continue
+        if desk_holdings.market_of(sym) != market:
+            continue
+        out.append({"symbol": sym, "name": p.get("name") or "", "shares": shares, "avg_cost": avg})
+    return out
 
 
 def journal(what, symbol="", text=""):
@@ -721,6 +822,21 @@ BLOCKS = {
     "book": "book                             Desk · Book, the lines and their weights",
 }
 _block_quotes = {}
+
+
+HOLDINGS_CAP = 2 * 1024 * 1024   # a positions file is names and numbers; 2 MB is thousands of lines
+
+
+def cache_drop(*kinds):
+    """Forget what these screens hold, so the next reader to open one sees the change.
+
+    Bringing positions in changes which names Risk, Flow and Short are about, and a
+    screen still holding yesterday's answer would quietly show the old set.
+    """
+    for kind in kinds:
+        if kind in _cache:
+            with _locks[kind]:
+                _cache[kind] = (0.0, None)
 
 
 def cache_peek(kind):
@@ -898,11 +1014,16 @@ def name_status(symbol):
 
 
 def _held_context(symbol):
-    """Where this name sits across the books: US book position and/or watchlists."""
+    """Where this name sits across the books: the hand-kept book, a file brought in,
+    and/or the watchlists."""
     ctx = {}
     for p in us_book_positions():
         if p["symbol"] == symbol:
             ctx["us_book"] = p
+    brought = [p for p in desk_holdings.positions(DATA_DIR) if p["symbol"] == symbol]
+    if brought:
+        ctx["brought_in"] = {"shares": sum(p["shares"] for p in brought),
+                             "from": sorted({p.get("source") or "a positions file" for p in brought})}
     return ctx
 
 
@@ -2032,12 +2153,7 @@ def build_tape():
 def build_earnings():
     """Upcoming earnings for every US name we track (book + watchlist), one
     feed call per name. The home market's results come from its market file."""
-    ours = {(p["symbol"], "held") for p in us_book_positions()}
-    for n in load_watchlist_us():
-        ours.add((n["code"], "watch"))
-    tag = {}
-    for sym, t in ours:
-        tag[sym] = "held" if (tag.get(sym) == "held" or t == "held") else t
+    tag = universe("us")["tag"]
     # per-symbol (the bulk calendar truncates its universe); parallel = fast
     today = datetime.now().strftime("%Y-%m-%d")
     if not os.getenv("FMP_API_KEY", "").strip():
@@ -2862,6 +2978,7 @@ def _chain_post(self, body):
         held = set()
         try:
             held = {(p.get("symbol") or "").upper() for p in load_book().get("positions", [])}
+            held |= {p["symbol"] for p in desk_holdings.positions(DATA_DIR)}
         except Exception:  # noqa: BLE001
             pass
         watched = set()
@@ -3124,12 +3241,10 @@ INSIDERS_TTL = 6 * 3600
 def build_insiders():
     """Cluster buys across the whole US tape + every open-market buy on our
     names. ~30 FMP pages per refresh; None (uncached) when the feed fails."""
-    ours = {p["symbol"] for p in us_book_positions()}
-    for n in load_watchlist_us():
-        ours.add(n["code"])
+    ours = universe("us")["symbols"]
     if not os.getenv("FMP_API_KEY", "").strip():
-        return sec_form4.build(sorted(ours))
-    return insiders.build(sorted(ours))
+        return sec_form4.build(ours)
+    return insiders.build(ours)
 
 
 # ---- sector classification (for the Risk tab's concentration bars) ----------
@@ -3320,6 +3435,62 @@ def build_risk():
                           "note": "the US names kept by hand on Desk · Book; cash account, no margin"})
     except (OSError, ValueError):
         pass
+
+    # Positions brought in from a file on Settings: one book per market, so a file from
+    # Sydney is measured in Australian dollars against the ASX 200 and one from Frankfurt
+    # in euros against the DAX. These sit beside Desk · Book and the broker's own accounts
+    # and never stand in for them, because a reader who keeps both wants to see both, and
+    # the panel underneath then says whether the two hedge each other.
+    for row in desk_holdings.imported(DATA_DIR):
+        by_market = {}
+        for p in row["positions"]:
+            by_market.setdefault(p.get("market") or "us", []).append(p)
+        for mkt, rows in sorted(by_market.items()):
+            meta = (markets.load(mkt).META if markets.load(mkt) else {}) or {}
+            syms = [p["symbol"] for p in rows]
+            try:
+                with ThreadPoolExecutor(max_workers=8) as ex:
+                    hist = dict(zip(syms, ex.map(risk.yahoo_history, syms)))
+            except Exception:  # noqa: BLE001
+                hist = {}
+            positions, unpriced = [], []
+            for p in rows:
+                sym = p["symbol"]
+                series = hist.get(sym) or []
+                price = ((_book_quote(sym) or {}).get("ltp")) or (series[-1][1] if series else None)
+                if price is None:
+                    unpriced.append(sym)
+                    continue
+                positions.append({"code": sym, "name": p.get("name") or "", "kinds": ["EQ"],
+                                  "exposure": price * p["shares"], "sector": None, "series": series})
+            if not positions:
+                continue
+            many = len(by_market) > 1
+            note = f"the positions you brought in from {row['label']}"
+            if many:
+                note += f", the {meta.get('label') or mkt.upper()} names"
+            note += "; the file carries no cash line, so this book is the positions only"
+            if unpriced:
+                note += (f"; no price yet for {', '.join(sorted(unpriced)[:6])}"
+                         + (" and others" if len(unpriced) > 6 else ""))
+            books.append({
+                "key": f"brought_{row['name']}_{mkt}",
+                "label": row["label"] + (f" · {meta.get('label') or mkt.upper()}" if many else ""),
+                "currency": meta.get("symbol") or meta.get("currency") or "",
+                "bench": meta.get("benchmark") or "ACWI",
+                "bench_label": meta.get("benchmark_label") or "MSCI ACWI",
+                "region": mkt, "nav": sum(p["exposure"] for p in positions), "cash": 0.0,
+                "positions": positions, "margin": None, "note": note})
+
+    # a book from another market is measured against its own index, which the two
+    # fetched above do not cover: without it the book's beta and volatility stay blank
+    for b in books:
+        sym = b.get("bench")
+        if sym and sym not in benches:
+            h = risk.yahoo_history(sym)
+            if h:
+                benches[sym] = h
+
     data = risk.build(books, benches)
     data["session_dead"] = broker_health["dead"]
     data["stale"] = ({"broker_as_of": datetime.fromtimestamp(prev["at"]).strftime("%a %d %b, %H:%M")}
@@ -3335,12 +3506,7 @@ def build_activist():
     """13D/G filings on our names + by the tracked funds + a recent-13D
     firehose. All from EDGAR's full-text search (the live SCHEDULE 13D/G
     root forms — the old SC 13D root froze Dec 2024)."""
-    our = {}
-    for n in load_watchlist_us():
-        our[n["code"]] = "watch"
-    for p in us_book_positions():
-        our[p["symbol"]] = "held"
-    return activist.build(our, desk_lists.effective("funds"))
+    return activist.build(universe("us")["tag"], desk_lists.effective("funds"))
 
 
 # ---- US options flow (CBOE delayed chains; the options-tape method) ----------
@@ -3351,9 +3517,8 @@ def build_flow():
     """Options positioning across the US book + watchlist. The daily snapshot
     lands on disk inside options_us.build, so day-over-day OI builds appear
     from the second day a name is covered."""
-    held = {p["symbol"] for p in us_book_positions()}
-    syms = sorted(held | {n["code"] for n in load_watchlist_us()})
-    return options_us.build(syms, held)
+    u = universe("us")
+    return options_us.build(u["symbols"], u["held"]) | {"scope": scope_line(u)}
 
 
 # ---- short interest + daily short-volume ratio (FINRA, free) -----------------
@@ -3374,9 +3539,8 @@ def _float_shares(sym):
 
 
 def build_short():
-    held = {p["symbol"] for p in us_book_positions()}
-    syms = sorted(held | {n["code"] for n in load_watchlist_us()})
-    return shortint.build(syms, held, float_lookup=_float_shares)
+    u = universe("us")
+    return shortint.build(u["symbols"], u["held"], float_lookup=_float_shares) | {"scope": scope_line(u)}
 
 
 # ---- US market pulse (movers + sector heat; audited working on Starter) ------
@@ -3488,10 +3652,8 @@ def _norm_congress(rows, chamber):
 def build_capitol():
     """Congress trading: the disclosure firehose plus every filing that touches
     a name on the book or watchlist. Read-only public PTR data via FMP."""
-    ours = set()
-    held = {p["symbol"] for p in us_book_positions()}
-    ours |= held
-    ours |= {n["code"] for n in load_watchlist_us()}
+    u = universe("us")
+    ours, held = set(u["symbols"]), u["held"]
 
     try:
         tracked_members = desk_lists.effective("members")
@@ -4376,6 +4538,23 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header("Cache-Control", "no-store")
                 self.end_headers()
                 return self.wfile.write(body)
+            elif path == "/api/holdings":
+                rows = []
+                for row in desk_holdings.imported(DATA_DIR, force=True):
+                    by = {}
+                    for p in row["positions"]:
+                        by[p.get("market") or "us"] = by.get(p.get("market") or "us", 0) + 1
+                    rows.append({"name": row["name"], "label": row["label"],
+                                 "brought_in": row.get("brought_in", ""), "error": row.get("error", ""),
+                                 "names": len(row["positions"]),
+                                 "markets": [{"market": k, "label": desk_holdings.market_label(k), "names": v}
+                                             for k, v in sorted(by.items(), key=lambda kv: -kv[1])]})
+                home = markets.active()
+                return self._send(json.dumps({
+                    "files": rows,
+                    "home": str(home.META.get("id") or "") if home else "",
+                    "markets": [{"id": m["id"], "label": m["label"]} for m in markets.all_meta()
+                                if m.get("exchanges")]}).encode(), "application/json")
             elif path == "/api/plugins":
                 return self._send(json.dumps({"installed": desk_plugins.installed(force=True), "doors": desk_plugins.doors(),
                                               "blocks": desk_plugins.block_files(), "folder": desk_plugins.plugins_dir(),
@@ -4946,6 +5125,38 @@ class Handler(BaseHTTPRequestHandler):
                 desk_notes.index(force=True)
                 desk_plugins.installed(force=True)
                 return self._send(json.dumps({"ok": True, **rep}).encode(), "application/json")
+            if self.path.startswith("/api/holdings/import"):
+                # A positions file the reader is bringing in: their broker's export or a
+                # spreadsheet, sent as its own bytes. The desk reads it into its own folder
+                # and never writes the reader's file. `market` is the market the reader says
+                # it came from, which is what gives a bare local code its suffix.
+                q = parse_qs(urlparse(self.path).query)
+                g = lambda k: (q.get(k, [""])[0] or "").strip()[:60]  # noqa: E731
+                if length > HOLDINGS_CAP:
+                    return self._send(json.dumps({"ok": False, "error":
+                        f"that file is larger than {HOLDINGS_CAP // 1024} KB; a positions "
+                        f"file is a list of names and numbers, so this is probably not one"}).encode(),
+                        "application/json")
+                raw = self.rfile.read(length)
+                parsed = desk_holdings.parse(raw, g("filename"), g("market"))
+                if not parsed["positions"]:
+                    return self._send(json.dumps({"ok": False, "skipped": parsed["skipped"],
+                        "error": "no positions the desk could read" +
+                                 (": " + parsed["skipped"][0] if parsed["skipped"] else "")}).encode(),
+                        "application/json")
+                row = desk_holdings.save(DATA_DIR, parsed, g("label"))
+                cache_drop("risk", "flow", "short")
+                journal("holdings", "", f'positions brought in: "{row["label"]}" '
+                                        f'({len(parsed["positions"])} names)')
+                return self._send(json.dumps({"ok": True, "label": row["label"],
+                    "names": len(parsed["positions"]), "markets": parsed["markets"],
+                    "skipped": parsed["skipped"], "notes": parsed["notes"]}).encode(), "application/json")
+            if self.path.startswith("/api/holdings/remove"):
+                q = parse_qs(urlparse(self.path).query)
+                gone = desk_holdings.remove(DATA_DIR, (q.get("name", [""])[0] or "").strip())
+                if gone:
+                    cache_drop("risk", "flow", "short")
+                return self._send(json.dumps({"ok": gone}).encode(), "application/json")
             if self.path.startswith("/api/plugins/install_zip"):
                 q = parse_qs(urlparse(self.path).query)
                 data = self.rfile.read(length)

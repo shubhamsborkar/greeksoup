@@ -111,7 +111,18 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
       <div class="msg" id="m_msg"></div>
     </div>
     <div class="note" id="b_others" style="display:none"></div>
-    <div class="note"><b>No broker, or one with no API?</b> <a href="/book" style="color:var(--accent)">Desk · Book</a> keeps a portfolio by hand in any market with no key; most broker exports paste straight into it.</div>
+    <div class="note"><b>No broker, or one with no API?</b> Bring your broker's own export in below, or keep the positions by hand on <a href="/book" style="color:var(--accent)">Desk · Book</a>. Either works in any market, with no key.</div>
+  </div>
+
+  <!-- Positions from a file -->
+  <div class="panel" data-tab="connect">
+    <div class="panel-h"><h2>Positions from a file</h2><span class="st" id="hd_status"></span></div>
+    <div class="body">
+      <div class="row"><label>In this desk</label><div id="hd_list" style="font-size:12.5px;line-height:1.5">reading…</div></div>
+      <div class="row"><label for="hd_market">The market it trades in</label><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><select id="hd_market"></select><button class="ghost" id="hd_pick">Pick a file</button><input type="file" id="hd_file" accept=".csv,.json,.txt,.tsv" style="display:none"></div></div>
+      <div class="row"><span></span><div class="hint">Your broker's own export, or any spreadsheet saved as CSV, with a column naming the symbol and one naming the number of shares; a column for average cost, currency or account is used when the file has one. Whatever your broker called those columns, the desk works it out. Pick the market first, because a broker prints the local code and not the market behind it: an export from Sydney says BHP where the record keeps BHP.AX. The names join <a href="/risk" style="color:var(--accent)">Risk</a> as a book of their own, measured in that market's money against its own index, beside your broker's accounts and Desk · Book rather than instead of them, and the research screens pick them up. The desk reads your file into its own folder and never writes back to yours; remove it here and the names go with it. Nothing on this screen places an order.</div></div>
+      <div class="msg" id="hd_msg"></div>
+    </div>
   </div>
 
   <!-- Data provider -->
@@ -577,6 +588,45 @@ $("p_addf").onclick=async()=>{ const f=$("p_folder").value.trim(); if(!f) return
 $("p_addz").onclick=()=>$("p_zip").click();
 $("p_zip").addEventListener("change",async()=>{ const f=$("p_zip").files[0]; if(!f) return; say("p_msg","Reading the zip…"); const r=await (await fetch("/api/plugins/install_zip",{method:"POST",headers:{"Content-Type":"application/zip"},body:f})).json(); say("p_msg", r.ok?`${r.plugin.label} is in.`:(r.error||"could not bring it in"), r.ok?"ok":"err"); $("p_zip").value=""; loadPlugins(); if(window.deskRefreshNav) deskRefreshNav(); });
 loadPlugins();
+/* positions brought in from a file: any market, their broker's own column names. The market
+   is picked first because a broker prints the local code and not the market behind it. */
+async function loadHoldings(){
+  let d; try{ d=await (await fetch("/api/holdings",{cache:"no-store"})).json(); }catch(e){ $("hd_list").textContent="The files could not be read."; return; }
+  const files=d.files||[];
+  const total=files.reduce((n,f)=>n+(f.names||0),0);
+  st("hd_status", files.length?`${total} name${total===1?"":"s"}`:"none yet","");
+  $("hd_list").innerHTML=files.length?files.map(f=>`<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)"><b>${esc(f.label)}</b>${f.error?`<span style="color:var(--neg)">${esc(f.error)}</span>`:`<span style="color:var(--ink2)">${f.names} name${f.names===1?"":"s"}${(f.markets||[]).length?" · "+esc(f.markets.map(m=>`${m.label} (${m.names})`).join(", ")):""}</span>${f.brought_in?`<span style="color:var(--muted);font-size:11px">brought in ${esc(f.brought_in)}</span>`:""}`}<button class="chip" data-hrm="${esc(f.name)}" style="margin-left:auto;color:var(--neg)">remove</button></div>`).join(""):`<span style="color:var(--muted)">No file yet. Your broker's export or any spreadsheet saved as CSV.</span>`;
+  $("hd_list").querySelectorAll("[data-hrm]").forEach(b=>b.onclick=async()=>{
+    if(!confirm("Remove these positions from the desk? Your own file is not touched.")) return;
+    const r=await post("/api/holdings/remove",{name:b.dataset.hrm});
+    say("hd_msg", r.ok?"Removed. Risk and the research screens drop those names.":"could not remove", r.ok?"ok":"err");
+    loadHoldings();
+  });
+  const sel=$("hd_market");
+  if(!sel.options.length){
+    sel.innerHTML=(d.markets||[]).map(m=>`<option value="${esc(m.id)}">${esc(m.label)}</option>`).join("");
+    sel.value=d.home||"us";
+  }
+}
+$("hd_pick").onclick=()=>$("hd_file").click();
+$("hd_file").addEventListener("change",async()=>{
+  const f=$("hd_file").files[0]; if(!f) return;
+  const mkt=$("hd_market").value||"us";
+  say("hd_msg","Reading the file…");
+  let r; try{
+    r=await (await fetch(`/api/holdings/import?filename=${encodeURIComponent(f.name)}&market=${encodeURIComponent(mkt)}`,
+      {method:"POST",headers:{"Content-Type":"text/plain"},body:f})).json();
+  }catch(e){ r={ok:false,error:"the file could not be sent to the desk"}; }
+  $("hd_file").value="";
+  if(!r.ok){ say("hd_msg", esc(r.error||"that file could not be read")+((r.skipped||[]).length?" · "+esc(r.skipped.slice(0,3).join(" · ")):""), "err"); return; }
+  const where=(r.markets||[]).map(m=>`${m.label} (${m.names})`).join(", ");
+  let line=`${r.names} name${r.names===1?"":"s"} in${where?" "+where:""}. Risk has them as a book of their own.`;
+  if((r.notes||[]).length) line+=" "+r.notes.join(" ");
+  if((r.skipped||[]).length) line+=` ${r.skipped.length} row${r.skipped.length===1?"":"s"} not read: ${r.skipped.slice(0,4).join("; ")}${r.skipped.length>4?"; and more":""}.`;
+  say("hd_msg", line, (r.notes||[]).length||(r.skipped||[]).length?"":"ok");
+  loadHoldings();
+});
+loadHoldings();
 $("s_upd").onchange=async()=>{ const r=await post("/api/settings/save",{DESK_AUTO_UPDATE:$("s_upd").checked?"on":"off"}); if(r.ok){ render(r.state); say("s_msg","Saved.","ok"); } };
 $("g_again").onclick=()=>{ if(window.deskGuide) window.deskGuide.show(); };
 /* the apps you already pay for: found on this computer or not, use one for Ask, sign in through its own window */

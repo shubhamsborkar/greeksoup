@@ -44,7 +44,7 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
   <div class="right"><span id="asof"></span></div>
 </header>
 <main>
-  <div class="sub">Two different FINRA datasets, kept apart on purpose.
+  <div class="sub"><span id="scope"></span>Two different FINRA datasets, kept apart on purpose.
   <b style="color:var(--ink2)">Short INTEREST</b> (left block) is the bi-monthly consolidated
   settlement report: actual open short positions, settled <b class="mono" id="settle"></b>, change
   vs the prior settlement, days-to-cover at recent volume, and the position against FMP's float
@@ -90,6 +90,8 @@ async function load(){
   const r=await fetch("/api/short"); const d=await r.json();
   document.getElementById("asof").textContent="as of "+d.ts;
   document.getElementById("settle").textContent=d.settlement||"—";
+  // which names these are, from the desk rather than from a fixed line on the page
+  if(d.scope) document.getElementById("scope").textContent="Read on the names on this desk: "+d.scope+". ";
   if(!d.names||!d.names.length){
     document.getElementById("body").innerHTML='<div class="loading">FINRA unreachable; retry shortly.</div>';return;
   }

@@ -1287,15 +1287,19 @@ def test_econ_calendar_keyless_sixty_days(monkeypatch):
     the world stays out; an empty answer carries a note and asks to be retried soon."""
     import server
     import freefeed
+    from datetime import datetime, timedelta
     monkeypatch.delenv("FMP_API_KEY", raising=False)
+    # The calendar only ever looks forward, so these prints are dated from today rather than
+    # written down: a fixed date passes into the past and the test starts failing on its own.
+    day = lambda n: (datetime.now() + timedelta(days=n)).strftime("%Y-%m-%d")  # noqa: E731
     rows = [
-        {"date": "2026-10-01", "time": "12:30", "country": "US", "event": "Nonfarm Payrolls", "period": "Sep", "estimate": "150", "previous": "142", "actual": None},
-        {"date": "2026-10-01", "time": "11:00", "country": "US", "event": "MBA Mortgage Applications", "period": "", "estimate": None, "previous": "2.1", "actual": None},
-        {"date": "2026-10-03", "time": "06:30", "country": "IN", "event": "RBI Repo Rate", "period": "", "estimate": "5.5", "previous": "5.5", "actual": None},
-        {"date": "2026-10-05", "time": "08:00", "country": "GB", "event": "CPI YY", "period": "Sep", "estimate": "3.1", "previous": "3.4", "actual": None},
-        {"date": "2026-10-05", "time": "08:00", "country": "GB", "event": "Car Registrations", "period": "Sep", "estimate": None, "previous": "1.0", "actual": None},
-        {"date": "2026-10-06", "time": "01:30", "country": "AU", "event": "RBA Cash Rate", "period": "", "estimate": "3.6", "previous": "3.6", "actual": None},
-        {"date": "2026-11-20", "time": "13:30", "country": "US", "event": "CPI MM", "period": "Oct", "estimate": "0.2", "previous": "0.3", "actual": None},
+        {"date": day(2), "time": "12:30", "country": "US", "event": "Nonfarm Payrolls", "period": "Sep", "estimate": "150", "previous": "142", "actual": None},
+        {"date": day(2), "time": "11:00", "country": "US", "event": "MBA Mortgage Applications", "period": "", "estimate": None, "previous": "2.1", "actual": None},
+        {"date": day(4), "time": "06:30", "country": "IN", "event": "RBI Repo Rate", "period": "", "estimate": "5.5", "previous": "5.5", "actual": None},
+        {"date": day(6), "time": "08:00", "country": "GB", "event": "CPI YY", "period": "Sep", "estimate": "3.1", "previous": "3.4", "actual": None},
+        {"date": day(6), "time": "08:00", "country": "GB", "event": "Car Registrations", "period": "Sep", "estimate": None, "previous": "1.0", "actual": None},
+        {"date": day(8), "time": "01:30", "country": "AU", "event": "RBA Cash Rate", "period": "", "estimate": "3.6", "previous": "3.6", "actual": None},
+        {"date": day(50), "time": "13:30", "country": "US", "event": "CPI MM", "period": "Oct", "estimate": "0.2", "previous": "0.3", "actual": None},
     ]
     monkeypatch.setattr(freefeed, "econ_calendar", lambda days=60, high_only=False: ([r for r in rows if r["event"] in ("Nonfarm Payrolls", "RBI Repo Rate")] if high_only else rows))
     monkeypatch.setattr(server, "_market", lambda: type("M", (), {"META": {"econ_country": "IN"}})())
@@ -1314,10 +1318,10 @@ def test_econ_calendar_keyless_sixty_days(monkeypatch):
     assert empty["rows"] == [] and "resting" in empty["note"] and empty["_ttl"] == 600
     # the feed refuses the address and the record itself answers: the BLS schedule, the Fed and
     # Forex Factory fill the weeks ahead, named as the source, and the panel carries no note
-    public = [{"date": "2026-10-14", "time": "12:30", "country": "US", "event": "Consumer Price Index", "impact": "High", "estimate": None, "previous": None, "actual": None, "period": "September 2026", "unit": ""},
-              {"date": "2026-10-20", "time": "14:00", "country": "US", "event": "Employee Tenure", "impact": "Medium", "estimate": None, "previous": None, "actual": None, "period": "", "unit": ""},
-              {"date": "2026-10-28", "time": "18:00", "country": "US", "event": "FOMC rate decision and statement", "impact": "High", "estimate": None, "previous": None, "actual": None, "period": "", "unit": ""},
-              {"date": "2026-10-15", "time": "06:00", "country": "GB", "event": "Claimant Count Change", "impact": "Low", "estimate": "20.0K", "previous": "17.4K", "actual": None, "period": "", "unit": ""}]
+    public = [{"date": day(11), "time": "12:30", "country": "US", "event": "Consumer Price Index", "impact": "High", "estimate": None, "previous": None, "actual": None, "period": "September 2026", "unit": ""},
+              {"date": day(17), "time": "14:00", "country": "US", "event": "Employee Tenure", "impact": "Medium", "estimate": None, "previous": None, "actual": None, "period": "", "unit": ""},
+              {"date": day(25), "time": "18:00", "country": "US", "event": "FOMC rate decision and statement", "impact": "High", "estimate": None, "previous": None, "actual": None, "period": "", "unit": ""},
+              {"date": day(12), "time": "06:00", "country": "GB", "event": "Claimant Count Change", "impact": "Low", "estimate": "20.0K", "previous": "17.4K", "actual": None, "period": "", "unit": ""}]
     monkeypatch.setattr(econ_public, "calendar", lambda days=60: public)
     filled = server.build_econcal()
     got = [(r["country"], r["event"]) for r in filled["rows"]]
@@ -1688,3 +1692,192 @@ def test_the_website_is_two_doors_from_the_desk(monkeypatch):
     server._site_names_cache.update(at=0.0, data=None)
     assert server.site_link("AAPL", "us") == {} and server._site_names_cache["at"] < time.time() - 80000
     server._site_names_cache.update(at=0.0, data=None)
+
+
+# ---- positions in any market: the holdings layer ----------------------------
+# A reader in Sydney, Frankfurt or Mumbai brings in their own broker's export. The
+# market a name trades in is read off the symbol, the numbers are read the way that
+# country writes them, and a file whose market was not picked says so rather than
+# filing the names under the United States in silence.
+
+def test_market_of_reads_every_market_from_the_symbol():
+    import holdings
+    assert holdings.market_of("AAPL") == "us"
+    assert holdings.market_of("BRK-B") == "us"
+    assert holdings.market_of("BHP.AX") == "au"
+    assert holdings.market_of("SHEL.L") == "gb"
+    assert holdings.market_of("RELIANCE.NS") == "in"
+    assert holdings.market_of("MC.PA") == "fr"
+    assert holdings.market_of("7203.T") == "jp"
+    assert holdings.market_of("NOPE.ZZZ") == ""
+    assert holdings.market_label("au") == "Australia"
+
+
+def test_numbers_are_read_the_way_the_country_writes_them():
+    """198,50 in Frankfurt is 198.5, not 19850: a cost base out by a hundred times."""
+    import holdings
+    assert holdings._num("198,50") == 198.5
+    assert holdings._num("1.105,50") == 1105.5
+    assert holdings._num("1,105.50") == 1105.5
+    assert holdings._num("1,105") == 1105.0
+    assert holdings._num("41.20") == 41.2
+    assert holdings._num("(1,234.5)") == -1234.5
+    assert holdings._num("$2,345.67") == 2345.67
+    assert holdings._num("") is None
+
+
+def test_local_broker_codes_take_the_market_the_reader_picked():
+    """CommSec exports BHP, not BHP.AX, because a local broker names no market."""
+    import holdings
+    csv = 'Code,Quantity,Avg Price,Currency\nBHP,250,41.20,AUD\nCBA.AX,80,"1,105.50",AUD\n'
+    got = holdings.parse(csv, "commsec.csv", market="au")
+    assert [p["symbol"] for p in got["positions"]] == ["BHP.AX", "CBA.AX"]
+    assert {p["market"] for p in got["positions"]} == {"au"}
+    assert got["positions"][1]["avg_cost"] == 1105.5
+    assert got["notes"] == []
+
+
+def test_a_file_with_no_market_picked_says_so_instead_of_filing_it_as_us():
+    import holdings
+    csv = "Code,Quantity,Avg Price,Currency\nBHP,250,41.20,AUD\nWES,10,65.00,AUD\n"
+    got = holdings.parse(csv, "commsec.csv")
+    assert [p["market"] for p in got["positions"]] == ["us", "us"]
+    assert len(got["notes"]) == 1
+    assert "not dollars" in got["notes"][0] and "Australia" in got["notes"][0]
+
+
+def test_european_decimal_comma_and_exchange_column():
+    import holdings
+    got = holdings.parse("Ticker;Shares;Cost basis;Exchange\nSAP;40;198,50;XETRA\nMC;12;640,00;PAR\n", "d.csv")
+    assert [(p["symbol"], p["market"], p["avg_cost"]) for p in got["positions"]] == \
+        [("SAP.DE", "de", 198.5), ("MC.PA", "fr", 640.0)]
+
+
+def test_us_broker_exports_give_the_cost_of_one_share():
+    import holdings
+    # Fidelity: per-share cost under Average Cost Basis, beside a total and today's price
+    fid = holdings.parse("Account Name,Symbol,Quantity,Last Price,Cost Basis Total,Average Cost Basis\n"
+                         "ROTH IRA,MSFT,12,$415.10,\"$3,726.60\",$310.55\n", "f.csv", market="us")
+    assert [(p["symbol"], p["shares"], p["avg_cost"]) for p in fid["positions"]] == [("MSFT", 12.0, 310.55)]
+    # Schwab: shares under Qty (Quantity), the whole position's cost under Cost Basis, today's price under Price
+    sch = holdings.parse("Symbol,Description,Qty (Quantity),Price,Mkt Val (Market Value),Cost Basis\n"
+                         "KO,COCA-COLA CO,40,$69.20,\"$2,768.00\",\"$2,324.00\"\n", "s.csv", market="us")
+    assert [(p["symbol"], p["shares"], p["avg_cost"]) for p in sch["positions"]] == [("KO", 40.0, 58.1)]
+    # a total under a name that only ever means a total is divided whether or not a price is there
+    tot = holdings.parse("Ticker,Units,Total cost\nAAPL,10,1500\n", "t.csv", market="us")
+    assert tot["positions"][0]["avg_cost"] == 150.0
+
+
+def test_rows_that_cannot_be_read_are_named_not_dropped_in_silence():
+    import holdings
+    got = holdings.parse("Symbol,Shares\nAAPL,100\nWES,0\n???,5\n", "x.csv")
+    assert [p["symbol"] for p in got["positions"]] == ["AAPL"]
+    assert len(got["skipped"]) == 2
+    assert any("WES" in s and "no number of shares" in s for s in got["skipped"])
+
+
+def test_a_header_the_desk_cannot_read_is_refused_in_plain_words():
+    import holdings
+    got = holdings.parse("alpha,beta\n1,2\n", "x.csv")
+    assert got["positions"] == []
+    assert "symbol or ticker" in got["skipped"][0]
+
+
+# ---- one universe, every screen ---------------------------------------------
+
+def _desk(tmp_path, monkeypatch, book=None, watch=None):
+    import server
+    monkeypatch.setattr(server, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(server, "load_book", lambda: book or {"positions": [], "cash": []})
+    monkeypatch.setattr(server, "load_watchlist_us", lambda: watch or [])
+    monkeypatch.setattr(server.markets, "active", lambda *a, **k: None)
+    return server
+
+
+def test_universe_gathers_the_book_the_watchlist_and_a_file_with_provenance(tmp_path, monkeypatch):
+    import holdings
+    server = _desk(tmp_path, monkeypatch,
+                   book={"positions": [{"symbol": "COST", "shares": 10, "avg_cost": 800},
+                                       {"symbol": "EXAMPLE", "shares": 1, "example": True},
+                                       {"symbol": "BHP.AX", "shares": 5, "avg_cost": 40}]},
+                   watch=[{"code": "NVDA"}, {"code": "COST"}])
+    holdings.save(str(tmp_path), holdings.parse("Symbol,Shares\nFUBO,100\n", "mine.csv"), "Mine")
+    u = server.universe("us")
+    assert u["symbols"] == ["COST", "FUBO", "NVDA"]          # BHP.AX is Australian, the example is not a position
+    assert u["held"] == {"COST", "FUBO"} and u["watch"] == {"NVDA"}
+    assert u["tag"]["COST"] == "held"                          # held wins over also being watched
+    assert u["sources"]["FUBO"] == ["Mine"]
+    assert "Desk · Book" in u["sources"]["COST"] and "Watch · US" in u["sources"]["COST"]
+    au = server.universe("au")
+    assert au["symbols"] == ["BHP.AX"] and au["held"] == {"BHP.AX"}
+
+
+def test_scope_line_tells_the_reader_which_names_they_are_looking_at(tmp_path, monkeypatch):
+    server = _desk(tmp_path, monkeypatch,
+                   book={"positions": [{"symbol": "COST", "shares": 10}]}, watch=[{"code": "NVDA"}])
+    line = server.scope_line(server.universe("us"))
+    assert line == "2 names, from Desk · Book (1) and Watch · US (1)"
+
+
+def test_short_and_flow_read_the_one_universe(tmp_path, monkeypatch):
+    server = _desk(tmp_path, monkeypatch,
+                   book={"positions": [{"symbol": "COST", "shares": 10}]}, watch=[{"code": "NVDA"}])
+    seen = {}
+    monkeypatch.setattr(server.shortint, "build",
+                        lambda syms, held, float_lookup: seen.update(short=(syms, held)) or {"names": []})
+    monkeypatch.setattr(server.options_us, "build",
+                        lambda syms, held: seen.update(flow=(syms, held)) or {"names": []})
+    assert server.build_short()["scope"]
+    assert server.build_flow()["scope"]
+    assert seen["short"] == (["COST", "NVDA"], {"COST"})
+    assert seen["flow"] == (["COST", "NVDA"], {"COST"})
+
+
+def test_a_file_becomes_its_own_risk_book_and_never_replaces_desk_book(tmp_path, monkeypatch):
+    """Risk shows the books side by side, so a reader who keeps both sees both."""
+    import holdings
+    server = _desk(tmp_path, monkeypatch,
+                   book={"positions": [{"symbol": "COST", "shares": 10, "avg_cost": 800}], "cash": []})
+    holdings.save(str(tmp_path), holdings.parse("Code,Quantity,Avg Price\nBHP,250,41.20\n",
+                                                "commsec.csv", market="au"), "CommSec")
+    monkeypatch.setattr(server.risk, "yahoo_history", lambda s: [("2026-10-01", 40.0), ("2026-10-02", 42.0)])
+    monkeypatch.setattr(server, "_book_quote", lambda s: {"ltp": 42.0})
+    monkeypatch.setattr(server, "fetch_us_quote", lambda s: {"ltp": 900.0})
+    monkeypatch.setattr(server, "fmp_get", lambda *a, **k: [])
+    monkeypatch.setattr(server, "load_last_snapshot", lambda: None)
+    monkeypatch.setattr(server.risk, "build", lambda books, benches: {"books": books})
+    books = server.build_risk()["books"]
+    keys = [b["key"] for b in books]
+    assert "us_book" in keys, "Desk · Book must survive a file being brought in"
+    brought = next(b for b in books if b["key"].startswith("brought_"))
+    assert brought["label"] == "CommSec"
+    assert brought["region"] == "au" and brought["bench"] == "^AXJO"      # its own market's index
+    assert brought["nav"] == 250 * 42.0
+    assert "CommSec" in brought["note"] and "no cash line" in brought["note"]
+
+
+def test_removing_a_file_takes_its_names_with_it(tmp_path, monkeypatch):
+    import holdings
+    server = _desk(tmp_path, monkeypatch)
+    holdings.save(str(tmp_path), holdings.parse("Symbol,Shares\nFUBO,100\n", "mine.csv"), "Mine")
+    assert server.universe("us")["symbols"] == ["FUBO"]
+    assert holdings.remove(str(tmp_path), "Mine") is True
+    assert server.universe("us")["symbols"] == []
+    assert holdings.remove(str(tmp_path), "Mine") is False
+
+
+def test_a_brought_in_name_reads_as_held_everywhere_not_only_on_risk(tmp_path, monkeypatch):
+    """A source of positions that Risk knows and the rest of the desk does not would
+    tell the reader they hold nothing on a name they do hold."""
+    import holdings
+    import server
+    monkeypatch.setattr(server, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(server, "load_book", lambda: {"positions": [], "cash": []})
+    monkeypatch.setattr(server, "load_last_snapshot", lambda: None)
+    for loader in ("load_watchlist", "load_watchlist_us", "load_watchlist_global"):
+        monkeypatch.setattr(server, loader, lambda: [])
+    holdings.save(str(tmp_path), holdings.parse("Code,Quantity,Avg Price\nBHP,250,41.20\n",
+                                                "commsec.csv", market="au"), "CommSec")
+    assert "BHP.AX" in server.held_sets()["book"]
+    ctx = server._held_context("BHP.AX")
+    assert ctx["brought_in"]["shares"] == 250 and ctx["brought_in"]["from"] == ["CommSec"]

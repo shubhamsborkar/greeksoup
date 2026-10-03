@@ -21,6 +21,7 @@ from datetime import datetime
 import notes as desk_notes
 import chains as desk_chains
 import lists as desk_lists
+import holdings as desk_holdings
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(HERE, "data")
@@ -35,6 +36,11 @@ def _data(*names):
 
 def _vault(pattern):
     return lambda: sorted(glob.glob(os.path.join(desk_notes.RESEARCH_DIR, pattern)))
+
+
+def _data_many(pattern):
+    """A kind the reader can have any number of, one file each, under data/."""
+    return lambda: sorted(glob.glob(os.path.join(DATA_DIR, pattern)))
 
 
 # ---- what the reader owns -------------------------------------------------------------------
@@ -53,6 +59,10 @@ KINDS = [
      "format": lambda: 1, "migrations": lambda: {}, "owner": "server.py"},
     {"kind": "alerts", "label": "your alert rules", "paths": _data("alerts.json"),
      "format": lambda: 1, "migrations": lambda: {}, "owner": "server.py"},
+    {"kind": "holdings", "label": "the positions you brought in from a file",
+     "paths": _data_many(os.path.join("holdings", "*.json")),
+     "format": lambda: desk_holdings.FORMAT, "migrations": lambda: desk_holdings.MIGRATIONS,
+     "owner": "holdings.py"},
 ]
 
 # shipped starters: files beside the code the desk reads as examples; the updater refreshes

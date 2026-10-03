@@ -69,8 +69,9 @@ footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px soli
 </header>
 <main>
   <div class="sub">What the US options market is positioned for on each of your names, read from CBOE's free
-  15-minute-delayed chains (<span id="win"></span>-day expiry window). The names are the US lines on
-  <a href="/book" style="color:var(--ink2)">Desk · Book</a> and the names on <a href="/watch?list=us" style="color:var(--ink2)">Watch · US</a>;
+  15-minute-delayed chains (<span id="win"></span>-day expiry window). <span id="scope">The names are the
+  US lines on <a href="/book" style="color:var(--ink2)">Desk · Book</a> and the names on
+  <a href="/watch?list=us" style="color:var(--ink2)">Watch · US</a></span>;
   a name added below goes on Watch · US and its chain is read within a minute. <b style="color:var(--ink2)">Unusual
   strikes</b> = today's volume at least twice the existing open interest with real premium: positions
   that did not exist yesterday. <b style="color:var(--ink2)">OI builds</b> compare open interest against
@@ -156,6 +157,9 @@ async function load(){
   const r=await fetch("/api/flow"); const d=await r.json();
   document.getElementById("asof").textContent="as of "+d.ts;
   document.getElementById("win").textContent=d.window_days;
+  // which names these are, from the desk rather than from a fixed line on the page: the
+  // reader may keep them on Desk · Book, on Watch · US, or in a file brought in on Settings
+  if(d.scope) document.getElementById("scope").textContent="The names are the ones on this desk: "+d.scope;
   if(!d.names.length){
     document.getElementById("body").innerHTML='<div class="loading">No chains fetched. CBOE may be unreachable; retry shortly.</div>';
     return;

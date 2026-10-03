@@ -274,7 +274,8 @@ async function load(){
     document.getElementById("body").innerHTML='<div class="loadingnote">No books yet: connect a broker on <a href="/settings" style="color:var(--accent)">Settings</a>, add positions on Desk · Book, or put US positions in the US book file.</div>';
     return;
   }
-  let h=`<h2 class="grp">The three books <span class="why">headline risk per account; the small print under each number says what it means</span></h2>
+  const nb=d.books.length, nw=["","one","two","three","four","five","six","seven","eight","nine"][nb]||nb;
+  let h=`<h2 class="grp">${nb===1?"The book":`The ${nw} books`} <span class="why">headline risk per account; the small print under each number says what it means</span></h2>
     <div class="bookgrid">${d.books.map(bookCard).join("")}</div>`;
   if(d.cross&&d.cross.labels.length>1)
     h+=`<h2 class="grp">Do the books hedge each other? <span class="why">correlation of daily returns on overlapping dates</span></h2>
