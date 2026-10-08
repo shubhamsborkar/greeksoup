@@ -12,6 +12,7 @@ import os
 import platform
 import shutil
 import socket
+import ssl
 import subprocess
 import sys
 import time
@@ -40,6 +41,14 @@ def say(mark, text):
         looks += 1
     lines.append(f"[{mark}] {text}")
     print(lines[-1])
+
+
+def _tls():
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception:  # noqa: BLE001
+        return ssl.create_default_context()
 
 
 def read_env():
@@ -274,7 +283,9 @@ def main():
         for label, url in probes:
             try:
                 req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": "GreekSoup doctor"})
-                with urllib.request.urlopen(req, timeout=6) as r:
+                # the certificates the desk itself uses (certifi): Python from python.org on a Mac
+                # has none of its own, so a bare probe failed on every site the desk reads fine
+                with urllib.request.urlopen(req, timeout=6, context=_tls()) as r:
                     say(OK, f"{label} reachable ({r.status})")
             except urllib.error.HTTPError as exc:
                 say(OK if exc.code < 500 else WARN, f"{label} answered {exc.code}")

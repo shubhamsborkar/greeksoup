@@ -147,7 +147,10 @@ async function pullInsiders(){
     if(d.error){document.getElementById("us_insclusters").innerHTML=
       `<span class="dim" style="font-size:12px;padding:14px">${d.error}</span>`;return;}
     document.getElementById("us_isub").textContent=
-      `open-market Form 4 buys ≥ $${(d.min_buy_usd/1000)}k · trailing ${d.window_days}d · refreshed ${d.ts}`+(d.note?` · ${d.note}`:"");
+      `open-market Form 4 buys ≥ $${(d.min_buy_usd/1000)}k · trailing ${d.window_days}d · refreshed ${d.ts}`+(d.note?` · ${d.note}`:"")+
+      // a name EDGAR did not answer for is named, so an empty list never hides a refusal
+      ((d.refused||[]).length?` · SEC EDGAR did not answer for ${d.refused.join(", ")}, so their buys are not counted yet`:"")+
+      ((d.partial||[]).length?` · some filings for ${d.partial.join(", ")} did not come back yet`:"");
     const ours=d.our_buys||[];
     document.getElementById("us_insours").innerHTML = ours.length
       ? `<div class="secrow">${ours.slice(0,12).map(b=>

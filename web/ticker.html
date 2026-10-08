@@ -1187,7 +1187,7 @@ function renderUS(d,app){
       <section class="panel">
         <div class="panel-h"><h2>Insider activity</h2><span class="s">Form 4</span></div>
         <table><thead><tr><th>Date</th><th>Who</th><th></th><th>Shares</th><th>Px</th></tr></thead>
-        <tbody>${insRows||'<tr><td class="dim">None recent.</td></tr>'}</tbody></table>
+        <tbody>${insRows||(d.insiders_refused?'<tr><td class="dim">SEC EDGAR did not answer just now; the insider filings show on the next read.</td></tr>':'<tr><td class="dim">None recent.</td></tr>')}</tbody></table>
       </section>
       <section class="panel">
         <div class="panel-h"><h2>Dividends</h2></div>

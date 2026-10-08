@@ -32,10 +32,18 @@ _lock = threading.Lock()
 
 def _get(url, **kw):
     time.sleep(0.12)
-    r = requests.get(url, headers=UA, timeout=25, **kw)
+    try:
+        r = requests.get(url, headers=UA, timeout=25, **kw)
+    except requests.RequestException:
+        return None
     if r.status_code != 200:
         return None
     return r
+
+
+# how the last read of each ticker went: "ok", "partial" (some filings did not come back)
+# or "refused" (EDGAR did not answer); a refusal is never shown as "no insider activity"
+read_status = {}
 
 
 def cik_map():
@@ -115,16 +123,22 @@ def transactions(symbol, days=90, max_filings=20):
         hit = _tx_cache.get(symbol)
         if hit and time.time() - hit[0] < 6 * 3600:
             return hit[1]
-    cik, _ = cik_map().get(symbol.upper(), (None, None))
+    known = cik_map()
+    if not known:
+        read_status[symbol] = "refused"         # the SEC's ticker list itself did not come back
+        return []
+    cik, _ = known.get(symbol.upper(), (None, None))
     if not cik:
+        read_status[symbol] = "ok"              # not an SEC filer: nothing to read
         return []
     r = _get(f"https://data.sec.gov/submissions/CIK{cik}.json")
     if not r:
+        read_status[symbol] = "refused"
         return []
     rec = (r.json().get("filings") or {}).get("recent") or {}
     cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
     rows = []
-    n = 0
+    n = missed = 0
     for form, acc, fdate, doc in zip(rec.get("form", []), rec.get("accessionNumber", []),
                                      rec.get("filingDate", []), rec.get("primaryDocument", [])):
         if form != "4" or fdate < cutoff:
@@ -140,13 +154,16 @@ def transactions(symbol, days=90, max_filings=20):
             m = re.search(r'href="([^"]+/[^"/]+\.xml)"', idx.text if idx else "")
             page = _get("https://www.sec.gov" + m.group(1)) if m else None
         if not page:
+            missed += 1
             continue
         for row in _parse_form4(page.text, folder):
             row["filed"] = fdate
             rows.append(row)
     rows.sort(key=lambda x: (x.get("filed") or "", x.get("date") or ""), reverse=True)
-    with _lock:
-        _tx_cache[symbol] = (time.time(), rows)
+    read_status[symbol] = "partial" if missed else "ok"
+    if not missed:                  # a partial read is asked again next time, never kept
+        with _lock:
+            _tx_cache[symbol] = (time.time(), rows)
     return rows
 
 
@@ -171,8 +188,17 @@ def build(our_symbols, window_days=WINDOW_DAYS, min_buy=MIN_BUY_USD):
     in the same shape the feed-based insider tape returns."""
     cutoff = (datetime.now() - timedelta(days=window_days)).strftime("%Y-%m-%d")
     buys = []
+    read = 0
+    refused, partial = [], []
     for sym in sorted(set(our_symbols)):
-        for r in transactions(sym, days=window_days + 10):
+        got = transactions(sym, days=window_days + 10)
+        st = read_status.get(sym, "ok")
+        if st == "refused":
+            refused.append(sym)
+        elif st == "partial":
+            partial.append(sym)
+        read += len(got)
+        for r in got:
             if r["code"] != "P" or r["ad"] not in ("A", "") or r["price"] <= 0:
                 continue
             if r["value"] < min_buy or (r.get("filed") or "") < cutoff:
@@ -199,10 +225,16 @@ def build(our_symbols, window_days=WINDOW_DAYS, min_buy=MIN_BUY_USD):
                          "first": min(b["date"] for b in rows), "last": max(b["date"] for b in rows),
                          "ours": True})
     clusters.sort(key=lambda c: (-c["n_buyers"], -c["total_value"]))
-    return {"clusters": clusters[:60],
-            "our_buys": sorted(buys, key=lambda b: b["filed"], reverse=True)[:40],
-            "window_days": window_days, "min_buy_usd": min_buy,
-            "fetched_rows": len(buys), "purchase_rows": len(buys),
-            "source": "edgar",
-            "note": "EDGAR direct: book and watchlist names only; a whole-market cluster scan needs the feed key",
-            "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
+    names = sorted(set(our_symbols))
+    out = {"clusters": clusters[:60],
+           "our_buys": sorted(buys, key=lambda b: b["filed"], reverse=True)[:40],
+           "window_days": window_days, "min_buy_usd": min_buy,
+           "fetched_rows": read, "purchase_rows": len(buys),
+           "source": "edgar",
+           "note": "EDGAR direct: book and watchlist names only; a whole-market cluster scan needs the feed key",
+           "refused": refused, "partial": partial,
+           "all_refused": bool(names) and len(refused) == len(names),
+           "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}
+    if refused or partial:
+        out["_ttl"] = 600           # asked again in ten minutes rather than six hours
+    return out

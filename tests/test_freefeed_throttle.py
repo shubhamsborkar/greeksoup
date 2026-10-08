@@ -69,3 +69,12 @@ def test_exchange_answering_with_nothing_is_not_a_failure(monkeypatch):
     for f in ("quarterly_results", "shareholding", "announcements"):
         monkeypatch.setattr(nse_fund, f, silent)
     assert nse_fund.build("ZZQXJ") is None
+
+
+def test_insiders_name_a_refused_source(monkeypatch):
+    import sec_form4
+    monkeypatch.setattr(sec_form4, "cik_map", lambda: {"AAPL": ("0000320193", "Apple"), "MSFT": ("0000789019", "Microsoft")})
+    monkeypatch.setattr(sec_form4, "_get", lambda *a, **k: None)
+    monkeypatch.setattr(sec_form4, "_tx_cache", {})
+    out = sec_form4.build(["AAPL", "MSFT"])
+    assert out["refused"] == ["AAPL", "MSFT"] and out["all_refused"] and out["_ttl"] == 600

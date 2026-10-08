@@ -1313,8 +1313,10 @@ def build_ticker(symbol):
         if not page.get("error"):
             try:
                 page["insiders"] = sec_form4.for_ticker(symbol)
+                page["insiders_refused"] = sec_form4.read_status.get(symbol) == "refused"
             except Exception:  # noqa: BLE001
                 page["insiders"] = []
+                page["insiders_refused"] = True
             page["held"] = _held_context(symbol)
         return page
     return {
@@ -3294,7 +3296,15 @@ def build_insiders():
     names. ~30 FMP pages per refresh; None (uncached) when the feed fails."""
     ours = universe("us")["symbols"]
     if not os.getenv("FMP_API_KEY", "").strip():
-        return sec_form4.build(ours)
+        out = sec_form4.build(ours)
+        if out.get("all_refused"):
+            # nothing came back: the last full read stays on the screen with its time; with
+            # none yet, the screen says the SEC did not answer instead of "no buys"
+            if _cache.get("insiders", (0, None))[1] is not None:
+                return None
+            return {"error": "SEC EDGAR did not answer just now, so insider buys could not be read. The desk asks again in a few minutes.",
+                    "_ttl": 300}
+        return out
     return insiders.build(ours)
 
 
