@@ -51,6 +51,9 @@ def _session():
     return s
 
 
+_answered = {"ok": False}     # did the exchange answer at all during the last build
+
+
 def _get(path, raw=False):
     s = _session()
     if s is None:
@@ -61,6 +64,7 @@ def _get(path, raw=False):
         if r.status_code != 200:
             _nse["session"] = None
             return None
+        _answered["ok"] = True
         return r.text if raw else r.json()
     except Exception:  # noqa: BLE001
         _nse["session"] = None
@@ -226,12 +230,17 @@ def announcements(nse_symbol, days=90, max_n=25):
 
 
 def build(nse_symbol):
-    """Everything the India ticker page needs. None only if NSE is unreachable."""
+    """Everything the India ticker page needs. None only if NSE is unreachable; when NSE
+    answered with nothing under this symbol, empty lists marked none_listed."""
+    _answered["ok"] = False
     q = quarterly_results(nse_symbol)
     sh = shareholding(nse_symbol)
     ann = announcements(nse_symbol)
     if not q and not sh and not ann:
-        return None
+        if not _answered["ok"]:
+            return None
+        return {"symbol": nse_symbol, "quarters": [], "shareholding": [], "announcements": [],
+                "none_listed": True, "built": datetime.now().strftime("%Y-%m-%d %H:%M")}
     return {"symbol": nse_symbol, "quarters": q, "shareholding": sh,
             "announcements": ann,
             "built": datetime.now().strftime("%Y-%m-%d %H:%M")}

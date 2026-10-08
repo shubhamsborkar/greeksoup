@@ -33,11 +33,13 @@ UA = UAS[0]                     # kept for callers that read it; _get uses the o
 _Y = {"session": None, "crumb": None, "next_try": 0.0}
 _lock = threading.Lock()
 _throttle = {"until": 0.0}      # chart/search endpoints: five minutes off when every string is throttled
+_why = threading.local()        # why this thread's last request came back empty: "unknown" or "paused"
 
 
 def _get(path, params):
     """GET against Yahoo: the browser string that last worked first, the others on a 429, the
     second host as a retry; five minutes off only when all of them are throttled."""
+    _why.last = "paused"
     if time.time() < _throttle["until"]:
         return None
     n = len(UAS)
@@ -53,6 +55,7 @@ def _get(path, params):
                 _ua["i"] = idx
                 return r
             if r.status_code == 404:
+                _why.last = "unknown"
                 # Yahoo has no such symbol: that name fails, and the feed stays on for every other
                 # name (a single mistyped ticker used to silence the whole desk for five minutes)
                 return None
@@ -66,6 +69,13 @@ def _get(path, params):
     elif not answered:
         _throttle["until"] = time.time() + 60       # no answer at all (offline): a minute, not five
     return None
+
+
+def why_empty():
+    """Why the last request on this thread came back empty: "unknown" when Yahoo said it
+    has no such symbol, else "paused" (too many requests, or no answer at all). The add
+    box and the ticker page say the true reason instead of blaming a valid ticker."""
+    return getattr(_why, "last", "paused")
 
 
 def resting():
@@ -208,7 +218,7 @@ def ticker(symbol):
         hist = [r for r in older if r["date"] < first] + hist
     price = _num(meta.get("regularMarketPrice"))
     if price is None or price <= 0:
-        return {"symbol": symbol, "resting": resting(), "error": (f"The free feed has nothing for {symbol} right now. Either the name is spelt another way on the feed (a listing outside the US carries its exchange, HDFCBANK.NS, SHEL.L; a share class uses a dash, BRK-B), or the feed is resting after too many requests in a row and answers again in a few minutes."
+        return {"symbol": symbol, "resting": why_empty() == "paused", "error": (f"The free feed has nothing for {symbol} right now. Either the name is spelt another way on the feed (a listing outside the US carries its exchange, HDFCBANK.NS, SHEL.L; a share class uses a dash, BRK-B), or the feed is resting after too many requests in a row and answers again in a few minutes."
                                             if time.time() >= _throttle["until"] else
                                             "The free feed is resting after too many requests in a row; it answers again in a few minutes. The watchlists keep their last prices meanwhile.")}
     imeta, intra = chart(symbol, "5d", "5m")

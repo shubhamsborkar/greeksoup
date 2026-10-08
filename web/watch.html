@@ -320,7 +320,7 @@ document.getElementById("addbtn").onclick=async()=>{
   msg.className="";msg.textContent="checking "+code+"…";
   const r=await fetch("/api/watch/add",{method:"POST",body:JSON.stringify({code,exch,list:REGION})});
   const j=await r.json();
-  if(j.ok){msg.className="ok";msg.textContent=code+" added ✓";document.getElementById("addcode").value="";pull(); if(window.deskJournal) deskJournal(j.journal);}
+  if(j.ok){msg.className="ok";msg.textContent=j.note||(code+" added ✓");document.getElementById("addcode").value="";pull(); if(window.deskJournal) deskJournal(j.journal);}
   else{msg.className="";msg.textContent=j.error||("could not add "+window.NEXT_STEP);}
 };
 /* ---- search-as-you-type: confirm the symbol before adding ---- */

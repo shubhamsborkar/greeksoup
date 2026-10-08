@@ -41,3 +41,31 @@ def test_success_after_a_429_is_returned(monkeypatch):
     r = _run(monkeypatch, [429, 200])
     assert r is not None and r.status_code == 200
     assert not freefeed.resting()
+
+
+def test_why_empty_tells_unknown_from_paused(monkeypatch):
+    _run(monkeypatch, [404])
+    assert freefeed.why_empty() == "unknown"
+    _run(monkeypatch, [429])
+    assert freefeed.why_empty() == "paused"
+    # while paused, nothing is asked and the reason stays "paused"
+    assert freefeed._get("/x", {}) is None
+    assert freefeed.why_empty() == "paused"
+
+
+def test_exchange_answering_with_nothing_is_not_a_failure(monkeypatch):
+    import nse_fund
+
+    def answered(*a, **k):
+        nse_fund._answered["ok"] = True
+        return []
+    for f in ("quarterly_results", "shareholding", "announcements"):
+        monkeypatch.setattr(nse_fund, f, answered)
+    r = nse_fund.build("ZZQXJ")
+    assert r["none_listed"] and r["quarters"] == []
+
+    def silent(*a, **k):
+        return []
+    for f in ("quarterly_results", "shareholding", "announcements"):
+        monkeypatch.setattr(nse_fund, f, silent)
+    assert nse_fund.build("ZZQXJ") is None

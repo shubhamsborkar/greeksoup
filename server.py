@@ -108,7 +108,28 @@ def _hook(name, live=True):
     mod = ADAPTER["mod"]
     if mod is None or (live and not _client()):
         return None
+    # the hooks that look up or price a home-market name belong to a broker on the home market
+    if name in _HOME_HOOKS and not _broker_is_home():
+        return None
     return getattr(mod, name, None)
+
+
+_HOME_HOOKS = {"resolve", "code_of", "search", "history", "intraday", "futures_quote"}
+
+
+def _broker_is_home():
+    """True when the connected broker trades the home market (or no home market is set). A
+    reader at home in India with a US broker must not have Indian names priced by that broker:
+    TCS asked of a US broker is a different company, in dollars, printed in rupees."""
+    mod = ADAPTER["mod"]
+    if mod is None or _market() is None:
+        return True
+    return desk_of(mod.META.get("region", "")) == "home"
+
+
+def _home_broker_quotes():
+    """The broker's price hook for home-market names: only a broker on the home market."""
+    return _broker_quotes() if _broker_is_home() else None
 
 
 def _broker_quotes():
@@ -254,7 +275,7 @@ def _home_quote(code, exch=None, tries=1):
         ask = ((back(split[0], split[1]) if back else split[0]) if split else None) or ""
         if ask and not exch:
             exch = split[1]
-    if hook and cli and not broker_health["dead"] and ask and not brokers.quotes_off(cli):
+    if hook and cli and _broker_is_home() and not broker_health["dead"] and ask and not brokers.quotes_off(cli):
         m = _market()
         exchanges = [exch] if exch else []
         exchanges += [e for e in (m.META["exchanges"] if m else []) if e not in exchanges]
@@ -1150,6 +1171,11 @@ def _intraday_home(code, exch):
             "5D": [p for p in pts if p["date"][:10] in days[-5:]]}
 
 
+def paused_line(code):
+    return (f"Prices are paused for a few minutes after too many requests in a row, so the desk "
+            f"could not check {code} just now. Try again in a few minutes.")
+
+
 def build_ticker_home(code):
     """The research view for a home-market name: quote, candles, intraday, the
     name and exchange, the reader's positions in it (labelled by account
@@ -1159,8 +1185,18 @@ def build_ticker_home(code):
     exch = r.get("exch") or ""
     q = _home_quote(code, exch or None, tries=3)
     if not q:
-        return {"symbol": code, "region": "home",
-                "error": f"no quote for {code} right now; check the code, or try again in a minute"}
+        # no price: the exchange's own record (results, filings, shareholding) and the statements
+        # do not depend on it, so the page carries them under one line saying why
+        m = _market()
+        paused = freefeed.why_empty() == "paused"
+        return {"symbol": code, "region": "home", "no_price": True, "resting": paused,
+                "ysym": r.get("ysym", ""),
+                "filings": (m.META.get("filings") if m else "") or "",
+                "units": (m.META.get("units") if m else "") or "",
+                "market": (m.META["label"] if m else ""),
+                "error": (f"Prices are paused for a few minutes after too many requests in a row and come back on their own. The filings below do not depend on them."
+                          if paused else
+                          f"No price for {code} right now. The code may be spelt another way on the exchange; the filings below are what the exchange holds under {code}.")}
     exch = q.get("exch") or exch
     m = _market()
     mod = ADAPTER["mod"]
@@ -1334,6 +1370,8 @@ def cached_infund(code):
     data = m.fundamentals(sym)
     if data is None:
         return {"error": "the exchange is not answering right now; reload to retry"}
+    if data.get("none_listed"):
+        return data         # nothing under this code: said on the page, never kept, asked again next time
     with _infund_lock:
         _infund_cache[code] = (now, data)
     try:
@@ -1636,10 +1674,10 @@ def save_watchlist_global(names):
 def fetch_yahoo_quote(symbol):
     """Quote from Yahoo's public chart API. Keyless; be a polite guest."""
     try:
-        r = requests.get(
-            f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}",
-            params={"range": "5d", "interval": "1d"},
-            headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
+        # through the feed's own helper, so a pause and an unknown symbol are told apart
+        r = freefeed._get(f"/v8/finance/chart/{symbol}", {"range": "5d", "interval": "1d"})
+        if r is None:
+            return None
         res = r.json().get("chart", {}).get("result")
         if not res:
             return None
@@ -1795,7 +1833,7 @@ def watch_loop():
     first_cycle = True
     while True:
         names = load_watchlist()
-        quote_hook = _broker_quotes()
+        quote_hook = _home_broker_quotes()
         if quote_hook is None:
             for entry in names:
                 q = _home_quote(entry["code"], entry.get("exch") or None)
@@ -4832,7 +4870,7 @@ class Handler(BaseHTTPRequestHandler):
                                 "market_open": True}
                     else:
                         names = load_watchlist()
-                        has_broker = _broker_quotes() is not None
+                        has_broker = _home_broker_quotes() is not None
                         # a name that came through a broker is a broker code (RELIND), which only
                         # that broker can price; on a desk with no broker connected the row says
                         # so instead of sitting blank
@@ -5357,26 +5395,37 @@ class Handler(BaseHTTPRequestHandler):
                     if any(n["code"] == code for n in names):
                         return self._send(b'{"ok":false,"error":"already on the list"}', "application/json")
                     q = fetch_us_quote(code) or freefeed.quote(code)
+                    note = ""
                     if not q:
-                        return self._send(
-                            json.dumps({"ok": False, "error": f"no quote for {code} - check the ticker"}).encode(),
-                            "application/json")
+                        if freefeed.why_empty() == "unknown":
+                            return self._send(json.dumps({"ok": False, "error": (
+                                f"Yahoo has no listing for {code}. A share class uses a dash (BRK-B), "
+                                "and a listing outside the US goes on Global.")}).encode(), "application/json")
+                        # prices are paused: a ticker the SEC lists is added now and priced when they return
+                        try:
+                            listed = code.replace("-", ".") in sec_form4.cik_map() or code in sec_form4.cik_map()
+                        except Exception:  # noqa: BLE001
+                            listed = False
+                        if not listed:
+                            return self._send(json.dumps({"ok": False, "error": paused_line(code)}).encode(), "application/json")
+                        note = f"{code} added. Prices are paused for a few minutes, so its price shows when they come back."
                     names.append({"code": code, "source": "fmp"})
                     save_watchlist_us(names)
-                    with _watch_lock:
-                        WATCH_US[code] = q
+                    if q:
+                        with _watch_lock:
+                            WATCH_US[code] = q
                     _spawn("flow", build_flow)      # Flow reads the new name's chain behind the page
                     _spawn("short", build_short)    # and Short its FINRA rows
-                    return self._send(json.dumps({"ok": True, "journal": journal("watch", code, f"added to {WATCH_LABEL.get(region, 'Watch')}")}).encode(), "application/json")
+                    return self._send(json.dumps({"ok": True, "note": note, "journal": journal("watch", code, f"added to {WATCH_LABEL.get(region, 'Watch')}")}).encode(), "application/json")
                 if region == "global":
                     names = load_watchlist_global()
                     if any(n["code"] == code for n in names):
                         return self._send(b'{"ok":false,"error":"already on the list"}', "application/json")
                     q = fetch_yahoo_quote(code)
                     if not q:
-                        return self._send(
-                            json.dumps({"ok": False, "error": f"no Yahoo quote for {code}; use Yahoo symbols like TALABAT.AE"}).encode(),
-                            "application/json")
+                        err = (f"Yahoo has no listing for {code}. Use Yahoo's spelling, with the exchange after a dot, like TALABAT.AE or SHEL.L."
+                               if freefeed.why_empty() == "unknown" else paused_line(code))
+                        return self._send(json.dumps({"ok": False, "error": err}).encode(), "application/json")
                     names.append({"code": code, "source": "yahoo"})
                     save_watchlist_global(names)
                     with _watch_lock:
@@ -5387,10 +5436,12 @@ class Handler(BaseHTTPRequestHandler):
                 exch = str(body.get("exch", "")).strip().upper() or (m.META["exchanges"][0] if m else "")
                 if any(n["code"] == code for n in names):
                     return self._send(b'{"ok":false,"error":"already on the list"}', "application/json")
-                via_broker = _broker_quotes() is not None
+                via_broker = _home_broker_quotes() is not None
                 q = _home_quote(code, exch or None)
                 if not q and not via_broker and "." not in code and m is None:
                     q = fetch_yahoo_quote(code)
+                if not q and not via_broker and freefeed.why_empty() == "paused":
+                    return self._send(json.dumps({"ok": False, "error": paused_line(code)}).encode(), "application/json")
                 if not q:
                     where = (" on " + " or ".join(m.META["exchanges"])) if m else ""
                     hint = ("check the code your broker uses" if via_broker
