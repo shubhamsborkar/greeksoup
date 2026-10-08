@@ -1429,10 +1429,12 @@ def cached_ticker(symbol, region="us"):
     try:
         with open(dpath) as fh:
             c = json.load(fh)
-        if now - c["at"] < 7 * 86400 and not c["data"].get("error"):
+        # any age: an old page that says when it was read beats a blank one
+        if not c["data"].get("error"):
             stale = dict(c["data"])
             stale["stale_since"] = datetime.fromtimestamp(c["at"]).strftime("%Y-%m-%d %H:%M")
             stale["stale_why"] = data.get("error", "")
+            stale["stale_resting"] = bool(data.get("resting"))
             return stale
     except (OSError, ValueError, KeyError):
         pass
@@ -1590,6 +1592,17 @@ def cached_fin(symbol):
             pass
     data = build_fin(symbol)
     if data.get("error"):
+        # the statements change four times a year: the last full read, whatever its age, with
+        # the time it was taken, rather than nothing when a source does not answer right now
+        try:
+            with open(dpath) as fh:
+                c = json.load(fh)
+            if not c["data"].get("error"):
+                stale = dict(c["data"])
+                stale["stale_since"] = datetime.fromtimestamp(c["at"]).strftime("%Y-%m-%d %H:%M")
+                return stale
+        except (OSError, ValueError, KeyError):
+            pass
         return data
     with _fin_lock:
         _fin_cache[symbol] = (now, data)

@@ -41,6 +41,7 @@ def _get(path, params):
     if time.time() < _throttle["until"]:
         return None
     n = len(UAS)
+    throttled = answered = False
     for k in range(n):
         idx = (_ua["i"] + k) % n
         for host in ("query1", "query2"):
@@ -51,10 +52,25 @@ def _get(path, params):
             if r.status_code == 200:
                 _ua["i"] = idx
                 return r
-            if r.status_code != 429:
+            if r.status_code == 404:
+                # Yahoo has no such symbol: that name fails, and the feed stays on for every other
+                # name (a single mistyped ticker used to silence the whole desk for five minutes)
+                return None
+            answered = True
+            if r.status_code == 429:
+                throttled = True
+            else:
                 break
-    _throttle["until"] = time.time() + 300
+    if throttled:
+        _throttle["until"] = time.time() + 300      # Yahoo said too many requests: five minutes off
+    elif not answered:
+        _throttle["until"] = time.time() + 60       # no answer at all (offline): a minute, not five
     return None
+
+
+def resting():
+    """True while the feed is paused after Yahoo said too many requests (or nothing answered)."""
+    return time.time() < _throttle["until"]
 
 
 def _num(x):
@@ -192,7 +208,7 @@ def ticker(symbol):
         hist = [r for r in older if r["date"] < first] + hist
     price = _num(meta.get("regularMarketPrice"))
     if price is None or price <= 0:
-        return {"symbol": symbol, "error": (f"The free feed has nothing for {symbol} right now. Either the name is spelt another way on the feed (a listing outside the US carries its exchange, HDFCBANK.NS, SHEL.L; a share class uses a dash, BRK-B), or the feed is resting after too many requests in a row and answers again in a few minutes."
+        return {"symbol": symbol, "resting": resting(), "error": (f"The free feed has nothing for {symbol} right now. Either the name is spelt another way on the feed (a listing outside the US carries its exchange, HDFCBANK.NS, SHEL.L; a share class uses a dash, BRK-B), or the feed is resting after too many requests in a row and answers again in a few minutes."
                                             if time.time() >= _throttle["until"] else
                                             "The free feed is resting after too many requests in a row; it answers again in a few minutes. The watchlists keep their last prices meanwhile.")}
     imeta, intra = chart(symbol, "5d", "5m")

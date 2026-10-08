@@ -792,11 +792,22 @@ async function load(){
   const app=document.getElementById("app");
   loadNotes();   // your notes on the name show even when the quote does not
   loadDrawings();   // and your drawings on its chart
-  if(d.error){app.innerHTML=`<div class="loading">${esc(d.error)}</div>`;return;}
-  // the feed is resting: the page is the last full read, and says when it was taken
+  if(d.error){
+    app.innerHTML=`<div class="loading">${esc(d.error)}</div>`;
+    // the price feed is paused, but the statements come from elsewhere and change four times a
+    // year: show them under the line rather than an empty page
+    if(d.resting&&!HOME){
+      app.innerHTML=`<div class="loading">Prices are paused for a few minutes after too many requests in a row and come back on their own. The statements below do not depend on them.</div>`+finPanelHTML();
+      FINCO=SYM; loadFin();
+    }
+    return;
+  }
+  // the feed is resting or did not answer: the page is the last full read, and says when it was taken
   if(d.stale_since){
     const bar=document.createElement("div"); bar.className="stalebar";
-    bar.textContent=`The free feed is resting, so this is the page as read at ${d.stale_since}. It refreshes on its own once the feed answers again.`;
+    bar.textContent=d.stale_resting
+      ? `The free feed is resting, so this is the page as read at ${d.stale_since}. It refreshes on its own once the feed answers again.`
+      : `The free feed did not answer for ${SYM} just now, so this is the page as read at ${d.stale_since}. It refreshes on its own once the feed answers again.`;
     app.parentNode.insertBefore(bar,app);
   }
   // the free feed matched the name to its exchange symbol: the page is that symbol's
@@ -1470,13 +1481,15 @@ function renderFin(){
     if(FIN.no_provider) document.querySelectorAll("#fin-tabs,#fin-period,#fin-unit,#fin-chgbtn").forEach(x=>x.style.display="none");
     el.innerHTML=`<div class="fin-note">${esc(FIN.error)}${FIN.no_provider?` A provider is set on <a href="/settings" style="color:var(--accent)">Settings</a>, under Data.`:""}</div>`; return; }
   const m=FS.mode;
-  el.innerHTML = m==="inc"||m==="bs"||m==="cf" ? finStmtHTML(m)
+  // a saved copy says when it was read
+  const was=FIN.stale_since?`<div class="fin-note">The source did not answer just now, so these are the statements as read at ${FIN.stale_since}.</div>`:"";
+  el.innerHTML = was + (m==="inc"||m==="bs"||m==="cf" ? finStmtHTML(m)
     : m==="ratios" ? finRatiosHTML()
     : m==="seg" ? finSegHTML()
     : m==="est" ? finEstHTML()
     : m==="peers" ? finPeersHTML()
     : m==="div" ? finDivHTML()
-    : finDcfHTML();
+    : finDcfHTML());
 }
 load();
 </script>
