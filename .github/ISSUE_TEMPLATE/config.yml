@@ -8,7 +8,7 @@ contact_links:
     about: What readers have already hit, dated, with the fix next to it. Often one click.
   - name: Email
     url: https://greeksoup.ai/docs/install/if-something-is-wrong/
-    about: info@shikshannivesh.com, if you would rather not use GitHub.
+    about: desk@greeksoup.ai, if you would rather not use GitHub.
   - name: The docs
     url: https://greeksoup.ai/docs/
     about: Install, brokers, markets, what runs with no key, and what to do when a page is blank.

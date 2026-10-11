@@ -68,7 +68,7 @@ a{color:var(--accent)}
         <input id="email" type="email" placeholder="your email, optional" style="max-width:280px">
         <button id="send">Send</button>
       </div>
-      <p>Or by email, to <span class="addr">info@shikshannivesh.com</span>: press the button and your mail app opens with everything above already in it; read it, then send. If your mail app cut the check short, press Copy and paste it into the email instead.</p>
+      <p>Or by email, to <span class="addr">desk@greeksoup.ai</span>: press the button and your mail app opens with everything above already in it; read it, then send. If your mail app cut the check short, press Copy and paste it into the email instead.</p>
       <div class="row">
         <button id="mail">Email it</button>
         <button class="ghost" id="copy">Copy the report</button>
@@ -99,8 +99,8 @@ a{color:var(--accent)}
   const subject = () => "GreekSoup: " + (title || ($("what").value.trim().split("\n")[0] || "something is wrong").slice(0, 80));
   $("mail").onclick = () => {
     if (!$("what").value.trim()) { $("what").focus(); $("msg").textContent = "Write a line about what happened first."; $("msg").className = "msg"; return; }
-    location.href = "mailto:info@shikshannivesh.com?subject=" + encodeURIComponent(subject()) + "&body=" + encodeURIComponent(report());
-    $("msg").textContent = "Your mail app should be open now. If nothing opened, press Copy and paste the report into an email to info@shikshannivesh.com.";
+    location.href = "mailto:desk@greeksoup.ai?subject=" + encodeURIComponent(subject()) + "&body=" + encodeURIComponent(report());
+    $("msg").textContent = "Your mail app should be open now. If nothing opened, press Copy and paste the report into an email to desk@greeksoup.ai.";
     $("msg").className = "msg";
   };
   const screen = (seed.match(/^Screen:\s*(.+)$/m) || [])[1] || "";
@@ -156,7 +156,7 @@ a{color:var(--accent)}
     } catch (e) { $("msg").textContent = "That did not send; the desk did not answer. " + window.NEXT_STEP; $("send").disabled = false; }
   };
   $("copy").onclick = async () => {
-    try { await navigator.clipboard.writeText(report()); $("msg").textContent = "Copied. Paste it into an email to info@shikshannivesh.com."; $("msg").className = "msg ok"; }
+    try { await navigator.clipboard.writeText(report()); $("msg").textContent = "Copied. Paste it into an email to desk@greeksoup.ai."; $("msg").className = "msg ok"; }
     catch (e) { $("msg").textContent = "Could not copy by itself; select the text above and copy it."; $("msg").className = "msg"; }
   };
 })();
