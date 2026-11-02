@@ -37,3 +37,21 @@ def test_refused_calls_do_not_make_a_key_paid(monkeypatch, tmp_path):
     for _ in range(server.FMP_FREE_DAILY + 50):
         server._fmp_count(False)
     assert not server.fmp_paid()
+
+
+def test_a_plan_refusal_in_a_200_answer_is_a_refusal(monkeypatch, tmp_path):
+    # issue 8: a free key answered the US search with {"Error Message": ...}; the add box crashed
+    # on it, so BlackBerry (BB) could not be added at all
+    _fresh(monkeypatch, tmp_path)
+
+    class Refused:
+        status_code = 200
+
+        def json(self):
+            return {"Error Message": "Premium Query Parameter: not available under your current subscription"}
+
+    monkeypatch.setattr(server.requests, "get", lambda *a, **k: Refused())
+    assert server.fmp_get("quote", symbol="BB") is None
+    assert server._fmp_day["ok"] == 0
+    monkeypatch.setattr(server, "symbol_search", lambda q: {"hits": [{"symbol": "BB", "name": "BlackBerry Limited", "exch": "NYSE"}]})
+    assert server.search_symbols("BB", "us") == [{"code": "BB", "name": "BlackBerry Limited", "exch": "NYSE"}]

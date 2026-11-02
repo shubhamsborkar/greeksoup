@@ -229,17 +229,28 @@ STATUS_CMD = {
 }
 
 
-def signed_in(app):
+# an app's own words when its maker refuses the login it holds, and the apps refused at their
+# last question (app -> those words), kept until one answers again
+_SIGNIN_REFUSED = re.compile(r"failed to authenticate|oauth (access )?token|\b401\b|invalid api key|authentication_error|"
+                             r"please run /login|token (has )?expired|not logged in|not signed in", re.I)
+_refused = {}
+
+
+def signed_in(app, probe=False):
     """{"state": "in" | "out" | "unknown", "text": the app's own words}. Reads the app's status
     command when it has one; an app without one is asked a one-word question through its door,
-    which is the only way to know its login holds."""
+    which is the only way to know its login holds. A status command only reads the login kept on
+    this computer, so an app whose maker refused that login at its last question reads as out,
+    and Check (probe) asks it the one-word question to see whether it holds again."""
     a = APPS.get(app)
     path = _which(app) if a else None
     if not a or not path:
         return {"state": "unknown", "text": "not on this computer"}
     env = dict(os.environ)
     env.pop("CLAUDECODE", None)
-    if app in STATUS_CMD:
+    if app in _refused and not probe:
+        return {"state": "out", "text": f"its sign-in was turned down at the last question ({_refused[app]}); sign in again, then press Check"}
+    if app in STATUS_CMD and not (probe and app in _refused):
         try:
             r = subprocess.run([path] + STATUS_CMD[app], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20, env=env)
         except (subprocess.TimeoutExpired, OSError) as exc:
@@ -484,7 +495,19 @@ def run_door(name, prompt, timeout=240, mode="research", model="", ask_id=""):
     if ask_id in _stopped:
         _stopped.discard(ask_id)
         return {"ok": False, "error": "Stopped.", "stopped": True}
+    app_key = os.path.basename(ready["command"][0])
+    if proc.returncode != 0 and _SIGNIN_REFUSED.search(text + "\n" + (err or "")):
+        # the app still holds a login on this computer (so its status command says signed in),
+        # but its maker refused it: an expired or revoked sign-in (issue 8, Claude Code's 401).
+        # Said as a refusal, never shown as the answer, and Settings reads it until it answers again
+        said = next((ln.strip() for ln in (text + "\n" + (err or "")).splitlines() if _SIGNIN_REFUSED.search(ln)), "")[:200]
+        _refused[app_key] = said
+        return {"ok": False, "error": f"{ready['label']} on this computer needs signing in again: its maker turned down the sign-in it holds ({said}). "
+                                      f"On Settings, under Your AI, press Sign in on {ready['label']}"
+                                      + (", type /login in the window that opens" if app_key == "claude" else "")
+                                      + ", finish in your browser, then press Check and ask again."}
     if proc.returncode != 0 and not text:
         return {"ok": False, "error": f"{ready['label']} returned an error: " + ((err or "").strip()[-400:] or f"exit {proc.returncode}")}
+    _refused.pop(app_key, None)
     label = ready["label"] + (f" · {model}" if model else "")
     return {"ok": True, "answer": text or "(the agent sent an empty answer)", "via": label}

@@ -489,7 +489,9 @@ def fetch_us_batch(symbols):
 
 
 def fmp_get(path, **params):
-    """One FMP stable-API call; None on any failure."""
+    """One FMP stable-API call; None on any failure. A plan that does not cover a name or an
+    address can answer 200 with {"Error Message": ...} instead of rows; that is a refusal too,
+    and passing it on stopped the US add box on a free key (issue 8, BB)."""
     key = os.getenv("FMP_API_KEY", "").strip()
     if not key:
         return None
@@ -497,10 +499,10 @@ def fmp_get(path, **params):
     try:
         r = requests.get(f"https://financialmodelingprep.com/stable/{path}",
                          params=params, timeout=12)
-        _fmp_count(r.status_code == 200)
-        if r.status_code != 200:
-            return None
-        return r.json()
+        body = r.json() if r.status_code == 200 else None
+        refused = isinstance(body, dict) and "Error Message" in body
+        _fmp_count(r.status_code == 200 and not refused)
+        return None if refused else body
     except Exception:  # noqa: BLE001
         return None
 
@@ -519,9 +521,10 @@ def search_symbols(q, region):
             hits = [h for h in hits if "." not in (h["symbol"] or "")]
         return [{"code": h["symbol"], "name": h["name"], "exch": h["exch"]} for h in hits[:8]]
     if region == "us":
-        rows = fmp_get("search-symbol", query=q, limit=10) or []
-        if not rows:
-            rows = fmp_get("search-name", query=q, limit=10) or []
+        rows = fmp_get("search-symbol", query=q, limit=10)
+        if not isinstance(rows, list) or not rows:
+            rows = fmp_get("search-name", query=q, limit=10)
+        rows = [r for r in rows if isinstance(r, dict)] if isinstance(rows, list) else []
         rows.sort(key=lambda r: ("." in (r.get("symbol") or ""), len(r.get("symbol") or "")))
         for r in rows[:8]:
             if r.get("symbol"):
@@ -4797,7 +4800,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/guide":
                 self._send(json.dumps(build_guide()).encode(), "application/json")
             elif path == "/api/ai/app/check":
-                self._send(json.dumps(desk_plugins.signed_in((qs.get("app", [""])[0] or "").strip())).encode(), "application/json")
+                self._send(json.dumps(desk_plugins.signed_in((qs.get("app", [""])[0] or "").strip(), probe=qs.get("probe", [""])[0] == "1")).encode(), "application/json")
             elif path == "/api/ai/apps":
                 self._send(json.dumps({"apps": desk_plugins.apps_known(), "default_door": ask_ready()["default_door"]}).encode(), "application/json")
             elif path == "/api/lists":

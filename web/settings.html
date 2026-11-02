@@ -650,7 +650,7 @@ async function loadApps(){
 async function checkLogin(app,probe){
   const el=document.querySelector(`[data-login="${app}"]`); if(!el) return null;
   el.className="login"; el.textContent=probe?"Checking… a one-word question goes to it.":"Checking…";
-  let r; try{ r=await (await fetch("/api/ai/app/check?app="+encodeURIComponent(app),{cache:"no-store"})).json(); }catch(e){ el.textContent="The desk did not answer."; return null; }
+  let r; try{ r=await (await fetch("/api/ai/app/check?app="+encodeURIComponent(app)+(probe?"&probe=1":""),{cache:"no-store"})).json(); }catch(e){ el.textContent="The desk did not answer."; return null; }
   el.className="login "+(r.state==="in"?"in":r.state==="out"?"out":"");
   const more=(r.text&&!/^(not )?(signed|logged) in$/i.test(r.text.trim()))?" · "+r.text:"";
   el.textContent=(r.state==="in"?"Signed in":r.state==="out"?"Not signed in":"Could not tell")+more;
