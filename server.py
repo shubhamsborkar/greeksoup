@@ -67,6 +67,7 @@ import sec_form4         # keyless Form 4 from EDGAR
 import house_ptr         # keyless House trading disclosures
 import notes as desk_notes   # the research vault: notes and files in data/research, linked to names and projects
 import plugins as desk_plugins   # folders in data/research/plugins that add a screen, blocks or a door
+from data_providers import shikshan_nivesh as desk_sn   # Shikshan Nivesh Data: statements, ratio history and segments only
 import chains as desk_chains     # the reader's own value chains in data/research/chains, starters beside the code
 import migrate as desk_migrate   # reader-owned files carry a format number; an update brings them up, a copy kept aside
 import lists as desk_lists
@@ -1490,6 +1491,11 @@ _fin_cache = {}
 _fin_lock = threading.Lock()
 
 
+def sn_on():
+    """Shikshan Nivesh Data is the provider picked on Settings and its key is saved."""
+    return os.getenv("DATA_PROVIDER", "").strip().lower() == "shikshan_nivesh" and bool(desk_sn.key())
+
+
 def build_fin(symbol):
     """The fundamentals bundle for one US symbol: all three statements
     (annual + quarterly), annual ratio/metric history, segment mix, forward
@@ -1513,6 +1519,17 @@ def build_fin(symbol):
         "dcf": ("discounted-cash-flow", {"symbol": symbol}),
         "scores": ("financial-scores", {"symbol": symbol}),
     }
+    # Shikshan Nivesh Data, when it is the provider picked on Settings, fills the three statements,
+    # the ratio history and the segments (three calls a company); a Financial Modeling Prep key,
+    # if one is saved too, still fills estimates, peers, dividends and the DCF
+    sn = None
+    if sn_on():
+        sn = desk_sn.statements(symbol)
+        if not sn.get("error"):
+            sn.update(desk_sn.segments(symbol))
+            sn.update(desk_sn.ratios(symbol))
+            for k in ("inc_a", "inc_q", "bs_a", "bs_q", "cf_a", "cf_q", "seg_p", "seg_g", "ratios", "metrics"):
+                jobs.pop(k, None)
     res = {}
     with ThreadPoolExecutor(max_workers=10) as ex:
         futs = {k: ex.submit(fmp_get, path, **params) for k, (path, params) in jobs.items()}
@@ -1521,6 +1538,9 @@ def build_fin(symbol):
                 res[k] = f.result()
             except Exception:  # noqa: BLE001
                 res[k] = None
+    if sn and not sn.get("error"):
+        res.update({k: sn.get(k) or [] for k in ("inc_a", "inc_q", "bs_a", "bs_q", "cf_a", "cf_q", "seg_p", "seg_g", "ratios", "metrics")})
+    sn_said = (sn or {}).get("error", {}).get("message", "")
     if not (res.get("inc_a") or []):
         # no provider, or a name the provider does not carry: the three statements from the
         # free record, four annual and four quarterly periods, for any listed company anywhere
@@ -1529,13 +1549,17 @@ def build_fin(symbol):
             return {"symbol": symbol, "free": True, "currency": free.get("currency") or "",
                     "inc_a": free["inc_a"], "inc_q": free["inc_q"], "bs_a": free["bs_a"], "bs_q": free["bs_q"],
                     "cf_a": free["cf_a"], "cf_q": free["cf_q"],
-                    "note": ("The statements come from the free record: the last four years and four quarters, fewer lines than a data provider gives. "
-                             + ("Ratio history, segments, estimates and peers need a data provider; none is set." if not os.getenv("FMP_API_KEY", "").strip()
-                                else "The data provider does not carry this name; ratio history, segments, estimates and peers need one that does."))}
-        if not os.getenv("FMP_API_KEY", "").strip():
+                    # a key over its day's calls, or a provider not answering, is asked again next time
+                    "sn_wait": bool(sn and (sn.get("error") or {}).get("kind") in ("limit", "busy", "network", "key")),
+                    "note": ((sn_said + " Until then, the" if sn_said else "The")
+                             + " statements come from the free record: the last four years and four quarters, fewer lines than a data provider gives. "
+                             + ("Ratio history, segments, estimates and peers need a data provider; none is set." if not (os.getenv("FMP_API_KEY", "").strip() or sn)
+                                else "" if sn else "The data provider does not carry this name; ratio history, segments, estimates and peers need one that does."))}
+        if not (os.getenv("FMP_API_KEY", "").strip() or sn):
             return {"symbol": symbol, "no_provider": True,
                     "error": "The free record carries no statements for this name, and the ratio history, segments, estimates and peers need a data provider, which is not set. The quote, the chart, valuation and quality above come from the free record."}
-        return {"symbol": symbol, "error": f"Neither the data provider nor the free record carries statements for {symbol}."}
+        return {"symbol": symbol, "sn_wait": bool(sn and (sn.get("error") or {}).get("kind") in ("limit", "busy", "network", "key")),
+                "error": (sn_said + " " if sn_said else "") + f"Neither the data provider nor the free record carries statements for {symbol}."}
 
     # peer comparison rows: the name itself first, then up to 8 FMP peers,
     # each priced from quote + TTM ratios (single-symbol calls)
@@ -1574,6 +1598,8 @@ def build_fin(symbol):
             "seg_p": res.get("seg_p") or [], "seg_g": res.get("seg_g") or [],
             "divs": res.get("divs") or [], "peers": peer_rows,
             "dcf": first(res.get("dcf")), "scores": first(res.get("scores")),
+            "sn": bool(sn and not sn.get("error")), "fmp": bool(os.getenv("FMP_API_KEY", "").strip()),
+            "currency": (sn or {}).get("currency") or "",
             "ts": datetime.now().strftime("%H:%M:%S")}
 
 
@@ -1615,11 +1641,20 @@ def period_for_note(symbol=""):
     return f"Q{(now.month - 1) // 3 + 1} {now.year}"
 
 
+def _fin_source():
+    """Which provider fills the statements now, so a copy read through another one (before the
+    reader changed it on Settings) is read again rather than kept for its twelve hours."""
+    return "sn" if sn_on() else "fmp" if os.getenv("FMP_API_KEY", "").strip() else "free"
+
+
 def cached_fin(symbol):
     """Per-symbol, disk-backed 12h cache; never caches a failure."""
     now = time.time()
+    src = _fin_source()
     with _fin_lock:
         hit = _fin_cache.get(symbol)
+    if hit and (len(hit) < 3 or hit[2] != src):
+        hit = None
     if hit and now - hit[0] < FIN_TTL:
         return hit[1]
     dpath = os.path.join(HIST_CACHE_DIR, f"api_fin_{symbol}.json")
@@ -1627,13 +1662,15 @@ def cached_fin(symbol):
         try:
             with open(dpath) as fh:
                 c = json.load(fh)
-            if now - c["at"] < FIN_TTL:
+            if now - c["at"] < FIN_TTL and c.get("source", "fmp") == src:
                 with _fin_lock:
-                    _fin_cache[symbol] = (c["at"], c["data"])
+                    _fin_cache[symbol] = (c["at"], c["data"], src)
                 return c["data"]
         except (OSError, ValueError, KeyError):
             pass
     data = build_fin(symbol)
+    if data.get("sn_wait"):
+        return data             # the free record stood in for a provider that will answer again later
     if data.get("error"):
         # the statements change four times a year: the last full read, whatever its age, with
         # the time it was taken, rather than nothing when a source does not answer right now
@@ -1648,10 +1685,10 @@ def cached_fin(symbol):
             pass
         return data
     with _fin_lock:
-        _fin_cache[symbol] = (now, data)
+        _fin_cache[symbol] = (now, data, src)
     try:
         with open(dpath, "w") as fh:
-            json.dump({"at": now, "data": data}, fh)
+            json.dump({"at": now, "data": data, "source": src}, fh)
     except OSError:
         pass
     return data
@@ -5025,6 +5062,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(json.dumps({"ok": True, "nav": nav_state()}).encode(), "application/json")
         if self.path == "/api/settings/check_data":
             return self._send(json.dumps(desk_settings.check_fmp()).encode(), "application/json")
+        if self.path == "/api/settings/check_sn":
+            return self._send(json.dumps(desk_sn.check()).encode(), "application/json")
         if self.path == "/api/settings/check_ai":
             return self._send(json.dumps(desk_ai.ping()).encode(), "application/json")
         if self.path == "/api/settings/broker":

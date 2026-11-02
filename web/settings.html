@@ -131,6 +131,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
     <div class="body">
       <div class="row"><label for="d_pick">Your provider</label><select id="d_pick">
         <option value="">None: the free public record only</option>
+        <option value="shikshan_nivesh">Shikshan Nivesh Data (recommended, free plan)</option>
         <option value="fmp">Financial Modeling Prep</option>
         <option value="other">Another provider</option>
       </select></div>
@@ -148,6 +149,16 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
         <div class="row"><label for="d_key">Key</label><input class="mono" id="d_key" type="password" autocomplete="off"></div>
         <div class="row"><span></span><div class="hint">Any plan works; the check says what yours answers.</div></div>
         <div class="btns"><button id="d_save">Save the key</button><button class="ghost" id="d_check">Check what it allows</button><button class="ghost" id="d_clear">Remove it</button></div>
+      </div>
+      <div id="d_sn" style="display:none">
+        <div class="row"><label>Where it lives</label><div class="hint" style="margin:0"><a href="https://shikshannivesh.com/data" target="_blank" rel="noopener">shikshannivesh.com/data</a> · <a href="https://shikshannivesh.com/data/plans" target="_blank" rel="noopener">plans and prices</a> · <a href="https://shikshannivesh.com/data/developers" target="_blank" rel="noopener">what each call answers</a>. Make a key on your account page there; the free plan needs no card and answers 250 calls a day.</div></div>
+        <div class="row"><label>How to get a key</label><div class="hint" style="margin:0">1. Open <a href="https://shikshannivesh.com/login" target="_blank" rel="noopener">shikshannivesh.com/login</a> and press <b>Continue with Google</b>, or <b>Sign up free</b> to use an email address. 2. On your account page (<a href="https://shikshannivesh.com/dashboard" target="_blank" rel="noopener">shikshannivesh.com/dashboard</a>), the <b>Data</b> tab has a card called <b>API keys</b>: press <b>Make a key</b>. 3. Copy the key there and then: it starts with sn_live_ and is shown only once. 4. Paste it below and press <b>Save the key</b>; the desk checks it at once.</div></div>
+        <div class="row"><label>What the key is used for</label><div class="hint" style="margin:0">Only the financials on a ticker page: the three statements, the ratio history and the segment mix, read from the company's SEC filings. Prices, short interest, insider trades and the calendar keep coming from their free public sources, as they do without a key. Opening a company costs three calls and the desk keeps the answer for twelve hours, so the free plan covers about eighty companies a day.</div></div>
+        <div class="row"><label for="d_snkey">Key</label><input class="mono" id="d_snkey" type="password" autocomplete="off" placeholder="sn_live_…"></div>
+        <div class="btns"><button id="d_snsave">Save the key</button><button class="ghost" id="d_sncheck">Check it</button><button class="ghost" id="d_snclear">Remove it</button></div>
+        <div class="row" style="margin-top:12px"><label for="d_snfmp">Extra, optional</label><input class="mono" id="d_snfmp" type="password" autocomplete="off"></div>
+        <div class="row"><span></span><div class="hint">A Financial Modeling Prep key adds what Shikshan Nivesh Data does not carry: street estimates, peers, dividend history, news and the DCF workspace. Shikshan Nivesh Data stays your provider for the financials.</div></div>
+        <div class="btns"><button class="ghost" id="d_snfmpsave">Save the extra key</button></div>
       </div>
       <div id="d_other" style="display:none">
         <div class="row"><label for="d_name">Provider</label><input id="d_name" placeholder="finnhub, eodhd, polygon, twelvedata ..." autocomplete="off" spellcheck="false"></div>
@@ -490,15 +501,24 @@ $("b_token").addEventListener("keydown",e=>{ if(e.key==="Enter") $("b_connect").
 /* ---------- data provider ---------- */
 function renderData(s){
   const d=s.data; const pick=$("d_pick");
-  if(document.activeElement!==pick) pick.value = d.provider==="fmp" ? "fmp" : (d.provider ? "other" : "");
+  if(document.activeElement!==pick) pick.value = (d.provider==="fmp"||d.provider==="shikshan_nivesh") ? d.provider : (d.provider ? "other" : "");
   onDataPick();
   $("d_key").placeholder = d.key ? "saved · "+d.key : "not saved";
   $("d_okey").placeholder = d.other_key ? "saved · "+d.other_key : "not saved";
   $("d_name").value = d.other_name||""; $("d_obase").value = d.other_base||"";
-  st("d_status", d.provider==="fmp" ? (d.key?"Financial Modeling Prep · key saved":"Financial Modeling Prep · no key") : d.provider ? d.provider+" · waiting for its file" : "the free record only", d.provider==="fmp"&&d.key?"on":"");
+  $("d_snkey").placeholder = d.sn_key ? "saved · "+d.sn_key : "sn_live_…";
+  st("d_status", d.provider==="fmp" ? (d.key?"Financial Modeling Prep · key saved":"Financial Modeling Prep · no key")
+    : d.provider==="shikshan_nivesh" ? (d.sn_key?"Shikshan Nivesh Data · key saved":"Shikshan Nivesh Data · no key")
+    : d.provider ? d.provider+" · waiting for its file" : "the free record only", (d.provider==="fmp"&&d.key)||(d.provider==="shikshan_nivesh"&&d.sn_key)?"on":"");
+  $("d_sncheck").disabled=!d.sn_key;
+  $("d_snfmp").placeholder = d.key ? "saved · "+d.key : "Financial Modeling Prep key";
   $("d_check").disabled=!d.key;
 }
-function onDataPick(){ const v=$("d_pick").value; $("d_fmp").style.display = v==="fmp"?"":"none"; $("d_other").style.display = v==="other"?"":"none"; }
+function onDataPick(){ const v=$("d_pick").value; $("d_fmp").style.display = v==="fmp"?"":"none"; $("d_sn").style.display = v==="shikshan_nivesh"?"":"none"; $("d_other").style.display = v==="other"?"":"none"; }
+$("d_snsave").onclick=async()=>{ const v=$("d_snkey").value.trim(); if(!v) return say("d_msg","Paste the key first.","err"); if(!/^sn_live_/.test(v)) return say("d_msg","A Shikshan Nivesh Data key starts with sn_live_. Copy it again from your account page.","err"); const r=await post("/api/settings/save",{SN_API_KEY:v, DATA_PROVIDER:"shikshan_nivesh"}); if(r.ok){ $("d_snkey").value=""; render(r.state); $("d_sncheck").click(); } else say("d_msg",r.error||("could not save "+window.NEXT_STEP),"err"); };
+$("d_snfmpsave").onclick=async()=>{ const v=$("d_snfmp").value.trim(); if(!v) return say("d_msg","Paste the Financial Modeling Prep key first.","err"); const r=await post("/api/settings/save",{FMP_API_KEY:v}); if(r.ok){ $("d_snfmp").value=""; say("d_msg","Saved. Estimates, peers, dividends and news come from it; the financials stay on Shikshan Nivesh Data.","ok"); render(r.state);} else say("d_msg",r.error||("could not save "+window.NEXT_STEP),"err"); };
+$("d_sncheck").onclick=async()=>{ say("d_msg","Asking Shikshan Nivesh Data one question…"); $("d_table").innerHTML=""; const r=await post("/api/settings/check_sn",{}); say("d_msg", r.ok? r.summary : (r.error||"the check did not run"), r.ok?"ok":"err"); };
+$("d_snclear").onclick=async()=>{ if(!confirm("Remove the Shikshan Nivesh Data key from this desk?")) return; const r=await post("/api/settings/save",{SN_API_KEY:"", DATA_PROVIDER:""}); if(r.ok){ say("d_msg","Removed. The statements come from the free record from the next company you open.","ok"); render(r.state);} };
 $("d_pick").onchange=async()=>{ onDataPick(); const v=$("d_pick").value; if(v!=="other"){ const r=await post("/api/settings/save",{DATA_PROVIDER:v}); if(r.ok) render(r.state); } };
 $("d_save").onclick=async()=>{ const v=$("d_key").value.trim(); if(!v) return say("d_msg","Paste the key first.","err"); const r=await post("/api/settings/save",{FMP_API_KEY:v, DATA_PROVIDER:"fmp"}); if(r.ok){ $("d_key").value=""; say("d_msg","Saved. The screens that use it pick it up on their next refresh; click Check to see what the plan answers.","ok"); $("d_table").innerHTML=""; render(r.state);} else say("d_msg",r.error||("could not save "+window.NEXT_STEP),"err"); };
 $("d_clear").onclick=async()=>{ if(!confirm("Remove the data key from this desk?")) return; const r=await post("/api/settings/save",{FMP_API_KEY:"", DATA_PROVIDER:""}); if(r.ok){ say("d_msg","Removed. The desk runs on the free record from the next refresh.","ok"); $("d_table").innerHTML=""; render(r.state);} };

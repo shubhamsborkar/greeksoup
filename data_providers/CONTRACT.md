@@ -1,6 +1,6 @@
 # Data providers: what the desk asks for, and the shape it expects back
 
-The desk runs keyless on the public record. A data provider adds the parsed reads below. One provider ships today (Financial Modeling Prep, in `server.py`, `insiders.py` and `freefeed.py` through `fmp_get`); any other provider is a file in this folder that answers the same questions, written by the reader's agent from that provider's documentation, and the Settings screen already keeps the provider's name, key and address for it (`DATA_PROVIDER`, `DATA_API_KEY`, `DATA_BASE_URL` in `.env`).
+The desk runs keyless on the public record. A data provider adds the parsed reads below. Two providers ship today: Financial Modeling Prep (in `server.py`, `insiders.py` and `freefeed.py` through `fmp_get`), and Shikshan Nivesh Data (`shikshan_nivesh.py`, `DATA_PROVIDER=shikshan_nivesh` and `SN_API_KEY`), which fills the three statements, the ratio history and the segments on the ticker page and nothing else, three calls a company, so its free plan of 250 calls a day goes about eighty companies. Any other provider is a file in this folder that answers the same questions, written by the reader's agent from that provider's documentation, and the Settings screen already keeps the provider's name, key and address for it (`DATA_PROVIDER`, `DATA_API_KEY`, `DATA_BASE_URL` in `.env`).
 
 ## The reads
 

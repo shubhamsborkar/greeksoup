@@ -153,7 +153,7 @@ APPS = {
     # offers in the Ask box (the app's default always comes first, and any name the reader
     # types is passed through as typed). An app without a flag picks its own model.
     "claude": {"label": "Claude Code", "pays": "your Claude subscription", "site": "https://claude.com/product/claude-code",
-               "signin": "claude", "model_flag": "--model",
+               "signin": "claude", "relogin": "/login", "model_flag": "--model",
                "models": [["claude-opus-5", "Opus 5"], ["claude-fable-5-1", "Fable 5.1"], ["claude-fable-5", "Fable 5"],
                           ["claude-opus-4-8", "Opus 4.8"], ["claude-opus-4-7", "Opus 4.7"], ["claude-opus-4-6", "Opus 4.6"],
                           ["claude-sonnet-5", "Sonnet 5"], ["claude-sonnet-4-6", "Sonnet 4.6"], ["claude-haiku-4-5", "Haiku 4.5"]]},
@@ -163,13 +163,13 @@ APPS = {
     "codex": {"label": "Codex", "pays": "your ChatGPT subscription", "site": "https://openai.com/codex/", "signin": "codex login",
               "model_flag": "-m", "models": [["gpt-6-astra", "GPT-6 Astra"], ["gpt-5.6-sol", "GPT-5.6 Sol"], ["gpt-5.6-terra", "GPT-5.6 Terra"],
                                              ["gpt-5.6-luna", "GPT-5.6 Luna"], ["gpt-5.3-codex-spark", "GPT-5.3 Codex Spark"], ["gpt-5.5", "GPT-5.5"]]},
-    "gemini": {"label": "Gemini CLI", "pays": "your Google account", "site": "https://github.com/google-gemini/gemini-cli", "signin": "gemini",
+    "gemini": {"label": "Gemini CLI", "pays": "your Google account", "site": "https://github.com/google-gemini/gemini-cli", "signin": "gemini", "relogin": "/auth",
                "model_flag": "-m", "models": [["gemini-3-pro-preview", "Gemini 3 Pro"], ["gemini-3-flash-preview", "Gemini 3 Flash"],
                                               ["gemini-2.5-pro", "Gemini 2.5 Pro"], ["gemini-2.5-flash", "Gemini 2.5 Flash"]]},
     "kimi": {"label": "Kimi Code", "pays": "your Kimi account", "site": "https://www.kimi.com/code", "signin": "kimi"},
     "grok": {"label": "Grok Build", "pays": "your xAI account", "site": "https://x.ai/build", "signin": "grok",
              "model_flag": "-m", "models": [], "list_cmd": ["models"]},
-    "qwen": {"label": "Qwen Code", "pays": "your Qwen account", "site": "https://qwen.ai/qwencode", "signin": "qwen",
+    "qwen": {"label": "Qwen Code", "pays": "your Qwen account", "site": "https://qwen.ai/qwencode", "signin": "qwen", "relogin": "/auth",
              "model_flag": "-m", "models": []},
     "cursor-agent": {"label": "Cursor", "pays": "your Cursor subscription", "site": "https://cursor.com/docs/cli/overview",
                      "signin": "cursor-agent login", "model_flag": "--model", "models": [], "list_cmd": ["--list-models"]},
@@ -231,8 +231,9 @@ STATUS_CMD = {
 
 # an app's own words when its maker refuses the login it holds, and the apps refused at their
 # last question (app -> those words), kept until one answers again
-_SIGNIN_REFUSED = re.compile(r"failed to authenticate|oauth (access )?token|\b401\b|invalid api key|authentication_error|"
-                             r"please run /login|token (has )?expired|not logged in|not signed in", re.I)
+_SIGNIN_REFUSED = re.compile(r"failed to authenticate|oauth (access )?token|\b401\b|unauthori[sz]ed|unauthenticated|invalid api key|"
+                             r"authentication_error|re-?authenticate|could not be refreshed|run [`'\"]?[\w-]* ?/?login|"
+                             r"token (has )?expired|not logged in|not signed in", re.I)
 _refused = {}
 
 
@@ -500,11 +501,14 @@ def run_door(name, prompt, timeout=240, mode="research", model="", ask_id=""):
         # the app still holds a login on this computer (so its status command says signed in),
         # but its maker refused it: an expired or revoked sign-in (issue 8, Claude Code's 401).
         # Said as a refusal, never shown as the answer, and Settings reads it until it answers again
-        said = next((ln.strip() for ln in (text + "\n" + (err or "")).splitlines() if _SIGNIN_REFUSED.search(ln)), "")[:200]
+        # the app's last refusing line, without the address and request numbers some apps add (Codex)
+        lines = [ln.strip() for ln in (text + "\n" + (err or "")).splitlines() if _SIGNIN_REFUSED.search(ln)]
+        said = re.sub(r",? *(url|cf-ray|request id):.*$", "", re.sub(r"^(error|warning):\s*", "", lines[-1], flags=re.I))[:200] if lines else ""
         _refused[app_key] = said
+        relogin = app.get("relogin")
         return {"ok": False, "error": f"{ready['label']} on this computer needs signing in again: its maker turned down the sign-in it holds ({said}). "
                                       f"On Settings, under Your AI, press Sign in on {ready['label']}"
-                                      + (", type /login in the window that opens" if app_key == "claude" else "")
+                                      + (f", type {relogin} in the window that opens" if relogin else "")
                                       + ", finish in your browser, then press Check and ask again."}
     if proc.returncode != 0 and not text:
         return {"ok": False, "error": f"{ready['label']} returned an error: " + ((err or "").strip()[-400:] or f"exit {proc.returncode}")}

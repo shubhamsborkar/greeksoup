@@ -26,8 +26,9 @@ ALLOWED = {
     "BROKER": (False, "the home broker file (kept for older copies; BROKERS lists them all)"),
     "BROKERS": (False, "the brokers Desk · Home reads through, one per market, the home one first"),
     "HOME_MARKET": (False, "the home market file; the reader's choice, else the home broker's market"),
-    "DATA_PROVIDER": (False, "fmp, or the name of a provider module the reader's agent wrote"),
+    "DATA_PROVIDER": (False, "fmp, shikshan_nivesh, or the name of a provider module the reader's agent wrote"),
     "FMP_API_KEY": (True, "Financial Modeling Prep key, optional"),
+    "SN_API_KEY": (True, "Shikshan Nivesh Data key, optional; read for company statements, ratio history and segments only"),
     "DATA_API_KEY": (True, "another data provider's key, optional"),
     "DATA_BASE_URL": (False, "another data provider's address, optional"),
     "AI_PROVIDER": (False, "which AI provider preset"),
@@ -133,9 +134,9 @@ def current():
     g = lambda k: _real(env.get(k) or os.getenv(k, ""))  # noqa: E731
     provider = (g("DATA_PROVIDER") or ("fmp" if g("FMP_API_KEY") else "")).lower()
     return {
-        "data": {"provider": provider, "key": masked(g("FMP_API_KEY")),
+        "data": {"provider": provider, "key": masked(g("FMP_API_KEY")), "sn_key": masked(g("SN_API_KEY")),
                  "other_key": masked(g("DATA_API_KEY")), "other_base": g("DATA_BASE_URL"),
-                 "other_name": g("DATA_PROVIDER") if provider not in ("", "fmp") else ""},
+                 "other_name": g("DATA_PROVIDER") if provider not in ("", "fmp", "shikshan_nivesh") else ""},
         "ai": {"provider": g("AI_PROVIDER") or "", "format": g("AI_FORMAT") or "", "key": masked(g("AI_API_KEY")),
                "model": g("AI_MODEL"), "base_url": g("AI_BASE_URL")},
         "edgar_contact": g("EDGAR_CONTACT"),

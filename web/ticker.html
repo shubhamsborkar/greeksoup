@@ -1295,7 +1295,7 @@ function finStmtHTML(kind){
         const g=(pv!=null&&pv!==0&&v!=null)?(v-pv)/Math.abs(pv)*100:null;
         return `<td class="mono ${g==null?"dim":g>=0?"pos":"neg"}">${g==null?"—":(g>=0?"+":"−")+Math.abs(g).toFixed(1)+"%"}</td>`;}).join("")+"</tr>";
   }
-  h+=`</tbody></table></div><div class="fin-note">${FIN.free?esc(FIN.note||"From the free record."):"As filed, from the data provider."} ${FS.chg?"% Chg is the change on the year (or quarter) before it, the column to its right. ":""}Margins and EPS ignore the unit toggle.</div>`;
+  h+=`</tbody></table></div><div class="fin-note">${FIN.free?esc(FIN.note||"From the free record."):FIN.sn?"From Shikshan Nivesh Data: the company's SEC filings, in one standard layout so companies compare line for line.":"As filed, from the data provider."} ${FS.chg?"% Chg is the change on the year (or quarter) before it, the column to its right. ":""}Margins and EPS ignore the unit toggle.</div>`;
   return h;
 }
 function finRatiosHTML(){
@@ -1327,11 +1327,15 @@ function finRatiosHTML(){
   let h=`<div class="finwrap"><table class="fintab"><thead><tr><th class="grp">Metric</th>`+
     cols.map(c=>`<th>FY${c.fiscalYear}</th>`).join("")+`</tr></thead><tbody>`;
   for(const [g,rows] of G){
+    // a row with nothing in any year is left out, and a group with no rows left goes too
+    const live=rows.map(([l,f])=>[l,cols.map(c=>f(c))]).filter(([,v])=>v.some(x=>x&&x!=="—"&&!/NaN/.test(x)));
+    if(!live.length) continue;
     h+=`<tr class="sect"><td colspan="${cols.length+1}">${g}</td></tr>`;
-    for(const [l,f] of rows)
-      h+=`<tr><td>${l}</td>`+cols.map(c=>`<td class="mono">${f(c)}</td>`).join("")+`</tr>`;
+    for(const [l,v] of live)
+      h+=`<tr><td>${l}</td>`+v.map(x=>`<td class="mono">${x}</td>`).join("")+`</tr>`;
   }
   h+=`</tbody></table></div>`;
+  if(FIN.sn) h+=`<div class="fin-note">From Shikshan Nivesh Data, worked out from the company's SEC filings. Ratios on the share price (P/E, P/S, EV/EBITDA) are on the valuation panel above.</div>`;
   const sc=FIN.scores||{};
   if(sc.piotroskiScore!=null||sc.altmanZScore!=null)
     h+=`<div class="fin-note">Piotroski F-score <b>${sc.piotroskiScore??"—"}</b> / 9 · Altman Z <b>${sc.altmanZScore==null?"—":sc.altmanZScore.toFixed(2)}</b> (below ~1.8 signals distress, above ~3 is safe territory).</div>`;
@@ -1363,7 +1367,7 @@ function finSegHTML(){
     return h;
   };
   const h=block(FIN.seg_p,"Product segments")+block(FIN.seg_g,"Geographic segments");
-  return h||'<div class="fin-note">This company does not report segment data FMP can parse.</div>';
+  return h||'<div class="fin-note">No segment figures for this company on this record.</div>';
 }
 function finEstHTML(){
   const cols=(FIN.est_a||[]).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
@@ -1498,6 +1502,11 @@ function renderFin(){
   if(FIN.free && !["inc","bs","cf"].includes(FS.mode)){
     const what={ratios:"Ratio history comes",seg:"Segments come",est:"Street estimates come",peers:"A peer set comes",div:"Dividend history comes",dcf:"The DCF workspace comes"}[FS.mode]||"This comes";
     el.innerHTML=`<div class="fin-note">${what} with a data provider (FMP, for one); the free record carries the three statements. <a href="/settings" style="color:var(--accent)">Settings</a>, under Data.</div>`; return;
+  }
+  // Shikshan Nivesh Data fills the statements and segments; the other tabs need a second provider
+  if(FIN.sn && !FIN.fmp && !["inc","bs","cf","seg","ratios"].includes(FS.mode)){
+    const what={est:"Street estimates come",peers:"A peer set comes",div:"Dividend history comes",dcf:"The DCF workspace comes"}[FS.mode]||"This comes";
+    el.innerHTML=`<div class="fin-note">${what} with a Financial Modeling Prep key, as an extra. Shikshan Nivesh Data fills the statements, ratios and segments here. <a href="/settings" style="color:var(--accent)">Settings</a>, under Data.</div>`; return;
   }
   if(FIN.error&&BARE){ const sec=el.closest("section"); if(sec) sec.remove(); return; }
   if(FIN.error){

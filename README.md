@@ -34,14 +34,14 @@ Three things are involved, and it helps to know which is which.
 
 **The agent** is the AI tool you type to. It installs the desk, connects your broker, and changes the desk when you ask for something new. You do not need it open to use the desk day to day.
 
-**The data** comes from three places. Your broker knows what you own. The public record (SEC EDGAR for filings, CBOE for options, FINRA for short interest, FRED for macro, Yahoo for quotes) is free and needs no account. An optional paid feed adds the parsed financial statements on the ticker page and a few columns. If you skip the feed, nothing breaks.
+**The data** comes from three places. Your broker knows what you own. The public record (SEC EDGAR for filings, CBOE for options, FINRA for short interest, FRED for macro, Yahoo for quotes) is free and needs no account. An optional data provider adds the parsed financials on the ticker page. We recommend Shikshan Nivesh Data, from the makers of GreekSoup: it reads US companies' filings from the SEC, has a free plan, and its key is used for the statements, ratio history and segments alone. Financial Modeling Prep is an optional extra for estimates, peers and news. If you skip both, nothing breaks.
 
 ## What you need
 
 - A computer you leave on while you work. Mac, Windows or Linux.
 - Optional: an AI coding agent (Claude Code, Codex, Kimi Code or Grok Build). It can do the install for you, and it is how you change the desk later by describing what you want. If you have none, search "how do I install Claude Code" and follow the two or three steps, or skip it and use the one-line install.
 - Optional: an account with a broker that lets a program read it, which brokers call an API. The desk connects to Alpaca, Angel One, Charles Schwab, Dhan, Groww, ICICI Direct, Interactive Brokers, Longbridge, Questrade, Saxo Bank, tastytrade, Tradier, Trading 212, Upstox and Zerodha as it comes, read-only, with what each hands out from its own dashboard; any other broker with an API is one file your agent writes from its documentation. Most of them also give the desk live prices for your watchlist through the same connection; where one does not yet (Charles Schwab, Interactive Brokers, Longbridge and Trading 212), the free feed prices it, and Settings says for each what your agent can add. Without one, you keep your holdings by hand on Desk · Book with Yahoo symbols, and the US desk and every intelligence screen still work.
-- Optional: a Financial Modeling Prep key for the parsed financial statements on the ticker page.
+- Optional, and recommended: a free [Shikshan Nivesh Data](https://shikshannivesh.com/data) key for the parsed financial statements, ratio history and segments on the ticker page. Sign in at shikshannivesh.com/login, press **Make a key** on the **Data** tab of your account page, and paste it in Settings under **Data provider**; [the steps](https://greeksoup.ai/docs/setup/data-providers/). The free plan's 250 calls a day covers about eighty companies, since the desk spends three calls a company and keeps the answer for twelve hours. [Financial Modeling Prep](https://site.financialmodelingprep.com/) is an optional extra for estimates, peers and news.
 
 ## Install it: one line (about a minute)
 
@@ -136,7 +136,7 @@ And **Settings**, the last entry in the sidebar: your broker, picked from the li
 
 ## What runs with no key at all
 
-With no broker key and no feed key the desk still starts, and fifteen of the sixteen screens are live: the US panels of Desk · Home, Desk · Book, Watch · Home once a home market is picked in Settings, Watch · US, Global, Risk, Macro, Calendar, Funds, Flow, Short, Capitol, Chain, Commodities, Notes, and the ticker page's chart, quote, ratios and insider table. The broker key lights up Desk · Home and puts the broker's own ticks and order book under Watch · Home. The feed key adds the parsed statements, ratio history, segments, estimates, peers, dividends and news on the ticker page, the 50 and 200 day columns on the US watch grid, a market-wide insider scan, and cleaner Congress rows.
+With no broker key and no feed key the desk still starts, and fifteen of the sixteen screens are live: the US panels of Desk · Home, Desk · Book, Watch · Home once a home market is picked in Settings, Watch · US, Global, Risk, Macro, Calendar, Funds, Flow, Short, Capitol, Chain, Commodities, Notes, and the ticker page's chart, quote, ratios and insider table. The broker key lights up Desk · Home and puts the broker's own ticks and order book under Watch · Home. A Shikshan Nivesh Data key adds the parsed statements, ratio history and segments on the ticker page, read from SEC filings. A Financial Modeling Prep key adds the parsed statements, ratio history, segments, estimates, peers, dividends and news on the ticker page, the 50 and 200 day columns on the US watch grid, a market-wide insider scan, and cleaner Congress rows.
 
 ## Your own market on the Commodities screen
 
@@ -211,7 +211,7 @@ Setup by hand, the file map, how to adapt the broker adapter, the data sources i
 
 Every line of code here was written by Claude Code from plain-English descriptions and screenshots. The framework it was written to is the author's: which numbers sit next to which, why a name added once is connected to its filings, its earnings, its funds and its notes everywhere at the same time, what a fundamental investor's desk holds and what it leaves out, and every decision about brokers, markets, keys and defaults. The author had built and run an earlier version of this desk as software before any of it was described to an agent, and has run this one on his own book every day since 3 September 2026.
 
-What a human checks: 135 contract tests run on every push, on Python 3.10 and 3.13 on Linux, and a fresh Windows machine installs the desk, opens every screen and removes it again (the `check` workflow); a release goes out only when they pass, and every version carries a line in plain words in `VERSION` saying what changed and why, 150 of them at the time of writing. Read that file before the code; it is the history of the decisions.
+What a human checks: 140 contract tests run on every push, on Python 3.10 and 3.13 on Linux, and a fresh Windows machine installs the desk, opens every screen and removes it again (the `check` workflow); a release goes out only when they pass, and every version carries a line in plain words in `VERSION` saying what changed and why, 151 of them at the time of writing. Read that file before the code; it is the history of the decisions.
 
 The edition that walks through every screen, the build and the setup around it (the vault, the rulebook, the skills) is [How to Build a One-Person Equity Research Desk (a Mini Bloomberg) with Claude Fable](https://ai.shikshannivesh.com/p/how-to-build-a-one-person-equity) in the *Alpha with AI* newsletter.
 
