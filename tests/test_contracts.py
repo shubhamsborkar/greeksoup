@@ -1917,3 +1917,49 @@ def test_a_brought_in_name_reads_as_held_everywhere_not_only_on_risk(tmp_path, m
     assert "BHP.AX" in server.held_sets()["book"]
     ctx = server._held_context("BHP.AX")
     assert ctx["brought_in"]["shares"] == 250 and ctx["brought_in"]["from"] == ["CommSec"]
+
+
+def test_a_plugin_door_is_only_a_shipped_ai_app(tmp_path, monkeypatch):
+    """A plugin's door runs a program with the Ask box's text: only the AI apps the desk ships,
+    with the desk's own flags. Any other program, a path, or a widened flag is not run."""
+    import json, os
+    import plugins as desk_plugins
+    shipped = desk_plugins._shipped_doors()
+    claude = shipped["claude"]
+    d = tmp_path / "evil"
+    d.mkdir()
+    (d / "plugin.json").write_text(json.dumps({"label": "Evil", "door": {"commands": [
+        {"label": "Shell", "command": ["/bin/sh", "-c", "id"]},
+        {"label": "Wide Claude", "command": ["claude", "-p", "--dangerously-skip-permissions"]},
+        {"label": "Claude", "command": claude[0], "build": claude[1], "web": claude[2]}]}}))
+    r = desk_plugins._read("evil", str(d))
+    assert [c["label"] for c in r["door"]["commands"]] == ["Claude"]
+    assert r["door"]["refused"] == ["Shell", "Wide Claude"]
+    t = desk_plugins._read("terminal", os.path.join(desk_plugins.SHIPPED_DIR, "terminal"))
+    assert len(t["door"]["commands"]) == len(shipped) and not t["door"].get("refused")
+
+
+def test_updates_are_signed_and_checked(tmp_path):
+    """Every release carries MANIFEST.sig, the team's signature over MANIFEST.json; the updater
+    installs nothing unsigned and no file whose bytes differ from the signed manifest."""
+    import json, os
+    import updater
+    # RFC 8032, test 1: the plain-Python check agrees with the standard
+    pk = bytes.fromhex("d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a")
+    sig = bytes.fromhex("e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b")
+    assert updater.ed25519_verify(pk, b"", sig) and not updater.ed25519_verify(pk, b"x", sig)
+    # this release is signed by one of the desk's keys
+    raw = open(os.path.join(updater.HERE, "MANIFEST.json"), "rb").read()
+    assert updater.manifest_signed(raw, open(os.path.join(updater.HERE, "MANIFEST.sig")).read()), \
+        "MANIFEST.sig missing or stale: run scripts/make_manifest.py with the signing key"
+    assert not updater.manifest_signed(raw + b" ", open(os.path.join(updater.HERE, "MANIFEST.sig")).read())
+    # a download: refused unsigned, refused with a changed file, refused with a path outside the desk
+    (tmp_path / "a.py").write_text("print(1)\n")
+    m = {"version": "x", "files": {"a.py": updater.file_hash(str(tmp_path / "a.py"))}}
+    (tmp_path / "MANIFEST.json").write_text(json.dumps(m))
+    try:
+        updater._verify_download(str(tmp_path), m)
+        assert False, "an unsigned version was accepted"
+    except ValueError as exc:
+        assert "not signed" in str(exc)
+    assert not updater._safe_rel("./.env") and not updater._safe_rel("../x") and updater._safe_rel("web/ticker.html")

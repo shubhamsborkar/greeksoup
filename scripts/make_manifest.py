@@ -27,7 +27,7 @@ from updater import bytes_hash, parse_version_text  # noqa: E402
 # install day, from greeksoup.ai; inside an update they are a liability: on 2026-09-19 a
 # reader's Bitdefender read the unpacked docs/install.ps1 as a downloader (it fetches a zip
 # and runs winget, which is what one looks like), locked it, and the update died on it.
-SKIP = {"MANIFEST.json", ".gitignore", ".gitlab-ci.yml", "netlify.toml",
+SKIP = {"MANIFEST.json", "MANIFEST.sig", ".gitignore", ".gitlab-ci.yml", "netlify.toml",
         "install.sh", "install.ps1"}
 # The website (the launch page, the docs and the plugin list) lives in its own repository,
 # gitlab.com/shikshan-nivesh/greeksoup-web, served by GitLab Pages; the two folder names stay
@@ -117,6 +117,34 @@ def main():
         fh.write("\n")
     print(f"MANIFEST.json: version {version}, {len(files)} files, "
           f"{sum(len(v) for v in history.values())} historical hashes from {len(commits)} commits")
+    sign()
+
+
+def sign():
+    """MANIFEST.sig: the release's ed25519 signature over MANIFEST.json (line endings folded). A desk
+    from 2026-11-04.141 on installs only a signed version, so a release without it reaches no one.
+    The key is the GreekSoup team's own, kept out of the repository: DESK_SIGNING_KEY names its file,
+    else .git/greeksoup-desk-signing.key (a copy and a backup key sit on the VPS, /root/desk-signing)."""
+    if "--unsigned" in sys.argv:
+        print("MANIFEST.sig NOT written (--unsigned): desks will refuse this version")
+        return
+    path = os.getenv("DESK_SIGNING_KEY") or os.path.join(ROOT, ".git", "greeksoup-desk-signing.key")
+    try:
+        seed = bytes.fromhex(open(path, encoding="utf-8").read().strip())
+    except (OSError, ValueError):
+        print(f"MANIFEST.sig NOT written: no signing key at {path}. Desks refuse an unsigned version; "
+              "put the key there (or name it in DESK_SIGNING_KEY) and run this again.")
+        sys.exit(3)
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from updater import manifest_signed
+    raw = open(os.path.join(ROOT, "MANIFEST.json"), "rb").read().replace(b"\r\n", b"\n")
+    sig = Ed25519PrivateKey.from_private_bytes(seed).sign(raw).hex()
+    if not manifest_signed(raw, sig):
+        print("MANIFEST.sig NOT written: the key is not one of the keys in updater.PUBLIC_KEYS")
+        sys.exit(3)
+    with open(os.path.join(ROOT, "MANIFEST.sig"), "w", encoding="utf-8") as fh:
+        fh.write(sig + "\n")
+    print("MANIFEST.sig: signed")
 
 
 if __name__ == "__main__":

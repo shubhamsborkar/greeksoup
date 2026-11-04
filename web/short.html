@@ -101,7 +101,7 @@ async function load(){
     <th>Short int<span class="u">shares · ${d.settlement||""}</span></th>
     <th>Δ vs prior<span class="u">${d.prev_settlement||""}</span></th>
     <th>Days to cover<span class="u">SI / avg daily vol</span></th>
-    <th>% of float<span class="u">free feed</span></th>
+    <th>% of float<span class="u">free feed${d.names.some(n=>n.float_basis==="shares_out")?" · * of shares out":""}</span></th>
     <th>SI trend<span class="u">${(d.names[0].si_trend||[]).length} settlements</span></th>
     <th class="sep">Short vol ratio<span class="u">latest day</span></th>
     <th>20d avg<span class="u">daily files</span></th>
@@ -116,7 +116,7 @@ async function load(){
       <td class="mono">${kfmt(n.si)}</td>
       <td class="mono ${chg==null?"dim":chg>0?"neg":"pos"}">${chg==null?"—":(chg>0?"+":"")+chg.toFixed(1)+"%"}</td>
       <td class="mono ${n.dtc!=null&&n.dtc>=8?"neg":""}">${n.dtc==null?"—":n.dtc.toFixed(1)}</td>
-      <td class="mono ${sif!=null&&sif>=10?"neg":sif!=null&&sif>=5?"":"dim"}" style="${sif!=null&&sif>=10?"font-weight:700":""}">${sif==null?"—":sif.toFixed(1)+"%"}</td>
+      <td class="mono ${sif!=null&&sif>=10?"neg":sif!=null&&sif>=5?"":"dim"}" style="${sif!=null&&sif>=10?"font-weight:700":""}">${sif==null?"—":sif.toFixed(1)+"%"}${sif!=null&&n.float_basis==="shares_out"?'<span class="dim" title="Of all shares outstanding, from Shikshan Nivesh Data: the free feed did not give a float for this name, and a float is never guessed. Against the float the figure would be higher.">*</span>':""}</td>
       <td>${spark(n.si_trend)}</td>
       <td class="mono sep">${n.srv_latest==null?"—":n.srv_latest.toFixed(0)+"%"}</td>
       <td class="mono dim">${n.srv_avg==null?"—":n.srv_avg.toFixed(0)+"%"}${dev!=null&&Math.abs(dev)>=8?` <b class="${dev>0?"neg":"pos"}">${dev>0?"▲":"▼"}</b>`:""}</td>

@@ -74,7 +74,29 @@ def _safe_name(name):
     return re.sub(r"[^a-z0-9-]", "", (name or "").lower())[:40]
 
 
+def _shipped_doors():
+    """The door commands the desk itself ships (plugins/terminal): the AI apps it knows, each with
+    the flags the desk chose for it. {command[0]: (command, build, web)}."""
+    try:
+        with open(os.path.join(SHIPPED_DIR, "terminal", "plugin.json"), encoding="utf-8") as fh:
+            cmds = (json.load(fh).get("door") or {}).get("commands") or []
+    except (OSError, ValueError, AttributeError):
+        return {}
+    return {c["command"][0]: (c["command"], c.get("build"), c.get("web")) for c in cmds
+            if isinstance(c, dict) and isinstance(c.get("command"), list) and c["command"]}
+
+
+def _door_allowed(c, shipped):
+    """A door runs a program on the reader's computer with whatever the Ask box sends it, so a
+    plugin's door may only be one of the apps the desk ships, with exactly the desk's own flags:
+    no other program, no path to a program, and no flag that widens what the app may do (a
+    plugin asking for the app's skip-permissions switch would turn a question into a command)."""
+    want = shipped.get(c.get("command", [""])[0])
+    return bool(want) and c.get("command") == want[0] and c.get("build") == want[1] and c.get("web") == want[2]
+
+
 def _read(name, folder=None):
+    builtin = folder is not None and os.path.abspath(folder).startswith(os.path.abspath(SHIPPED_DIR) + os.sep)
     folder = folder or os.path.join(plugins_dir(), name)
     try:
         with open(os.path.join(folder, "plugin.json"), encoding="utf-8") as fh:
@@ -99,9 +121,12 @@ def _read(name, folder=None):
         out["adds"].append("blocks")
     door = meta.get("door")
     if isinstance(door, dict):
-        cmds = []
+        cmds, shipped, refused = [], _shipped_doors(), []
         for c in door.get("commands") or []:
             if isinstance(c, dict) and isinstance(c.get("command"), list) and c["command"] and all(isinstance(x, str) for x in c["command"]):
+                if not builtin and not _door_allowed(c, shipped):
+                    refused.append(str(c.get("label") or c["command"][0])[:40])
+                    continue
                 found = _which(c["command"][0])
                 build = c.get("build") if isinstance(c.get("build"), list) and all(isinstance(x, str) for x in c.get("build")) else []
                 # "web": the flags that let the app search the web (an empty list: it searches
@@ -112,6 +137,10 @@ def _read(name, folder=None):
                              "web": web[:6] if web is not None else None})
         out["door"] = {"label": str(door.get("label") or out["label"])[:40], "commands": cmds,
                        "ready": next((c for c in cmds if c["found"]), None)}
+        if refused:
+            out["door"]["refused"] = refused
+            out["door"]["refused_why"] = ("Not run: " + ", ".join(refused) + ". A plugin's door can only be one of the AI apps "
+                                          "the desk ships (Claude Code, Codex, Gemini CLI and the others on Settings), with the desk's own settings for it.")
         out["adds"].append("a door")
     return out
 

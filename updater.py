@@ -28,6 +28,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -54,6 +55,14 @@ NEVER_TOUCH = (".env", "cache", "logs", "output", ".venv", "venv", ".git",
 # The desk's own reference tables under data/: refreshed only when the local
 # copy is byte-identical to a version that shipped (the reader never edited it).
 SHIPPED_DATA = {"commodities.json", "exposure_us.json", "exposure_example.json"}
+
+# Every release's MANIFEST.json is signed by the GreekSoup team (MANIFEST.sig, ed25519). The update
+# installs only a version whose manifest one of these keys signed, and only files whose bytes match
+# the hash the signed manifest gives them. So neither a changed download nor a GitHub or GitLab
+# account in the wrong hands can put code on a reader's computer. The second key is a backup held
+# apart from the first. A fork with its own releases adds its key as DESK_UPDATE_PUBLIC_KEY in .env.
+PUBLIC_KEYS = ("ad0b35bc58dee57f2d30e418678c6f9959490c7023568e2d7a2d0cb7af2883f5",
+               "baf2906fae912e837f87f594ca407fc58a4e889ac3f49bb1cbf209248e534a91")
 
 _lock = threading.Lock()
 _state = {"busy": False}
@@ -198,6 +207,121 @@ def auto_enabled():
     return os.getenv("DESK_AUTO_UPDATE", "").strip().lower() in ("on", "1", "true", "yes")
 
 
+# ---------------------------------------------------------------- the signature
+# Ed25519 verification (RFC 8032) in plain Python, so checking an update needs no package a reader
+# might not have. Only verification lives here; releases are signed by scripts/make_manifest.py.
+_EP = 2 ** 255 - 19
+_EL = 2 ** 252 + 27742317777372353535851937790883648493
+_ED = -121665 * pow(121666, _EP - 2, _EP) % _EP
+_EI = pow(2, (_EP - 1) // 4, _EP)
+
+
+def _ed_x(y, sign):
+    xx = (y * y - 1) * pow(_ED * y * y + 1, _EP - 2, _EP) % _EP
+    x = pow(xx, (_EP + 3) // 8, _EP)
+    if (x * x - xx) % _EP:
+        x = x * _EI % _EP
+    if (x * x - xx) % _EP:
+        return None
+    if x == 0 and sign:
+        return None
+    return _EP - x if (x & 1) != sign else x
+
+
+def _ed_add(a, b):
+    x1, y1, z1, t1 = a
+    x2, y2, z2, t2 = b
+    A = (y1 - x1) * (y2 - x2) % _EP
+    B = (y1 + x1) * (y2 + x2) % _EP
+    C = t1 * 2 * _ED * t2 % _EP
+    D = z1 * 2 * z2 % _EP
+    E, F, G, H = B - A, D - C, D + C, B + A
+    return (E * F % _EP, G * H % _EP, F * G % _EP, E * H % _EP)
+
+
+def _ed_mul(n, pt):
+    q = (0, 1, 1, 0)
+    while n:
+        if n & 1:
+            q = _ed_add(q, pt)
+        pt = _ed_add(pt, pt)
+        n >>= 1
+    return q
+
+
+def _ed_point(b):
+    y = int.from_bytes(b, "little")
+    sign, y = y >> 255, y & ((1 << 255) - 1)
+    if y >= _EP:
+        return None
+    x = _ed_x(y, sign)
+    return None if x is None else (x, y, 1, x * y % _EP)
+
+
+_EGY = 4 * pow(5, _EP - 2, _EP) % _EP
+_EG = (_ed_x(_EGY, 0), _EGY, 1, _ed_x(_EGY, 0) * _EGY % _EP)
+
+
+def ed25519_verify(public_key, message, signature):
+    """True when signature (64 bytes) is public_key's (32 bytes) signature of message."""
+    if len(public_key) != 32 or len(signature) != 64:
+        return False
+    a, r = _ed_point(public_key), _ed_point(signature[:32])
+    s = int.from_bytes(signature[32:], "little")
+    if a is None or r is None or s >= _EL:
+        return False
+    h = int.from_bytes(hashlib.sha512(signature[:32] + public_key + message).digest(), "little") % _EL
+    left, right = _ed_mul(s, _EG), _ed_add(r, _ed_mul(h, a))
+    return (left[0] * right[2] - right[0] * left[2]) % _EP == 0 and (left[1] * right[2] - right[1] * left[2]) % _EP == 0
+
+
+def public_keys():
+    extra = os.getenv("DESK_UPDATE_PUBLIC_KEY", "").strip().lower()
+    return PUBLIC_KEYS + ((extra,) if re.fullmatch(r"[0-9a-f]{64}", extra) else ())
+
+
+def manifest_signed(manifest_bytes, sig_text):
+    """True when one of the desk's keys signed these manifest bytes (line endings folded, as the
+    hashes are, so a checkout that turned them to CRLF still verifies)."""
+    try:
+        sig = bytes.fromhex((sig_text or "").strip())
+    except ValueError:
+        return False
+    msg = manifest_bytes.replace(b"\r\n", b"\n")
+    return any(ed25519_verify(bytes.fromhex(k), msg, sig) for k in public_keys())
+
+
+def _safe_rel(rel):
+    """A manifest path is a plain relative path inside the desk: no '..', no leading slash or
+    drive, no backslash, no '.' segment (./.env would slip past the never-touch list)."""
+    if not isinstance(rel, str) or not rel or "\\" in rel or rel.startswith("/") or ":" in rel:
+        return False
+    return all(part not in ("", ".", "..") for part in rel.split("/"))
+
+
+def _verify_download(root, manifest):
+    """Refuse a download whose manifest is not signed by the desk's keys, or whose files are not
+    the bytes the signed manifest names. Nothing in the desk folder has been written yet."""
+    with open(os.path.join(root, "MANIFEST.json"), "rb") as fh:
+        raw = fh.read()
+    try:
+        with open(os.path.join(root, "MANIFEST.sig"), encoding="utf-8") as fh:
+            sig = fh.read()
+    except OSError:
+        sig = ""
+    if not manifest_signed(raw, sig):
+        raise ValueError("this version is not signed by the GreekSoup team, so the desk did not install it. "
+                         "Nothing in the desk folder was changed")
+    bad = [rel for rel in manifest["files"] if not _safe_rel(rel)]
+    if bad:
+        raise ValueError("the version names a file outside the desk folder (" + bad[0][:80] + "); nothing was changed")
+    for rel, want in manifest["files"].items():
+        src = os.path.join(root, *rel.split("/"))
+        if os.path.isfile(src) and file_hash(src) != want:
+            raise ValueError(f"{rel} in the download is not the file the signed version names, so the desk "
+                             "did not install it. Nothing in the desk folder was changed")
+
+
 # ---------------------------------------------------------------- the update
 def _safe_extract(zf, dest):
     """Unpack only what the desk will use: the files MANIFEST.json lists, plus VERSION and
@@ -224,7 +348,7 @@ def _safe_extract(zf, dest):
     if not manifest or "files" not in manifest:
         zf.extractall(dest)      # an old zip without a manifest; apply() says so
         return
-    wanted = set(manifest["files"]) | {"VERSION", "MANIFEST.json"}
+    wanted = set(manifest["files"]) | {"VERSION", "MANIFEST.json", "MANIFEST.sig"}
     for name in names:
         rel = name.split("/", 1)[1] if "/" in name else ""
         if rel in wanted:
@@ -394,6 +518,7 @@ def apply():
         manifest = _read_json(os.path.join(root, "MANIFEST.json"))
         if not manifest or "files" not in manifest:
             raise ValueError("the new version carries no MANIFEST.json")
+        _verify_download(root, manifest)
         rep["to"] = manifest.get("version") or (parse_version_text(
             open(os.path.join(root, "VERSION"), encoding="utf-8").read()) or [{}])[0].get("version")
         history = manifest.get("history", {})

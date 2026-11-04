@@ -78,6 +78,24 @@ main{max-width:1280px;margin:0 auto;padding:18px 22px}
 .stats.kv .st .l{font-size:12px!important;color:var(--ink2);letter-spacing:0!important}
 .stats.kv .st .v{font-size:13px;font-weight:600;margin:0;font-variant-numeric:tabular-nums;text-align:right}
 @media(max-width:700px){.stats.kv{grid-template-columns:1fr}.stats.kv .st:nth-last-child(2){border-bottom:1px solid var(--line)}}
+/* a phone: everything wraps inside the screen; nothing is taken away. A row of buttons wider than
+   the screen (the nine chart periods) had pushed the whole page sideways */
+@media(max-width:700px){
+  main{padding:14px 12px}
+  .seg{flex-wrap:wrap;max-width:100%}
+  .panel-h > *, .chartbar > *{min-width:0;max-width:100%}
+  .hero{gap:6px 12px}.hero .px{font-size:22px}
+  #notesdock select, #notesdock input{max-width:100%}
+  #notesdock .panel-h > span{flex-wrap:wrap}
+  header .right{min-width:0;flex-wrap:wrap;justify-content:flex-end;gap:6px}
+  header .right input{width:120px}
+  .finwrap{max-width:100%;overflow-x:auto}
+  section.panel > table{display:block;overflow-x:auto;max-width:100%}
+  #notesdock .panel-h span{max-width:100%;flex-wrap:wrap}
+  #notesdock a{white-space:nowrap;display:inline-block;margin-bottom:4px}
+  #notesdock #tkin{width:100%!important}
+  .news-item{flex-wrap:wrap;gap:2px 10px}.news-item a{flex:1 1 100%;min-width:0;order:2}.news-item .pub{order:1}
+}
 /* the chart's controls in two rows: what period (beside the title), how it is drawn (the strip below) */
 #chartpanel .chartbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 14px;border-bottom:1px solid var(--line)}
 #chartpanel .chartbar .gap{flex:1}

@@ -149,6 +149,9 @@ def build(symbols, held, float_lookup=None):
             if r:
                 trend.append([p, r.get("currentShortPositionQuantity")])
         flt = float_lookup(sym) if float_lookup else None
+        basis = "float"
+        if isinstance(flt, tuple):          # (shares, "float" | "shares_out")
+            flt, basis = flt
         si = cur.get("currentShortPositionQuantity") if cur else None
         svs = []
         for day in sorted(sv_by_day):
@@ -166,7 +169,7 @@ def build(symbols, held, float_lookup=None):
             "si_chg_pct": cur.get("changePercent") if cur else None,
             "dtc": cur.get("daysToCoverQuantity") if cur else None,
             "adv": cur.get("averageDailyVolumeQuantity") if cur else None,
-            "float": flt,
+            "float": flt, "float_basis": basis if flt else None,
             "si_pct_float": (si / flt * 100) if (si and flt) else None,
             "si_trend": trend,
             "srv_latest": srv_latest, "srv_avg": srv_avg, "srv_series": svs,

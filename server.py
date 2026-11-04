@@ -3853,17 +3853,28 @@ _float_cache = {}
 
 
 def _float_shares(sym):
-    """Float shares from the free feed's key statistics (an older desk's own key as a fallback); day-cached."""
+    """(shares, basis) for the short table's last column. Float shares from the free feed's key
+    statistics (an older desk's own key as a fallback), day-cached, and a float read before kept
+    for a week when the feed refuses. With no float at all, the shares outstanding from Shikshan
+    Nivesh Data stand in, marked "shares_out" so the page says so: a short position against every
+    share is the smaller percentage, never a guess at the float."""
     hit = _float_cache.get(sym)
     if hit and time.time() - hit[0] < 24 * 3600:
-        return hit[1]
+        return hit[1], "float"
     f = _num((freefeed.summary(sym, ["defaultKeyStatistics"]).get("defaultKeyStatistics") or {}).get("floatShares"))
     if not f:
         rows = fmp_get("shares-float", symbol=sym)
         f = _num((rows[0] or {}).get("floatShares")) if isinstance(rows, list) and rows else None
     if f:
         _float_cache[sym] = (time.time(), f)
-    return f
+        return f, "float"
+    if hit and time.time() - hit[0] < 7 * 24 * 3600:
+        return hit[1], "float"
+    if sn_on():
+        out = (_peer_figures(sym) or {}).get("shares_out")
+        if isinstance(out, (int, float)) and out > 0:
+            return out, "shares_out"
+    return None, None
 
 
 def build_short():
