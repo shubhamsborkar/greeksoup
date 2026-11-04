@@ -122,6 +122,7 @@ tbody tr:last-child td{border-bottom:none}
 .dcfout .vs{font-size:13px;font-weight:700;margin-bottom:10px}
 .dcfout .an-row{font-size:11.5px}
 </style>
+<link rel="stylesheet" href="/assets/calm.css">
 </head>
 <body>
 <header>
@@ -1096,7 +1097,7 @@ function renderUS(d,app){
   const eRows=(d.earnings||[]).map(e=>{
     const fut=e.date>now, beat=(e.epsActual!=null&&e.epsEstimated!=null)?e.epsActual-e.epsEstimated:null;
     return `<tr><td class="mono ${fut?"":"dim"}">${e.date}${fut?' <span style="color:var(--amber);font-size:9px">NEXT</span>':""}</td>
-      <td class="mono">${e.epsActual??"—"}</td><td class="mono dim">${e.epsEstimated??"—"}</td>
+      <td class="mono">${e.epsActual??"—"}</td><td class="mono dim">${e.epsEstimated!=null?(+e.epsEstimated).toFixed(2):"—"}</td>
       <td class="mono ${cls(beat)}">${beat==null?"—":(beat>=0?"BEAT":"MISS")}</td>
       <td class="mono dim">${e.revenueActual?big(e.revenueActual):"—"}</td></tr>`;}).join("");
   const insRows=(d.insiders||[]).slice(0,9).map(i=>{
@@ -1192,7 +1193,7 @@ function renderUS(d,app){
       <section class="panel">
         <div class="panel-h"><h2>Dividends</h2></div>
         <div class="panel-b">
-          ${(d.dividends||[]).length?d.dividends.map(v=>`<div class="an-row"><span class="k mono">${v.date||v.paymentDate||""}</span><span class="mono">${usd(v.dividend??v.adjDividend)}</span></div>`).join(""):'<div class="dim" style="font-size:12px">No dividend.</div>'}
+          ${(d.dividends||[]).length?d.dividends.map(v=>`<div class="an-row"><span class="k mono">${v.date||v.paymentDate||""}</span><span class="mono">${usd(v.dividend??v.adjDividend)}</span></div>`).join(""):p.lastDividend?'':'<div class="dim" style="font-size:12px">No dividend.</div>'}
           ${p.lastDividend?`<div class="an-row"><span class="k">Yield (ann.)</span><span class="mono">${pc(p.lastDividend/px,2)}</span></div>`:""}
         </div>
       </section>

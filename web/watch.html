@@ -76,6 +76,7 @@ td.sym .ex{display:inline-block;max-width:150px;overflow:hidden;text-overflow:el
   vertical-align:bottom;white-space:nowrap}
 footer{max-width:1500px;margin:14px auto 40px;padding:0 22px;color:var(--muted);font-size:11px}
 </style>
+<link rel="stylesheet" href="/assets/calm.css">
 </head>
 <body>
 <header>
@@ -228,7 +229,7 @@ function render(){
         <td class="mono" style="font-weight:700" data-k="l${r.code}">${inr(r.ltp,dp)}</td>
         <td class="mono ${cls(r.day_pct)}" data-k="d${r.code}">${pct(r.day_pct)}</td>
         <td class="mono ${cls(r.chg)}" data-k="c${r.code}">${r.chg!=null?(r.chg>=0?"+":"−")+inr(Math.abs(r.chg),dp):"—"}</td>
-        <td class="mono dim" data-k="v${r.code}">${r.ttq!=null?inr(r.ttq,0):"—"}</td>
+        <td class="mono dim" data-k="v${r.code}">${r.ttq?inr(r.ttq,0):"—"}</td>
         <td class="mono dim">${inr(r.open,dp)}</td>
         <td class="mono dim">${inr(r.high,dp)}</td>
         <td class="mono dim">${inr(r.low,dp)}</td>
@@ -246,7 +247,7 @@ function render(){
         <td class="mono dim">${inr(r.prev,dp)}</td>
         <td class="mono dim">${inr(r.high,dp)}</td>
         <td class="mono dim">${inr(r.low,dp)}</td>
-        <td class="mono dim" data-k="v${r.code}">${r.ttq!=null?inr(r.ttq,0):"—"}</td>
+        <td class="mono dim" data-k="v${r.code}">${r.ttq?inr(r.ttq,0):"—"}</td>
         <td class="mono dim">${inr(r.ylow,dp)}</td>
         <td class="mono dim">${inr(r.yhigh,dp)}</td>
         <td><button class="rm" data-c="${r.code}" title="Remove">×</button></td></tr>`;
@@ -258,7 +259,7 @@ function render(){
         <td class="mono dim" data-k="oq${r.code}">${r.offer_qty!=null?inr(r.offer_qty,0):"—"}</td>`:""}
         <td class="mono" style="font-weight:700" data-k="l${r.code}">${inr(r.ltp,dp)}</td>
         <td class="mono ${cls(r.day_pct)}" data-k="d${r.code}">${pct(r.day_pct)}</td>
-        <td class="mono dim" data-k="v${r.code}">${r.ttq!=null?inr(r.ttq,0):"—"}</td>
+        <td class="mono dim" data-k="v${r.code}">${r.ttq?inr(r.ttq,0):"—"}</td>
         <td class="mono dim">${inr(r.open,dp)}</td>
         <td class="mono dim">${inr(r.high,dp)}</td>
         <td class="mono dim">${inr(r.low,dp)}</td>

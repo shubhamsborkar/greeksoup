@@ -159,6 +159,7 @@ footer b{color:var(--ink2)}
 .ecard .pur{font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5;
   white-space:normal}
 </style>
+<link rel="stylesheet" href="/assets/calm.css">
 </head>
 <body>
 
@@ -497,7 +498,7 @@ function render(snap){
       <h3>No broker connected right now</h3>
       <p>This screen shows a broker account: holdings, open futures, cash and margin, priced live. Three ways to get a book on the desk.</p>
       <p style="margin-top:8px"><b>Without a broker:</b> open <a href="/book" style="color:var(--accent)">Desk · Book</a> and add your holdings by hand with Yahoo symbols (AAPL, MC.PA, 0700.HK). Prices come from Yahoo's free feed, no key needed, any market.</p>
-      <p style="margin-top:8px"><b>With your broker:</b> open <a href="/settings" style="color:var(--accent)">Settings</a> and pick it from the list. The desk connects to Alpaca, ICICI Direct, Interactive Brokers, Tradier, Trading 212 and Zerodha as it comes, read-only, with what each one hands out from its own dashboard. Two of those ask for a fresh login every trading day, which is why this notice can also appear in the morning.</p>
+      <p style="margin-top:8px"><b>With your broker:</b> open <a href="/settings" style="color:var(--accent)">Settings</a> and pick it from the list. The desk connects to fifteen brokers as it comes, read-only, with what each one hands out from its own dashboard: Alpaca, Angel One, Charles Schwab, Dhan, Groww, ICICI Direct, Interactive Brokers, Longbridge, Questrade, Saxo Bank, tastytrade, Tradier, Trading 212, Upstox and Zerodha. Settings says which of them ask for a fresh login every trading day, which is why this notice can also appear in the morning.</p>
       <p style="margin-top:8px"><b>With any other broker</b> that offers an API: open the desk folder in your AI agent and ask it to write the broker's file from its documentation; Settings lists the ones the desk knows about and the way in for each. Until then this screen stays dark and every other screen works.</p></div>`;
     document.getElementById("ticker").innerHTML="";
     return;

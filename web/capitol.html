@@ -63,6 +63,7 @@ td.person{max-width:190px;overflow:hidden;text-overflow:ellipsis}
 footer{max-width:1420px;margin:26px auto 0;padding:14px 22px;border-top:1px solid var(--line);
   color:var(--muted);font-size:11px;line-height:1.6}
 </style>
+<link rel="stylesheet" href="/assets/calm.css">
 </head>
 <body>
 <header>
@@ -159,7 +160,7 @@ function renderMembers(){
     }).join("");
     return `<div class="mem"><div class="mem-h"><span class="n">${m.label}</span>
         <span class="ch ${m.chamber}">${m.chamber.toUpperCase()}</span>
-        <span class="cnt">${m.count} filings on record · scroll for the latest ${m.rows.length}</span></div>
+        <span class="cnt">${m.count?`${m.count} filing${m.count===1?"":"s"} on record`+(m.count>m.rows.length?` · the latest ${m.rows.length} below`:""):"none on record in the window read"}</span></div>
       <div class="memscroll"><table><thead><tr><th>Traded</th><th>Ticker</th><th>Type</th><th>Amount</th><th>Asset</th></tr></thead>
       <tbody>${rows||'<tr><td class="dim" style="padding:14px">No filings.</td></tr>'}</tbody></table></div></div>`;
   }).join("") : '<div class="empty">No members tracked yet. Add one with Your list in the top bar.</div>';

@@ -1,0 +1,91 @@
+/* GreekSoup Desk: the calm layer (design pass, 4 November 2026). Loaded LAST on every page, after the
+   page's own <style>, so each rule here settles one pattern everywhere at once. It moves weight, colour
+   and boxes only: no section, table, column or tool is removed. The list it answers is
+   output/research-desk-3/design-pass-2026-11-04/SLOP_LIST.html in the author's vault. */
+
+/* 1. One layer of explanation. The intro paragraph folds to one quiet line (desk.js adds "More"),
+   panel captions and the foot notes stay small and faded. */
+main > .sub, .wrap > .sub, body > .sub{font-size:12px;line-height:1.55;color:var(--muted);max-width:1040px}
+.sub.fold{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+.sub.fold.open{display:block;-webkit-line-clamp:unset}
+.submore{background:none;border:0;padding:0 0 0 2px;margin:-12px 0 16px;color:var(--ink2);font:inherit;font-size:11.5px;
+  cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line2)}
+.submore:hover{color:var(--ink)}
+.panel-h > .s, .panel-h > span.s, .panel-h small, .panel-h .sub{font-size:11px;color:var(--muted);letter-spacing:0;text-transform:none}
+footer{font-size:10.5px;color:var(--muted);opacity:.9}
+
+/* 2. Capitals for column heads only. Panel and section titles in sentence case at a real title size. */
+.panel-h h2, main h2, h2.grp, #usdesk .panel-h h2, #usdesk .us-head h2{font-size:13.5px!important;font-weight:650!important;letter-spacing:0!important;text-transform:none!important;color:var(--ink)!important}
+#usdesk .pcol h3{letter-spacing:.02em;text-transform:none;font-size:11.5px;color:var(--ink2)}
+.mv h3, .tokenbar h3{letter-spacing:0;text-transform:none}
+.mv h3{font-size:12.5px;font-weight:650;color:var(--ink)}
+th{letter-spacing:.04em}
+.tile .l, #usdesk .tile .l{letter-spacing:.02em;text-transform:none;font-size:11.5px;color:var(--ink2)}
+th, #usdesk th{letter-spacing:.04em}
+
+tr.day td{color:var(--ink)!important;text-transform:none!important;letter-spacing:0!important;font-size:12.5px!important;font-weight:650!important}
+td.t{text-transform:none!important;letter-spacing:0!important;font-size:11px!important}
+td.t.held{color:var(--ink2)!important}
+
+/* 3. Badges that sit on every row read as plain small text, coloured only where colour means something. */
+.cc:empty, .badge:empty, .chip:empty{display:none!important}
+.ch, .imp, .badge, .fm, td .chip, .tag, td .cc{background:none!important;border:0!important;padding:0!important;border-radius:0!important;
+  font-weight:500!important;letter-spacing:.01em!important;text-transform:none!important;font-size:11px!important}
+.ch, td .cc, .badge{color:var(--muted)!important}
+.ch{text-transform:lowercase!important}
+td .cc.US, td .cc.home, td .cc.IN{color:var(--ink2)!important;font-weight:650!important}
+.imp{color:var(--muted)!important;text-transform:lowercase!important}
+.imp.High{color:var(--neg)!important;font-weight:650!important}
+.imp.Medium{color:var(--amber)!important}
+
+/* 4. Stat tiles become a quiet strip: no boxes, a hairline between figures. */
+.tiles, .kpis{gap:0!important}
+.tile{background:none!important;border:0!important;border-left:1px solid var(--line)!important;border-radius:0!important;padding:4px 18px 6px!important}
+.tile .v{font-size:18px}
+.tile .s{font-size:10.5px}
+
+/* 5. A cell with nothing in it recedes; a column with nothing in it says why on hover (desk.js marks them). */
+td.nil, .nil{color:var(--line2)!important}
+th.nilcol{color:var(--line2)!important;cursor:help}
+td.nilcol{color:var(--line2)!important}
+
+/* 6. Orange is for actions. Links inside running text are ink, underlined. */
+.sub a, footer a, .tokenbar a, .fin-note a, .panel-b a:not(.btn), p a{color:var(--ink)!important;text-decoration:underline;
+  text-decoration-color:var(--line2);text-underline-offset:2px}
+.sub a:hover, footer a:hover, .tokenbar a:hover, p a:hover{text-decoration-color:var(--ink)}
+.oisplit i{opacity:.55}
+
+/* 7. Glyphs that repeat what the colour already says. */
+table .arrow{display:none}
+.mv .bar{display:none}
+
+/* 8. One level of box. Notices are a quiet line, not a coloured callout. */
+.tokenbar{background:none!important;border:0!important;border-left:2px solid var(--amber)!important;border-radius:0!important;
+  padding:2px 0 2px 14px!important;margin:6px 0 18px!important}
+.tokenbar h3{font-size:13.5px;color:var(--ink)!important;margin-bottom:4px}
+.tokenbar p{font-size:12.5px}
+
+/* 9. Sparklines are lines. The filled gradient under them goes. */
+svg path[fill^="url("], svg polygon[fill^="url("]{fill-opacity:0!important}
+
+/* Per-screen tags that the classes above do not reach (same rules: plain text, colour only where it means something) */
+.pc{background:none!important;padding:0 8px 0 0!important;font-family:inherit!important;font-size:11px!important}
+.pk{background:none!important;border:0!important;border-left:1px solid var(--line)!important;border-radius:0!important;padding:2px 12px!important}
+.pk b{color:var(--ink)!important}
+.press h3{text-transform:none!important;letter-spacing:0!important;font-size:12.5px!important;color:var(--ink)!important}
+.cp{background:none!important;padding:0!important;font-weight:650!important}
+input::placeholder{text-transform:none}
+.st .l, .sec .t{text-transform:none!important;letter-spacing:.01em!important;font-size:10.5px!important}
+.fm{color:var(--ink2)!important}
+.fm.d{color:var(--ink)!important;font-weight:650!important}
+.loading{padding:22px 0 26px!important;text-align:left!important}
+/* Chain: one box per layer, tags as text, the starter note as a quiet line */
+.layer .st, .co .st{background:none!important;border:0!important;padding:0!important;font-weight:500!important;letter-spacing:0!important;
+  text-transform:lowercase!important;font-size:11px!important}
+.co .st.OWNED{color:var(--accent)!important;font-weight:650!important}
+.rc{letter-spacing:0!important;text-transform:lowercase!important;font-size:10.5px!important}
+.flow b{letter-spacing:0!important;text-transform:lowercase!important;font-size:10.5px!important;font-weight:650!important;color:var(--ink2)!important}
+.starternote{background:none!important;border:0!important;border-left:2px solid var(--line2)!important;border-radius:0!important;
+  padding:2px 0 2px 14px!important;color:var(--ink2)!important}
+.chaintabs button.new{border-style:solid!important}
+.lnum{background:none!important;border-right:1px solid var(--line)!important}

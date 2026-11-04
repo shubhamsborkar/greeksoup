@@ -1347,3 +1347,60 @@ const MARK_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l
     return out;
   };
 })();
+
+/* The calm layer's two jobs that CSS cannot do (design pass, 4 November 2026; web/assets/calm.css).
+   1. A page's intro paragraph folds to one line with "More" beside it; every word stays, one click away.
+   2. A table cell that holds only a dash recedes, and a column that is dashes all the way down says why
+      on hover instead of shouting ten dashes. Nothing is removed. */
+(function () {
+  const DASH = /^[—–\-]$/;
+  function foldIntros() {
+    document.querySelectorAll("main > .sub, .wrap > .sub").forEach(function (el) {
+      if (el.dataset.folded) return;
+      el.dataset.folded = "1";
+      const lh = parseFloat(getComputedStyle(el).lineHeight) || 18;
+      if (el.scrollHeight < lh * 1.9) return;          // one line already: nothing to fold
+      el.classList.add("fold");
+      const b = document.createElement("button");
+      const first = !document.querySelector(".submore"), more = first ? "More about this screen" : "More";
+      b.className = "submore"; b.type = "button"; b.textContent = more;
+      b.onclick = function () { const o = el.classList.toggle("open"); b.textContent = o ? "Less" : more; };
+      el.onclick = function () { if (!el.classList.contains("open")) b.onclick(); };
+      el.after(b);
+    });
+  }
+  function markNils(root) {
+    (root || document).querySelectorAll("table").forEach(function (t) {
+      const rows = t.tBodies.length ? Array.from(t.tBodies).flatMap(function (b) { return Array.from(b.rows); }) : [];
+      if (!rows.length) return;
+      const counts = {}, filled = {};
+      rows.forEach(function (r) {
+        Array.from(r.cells).forEach(function (c, i) {
+          if (c.colSpan > 1) return;
+          const nil = DASH.test(c.textContent.trim());
+          c.classList.toggle("nil", nil);
+          counts[i] = (counts[i] || 0) + 1;
+          if (!nil) filled[i] = 1;
+        });
+      });
+      const head = t.tHead && t.tHead.rows.length ? t.tHead.rows[t.tHead.rows.length - 1] : null;
+      Object.keys(counts).forEach(function (i) {
+        const empty = counts[i] >= 3 && !filled[i];
+        rows.forEach(function (r) { const c = r.cells[i]; if (c) c.classList.toggle("nilcol", empty); });
+        const th = head && head.cells[i];
+        if (th) {
+          th.classList.toggle("nilcol", empty);
+          if (empty) th.title = "Nothing in this column on this desk yet: no source here fills it.";
+          else if (th.title.indexOf("Nothing in this column") === 0) th.title = "";
+        }
+      });
+    });
+  }
+  let pending = 0;
+  function pass() { pending = 0; foldIntros(); markNils(); }
+  function soon() { if (!pending) pending = setTimeout(pass, 250); }
+  document.addEventListener("DOMContentLoaded", function () {
+    pass();
+    new MutationObserver(soon).observe(document.body, { childList: true, subtree: true });
+  });
+})();

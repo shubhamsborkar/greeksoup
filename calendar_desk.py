@@ -60,7 +60,7 @@ def yahoo_events(sym):
         if eps is not None:
             detail.append(f"EPS expected {eps:.2f}")
         if rev:
-            detail.append("revenue expected " + (f"{rev / 1e9:.2f} bn" if rev >= 1e9 else f"{rev / 1e6:.0f} mn"))
+            detail.append("revenue expected " + (f"{rev / 1e12:,.2f} tn" if rev >= 1e12 else f"{rev / 1e9:,.2f} bn" if rev >= 1e9 else f"{rev / 1e6:,.0f} mn"))
         window = f" (between {dates[0]} and {dates[-1]})" if len(dates) > 1 else ""
         out.append({"date": dates[0], "kind": "results", "what": "Results" + window, "detail": ", ".join(detail),
                     "window_end": dates[-1] if len(dates) > 1 else ""})
