@@ -20,17 +20,17 @@ So a reader in the US runs Desk · Home on Alpaca, Charles Schwab, Interactive B
 
 ## What runs without any key
 
-The desk is built to fetch whatever it can from the free record before it asks for a key. With no broker keys and no feed key it still boots, and this is what each tab does:
+The desk is built to fetch whatever it can from the free record before it asks for a key. With no broker keys and no data key it still boots, and this is what each tab does:
 
-| Tab | With no key at all | What the feed key adds |
+| Tab | With no key at all | What a Shikshan Nivesh Data key adds |
 |---|---|---|
-| The US panels of Desk · Home | Positions priced from Yahoo; earnings countdown from Yahoo; insider tape from SEC EDGAR (Form 4, your names); market pulse empty | Insider scan across the whole market; the movers and sector pulse |
-| Watch · US, Global | Yahoo quotes, any Yahoo symbol from any exchange (`TALABAT.AE`, `0700.HK`, `ASML.AS`) | 50/200-day distance and market cap columns |
-| Ticker page (`/t?symbol=X`) | Chart and quote from Yahoo, profile, ratios, targets and analyst counts from Yahoo when it is not rate-limiting, insider table from EDGAR | Statements, ratios history, segments, estimates, peers, dividends, news, the DCF seeds |
-| Funds | 13F and 13D/G straight from EDGAR | Nothing, it never uses the feed |
+| The US panels of Desk · Home | Positions priced from Yahoo; earnings countdown from Yahoo; insider tape from SEC EDGAR (Form 4, your names); market pulse from the free record | Nothing |
+| Watch · US, Global | Yahoo quotes, any Yahoo symbol from any exchange (`TALABAT.AE`, `0700.HK`, `ASML.AS`) | Nothing |
+| Ticker page (`/t?symbol=X`) | Chart, quote, profile, ratios, targets, analyst counts, street estimates and news from Yahoo when it is not rate-limiting, insider table from EDGAR | Shikshan Nivesh Data: six years of statements, ratio history, segments, peers, the yearly dividend record, the DCF seeds. (Without it, the free record gives four years of statements and the dividend payments.) |
+| Funds | 13F and 13D/G straight from EDGAR | Nothing |
 | Flow | CBOE's free delayed chains | Nothing |
 | Short | FINRA's free files | Nothing |
-| Capitol | House disclosures read from the Clerk's public PDFs (the Senate site blocks scripts) | Both chambers, cleaner rows |
+| Capitol | House disclosures read from the Clerk's public PDFs (the Senate site blocks scripts) | Nothing |
 | Macro | FRED, free, plus the home market file's own cards | Nothing |
 | Risk | Yahoo price histories, against the home market's index and the S&P 500 | Nothing |
 | Chain | Your own map, priced from Yahoo | Nothing |
@@ -59,7 +59,7 @@ Two ways to run it. Pick one.
 
 **Always on.** Double-click `Keep Desk Running.command` (Mac) or `Keep Desk Running.bat` (Windows) once. From then on the desk starts by itself when you log in, and if it ever stops, for any reason, it is back within a few seconds. Shut the laptop and it sleeps with it; open the lid and it carries on. `Stop Desk.command` / `Stop Desk.bat` switches it off (and, on the Mac, back on). On the Mac this uses the built-in launch agent; on Windows it registers a task in Task Scheduler that runs `desk-service.ps1` hidden at logon. The Windows files were written from Microsoft's documented commands and have not been run on a Windows machine by the author; if one of them complains, paste the window's text to your coding agent and ask it to fix it, which is the same method that built the desk. On Linux the same thing is a five-line systemd user unit (`ExecStart=<folder>/.venv/bin/python server.py`, `WorkingDirectory=<folder>`, `Restart=always`, enabled with `systemctl --user enable --now`), and your agent can write it.
 
-Nothing on the desk needs a login of its own: the US panels, the watch grids, Funds, Flow, Short, Capitol, Macro and Risk run from the public record and the optional feed key you set once.
+Nothing on the desk needs a login of its own: the US panels, the watch grids, Funds, Flow, Short, Capitol, Macro and Risk run from the public record and the optional data key you set once.
 
 Whether Desk · Home needs anything each day is up to your broker, not the desk. Most brokers keep an API session alive for weeks or months once the key is set. A broker file with `daily_login` set (the two Indian files as shipped) is the exception: that regulator requires a fresh login every trading day, so on a morning you want the Home page live you paste what the login redirect hands back on the Settings page (the file's `token_param` names it; `exchange_token` turns it into the day's token, cached in `session_token_primary.txt`), and the desk reconnects without a restart. A broker app whose redirect address is `http://localhost:8765/settings` delivers it to the page by itself. Skip the login and the desk keeps serving the last saved book re-priced live and shows a ribbon, and every other page is unaffected.
 
@@ -118,8 +118,7 @@ The shipped India broker file reaches its broker through `breeze_session.py`, `c
 - Commodities (`commods.py`), all keyless: Yahoo's chart feed for exchange-traded contracts (gold, copper, crude, wheat, cotton ...), FRED's monthly IMF series for the long history of benchmarks with no contract, and one sentence per page from Trading Economics for those benchmarks' current level and day, month and year change (rubber, zinc, urea, coking coal, freight). The scraped sentence is date-stamped and the last good value persists, so a changed page degrades to stale, never to blank. A broker file's optional `commodities_local` attaches local price lines to the cards (the shipped India file adds MCX front-month futures through the broker's history endpoint and the Rubber Board of India's daily sheet); they appear only while that broker is connected, so a reader elsewhere never sees them.
 - House Clerk, keyless: periodic transaction reports as PDFs, parsed with pypdf (`house_ptr.py`).
 - Yahoo Finance, keyless: quotes, candles, and the ticker page basics when there is no feed (`freefeed.py`).
-- Shikshan Nivesh Data (optional, recommended): the three statements, the ratio history and the segment mix on the ticker page, from SEC filings in one standard layout; `data_providers/shikshan_nivesh.py`, three calls a company, cached twelve hours. The key (`SN_API_KEY`) is read for nothing else.
-- Financial Modeling Prep (optional): US quotes, statements, estimates, peers, insider filings, Congress trades. The desk was built on the Starter plan; `scripts/audit_fmp.py` probes which endpoints your plan allows.
+- Shikshan Nivesh Data (optional, recommended, the main source for financials): the three statements, the ratio history, the segment mix and the dividend per share by year on the ticker page, from SEC filings in one standard layout, and the company list the Peers tab picks from (same SEC industry; the peers' prices and multiples from Yahoo); `data_providers/shikshan_nivesh.py`, three calls a company, cached twelve hours, plus the list once a day (`cache/sn_companies.json`); the Peers tab, only when opened, one call per company in the table, kept a week (`cache/sn_peer_figures.json`), each figure worked out from the company's trailing twelve months and its latest Yahoo close. The DCF tab seeds from its statements. The key (`SN_API_KEY`) is read for nothing else.
 - SEC EDGAR: 13F and 13D/G filings, read directly. Set `EDGAR_CONTACT` in `.env`; the SEC asks for it.
 - CBOE delayed option chains, FINRA short files, FRED, the home market file's public sources (the exchange's filings and results calendar, statistics offices), Yahoo Finance quotes and history: all free, no key.
 

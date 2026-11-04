@@ -3,43 +3,43 @@
   "names": [
     {
       "code": "AAPL",
-      "source": "fmp"
+      "source": "free"
     },
     {
       "code": "MSFT",
-      "source": "fmp"
+      "source": "free"
     },
     {
       "code": "NVDA",
-      "source": "fmp"
+      "source": "free"
     },
     {
       "code": "AMZN",
-      "source": "fmp"
+      "source": "free"
     },
     {
       "code": "GOOGL",
-      "source": "fmp"
+      "source": "free"
     },
     {
       "code": "META",
-      "source": "fmp"
+      "source": "free"
     },
     {
       "code": "JPM",
-      "source": "fmp"
+      "source": "free"
     },
     {
       "code": "COST",
-      "source": "fmp"
+      "source": "free"
     },
     {
       "code": "LLY",
-      "source": "fmp"
+      "source": "free"
     },
     {
       "code": "XOM",
-      "source": "fmp"
+      "source": "free"
     }
   ],
   "format": 1

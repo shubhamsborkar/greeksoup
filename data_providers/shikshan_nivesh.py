@@ -1,11 +1,13 @@
-"""Shikshan Nivesh Data (shikshannivesh.com/data), the second provider the desk ships.
+"""Shikshan Nivesh Data (shikshannivesh.com/data), the desk's main source for company financials.
 
-Financials only, by design: the three statements, the ratio history and the segment mix on the
-ticker page, read from SEC filings in the provider's standard template. Every other screen keeps its free public
-source (prices from Yahoo, short interest from FINRA, insiders and the calendar from the SEC),
-so the reader's key is spent only when a company's financials are opened: three calls a company
-(statements, ratios, segments), kept twelve hours by the desk's own cache. The free plan's 250
-calls a day is about eighty companies.
+The three statements, the ratio history, the segment mix and the dividend per share by year on the
+ticker page, read from SEC filings in the provider's standard template, and the company list the
+Peers tab picks from (every covered company with its SEC industry). Every other screen keeps its
+free public source (prices from Yahoo, short interest from FINRA, insiders and the calendar from
+the SEC), so the reader's key is spent only when a company's financials are opened: three calls a
+company (statements, ratios, segments), kept twelve hours by the desk's own cache, plus one call a
+day for the company list. The free plan's 250 calls a day is about eighty companies. The Peers tab,
+only when it is opened, spends one call for each company in the table, and keeps each a week.
 
 The rows come back in the shape the ticker page already draws (the field names it reads from
 the first provider), newest first. Cash spent (capital expenditure, acquisitions, buybacks,
@@ -186,6 +188,41 @@ def ratios(symbol, years=6):
     return {"ratios": rows(RATIOS), "metrics": rows(METRICS)} if ends else {}
 
 
+def company(symbol):
+    """One company's latest figures (the provider's TTM metrics: revenue, profit, margins, shares,
+    debt, dividend per share), or None. One call; the Peers tab keeps it a week."""
+    j, err = _get(f"/companies/{symbol}")
+    if err:
+        return None
+    return {"name": (j.get("company") or {}).get("name") or "", **(j.get("metrics") or {})}
+
+
+def companies():
+    """Every covered company: [{symbol, name, exchange, industry, index, ...}], or [] on any refusal.
+    One call; the server keeps it a day."""
+    j, err = _get("/companies")
+    if err:
+        return []
+    return [c for c in j.get("companies") or [] if c.get("symbol")]
+
+
+# the index a company sits in, biggest first: the order peers are picked in before their sizes are known
+INDEX_RANK = {"S&P 500": 0, "S&P MidCap 400": 1, "S&P SmallCap 600": 2}
+
+
+def peers(symbol, listing, n=10):
+    """(industry, [symbols]) for the companies in the same SEC industry as symbol, up to n, the
+    largest index first; ("", []) when the company is alone in its industry or not covered."""
+    norm = lambda c: " ".join((c.get("industry") or "").split())  # noqa: E731  (the list has a few double spaces)
+    me = next((c for c in listing if c["symbol"] == symbol), None)
+    ind = norm(me or {})
+    if not ind:
+        return "", []
+    same = [c for c in listing if c["symbol"] != symbol and norm(c).lower() == ind.lower()]
+    same.sort(key=lambda c: (INDEX_RANK.get(c.get("index") or "", 3), c["symbol"]))
+    return ind, [c["symbol"] for c in same[:n]]
+
+
 def check(k=None):
     """What Settings shows after Check: does the key answer, and what one company costs."""
     if k:
@@ -195,7 +232,8 @@ def check(k=None):
         return {"ok": False, "error": err["message"]}
     name = ((j.get("company") or j).get("name") or "Apple").rstrip(".")
     return {"ok": True, "summary": (f"The key works: it answered for {name}. Opening a company's financials costs three calls, "
-                                    "kept for twelve hours, so the free plan's 250 calls a day covers about eighty companies.")}
+                                    "kept for twelve hours, plus one call a day for the company list, so the free plan's 250 calls a day covers about eighty companies. "
+                                    "The Peers tab, when opened, spends one call per company in it, each kept a week.")}
 
 
 def valid_key(k):

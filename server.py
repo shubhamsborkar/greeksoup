@@ -67,7 +67,7 @@ import sec_form4         # keyless Form 4 from EDGAR
 import house_ptr         # keyless House trading disclosures
 import notes as desk_notes   # the research vault: notes and files in data/research, linked to names and projects
 import plugins as desk_plugins   # folders in data/research/plugins that add a screen, blocks or a door
-from data_providers import shikshan_nivesh as desk_sn   # Shikshan Nivesh Data: statements, ratio history and segments only
+from data_providers import shikshan_nivesh as desk_sn   # Shikshan Nivesh Data: the main source for financials
 import chains as desk_chains     # the reader's own value chains in data/research/chains, starters beside the code
 import migrate as desk_migrate   # reader-owned files carry a format number; an update brings them up, a copy kept aside
 import lists as desk_lists
@@ -1283,6 +1283,9 @@ def _us_intraday(rows):
             "5D": [p for p in pts if p["date"][:10] in days[-5:]]}
 
 
+STREET_JOBS = ("news", "pt", "grades", "earnings")
+
+
 def build_ticker(symbol):
     """Aggregate the full research view for one US symbol. The ~12 FMP calls
     run IN PARALLEL (his 'too slow' feedback: was 4-6s sequential, now ~1s),
@@ -1303,6 +1306,11 @@ def build_ticker(symbol):
         "insiders": ("insider-trading/search", {"symbol": symbol, "limit": 12}),
         "dividends": ("dividends", {"symbol": symbol, "limit": 4}),
     }
+    # Shikshan Nivesh Data picked: the page runs on the free record, and a Financial Modeling Prep
+    # key, if one is saved too, is asked for the street's view only (news, targets, grades, estimates)
+    street = sn_on()
+    if street:
+        jobs = {k: jobs[k] for k in STREET_JOBS}
     res = {}
     if os.getenv("FMP_API_KEY", "").strip():
         with ThreadPoolExecutor(max_workers=8) as ex:
@@ -1322,6 +1330,15 @@ def build_ticker(symbol):
                 page["insiders"] = []
                 page["insiders_refused"] = True
             page["held"] = _held_context(symbol)
+            if street:
+                if res.get("news"):
+                    page["news"] = res["news"]
+                if first(res.get("pt")):
+                    page["pt"] = first(res["pt"])
+                if first(res.get("grades")):
+                    page["grades"] = first(res["grades"])
+                if res.get("earnings"):
+                    page["earnings"] = res["earnings"]
         return page
     return {
         "symbol": symbol,
@@ -1485,7 +1502,7 @@ def cached_ticker(symbol, region="us"):
     return data
 
 
-# ---- financials layer (statements / ratios / segments / estimates / peers) --
+# ---- financials layer (statements / ratios / segments / peers / dividends / estimates) --
 FIN_TTL = 12 * 3600
 _fin_cache = {}
 _fin_lock = threading.Lock()
@@ -1500,8 +1517,8 @@ def build_fin(symbol):
     """The fundamentals bundle for one US symbol: all three statements
     (annual + quarterly), annual ratio/metric history, segment mix, forward
     estimates, dividend history, a peer comparison, and the pieces the
-    client-side DCF workspace seeds from. All single-symbol Starter calls
-    (batch is gated), run in parallel, cached 12h per symbol."""
+    client-side DCF workspace seeds from. With Shikshan Nivesh Data picked, FMP is
+    asked for the street estimates only. Run in parallel, cached 12h per symbol."""
     jobs = {
         "inc_a": ("income-statement", {"symbol": symbol, "limit": 6}),
         "inc_q": ("income-statement", {"symbol": symbol, "period": "quarter", "limit": 8}),
@@ -1519,17 +1536,17 @@ def build_fin(symbol):
         "dcf": ("discounted-cash-flow", {"symbol": symbol}),
         "scores": ("financial-scores", {"symbol": symbol}),
     }
-    # Shikshan Nivesh Data, when it is the provider picked on Settings, fills the three statements,
-    # the ratio history and the segments (three calls a company); a Financial Modeling Prep key,
-    # if one is saved too, still fills estimates, peers, dividends and the DCF
+    # Shikshan Nivesh Data, when it is the provider picked on Settings, is the main source: the three
+    # statements, the ratio history and the segments (three calls a company), the peer set from its
+    # company list, with prices, payments and multiples from the free feed. A Financial Modeling Prep
+    # key, if one is saved too, adds the street estimates and nothing else.
     sn = None
     if sn_on():
         sn = desk_sn.statements(symbol)
         if not sn.get("error"):
             sn.update(desk_sn.segments(symbol))
             sn.update(desk_sn.ratios(symbol))
-            for k in ("inc_a", "inc_q", "bs_a", "bs_q", "cf_a", "cf_q", "seg_p", "seg_g", "ratios", "metrics"):
-                jobs.pop(k, None)
+            jobs = {"est_a": jobs["est_a"]}
     res = {}
     with ThreadPoolExecutor(max_workers=10) as ex:
         futs = {k: ex.submit(fmp_get, path, **params) for k, (path, params) in jobs.items()}
@@ -1540,6 +1557,8 @@ def build_fin(symbol):
                 res[k] = None
     if sn and not sn.get("error"):
         res.update({k: sn.get(k) or [] for k in ("inc_a", "inc_q", "bs_a", "bs_q", "cf_a", "cf_q", "seg_p", "seg_g", "ratios", "metrics")})
+    if not res.get("est_a"):
+        res["est_a"] = freefeed.estimates(symbol)      # the street's averages from the free feed
     sn_said = (sn or {}).get("error", {}).get("message", "")
     if not (res.get("inc_a") or []):
         # no provider, or a name the provider does not carry: the three statements from the
@@ -1548,22 +1567,149 @@ def build_fin(symbol):
         if free.get("inc_a") or free.get("bs_a"):
             return {"symbol": symbol, "free": True, "currency": free.get("currency") or "",
                     "inc_a": free["inc_a"], "inc_q": free["inc_q"], "bs_a": free["bs_a"], "bs_q": free["bs_q"],
-                    "cf_a": free["cf_a"], "cf_q": free["cf_q"],
+                    "cf_a": free["cf_a"], "cf_q": free["cf_q"], "divs": freefeed.dividends(symbol), "divs_src": "free",
+                    "est_a": res.get("est_a") or [],
                     # a key over its day's calls, or a provider not answering, is asked again next time
                     "sn_wait": bool(sn and (sn.get("error") or {}).get("kind") in ("limit", "busy", "network", "key")),
                     "note": ((sn_said + " Until then, the" if sn_said else "The")
                              + " statements come from the free record: the last four years and four quarters, fewer lines than a data provider gives. "
-                             + ("Ratio history, segments, estimates and peers need a data provider; none is set." if not (os.getenv("FMP_API_KEY", "").strip() or sn)
-                                else "" if sn else "The data provider does not carry this name; ratio history, segments, estimates and peers need one that does."))}
+                             + ("Ratio history, segments, peers and the DCF come with Shikshan Nivesh Data, free with a key on Settings." if not (os.getenv("FMP_API_KEY", "").strip() or sn)
+                                else "" if sn else "The data provider does not carry this name; ratio history, segments, peers and the DCF need one that does."))}
         if not (os.getenv("FMP_API_KEY", "").strip() or sn):
             return {"symbol": symbol, "no_provider": True,
-                    "error": "The free record carries no statements for this name, and the ratio history, segments, estimates and peers need a data provider, which is not set. The quote, the chart, valuation and quality above come from the free record."}
+                    "error": "The free record carries no statements for this name, and the ratio history, segments, peers and the DCF come with Shikshan Nivesh Data, free with a key on Settings. The quote, the chart, valuation and quality above come from the free record."}
         return {"symbol": symbol, "sn_wait": bool(sn and (sn.get("error") or {}).get("kind") in ("limit", "busy", "network", "key")),
                 "error": (sn_said + " " if sn_said else "") + f"Neither the data provider nor the free record carries statements for {symbol}."}
 
-    # peer comparison rows: the name itself first, then up to 8 FMP peers,
-    # each priced from quote + TTM ratios (single-symbol calls)
-    peer_syms = [symbol] + [p.get("symbol") for p in (res.get("peers") or [])[:8]
+    sn_ok = bool(sn and not sn.get("error"))
+    if sn_ok:
+        # the same SEC industry in the provider's company list, sized and priced from the free feed;
+        # the payments from the free feed, the yearly dividend per share from the provider's filings
+        # the peers themselves are read only when the Peers tab is opened (/api/peers)
+        peer_ind, peer_list = desk_sn.peers(symbol, sn_companies())
+        peer_rows = []
+        divs = freefeed.dividends(symbol)
+    else:
+        peer_ind, peer_rows, divs = "", _fmp_peer_rows(symbol, res.get("peers")), res.get("divs") or []
+
+    first = lambda x: (x[0] if isinstance(x, list) and x else {})  # noqa: E731
+    return {"symbol": symbol,
+            "inc_a": res.get("inc_a") or [], "inc_q": res.get("inc_q") or [],
+            "bs_a": res.get("bs_a") or [], "bs_q": res.get("bs_q") or [],
+            "cf_a": res.get("cf_a") or [], "cf_q": res.get("cf_q") or [],
+            "ratios": res.get("ratios") or [], "metrics": res.get("metrics") or [],
+            "est_a": res.get("est_a") or [],
+            "seg_p": res.get("seg_p") or [], "seg_g": res.get("seg_g") or [],
+            "divs": divs, "divs_src": "free" if sn_ok else "fmp", "peers": peer_rows, "peer_industry": peer_ind,
+            "peers_lazy": sn_ok and bool(peer_list),
+            "dcf": first(res.get("dcf")), "scores": first(res.get("scores")),
+            "sn": sn_ok, "fmp": bool(os.getenv("FMP_API_KEY", "").strip()),
+            "currency": (sn or {}).get("currency") or "",
+            "ts": datetime.now().strftime("%H:%M:%S")}
+
+
+PEER_TTL = 7 * 24 * 3600        # a company's TTM figures move once a quarter
+PEER_ROWS = 8
+_peer_figs = {}
+_peer_lock = threading.Lock()
+
+
+def _peer_figures(sym):
+    """The provider's latest figures for one company, kept a week in memory and on disk, so a peer
+    shared by many companies costs one call a week."""
+    path = os.path.join(HIST_CACHE_DIR, "sn_peer_figures.json")
+    with _peer_lock:
+        if not _peer_figs:
+            try:
+                with open(path) as fh:
+                    _peer_figs.update(json.load(fh))
+            except (OSError, ValueError):
+                pass
+        hit = _peer_figs.get(sym)
+    if hit and time.time() - hit["at"] < PEER_TTL:
+        return hit["figs"]
+    figs = desk_sn.company(sym)
+    if figs is None:
+        return hit["figs"] if hit else None
+    with _peer_lock:
+        _peer_figs[sym] = {"at": time.time(), "figs": figs}
+        try:
+            os.makedirs(HIST_CACHE_DIR, exist_ok=True)
+            with open(path, "w") as fh:
+                json.dump(_peer_figs, fh)
+        except OSError:
+            pass
+    return figs
+
+
+def peer_row(sym):
+    """One Peers row: the latest close from the free feed, everything else worked out from the
+    company's own filings (the provider's trailing twelve months), the way greeksoup.ai does it."""
+    figs = _peer_figures(sym)
+    if not figs:
+        return None
+    meta, _ = freefeed.chart(sym.replace(".", "-"), "5d", "1d")
+    px = freefeed._num(meta.get("regularMarketPrice"))
+    num = lambda k: figs.get(k) if isinstance(figs.get(k), (int, float)) else None  # noqa: E731
+    pct = lambda k: num(k) / 100 if num(k) is not None else None  # noqa: E731
+    sh, ni, rev, ebitda = num("shares_out"), num("net_income_ttm"), num("revenue_ttm"), num("ebitda_ttm")
+    cap = px * sh if px and sh else None
+    return {"symbol": sym, "name": figs.get("name") or meta.get("longName") or "",
+            "mktCap": cap, "price": px,
+            "pe": cap / ni if cap and ni and ni > 0 else None,
+            "ps": cap / rev if cap and rev and rev > 0 else None,
+            "evx": (cap + (num("net_debt") or 0)) / ebitda if cap and ebitda and ebitda > 0 else None,
+            "gm": pct("gross_margin_ttm"), "om": pct("operating_margin_ttm"), "nm": pct("net_margin_ttm"),
+            "de": num("debt_to_equity"),
+            "divy": num("dps_ttm") / px * 100 if px and num("dps_ttm") is not None else None}
+
+
+def build_peers(symbol):
+    """{"peers": rows, "peer_industry"}: the company itself and up to PEER_ROWS companies in its SEC
+    industry, biggest first."""
+    if not sn_on():
+        return {"peers": [], "peer_industry": ""}
+    ind, syms = desk_sn.peers(symbol, sn_companies(), n=PEER_ROWS)
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        rows = [r for r in ex.map(peer_row, [symbol] + syms) if r]
+    rows.sort(key=lambda r: -(r.get("mktCap") or 0))
+    return {"peers": rows, "peer_industry": ind}
+
+
+SN_LIST_TTL = 24 * 3600
+_sn_list = {"at": 0.0, "rows": []}
+
+
+def sn_companies():
+    """The provider's company list, one call a day: kept in memory and on disk, so a restart does
+    not spend a call. An older copy on disk serves when the provider does not answer."""
+    if _sn_list["rows"] and time.time() - _sn_list["at"] < SN_LIST_TTL:
+        return _sn_list["rows"]
+    path = os.path.join(HIST_CACHE_DIR, "sn_companies.json")
+    try:
+        with open(path) as fh:
+            c = json.load(fh)
+        _sn_list.update(at=c["at"], rows=c["rows"])
+    except (OSError, ValueError, KeyError):
+        pass
+    if _sn_list["rows"] and time.time() - _sn_list["at"] < SN_LIST_TTL:
+        return _sn_list["rows"]
+    rows = desk_sn.companies()
+    if rows:
+        _sn_list.update(at=time.time(), rows=rows)
+        try:
+            os.makedirs(HIST_CACHE_DIR, exist_ok=True)
+            with open(path, "w") as fh:
+                json.dump(_sn_list, fh)
+        except OSError:
+            pass
+    return _sn_list["rows"]
+
+
+def _fmp_peer_rows(symbol, peers):
+    """FMP's own peer set, for a desk on FMP alone: the name itself first, then up to 8 FMP peers,
+    each priced from quote + TTM ratios (single-symbol calls)."""
+    peer_syms = [symbol] + [p.get("symbol") for p in (peers or [])[:8]
                             if p.get("symbol") and p.get("symbol") != symbol]
 
     def _peer_row(sym2):
@@ -1586,21 +1732,7 @@ def build_fin(symbol):
                 "de": r.get("debtToEquityRatioTTM"),
                 "divy": r.get("dividendYieldPercentageTTM")}
     with ThreadPoolExecutor(max_workers=8) as ex:
-        peer_rows = [r for r in ex.map(_peer_row, peer_syms) if r]
-
-    first = lambda x: (x[0] if isinstance(x, list) and x else {})  # noqa: E731
-    return {"symbol": symbol,
-            "inc_a": res.get("inc_a") or [], "inc_q": res.get("inc_q") or [],
-            "bs_a": res.get("bs_a") or [], "bs_q": res.get("bs_q") or [],
-            "cf_a": res.get("cf_a") or [], "cf_q": res.get("cf_q") or [],
-            "ratios": res.get("ratios") or [], "metrics": res.get("metrics") or [],
-            "est_a": res.get("est_a") or [],
-            "seg_p": res.get("seg_p") or [], "seg_g": res.get("seg_g") or [],
-            "divs": res.get("divs") or [], "peers": peer_rows,
-            "dcf": first(res.get("dcf")), "scores": first(res.get("scores")),
-            "sn": bool(sn and not sn.get("error")), "fmp": bool(os.getenv("FMP_API_KEY", "").strip()),
-            "currency": (sn or {}).get("currency") or "",
-            "ts": datetime.now().strftime("%H:%M:%S")}
+        return [r for r in ex.map(_peer_row, peer_syms) if r]
 
 
 def period_for_note(symbol=""):
@@ -1644,7 +1776,8 @@ def period_for_note(symbol=""):
 def _fin_source():
     """Which provider fills the statements now, so a copy read through another one (before the
     reader changed it on Settings) is read again rather than kept for its twelve hours."""
-    return "sn" if sn_on() else "fmp" if os.getenv("FMP_API_KEY", "").strip() else "free"
+    # "sn2": the bundle that names the peer industry and reads the peers on demand (2026-11-04)
+    return "sn2" if sn_on() else "fmp" if os.getenv("FMP_API_KEY", "").strip() else "free"
 
 
 def cached_fin(symbol):
@@ -2252,7 +2385,7 @@ def build_earnings():
     if not os.getenv("FMP_API_KEY", "").strip():
         rows = freefeed.earnings(tag)
         return {"rows": rows, "ts": datetime.now().strftime("%Y-%m-%d %H:%M"), "source": "yahoo",
-                "note": "" if rows else "no feed key: earnings dates come from Yahoo, which is rate-limiting right now; retry later"}
+                "note": "" if rows else "earnings dates come from Yahoo's free feed, which is rate-limiting right now; retry later"}
 
     def _next(sym):
         rows = fmp_get("earnings", symbol=sym, limit=6) or []
@@ -3628,12 +3761,14 @@ _float_cache = {}
 
 
 def _float_shares(sym):
-    """Float via FMP shares-float (audited working on Starter); day-cached."""
+    """Float shares from the free feed's key statistics (an older desk's own key as a fallback); day-cached."""
     hit = _float_cache.get(sym)
     if hit and time.time() - hit[0] < 24 * 3600:
         return hit[1]
-    rows = fmp_get("shares-float", symbol=sym)
-    f = _num((rows[0] or {}).get("floatShares")) if isinstance(rows, list) and rows else None
+    f = _num((freefeed.summary(sym.replace(".", "-"), ["defaultKeyStatistics"]).get("defaultKeyStatistics") or {}).get("floatShares"))
+    if not f:
+        rows = fmp_get("shares-float", symbol=sym)
+        f = _num((rows[0] or {}).get("floatShares")) if isinstance(rows, list) and rows else None
     if f:
         _float_cache[sym] = (time.time(), f)
     return f
@@ -4907,6 +5042,11 @@ class Handler(BaseHTTPRequestHandler):
                 if not sym:
                     return self.send_error(400)
                 self._send(json.dumps(cached_fin(sym)).encode(), "application/json")
+            elif path == "/api/peers":
+                sym = (qs.get("symbol", [""])[0] or "").upper().strip()
+                if not sym:
+                    return self.send_error(400)
+                self._send(json.dumps(build_peers(sym)).encode(), "application/json")
             elif path == "/api/watch":
                 with _watch_lock:
                     if region == "us":
@@ -5461,7 +5601,7 @@ class Handler(BaseHTTPRequestHandler):
                         if not listed:
                             return self._send(json.dumps({"ok": False, "error": paused_line(code)}).encode(), "application/json")
                         note = f"{code} added. Prices are paused for a few minutes, so its price shows when they come back."
-                    names.append({"code": code, "source": "fmp"})
+                    names.append({"code": code, "source": "free"})
                     save_watchlist_us(names)
                     if q:
                         with _watch_lock:

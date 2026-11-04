@@ -1,5 +1,5 @@
 {
-  "_comment": "Value-chain maps for the Chain tab. This is an EXAMPLE with the structure only; build your own by describing the chain to the agent (layers, what each layer buys and sells, the listed names under each, and a receipt grade per name: DISCLOSED in a filing, ON RECORD, or REPORTED). status is your own tag (OWNED / WATCH / CONTEXT). region us = FMP prices, in = broker prices.",
+  "_comment": "Value-chain maps for the Chain tab. This is an EXAMPLE with the structure only; build your own by describing the chain to the agent (layers, what each layer buys and sells, the listed names under each, and a receipt grade per name: DISCLOSED in a filing, ON RECORD, or REPORTED). status is your own tag (OWNED / WATCH / CONTEXT). region us = free-feed prices, in = broker prices.",
   "chains": [
     {
       "id": "example-ai-power-us",

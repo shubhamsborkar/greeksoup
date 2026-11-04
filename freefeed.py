@@ -143,6 +143,60 @@ def chart(symbol, rng="1y", interval="1d"):
     return meta, rows
 
 
+def dividends(symbol):
+    """Every cash dividend the chart API records, newest first: [{date (ex-date), dividend}], the
+    amounts adjusted for later splits. Keyless; [] when the name pays none or the feed rests."""
+    r = _get(f"/v8/finance/chart/{symbol.replace('.', '-')}", {"range": "max", "interval": "3mo", "events": "div"})
+    try:
+        res = (r.json().get("chart", {}).get("result") or [None])[0] if r else None
+    except Exception:  # noqa: BLE001
+        return []
+    off = ((res or {}).get("meta") or {}).get("gmtoffset") or 0
+    out = []
+    for d in (((res or {}).get("events") or {}).get("dividends") or {}).values():
+        amt, t = _num(d.get("amount")), d.get("date")
+        if amt and t:
+            out.append({"date": datetime.fromtimestamp(t + off, tz=timezone.utc).strftime("%Y-%m-%d"), "dividend": tidy(amt)})
+    return sorted(out, key=lambda x: x["date"], reverse=True)
+
+
+def estimates(symbol):
+    """The street's averages for this fiscal year and next, in the Estimates tab's shape:
+    [{date, revenueAvg, epsAvg, numAnalystsEps, numAnalystsRevenue}]. From quoteSummary's earnings
+    trend; [] when the crumb is not available."""
+    s = summary(symbol.replace(".", "-"), ["earningsTrend"])
+    rows, last = [], None
+    for t in ((s.get("earningsTrend") or {}).get("trend") or []):
+        if t.get("period") not in ("0y", "+1y"):
+            continue
+        d = (t.get("endDate") or "")[:10]
+        if not d:
+            continue
+        if last and d <= last:                  # the feed can repeat this year's end for next year
+            d = f"{int(last[:4]) + 1}{last[4:]}"
+        last = d
+        e, r = t.get("earningsEstimate") or {}, t.get("revenueEstimate") or {}
+        rows.append({"date": d, "revenueAvg": _num(r.get("avg")), "epsAvg": _num(e.get("avg")),
+                     "numAnalystsEps": _num(e.get("numberOfAnalysts")), "numAnalystsRevenue": _num(r.get("numberOfAnalysts"))})
+    return rows
+
+
+def news(symbol, n=12):
+    """Recent headlines on a name from the search API, keyless: [{title, url, publisher, publishedDate}]."""
+    r = _get("/v1/finance/search", {"q": symbol.replace(".", "-"), "quotesCount": 0, "newsCount": n})
+    try:
+        items = (r.json().get("news") or []) if r else []
+    except Exception:  # noqa: BLE001
+        return []
+    out = []
+    for x in items:
+        t, link = x.get("title"), x.get("link")
+        if t and link and x.get("providerPublishTime"):
+            out.append({"title": t, "url": link, "publisher": x.get("publisher") or "",
+                        "publishedDate": datetime.fromtimestamp(x["providerPublishTime"], tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")})
+    return out
+
+
 def summary(symbol, modules):
     """quoteSummary modules for one symbol -> {module: {...}} or {}."""
     if not _auth():
@@ -294,7 +348,7 @@ def ticker(symbol):
         "metrics": metrics, "history": hist_desc,
         "intraday": {"1D": [p for p in intra if p["date"][:10] in days[-1:]],
                      "5D": [p for p in intra if p["date"][:10] in days[-5:]]},
-        "news": [], "pt": pt, "grades": grades, "earnings": earnings,
+        "news": news(symbol), "pt": pt, "grades": grades, "earnings": earnings,
         "insiders": [], "dividends": [],
         "source": "yahoo", "ts": datetime.now().strftime("%H:%M:%S"),
     }

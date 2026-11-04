@@ -1,6 +1,6 @@
 # Contributing
 
-GreekSoup is built with an AI agent from plain-English descriptions, and most contributions arrive the same way: you describe what you want to your agent inside the folder, it writes the file, you test it on your own desk, and you send it in. This page says what a contribution has to keep true.
+GreekSoup Desk is built with an AI agent from plain-English descriptions, and most contributions arrive the same way: you describe what you want to your agent inside the folder, it writes the file, you test it on your own desk, and you send it in. This page says what a contribution has to keep true.
 
 ## The three contracts
 

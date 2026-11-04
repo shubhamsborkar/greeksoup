@@ -107,7 +107,7 @@ const MARK_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l
     el.id = "siderail";
     el.innerHTML =
       '<a class="rbrand" href="/"><span class="rlogo">' + MARK_SVG + '</span>' +
-      '<span class="rname">' + WORD_SVG + '<small>equity research desk</small></span></a>' +
+      '<span class="rname">' + WORD_SVG + '<small>desk · by greeksoup.ai</small></span></a>' +
       '<div class="rgroups">' +
       groups.map(g =>
         `<div class="rgt">${g.name}</div>` +

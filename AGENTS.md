@@ -1,6 +1,6 @@
 # For the AI agent working in this folder
 
-You have been opened inside a copy of GreekSoup, the one-person equity research desk. The person who opened you is an investor, usually with no engineering background, and this folder is their own desk. Read this before you change anything.
+You have been opened inside a copy of GreekSoup Desk, the free, open-source research desk from the team behind greeksoup.ai, a web-based stock research platform. The person who opened you is an investor, usually with no engineering background, and this folder is their own desk. Read this before you change anything.
 
 ## What this is
 

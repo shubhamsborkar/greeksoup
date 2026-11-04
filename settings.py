@@ -27,7 +27,7 @@ ALLOWED = {
     "BROKERS": (False, "the brokers Desk · Home reads through, one per market, the home one first"),
     "HOME_MARKET": (False, "the home market file; the reader's choice, else the home broker's market"),
     "DATA_PROVIDER": (False, "fmp, shikshan_nivesh, or the name of a provider module the reader's agent wrote"),
-    "FMP_API_KEY": (True, "Financial Modeling Prep key, optional"),
+    "FMP_API_KEY": (True, "Financial Modeling Prep key, optional (the secondary provider)"),
     "SN_API_KEY": (True, "Shikshan Nivesh Data key, optional; read for company statements, ratio history and segments only"),
     "DATA_API_KEY": (True, "another data provider's key, optional"),
     "DATA_BASE_URL": (False, "another data provider's address, optional"),

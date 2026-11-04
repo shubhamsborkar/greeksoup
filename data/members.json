@@ -1,5 +1,5 @@
 {
-  "_comment": "Congress members tracked by name on the Capitol tab. name = last-name match against FMP's {chamber}-trades-by-name; label is display only. Edit freely.",
+  "_comment": "Congress members tracked by name on the Capitol tab. name = last-name match against the filer's name on each disclosure; label is display only. Edit freely.",
   "members": [
     {
       "name": "Pelosi",

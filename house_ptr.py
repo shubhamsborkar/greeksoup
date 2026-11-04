@@ -134,6 +134,6 @@ def build(ours, tracked_members, held):
                         "count": len(rows), "rows": rows[:100]})
     return {"ours": ours_rows[:80], "flow": flow[:200], "members": members, "djt": [],
             "held": sorted(held), "tracked": len(ours), "source": "house-clerk",
-            "note": (f"House PTRs only (the Senate site blocks scripts; a feed key covers both), "
+            "note": (f"House PTRs only (the Senate site blocks scripts), "
                      f"last {LOOKBACK_DAYS} days, {len(ptrs)} reports read, {no_text} scanned with no text layer"),
             "ts": datetime.now().strftime("%Y-%m-%d %H:%M")}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ticker · GreekSoup</title>
+<title>Ticker · GreekSoup Desk</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='24' fill='%230F1114'/><path d='M22 38l16 22-16 22' stroke='%23ED5A24' stroke-width='12' stroke-linecap='square' stroke-linejoin='miter' fill='none'/><rect x='48' y='66' width='12' height='20' fill='%23ECEBE6'/><rect x='66' y='50' width='12' height='36' fill='%23ECEBE6'/><rect x='84' y='34' width='12' height='52' fill='%23ECEBE6'/></svg>">
 <link rel="stylesheet" href="/assets/desk.css">
 <script src="/assets/desk.js" defer></script>
@@ -830,7 +830,7 @@ async function load(){
   }
   // the free feed matched the name to its exchange symbol: the page is that symbol's
   if(d.matched_from&&(HOME||d.symbol!==SYM)){ location.replace("/t?symbol="+encodeURIComponent(d.symbol)+"&from="+encodeURIComponent(d.matched_from)); return; }
-  document.title=SYM+" · GreekSoup";
+  document.title=SYM+" · GreekSoup Desk";
   // the desk decides which page a name gets: a home name carries the home market's blocks; a name
   // from another exchange, or a contract, is the free feed's page whatever door it came in by
   if(d.region) HOME = d.region==="home";
@@ -1108,7 +1108,7 @@ function renderUS(d,app){
       <td class="mono dim">${i.price?usd(i.price):"—"}</td></tr>`;}).join("");
   const newsItems=(d.news||[]).map(n=>`<div class="news-item">
     <span class="t mono">${ago(n.publishedDate)} ago</span>
-    <a href="${n.url}" target="_blank" rel="noopener">${n.title}</a>
+    <a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a>
     <span class="pub">${n.publisher||n.site||""}</span></div>`).join("");
 
   app.innerHTML=`
@@ -1372,22 +1372,29 @@ function finSegHTML(){
 function finEstHTML(){
   const cols=(FIN.est_a||[]).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
   const yr=new Date().getFullYear(), keep=cols.filter(c=>+(c.date||"").slice(0,4)>=yr-2).slice(0,6);
-  if(!keep.length) return '<div class="fin-note">No analyst estimates.</div>';
-  const rows=[["Revenue",c=>fu(c.revenueAvg)],["EBITDA",c=>fu(c.ebitdaAvg)],
-    ["EBIT",c=>fu(c.ebitAvg)],["Net Income",c=>fu(c.netIncomeAvg)],
-    ["SG&A Expense",c=>fu(c.sgaExpenseAvg)],["EPS",c=>fx(c.epsAvg)],
-    ["Analysts (EPS)",c=>c.numAnalystsEps??"—"]];
+  if(!keep.length) return '<div class="fin-note">No street estimates for this name right now; the free feed answers again in a few minutes.</div>';
+  const rows=[["Revenue",c=>fu(c.revenueAvg),"revenueAvg"],["EBITDA",c=>fu(c.ebitdaAvg),"ebitdaAvg"],
+    ["EBIT",c=>fu(c.ebitAvg),"ebitAvg"],["Net Income",c=>fu(c.netIncomeAvg),"netIncomeAvg"],
+    ["SG&A Expense",c=>fu(c.sgaExpenseAvg),"sgaExpenseAvg"],["EPS",c=>fx(c.epsAvg),"epsAvg"],
+    ["Analysts (EPS)",c=>c.numAnalystsEps??"—","numAnalystsEps"]].filter(r=>keep.some(c=>c[r[2]]!=null));
   let h=`<div class="finwrap"><table class="fintab"><thead><tr><th class="grp">$ in ${FS.unit} (avg)</th>`+
     keep.map(c=>{const y=+(c.date||"").slice(0,4);return `<th>FY${y}${y>=yr?"E":""}</th>`;}).join("")+
     `</tr></thead><tbody>`;
   for(const [l,f] of rows)
     h+=`<tr><td>${l}</td>`+keep.map(c=>`<td class="mono">${f(c)}</td>`).join("")+`</tr>`;
-  return h+`</tbody></table></div><div class="fin-note">Street averages via FMP; high/low spreads exist behind each number. E marks fiscal years not yet reported.</div>`;
+  return h+`</tbody></table></div><div class="fin-note">The street's average for each fiscal year, from the free feed. E marks fiscal years not yet reported.</div>`;
 }
 function finPeersSort(k){ if(FS.sk===k) FS.sd=-FS.sd; else {FS.sk=k;FS.sd=-1;} renderFin(); }
 function finPeersHTML(){
+  if(FIN.peers_lazy && !FIN.peers_read){
+    FIN.peers_read=1; const want=FINSYM||SYM, mine=FIN;
+    fetch("/api/peers?symbol="+encodeURIComponent(want)).then(r=>r.json()).then(d=>{
+      if(FIN!==mine) return; FIN.peers=d.peers||[]; if(d.peer_industry) FIN.peer_industry=d.peer_industry; renderFin();
+    }).catch(()=>{ FIN.peers=[]; renderFin(); });
+    return `<div class="fin-note">Reading the companies in ${FIN.peer_industry?esc(FIN.peer_industry):"its SEC industry"}…</div>`;
+  }
   const rows=(FIN.peers||[]).slice();
-  if(!rows.length) return '<div class="fin-note">No peer set from FMP.</div>';
+  if(!rows.length) return `<div class="fin-note">${FIN.sn?"No other company in Shikshan Nivesh Data shares this company's SEC industry"+(FIN.peer_industry?` (${esc(FIN.peer_industry)})`:"")+".":"Peers come with a free Shikshan Nivesh Data key, picked on Settings."}</div>`;
   rows.sort((a,b)=>{const x=a[FS.sk],y=b[FS.sk];
     if(x==null)return 1; if(y==null)return -1; return (x<y?-1:x>y?1:0)*FS.sd;});
   const C=[["symbol","Name"],["mktCap","Mkt cap"],["price","Price"],["pe","P/E"],["ps","P/S"],
@@ -1404,18 +1411,42 @@ function finPeersHTML(){
       <td class="mono">${r.nm==null?"—":fp(r.nm*100,0)}</td><td class="mono">${fx(r.de,2)}</td>
       <td class="mono">${r.divy==null?"—":fp(r.divy,1)}</td></tr>`;
   }
-  return h+`</tbody></table></div><div class="fin-note">FMP's peer set, TTM figures. Click a column to sort; click a ticker to open it.</div>`;
+  const how=FIN.sn?`The companies in Shikshan Nivesh Data that share its SEC industry${FIN.peer_industry?`, ${esc(FIN.peer_industry)}`:""}, up to eight, biggest first. Each figure is worked out from the company's own filings (the last twelve months) and its latest close from the free feed.`:"Trailing twelve months.";
+  return h+`</tbody></table></div><div class="fin-note">${how} Click a column to sort; click a ticker to open it.</div>`;
 }
 function finDivHTML(){
-  const ds=(FIN.divs||[]).slice(0,16);
-  if(!ds.length) return '<div class="fin-note">No dividend history; this name does not pay one.</div>';
-  const t12=(FIN.divs||[]).filter(d=>(d.date||"")>=new Date(Date.now()-365*864e5).toISOString().slice(0,10))
-    .reduce((a,d)=>a+(d.adjDividend??d.dividend??0),0);
-  let h=`<div class="fin-note">Trailing 12 months: <b>${usd(t12)}</b> per share${FINPX?` · yield <b>${fp(t12/FINPX*100,2)}</b> at today's price`:""}.</div>
-    <div class="finwrap"><table class="fintab"><thead><tr><th class="grp">Ex-date</th><th>Dividend</th><th>Adjusted</th></tr></thead><tbody>`;
-  for(const d of ds)
-    h+=`<tr><td>${d.date||""}</td><td class="mono">${usd(d.dividend)}</td><td class="mono">${usd(d.adjDividend??d.dividend)}</td></tr>`;
-  return h+`</tbody></table></div>`;
+  const all=FIN.divs||[], ds=all.slice(0,16), adj=FIN.divs_src==="fmp";
+  // the filed record by year: dividend per share from the ratio history, cash paid from the cash flow
+  const dps={}, pay={};
+  for(const r of FIN.ratios||[]) if(r.dividendPerShare!=null) dps[r.fiscalYear]=r;
+  for(const r of FIN.cf_a||[]) if(r.netDividendsPaid) pay[String(r.fiscalYear)]=r.netDividendsPaid;
+  const yrs=[...new Set([...Object.keys(dps),...Object.keys(pay)])].sort().slice(-6);
+  const filed=yrs.some(y=>(dps[y]&&dps[y].dividendPerShare)||pay[y]);
+  if(!ds.length&&!filed) return '<div class="fin-note">No dividend history; this name does not pay one.</div>';
+  let h="";
+  if(ds.length){
+    const t12=all.filter(d=>(d.date||"")>=new Date(Date.now()-365*864e5).toISOString().slice(0,10))
+      .reduce((a,d)=>a+(d.adjDividend??d.dividend??0),0);
+    h+=`<div class="fin-note">Trailing 12 months: <b>${usd(t12)}</b> per share${FINPX?` · yield <b>${fp(t12/FINPX*100,2)}</b> at today's price`:""}.</div>`;
+  }
+  if(filed){
+    h+=`<div class="fin-note" style="padding-bottom:2px"><b>By fiscal year, as filed</b></div>
+      <div class="finwrap"><table class="fintab"><thead><tr><th class="grp">Fiscal year</th>`+yrs.map(y=>`<th>FY${y}</th>`).join("")+`</tr></thead><tbody>
+      <tr><td>Dividend per share</td>`+yrs.map(y=>`<td class="mono">${dps[y]&&dps[y].dividendPerShare!=null?usd(dps[y].dividendPerShare):"—"}</td>`).join("")+`</tr>
+      <tr><td>Cash paid ($ in ${FS.unit})</td>`+yrs.map(y=>`<td class="mono">${pay[y]?fu(Math.abs(pay[y])):"—"}</td>`).join("")+`</tr>
+      <tr><td>Payout ratio</td>`+yrs.map(y=>`<td class="mono">${dps[y]&&dps[y].dividendPayoutRatio!=null?fp(dps[y].dividendPayoutRatio*100,0):"—"}</td>`).join("")+`</tr>
+      </tbody></table></div>`;
+  }
+  if(ds.length){
+    h+=`<div class="fin-note" style="padding-bottom:2px"><b>Each payment</b></div>
+      <div class="finwrap"><table class="fintab"><thead><tr><th class="grp">Ex-date</th><th>Dividend</th>${adj?"<th>Adjusted</th>":""}</tr></thead><tbody>`;
+    for(const d of ds)
+      h+=`<tr><td>${d.date||""}</td><td class="mono">${usd(d.dividend)}</td>${adj?`<td class="mono">${usd(d.adjDividend??d.dividend)}</td>`:""}</tr>`;
+    h+=`</tbody></table></div>`;
+  }
+  const src=[filed&&FIN.sn?"The yearly figures are from Shikshan Nivesh Data, out of the company's SEC filings.":"",
+    ds.length&&!adj?"The payments are from the free feed, adjusted for any later share split.":""].filter(Boolean).join(" ");
+  return h+(src?`<div class="fin-note">${src}</div>`:"");
 }
 // ---- DCF workspace (client-side, seeded from actuals) ----
 let DCFA=null;
@@ -1475,7 +1506,7 @@ function dcfOut(){
     <div class="an-row"><span class="k">Less net debt</span><span class="mono">${big(DCFA.netDebt)}</span></div>
     <div class="an-row"><span class="k">Equity value</span><span class="mono">${big(r.eq)}</span></div>
     <div class="an-row"><span class="k">Terminal value share</span><span class="mono">${r.tvShare==null?"—":r.tvShare.toFixed(0)+"%"}</span></div>
-    ${FIN.dcf&&FIN.dcf.dcf?`<div class="an-row"><span class="k">FMP's own DCF</span><span class="mono">${usd(FIN.dcf.dcf)}</span></div>`:""}`;
+`;
 }
 function finDcfHTML(){
   if(!DCFA) DCFA=dcfSeeds();
@@ -1499,14 +1530,9 @@ function renderFin(){
   document.querySelectorAll("#fin-unit button").forEach(b=>b.classList.toggle("on",b.dataset.u===FS.unit));
   const cb=document.getElementById("fin-chgbtn"); if(cb) cb.classList.toggle("on",FS.chg);
   // the free record fills the three statements only: the other tabs go away, and the currency is the filer's
-  if(FIN.free && !["inc","bs","cf"].includes(FS.mode)){
-    const what={ratios:"Ratio history comes",seg:"Segments come",est:"Street estimates come",peers:"A peer set comes",div:"Dividend history comes",dcf:"The DCF workspace comes"}[FS.mode]||"This comes";
-    el.innerHTML=`<div class="fin-note">${what} with a data provider (FMP, for one); the free record carries the three statements. <a href="/settings" style="color:var(--accent)">Settings</a>, under Data.</div>`; return;
-  }
-  // Shikshan Nivesh Data fills the statements and segments; the other tabs need a second provider
-  if(FIN.sn && !FIN.fmp && !["inc","bs","cf","seg","ratios"].includes(FS.mode)){
-    const what={est:"Street estimates come",peers:"A peer set comes",div:"Dividend history comes",dcf:"The DCF workspace comes"}[FS.mode]||"This comes";
-    el.innerHTML=`<div class="fin-note">${what} with a Financial Modeling Prep key, as an extra. Shikshan Nivesh Data fills the statements, ratios and segments here. <a href="/settings" style="color:var(--accent)">Settings</a>, under Data.</div>`; return;
+  if(FIN.free && !["inc","bs","cf","div","est"].includes(FS.mode)){
+    const what={ratios:"Ratio history comes",seg:"Segments come",est:"Street estimates come",peers:"A peer set comes",dcf:"The DCF workspace comes"}[FS.mode]||"This comes";
+    el.innerHTML=`<div class="fin-note">${what} with Shikshan Nivesh Data, free with a key; the free record carries the three statements, the dividend payments and the street estimates. <a href="/settings" style="color:var(--accent)">Settings</a>, under Data.</div>`; return;
   }
   if(FIN.error&&BARE){ const sec=el.closest("section"); if(sec) sec.remove(); return; }
   if(FIN.error){

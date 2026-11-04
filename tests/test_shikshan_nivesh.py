@@ -89,3 +89,44 @@ def test_ratios_take_the_tab_shape(monkeypatch):
     assert [x["fiscalYear"] for x in r["ratios"]] == ["2026", "2025"]
     assert abs(r["ratios"][0]["netProfitMargin"] - 0.0969) < 1e-9 and r["ratios"][0]["currentRatio"] == 2.12
     assert abs(r["metrics"][0]["returnOnEquity"] - 0.0726) < 1e-9
+
+
+LISTING = [
+    {"symbol": "AAPL", "industry": "Electronic Computers", "index": "S&P 500"},
+    {"symbol": "SMCI", "industry": "Electronic  Computers", "index": "S&P 500"},
+    {"symbol": "DELL", "industry": "electronic computers", "index": "S&P 500"},
+    {"symbol": "XYZ", "industry": "Electronic Computers", "index": ""},
+    {"symbol": "MID", "industry": "Electronic Computers", "index": "S&P MidCap 400"},
+    {"symbol": "MSFT", "industry": "Services-Prepackaged Software", "index": "S&P 500"},
+]
+
+
+def test_peers_share_the_sec_industry_largest_index_first():
+    ind, syms = sn.peers("AAPL", LISTING)
+    assert ind == "Electronic Computers"
+    assert syms == ["DELL", "SMCI", "MID", "XYZ"]   # spacing and case do not split an industry
+    assert sn.peers("MSFT", LISTING) == ("Services-Prepackaged Software", [])
+    assert sn.peers("NOPE", LISTING) == ("", [])
+
+
+def test_peers_stop_at_n():
+    many = [{"symbol": f"P{i}", "industry": "X", "index": "S&P 500"} for i in range(20)]
+    assert len(sn.peers("P0", many, n=10)[1]) == 10
+
+
+def test_company_list_refusal_is_empty(monkeypatch):
+    monkeypatch.setattr(sn, "_get", lambda path, **p: (None, {"kind": "limit", "message": "x"}))
+    assert sn.companies() == []
+
+
+def test_peer_row_works_figures_out_from_filings_and_the_close(monkeypatch, tmp_path):
+    import server
+    monkeypatch.setattr(server, "HIST_CACHE_DIR", str(tmp_path))
+    server._peer_figs.clear()
+    monkeypatch.setattr(sn, "company", lambda s: {"name": "Co", "shares_out": 100.0, "net_income_ttm": 50.0, "revenue_ttm": 500.0,
+                                                   "ebitda_ttm": 100.0, "net_debt": 200.0, "gross_margin_ttm": 40.0,
+                                                   "operating_margin_ttm": 20.0, "net_margin_ttm": 10.0, "debt_to_equity": 0.5, "dps_ttm": 0.2})
+    monkeypatch.setattr(server.freefeed, "chart", lambda *a: ({"regularMarketPrice": 10.0}, []))
+    r = server.peer_row("CO")
+    assert r["mktCap"] == 1000.0 and r["pe"] == 20.0 and r["ps"] == 2.0 and r["evx"] == 12.0
+    assert r["gm"] == 0.4 and r["divy"] == 2.0 and r["de"] == 0.5
