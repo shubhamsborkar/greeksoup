@@ -1024,6 +1024,42 @@ def test_desk_answers_only_its_own_computer_and_pages():
     assert not ok({"Host": "localhost:8765", "Origin": "https://evil.example.com"})    # cross-site
     assert not ok({"Host": "localhost:8765", "Origin": "http://localhost.evil.com"})
     assert not ok({"Host": "localhost:8765", "Origin": "null"})                         # a sandboxed or file page
+    # another port on this computer is another page (a dev server, a notebook, a second desk)
+    port = server.PORT
+    assert not ok({"Host": f"localhost:{port}", "Origin": f"http://localhost:{port + 1}"})
+    assert not ok({"Host": f"localhost:{port}", "Origin": "http://localhost"})
+
+
+def test_other_sites_may_open_a_page_but_not_reach_the_api():
+    """A plain GET carries no Origin, but a browser names its source in Sec-Fetch-Site: another
+    site may open a desk page (a link from greeksoup.ai) and nothing else."""
+    import server
+    class H(server.Handler):
+        def __init__(self, headers, path):
+            self.headers, self.path = headers, path
+    host = {"Host": f"localhost:{server.PORT}"}
+    ok = lambda path, **h: H({**host, **{k.replace("_", "-"): v for k, v in h.items()}}, path)._from_this_computer()  # noqa: E731
+    assert ok("/t?symbol=AAPL", Sec_Fetch_Site="cross-site", Sec_Fetch_Mode="navigate")
+    assert not ok("/api/settings", Sec_Fetch_Site="cross-site", Sec_Fetch_Mode="navigate")
+    assert not ok("/api/ai/app/check?app=claude&probe=1", Sec_Fetch_Site="cross-site", Sec_Fetch_Mode="no-cors")
+    assert not ok("/t?symbol=AAPL", Sec_Fetch_Site="same-site", Sec_Fetch_Mode="no-cors")
+    assert ok("/api/settings", Sec_Fetch_Site="same-origin", Sec_Fetch_Mode="cors")
+    assert ok("/api/settings")                                                          # curl, the agent
+
+
+def test_a_setting_value_is_one_line(tmp_path, monkeypatch):
+    import settings
+    monkeypatch.setattr(settings, "ENV_PATH", str(tmp_path / ".env"))
+    monkeypatch.setattr(settings, "EXAMPLE_PATH", str(tmp_path / "none"))
+    settings.write_env({"EDGAR_CONTACT": "me@x.com\nPYTHONPATH=/tmp/attacker"})
+    assert "PYTHONPATH" not in (tmp_path / ".env").read_text() if (tmp_path / ".env").exists() else True
+
+
+def test_share_classes_take_yahoos_dash_and_exchanges_keep_their_dot():
+    import freefeed
+    assert freefeed.ysym("BRK.B") == "BRK-B" and freefeed.ysym("BF.B") == "BF-B" and freefeed.ysym("HEI.A") == "HEI-A"
+    for s in ("7203.T", "RELIANCE.NS", "SHEL.L", "NESN.SW", "SAP.DE", "^GSPC", "CL=F", "AAPL", "BRK-B", "SHOP.TO"):
+        assert freefeed.ysym(s) == s
 
 
 def test_day_change_is_against_the_last_session():

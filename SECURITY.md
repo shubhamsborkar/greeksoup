@@ -19,7 +19,7 @@ There is no telemetry, no analytics, no crash reporting and no account. The desk
 
 In `.env` inside the desk folder, written by the Settings screen. The desk reads it at start. The updater never touches it, the backup zip never includes it, and the page an AI agent reads (`/agent`) tells the agent not to read it. Broker session tokens live beside it in `session_token*.txt`. Both are in `.gitignore`.
 
-The Settings screen accepts writes only from a browser on the same computer sending JSON, which is the guard against a web page elsewhere posting to it.
+The Settings screen accepts writes only from the desk's own pages (the guards below), one line per setting. A changed AI or data provider address, or a new AI provider, has to be saved with its own key, so a saved key is never sent to an address it was not typed for.
 
 ## What it never does
 
@@ -37,4 +37,4 @@ If you find a security problem, write to desk@greeksoup.ai with `Security` in th
 
 ## The two guards
 
-The desk has no login because nothing outside your computer can reach it. Two guards keep a web page you visit from reaching it either: every request must name this computer in its `Host` header (which refuses DNS rebinding), and every request from a browser must carry the desk's own `Origin` (which refuses a cross-site read or post). Programs on this computer send no `Origin` and are let through. The full threat model, the honest limits and the question of running it on a server are on https://greeksoup.ai/docs/project/security/.
+The desk has no login because nothing outside your computer can reach it. Three guards keep a web page you visit from reaching it either: every request must name this computer in its `Host` header (which refuses DNS rebinding); a browser request that carries an `Origin` must carry the desk's own, port included, so another site or another local server (a dev server, a notebook) cannot read or post; and a browser request from anywhere else (its `Sec-Fetch-Site`) may only open a desk page, never reach an `/api/` address or load one as an image, script or frame. Programs on this computer send neither header and are let through. Pages write every name that comes from outside (filings, feeds, the address bar) as text, and a file you bring into your notes opens in a sandbox, so a crafted name or a saved web page cannot run script as the desk. The full threat model, the honest limits and the question of running it on a server are on https://greeksoup.ai/docs/project/security/.

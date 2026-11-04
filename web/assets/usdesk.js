@@ -3,6 +3,8 @@
    market was the United States; since 2026-09-15.20 they sit under the broker book on Desk ·
    Home for every reader, because a reader in any market holds and watches US names. Mount
    with mountUSDesk(rootElement). */
+// names and codes from outside sources are written as text, never as markup
+const _hu=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 "use strict";
 (function () {
   const MARKUP = `
@@ -161,10 +163,10 @@ async function pullInsiders(){
       : `<div class="secrow"><span class="dim" style="font-size:11px">No open-market buys on book or watchlist names in the window.</span></div>`;
     const rows=(d.clusters||[]).slice(0,20).map(c=>
       `<div class="prow" ${c.ours?'style="background:rgba(237,90,36,.06)"':''}>
-        <a href="/t?symbol=${c.symbol}">${c.symbol}</a>
+        <a href="/t?symbol=${encodeURIComponent(c.symbol)}">${_hu(c.symbol)}</a>
         <span class="mono" style="min-width:70px">${c.n_buyers} buyers</span>
         <span class="mono pos" style="min-width:70px">${usdShort(c.total_value)}</span>
-        <span class="nm">${c.buyers.slice(0,4).map(b=>`${b.who} (${b.role} ${usdShort(b.value)})`).join(" · ")}${c.buyers.length>4?" · +"+(c.buyers.length-4)+" more":""}</span>
+        <span class="nm">${c.buyers.slice(0,4).map(b=>`${_hu(b.who)} (${_hu(b.role)} ${usdShort(b.value)})`).join(" · ")}${c.buyers.length>4?" · +"+(c.buyers.length-4)+" more":""}</span>
         <span class="mono dim" style="font-size:10px">${c.first.slice(5)}→${c.last.slice(5)}</span>
         ${c.ours?'<span class="sec" style="color:var(--accent);border-color:var(--accent)">OURS</span>':''}
       </div>`).join("");

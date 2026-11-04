@@ -116,6 +116,8 @@ that appears on hover. Read-only: this page cannot place orders.<span id="feedno
 
 <script>
 "use strict";
+// names and codes from outside sources are written as text, never as markup
+const _h=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const _l = new URLSearchParams(location.search).get("list");
 const REGION = _l==="us" ? "us" : (_l==="global" ? "global" : "home");
 let prev={}, sortKey="code", sortDir=1, data=null;
@@ -213,15 +215,15 @@ function render(){
     const atHigh = r.ltp!=null && r.high!=null && r.ltp>=r.high;
     const atLow  = r.ltp!=null && r.low!=null && r.ltp<=r.low && !atHigh;
     const codeHtml = REGION==="us"
-      ? `<a href="/t?symbol=${r.code}" style="color:inherit;text-decoration:none">${r.code}</a>`
+      ? `<a href="/t?symbol=${encodeURIComponent(r.code)}" style="color:inherit;text-decoration:none">${_h(r.code)}</a>`
       : REGION==="home"
-      ? `<a href="/t?symbol=${encodeURIComponent(r.code)}&region=home" style="color:inherit;text-decoration:none">${r.code}</a>`
-      : r.code;
+      ? `<a href="/t?symbol=${encodeURIComponent(r.code)}&region=home" style="color:inherit;text-decoration:none">${_h(r.code)}</a>`
+      : _h(r.code);
     const exLabel = REGION==="global"
       ? (gGroup(r.code)==="STOCKS" ? (r.currency||r.exch||"") : (r.name||r.currency||""))
       : r.broker_only ? exName(r.exch)+" · broker code, no broker connected"
       : exName(r.exch);
-    const sym=`<td class="sym" title="${r.name||""}">${codeHtml}<span class="ex">${exLabel}</span>
+    const sym=`<td class="sym" title="${_h(r.name||"")}">${codeHtml}<span class="ex">${_h(exLabel)}</span>
         ${atHigh?'<span class="hl">HI</span>':""}${atLow?'<span class="ll">LO</span>':""}</td>
       <td class="arrow ${cls(r.day_pct)}">${up==null?"·":(up?"▲":"▼")}</td>`;
     if(REGION==="us"){
@@ -332,8 +334,8 @@ function renderSugg(){
   if(!suggItems.length){ hideSugg(); return; }
   suggEl.innerHTML=suggItems.map((r,i)=>
     `<div class="sg ${i===suggSel?"sel":""}" data-i="${i}">
-      <span class="c mono">${r.code}</span><span class="n">${r.name||""}</span>
-      <span class="e">${exName(r.exch)}${data&&((REGION==="home"&&!data.broker&&r.code.includes("."))||(REGION==="us"&&!data.provider))?" · free feed":""}</span></div>`).join("");
+      <span class="c mono">${_h(r.code)}</span><span class="n">${_h(r.name||"")}</span>
+      <span class="e">${_h(exName(r.exch))}${data&&((REGION==="home"&&!data.broker&&r.code.includes("."))||(REGION==="us"&&!data.provider))?" · free feed":""}</span></div>`).join("");
   suggEl.style.display="block";
   suggEl.querySelectorAll(".sg").forEach(el=>{
     el.onmousedown=e=>{e.preventDefault(); pickSugg(+el.dataset.i);};

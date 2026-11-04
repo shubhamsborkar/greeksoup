@@ -455,7 +455,7 @@ def fetch_us_batch(symbols):
     try:
         r = _yahoo["session"].get(
             "https://query1.finance.yahoo.com/v7/finance/quote",
-            params={"symbols": ",".join(symbols), "crumb": _yahoo["crumb"]},
+            params={"symbols": ",".join(freefeed.ysym(x) for x in symbols), "crumb": _yahoo["crumb"]},
             timeout=10)
         if r.status_code != 200:
             _yahoo.update(session=None, crumb=None, next_try=time.time() + 600)
@@ -465,13 +465,15 @@ def fetch_us_batch(symbols):
         _yahoo.update(session=None, crumb=None, next_try=time.time() + 300)
         return None
     out = {}
+    back = {freefeed.ysym(x): x for x in symbols}     # BRK-B answers for the list's BRK.B
     for q in rows:
         price = _num(q.get("regularMarketPrice"))
         if price is None:
             continue
         d50, d200 = _num(q.get("fiftyDayAverage")), _num(q.get("twoHundredDayAverage"))
-        out[q["symbol"]] = {
-            "code": q["symbol"], "exch": q.get("fullExchangeName") or "US",
+        code = back.get(q["symbol"], q["symbol"])
+        out[code] = {
+            "code": code, "exch": q.get("fullExchangeName") or "US",
             "name": q.get("shortName") or q.get("longName"),
             "ltp": price, "prev": _num(q.get("regularMarketPreviousClose")),
             "day_pct": _num(q.get("regularMarketChangePercent")),
@@ -1007,6 +1009,12 @@ def site_names():
     return out
 
 
+def _cache_name(x):
+    """A symbol or code as part of a cache file's name: letters, digits and . ^ = - only, so no
+    name (a typed ..\\ on Windows) can point outside the cache folder."""
+    return re.sub(r"[^A-Za-z0-9.^=-]", "_", str(x or ""))
+
+
 def site_link(symbol, region="us"):
     """Where this name's page is on greeksoup.ai, if the site has one: a home name against the
     home market's id (in, us), a US name against us, any other exchange nothing."""
@@ -1084,7 +1092,7 @@ def _yahoo_candles(ysym, rng, interval):
     if rows:
         return rows
     try:
-        r = requests.get(f"https://query2.finance.yahoo.com/v8/finance/chart/{ysym}",
+        r = requests.get(f"https://query2.finance.yahoo.com/v8/finance/chart/{freefeed.ysym(ysym)}",
                          params={"range": rng, "interval": interval},
                          headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
         res = (r.json().get("chart", {}).get("result") or [None])[0]
@@ -1122,7 +1130,7 @@ def _daily_history_home(code, exch, years=8):
     symbol. When neither answers (weekend, lapsed login) the stale cache is
     served rather than an empty chart."""
     today = datetime.now().strftime("%Y-%m-%d")
-    cpath = os.path.join(HIST_CACHE_DIR, f"hist_{code}.json")
+    cpath = os.path.join(HIST_CACHE_DIR, f"hist_{_cache_name(code)}.json")
     stale = None
     try:
         with open(cpath) as fh:
@@ -1331,6 +1339,7 @@ def build_ticker(symbol):
                 page["insiders_refused"] = True
             page["held"] = _held_context(symbol)
             if street:
+                _sn_fill_ticker(page, symbol)
                 if res.get("news"):
                     page["news"] = res["news"]
                 if first(res.get("pt")):
@@ -1359,6 +1368,64 @@ def build_ticker(symbol):
     }
 
 
+def _sn_fill_ticker(page, symbol):
+    """Valuation and quality on the ticker page from Shikshan Nivesh Data's trailing twelve months
+    and the free feed's live price, the same arithmetic as the Peers tab, so the panel and the
+    Peers row read alike. The free feed's summary (beta, PEG, the street's view) fills only what
+    this leaves; a summary the feed refuses no longer empties both panels. Ratios on the price
+    are worked out only when the filings and the quote are in the same currency (an ADR is priced
+    in dollars against filings in its home currency, per ordinary share)."""
+    figs = _peer_figures(symbol)
+    if not figs:
+        return
+    num = lambda k: figs.get(k) if isinstance(figs.get(k), (int, float)) else None  # noqa: E731
+    q, ra, m, p = page.setdefault("quote", {}), page.setdefault("ratios", {}), page.setdefault("metrics", {}), page.setdefault("profile", {})
+    rev, ni, ebitda, fcf = num("revenue_ttm"), num("net_income_ttm"), num("ebitda_ttm"), num("fcf_ttm")
+    nd, eq, assets = num("net_debt"), num("equity"), num("assets")
+    pct = lambda k: num(k) / 100 if num(k) is not None else None  # noqa: E731
+    div = lambda a, b: a / b if a is not None and b else None  # noqa: E731
+    pos = lambda a, b: a / b if a is not None and b and b > 0 else None  # noqa: E731
+    put = lambda d, k, v: d.__setitem__(k, v) if v is not None else None  # noqa: E731
+    put(ra, "grossProfitMarginTTM", pct("gross_margin_ttm"))
+    put(ra, "operatingProfitMarginTTM", pct("operating_margin_ttm"))
+    put(ra, "netProfitMarginTTM", pct("net_margin_ttm"))
+    put(ra, "debtToEquityRatioTTM", num("debt_to_equity"))
+    put(m, "returnOnEquityTTM", pct("roe_ttm"))
+    put(m, "returnOnAssetsTTM", div(ni, assets))
+    put(m, "netDebtToEBITDATTM", pos(nd, ebitda))
+    put(m, "capexToRevenueTTM", pos(num("capex_ttm"), rev))
+    px, sh = q.get("price"), num("shares_out")
+    cur, qcur = (figs.get("currency") or "").upper(), (q.get("currency") or "").upper()
+    if cur and qcur and cur != qcur:
+        # the free feed's own sales and EBITDA multiples set a dollar price against home-currency
+        # sales (TSMC's P/S read 0.42): left empty rather than shown wrong
+        for k in ("priceToSalesRatioTTM",):
+            ra.pop(k, None)
+        for k in ("evToEBITDATTM", "evToSalesTTM"):
+            m.pop(k, None)
+        return
+    if not (px and sh and cur):
+        return
+    cap = px * sh
+    ev = cap + (nd or 0)
+    if ev <= 0:
+        ev = None       # more cash than the company is worth on the market: no EV multiple
+    q["marketCap"] = cap
+    put(m, "marketCap", cap)
+    put(ra, "priceToEarningsRatioTTM", pos(cap, ni))
+    put(ra, "priceToSalesRatioTTM", pos(cap, rev))
+    put(ra, "priceToBookRatioTTM", pos(cap, eq))
+    put(ra, "priceToFreeCashFlowRatioTTM", pos(cap, fcf))
+    put(m, "evToEBITDATTM", pos(ev, ebitda) if ev else None)
+    put(m, "evToSalesTTM", pos(ev, rev) if ev else None)
+    put(m, "enterpriseValueTTM", ev)
+    put(m, "earningsYieldTTM", div(ni, cap))
+    put(m, "freeCashFlowYieldTTM", div(fcf, cap))
+    if num("dps_ttm"):
+        p["lastDividend"] = num("dps_ttm")
+        ra["dividendYieldTTM"] = num("dps_ttm") / px
+
+
 INFUND_TTL = 12 * 3600
 _infund_cache = {}
 _infund_lock = threading.Lock()
@@ -1379,7 +1446,7 @@ def cached_infund(code):
         hit = _infund_cache.get(code)
     if hit and now - hit[0] < INFUND_TTL:
         return hit[1]
-    dpath = os.path.join(HIST_CACHE_DIR, f"api_infund_{code}.json")
+    dpath = os.path.join(HIST_CACHE_DIR, f"api_infund_{_cache_name(code)}.json")
     if not hit:
         try:
             with open(dpath) as fh:
@@ -1475,7 +1542,7 @@ def cached_ticker(symbol, region="us"):
                 alt["matched_from"] = symbol
                 alt["region"] = "us"
                 data = alt
-    dpath = os.path.join(HIST_CACHE_DIR, f"api_ticker_{re.sub(r'[^A-Za-z0-9.^=-]', '_', key)}.json")
+    dpath = os.path.join(HIST_CACHE_DIR, f"api_ticker_{_cache_name(key)}.json")
     if not data.get("error"):        # never cache a failure; retry next click
         data.setdefault("region", region)   # the page renders by the answer, not the door it came in by
         _ticker_cache[key] = (now, data)
@@ -1575,6 +1642,11 @@ def build_fin(symbol):
                              + " statements come from the free record: the last four years and four quarters, fewer lines than a data provider gives. "
                              + ("Ratio history, segments, peers and the DCF come with Shikshan Nivesh Data, free with a key on Settings." if not (os.getenv("FMP_API_KEY", "").strip() or sn)
                                 else "" if sn else "The data provider does not carry this name; ratio history, segments, peers and the DCF need one that does."))}
+        kind = (freefeed.chart(symbol, "5d", "1d")[0] or {}).get("instrumentType") or ""
+        if kind in FUND_KINDS:
+            # a fund, an index, a contract: nothing that files a company's statements
+            return {"symbol": symbol, "not_company": True,
+                    "error": f"{symbol} is {FUND_KINDS[kind]}, not a company, so it files no statements: no income statement, ratios, segments, peers or DCF to show. The chart and the price above are its record."}
         if not (os.getenv("FMP_API_KEY", "").strip() or sn):
             return {"symbol": symbol, "no_provider": True,
                     "error": "The free record carries no statements for this name, and the ratio history, segments, peers and the DCF come with Shikshan Nivesh Data, free with a key on Settings. The quote, the chart, valuation and quality above come from the free record."}
@@ -1626,7 +1698,7 @@ def _peer_figures(sym):
             except (OSError, ValueError):
                 pass
         hit = _peer_figs.get(sym)
-    if hit and time.time() - hit["at"] < PEER_TTL:
+    if hit and time.time() - hit["at"] < PEER_TTL and "currency" in hit["figs"]:
         return hit["figs"]
     figs = desk_sn.company(sym)
     if figs is None:
@@ -1648,7 +1720,7 @@ def peer_row(sym):
     figs = _peer_figures(sym)
     if not figs:
         return None
-    meta, _ = freefeed.chart(sym.replace(".", "-"), "5d", "1d")
+    meta, _ = freefeed.chart(sym, "5d", "1d")
     px = freefeed._num(meta.get("regularMarketPrice"))
     num = lambda k: figs.get(k) if isinstance(figs.get(k), (int, float)) else None  # noqa: E731
     pct = lambda k: num(k) / 100 if num(k) is not None else None  # noqa: E731
@@ -1749,7 +1821,7 @@ def period_for_note(symbol=""):
             data = src[1] if src else None
             if data is None:
                 try:
-                    with open(os.path.join(HIST_CACHE_DIR, f"api_fin_{sym}.json")) as fh:
+                    with open(os.path.join(HIST_CACHE_DIR, f"api_fin_{_cache_name(sym)}.json")) as fh:
                         c = json.load(fh)
                     # statements move once a quarter; a week-old read still names the right one
                     data = (c.get("data") or {}) if time.time() - c.get("at", 0) < 7 * 86400 else {}
@@ -1780,6 +1852,26 @@ def _fin_source():
     return "sn2" if sn_on() else "fmp" if os.getenv("FMP_API_KEY", "").strip() else "free"
 
 
+# the free feed's instrument types that are not a company
+FUND_KINDS = {"ETF": "an exchange-traded fund", "MUTUALFUND": "a mutual fund", "INDEX": "an index",
+              "FUTURE": "a futures contract", "CURRENCY": "a currency pair", "CRYPTOCURRENCY": "a cryptocurrency"}
+
+_est_tried = {}
+
+
+def _est_again(symbol, data):
+    """The statements are kept twelve hours, but street estimates the free feed refused at that
+    read (it rests after a burst) are asked for again, at most every twenty minutes, instead of
+    the Estimates tab staying empty for the rest of the day."""
+    if data.get("est_a") or data.get("error") or time.time() - _est_tried.get(symbol, 0) < 1200:
+        return data
+    _est_tried[symbol] = time.time()
+    est = freefeed.estimates(symbol)
+    if est:
+        data["est_a"] = est
+    return data
+
+
 def cached_fin(symbol):
     """Per-symbol, disk-backed 12h cache; never caches a failure."""
     now = time.time()
@@ -1789,8 +1881,8 @@ def cached_fin(symbol):
     if hit and (len(hit) < 3 or hit[2] != src):
         hit = None
     if hit and now - hit[0] < FIN_TTL:
-        return hit[1]
-    dpath = os.path.join(HIST_CACHE_DIR, f"api_fin_{symbol}.json")
+        return _est_again(symbol, hit[1])
+    dpath = os.path.join(HIST_CACHE_DIR, f"api_fin_{_cache_name(symbol)}.json")
     if not hit:
         try:
             with open(dpath) as fh:
@@ -1798,7 +1890,7 @@ def cached_fin(symbol):
             if now - c["at"] < FIN_TTL and c.get("source", "fmp") == src:
                 with _fin_lock:
                     _fin_cache[symbol] = (c["at"], c["data"], src)
-                return c["data"]
+                return _est_again(symbol, c["data"])
         except (OSError, ValueError, KeyError):
             pass
     data = build_fin(symbol)
@@ -3415,7 +3507,7 @@ def symbol_search(q):
     for host in ("query2", "query1"):
         try:
             r = requests.get(f"https://{host}.finance.yahoo.com/v1/finance/search",
-                             params={"q": q, "quotesCount": 8, "newsCount": 0, "listsCount": 0},
+                             params={"q": freefeed.ysym(q), "quotesCount": 8, "newsCount": 0, "listsCount": 0},
                              headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
             if r.status_code != 200:
                 continue
@@ -3765,7 +3857,7 @@ def _float_shares(sym):
     hit = _float_cache.get(sym)
     if hit and time.time() - hit[0] < 24 * 3600:
         return hit[1]
-    f = _num((freefeed.summary(sym.replace(".", "-"), ["defaultKeyStatistics"]).get("defaultKeyStatistics") or {}).get("floatShares"))
+    f = _num((freefeed.summary(sym, ["defaultKeyStatistics"]).get("defaultKeyStatistics") or {}).get("floatShares"))
     if not f:
         rows = fmp_get("shares-float", symbol=sym)
         f = _num((rows[0] or {}).get("floatShares")) if isinstance(rows, list) and rows else None
@@ -4696,12 +4788,33 @@ class Handler(BaseHTTPRequestHandler):
             return False
         origin = self.headers.get("Origin")
         if origin and origin.lower() not in ("null",):
-            oh = (urlparse(origin).hostname or "").lower()
-            if oh not in ("localhost", "127.0.0.1", "::1"):
+            o = urlparse(origin)
+            if (o.hostname or "").lower() not in ("localhost", "127.0.0.1", "::1"):
+                return False
+            # the desk's own port only: a dev server, a notebook or another desk on this computer
+            # is a different page, and its scripts are not the reader's desk
+            if (o.port or (443 if o.scheme == "https" else 80)) != PORT:
                 return False
         elif origin:
             return False
+        # A browser says where a request comes from (Sec-Fetch-Site) even when it sends no Origin,
+        # as on a plain GET. Another site, or another port on this computer, may open a desk page
+        # (a link from greeksoup.ai), but may not read or trigger anything else: no /api/ address,
+        # and no request that is not a top-level or frame navigation. Programs (curl, the reader's
+        # agent) send no such header and are let through, as they are the reader.
+        site = (self.headers.get("Sec-Fetch-Site") or "").lower()
+        if site in ("cross-site", "same-site"):
+            mode = (self.headers.get("Sec-Fetch-Mode") or "").lower()
+            if mode != "navigate" or urlparse(self.path).path.startswith("/api/"):
+                return False
         return True
+
+    def end_headers(self):
+        # every answer: never read as another type than it says; framed only by the desk itself
+        # and by Obsidian (the Live Desk note shows the desk in a frame)
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Content-Security-Policy", "frame-ancestors 'self' app://obsidian.md")
+        super().end_headers()
 
     def _refuse(self):
         self.send_response(403)
@@ -4864,6 +4977,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header("Content-Type", ctype)
                 self.send_header("Content-Length", str(len(body)))
                 self.send_header("Content-Disposition", f'inline; filename="{os.path.basename(full)}"')
+                if not (ctype == "application/pdf" or (ctype.startswith("image/") and ctype != "image/svg+xml")):
+                    # a saved web page or an SVG opens to be read, in a sandbox: its scripts do not
+                    # run, and it is not the desk's own page
+                    self.send_header("Content-Security-Policy", "sandbox")
                 self.send_header("Cache-Control", "no-store")
                 self.end_headers()
                 self.wfile.write(body)
@@ -5179,6 +5296,17 @@ class Handler(BaseHTTPRequestHandler):
                 if hm and hm not in markets.REGISTRY:
                     return self._send(b'{"ok":false,"error":"unknown market"}', "application/json")
                 fields["HOME_MARKET"] = hm
+            if any(c in v for v in fields.values() for c in "\r\n\0"):
+                return self._send(json.dumps({"ok": False, "error": "A setting is one line: take the line break out and save again."}).encode(), "application/json")
+            if ("AI_PROVIDER" in fields and fields["AI_PROVIDER"] != os.getenv("AI_PROVIDER", "")
+                    and "AI_API_KEY" not in fields and os.getenv("AI_API_KEY", "").strip()):
+                return self._send(json.dumps({"ok": False, "error": "A new AI provider needs its own key typed with it: the saved key belongs to the old one and is not sent anywhere else. Remove the old key first for a provider that needs none."}).encode(), "application/json")
+            for base, key in (("AI_BASE_URL", "AI_API_KEY"), ("DATA_BASE_URL", "DATA_API_KEY")):
+                if base in fields and key not in fields and os.getenv(key, "").strip():
+                    was = (urlparse(os.getenv(base, "")).hostname or "").lower()
+                    now_ = (urlparse(fields[base]).hostname or "").lower()
+                    if now_ != was:
+                        return self._send(json.dumps({"ok": False, "error": "A new address needs its key typed again with it: the saved key belongs to the old address and is not sent anywhere else."}).encode(), "application/json")
             saved = desk_settings.write_env(fields)
             if "FMP_API_KEY" in saved:
                 for k in ("earn", "capitol", "insiders", "econcal", "pulse"):

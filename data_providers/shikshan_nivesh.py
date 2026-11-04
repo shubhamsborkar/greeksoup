@@ -194,7 +194,8 @@ def company(symbol):
     j, err = _get(f"/companies/{symbol}")
     if err:
         return None
-    return {"name": (j.get("company") or {}).get("name") or "", **(j.get("metrics") or {})}
+    co = j.get("company") or {}
+    return {"name": co.get("name") or "", "currency": co.get("currency") or "", **(j.get("metrics") or {})}
 
 
 def companies():

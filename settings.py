@@ -80,6 +80,8 @@ def write_env(updates):
     Creates .env from .env.example on a copy that never had one. Then reloads
     the process environment so the change applies without a restart."""
     updates = {k: str(v).strip() for k, v in updates.items() if k in ALLOWED}
+    # one line per setting: a line break inside a value would write a second setting of its own
+    updates = {k: v for k, v in updates.items() if not any(c in v for c in "\r\n\0")}
     if not updates:
         return []
     lines = []

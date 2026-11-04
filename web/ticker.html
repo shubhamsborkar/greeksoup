@@ -71,6 +71,19 @@ main{max-width:1280px;margin:0 auto;padding:18px 22px}
 .st{background:var(--panel);padding:9px 12px}
 .st .l{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .st .v{font-size:14px;font-weight:700;margin-top:3px}
+/* key figures as the leaders show them: two columns of label and value, hairline rows, no tiles */
+.stats.kv{grid-template-columns:1fr 1fr;column-gap:32px;gap:0 32px;background:none;padding:2px 16px 6px}
+.stats.kv .st{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:7px 0;background:none;border-bottom:1px solid var(--line)}
+.stats.kv .st:nth-last-child(-n+2){border-bottom:0}
+.stats.kv .st .l{font-size:12px!important;color:var(--ink2);letter-spacing:0!important}
+.stats.kv .st .v{font-size:13px;font-weight:600;margin:0;font-variant-numeric:tabular-nums;text-align:right}
+@media(max-width:700px){.stats.kv{grid-template-columns:1fr}.stats.kv .st:nth-last-child(2){border-bottom:1px solid var(--line)}}
+/* the chart's controls in two rows: what period (beside the title), how it is drawn (the strip below) */
+#chartpanel .chartbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 14px;border-bottom:1px solid var(--line)}
+#chartpanel .chartbar .gap{flex:1}
+#chartpanel .seg button{letter-spacing:0;font-size:11px}
+/* inside the page, under the company's name, the notes panel lines up with the panels below it */
+#app #notesdock > section{max-width:none!important;margin:2px 0 14px!important;padding:0!important}
 
 table{width:100%;border-collapse:collapse;font-size:12px}
 th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
@@ -139,7 +152,9 @@ tbody tr:last-child td{border-bottom:none}
 <script>
 "use strict";
 const P = new URLSearchParams(location.search);
-const SYM = (P.get("symbol")||"AAPL").toUpperCase();
+// a symbol is letters, digits and . ^ = & - _ (M&M.NS, BRK.B, CL=F, ^GSPC), or words typed into the
+// box (HDFC BANK): anything else in the address is dropped, so the address can never write the page
+const SYM = (P.get("symbol")||"AAPL").toUpperCase().replace(/[^A-Z0-9 .^=&_\-]/g,"").trim()||"AAPL";
 const REG = (P.get("region")||"us").toLowerCase();
 let HOME = REG==="home";     // a home-market name: the broker's code or the exchange symbol; the answer can say otherwise
 document.getElementById("go").addEventListener("keydown",e=>{
@@ -588,24 +603,27 @@ function chartPanel(){
     <div class="panel-h"><h2>Price</h2>
       <span id="chartret"></span><span id="srcnote" class="dim" style="font-size:11px"></span>
       <span style="flex:1"></span>
-      <div class="seg" id="srcseg" title="The desk's own chart from the free feed, with drawings and indicators kept on this computer; or TradingView's embedded chart (US, BSE and most European listings, their data, their tools)">
-        <button data-s="tv">TRADINGVIEW</button>
-        <button data-s="desk">DESK</button>
-      </div>
+      <div class="seg" id="rangeseg"></div>
+      <div class="seg" id="intseg" title="Bar size"></div>
+    </div>
+    <div class="chartbar">
       <div class="seg" id="modeseg" title="Chart type">
-        <button data-m="candles" class="on">CANDLES</button>
-        <button data-m="bars">BARS</button>
-        <button data-m="ha" title="Heikin Ashi">HA</button>
-        <button data-m="line">LINE</button>
-        <button data-m="area">AREA</button>
-        <button data-m="drawdown" title="Drawdown from the running peak">DD</button>
+        <button data-m="candles" class="on">Candles</button>
+        <button data-m="bars">Bars</button>
+        <button data-m="ha" title="Heikin Ashi">Heikin Ashi</button>
+        <button data-m="line">Line</button>
+        <button data-m="area">Area</button>
+        <button data-m="drawdown" title="Drawdown from the running peak">Drawdown</button>
       </div>
       <div style="position:relative" id="indwrap"><button class="fsbtn" id="indbtn" title="Moving averages, Bollinger Bands, VWAP, RSI, MACD, volume, log scale">Indicators ▾</button>
         <div id="indmenu" style="display:none;position:absolute;right:0;top:32px;z-index:20;background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding:8px 14px 12px;min-width:250px;box-shadow:0 8px 24px rgba(0,0,0,.45)"></div></div>
-      <div class="seg" id="rangeseg"></div>
-      <div class="seg" id="intseg" title="Bar size"></div>
+      <span class="gap"></span>
+      <div class="seg" id="srcseg" title="The desk's own chart from the free feed, with drawings and indicators kept on this computer; or TradingView's embedded chart (US, BSE and most European listings, their data, their tools)">
+        <button data-s="desk">Desk chart</button>
+        <button data-s="tv">TradingView</button>
+      </div>
       <button class="fsbtn" id="snapbtn" title="A picture of this chart, as drawn, becomes a clipping in your notes on this name">Save chart to notes</button>
-      <button class="fsbtn" id="fsbtn" title="Full screen (Esc closes)">⛶ Full screen</button>
+      <button class="fsbtn" id="fsbtn" title="Full screen (Esc closes)" aria-label="Full screen">⛶</button>
     </div>
     <div id="snapmsg" style="display:none;padding:8px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--ink2);line-height:1.5"></div>
     <div class="panel-b" id="chartwrap"><div id="tvwrap" style="height:480px;display:none"></div><div id="chartmsg" class="dim" style="display:none;padding:30px"></div><div id="chart"></div><div id="tip"></div><div id="drawbar" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 2px 0;font-size:11.5px"></div></div>
@@ -771,7 +789,7 @@ function toggleFS(){
   isFS=!isFS;
   document.getElementById("chartpanel").classList.toggle("fs",isFS);
   document.body.style.overflow=isFS?"hidden":"";
-  document.getElementById("fsbtn").textContent=isFS?"✕ Close":"⛶ Full screen";
+  document.getElementById("fsbtn").textContent=isFS?"✕ Close":"⛶";
   const tv=document.getElementById("tvwrap"); if(tv) tv.style.height=isFS?"calc(100vh - 90px)":"480px";
   const box=document.getElementById("chart"); if(box) box.style.height=chartHeight()+"px";
   if(chartSource()!=="tv"||document.getElementById("srcnote").textContent.startsWith("TradingView's chart could not")) drawChart();
@@ -788,20 +806,20 @@ function st(l,v,k){return `<div class="st"><div class="l">${l}</div><div class="
 
 /* ================= LOADERS ================= */
 async function load(){
-  const r=await fetch("/api/ticker?symbol="+SYM+"&region="+REG);
+  const r=await fetch("/api/ticker?symbol="+encodeURIComponent(SYM)+"&region="+encodeURIComponent(REG));
   const d=await r.json();
   const app=document.getElementById("app");
   loadNotes();   // your notes on the name show even when the quote does not
   loadDrawings();   // and your drawings on its chart
   if(d.error){
-    app.innerHTML=`<div class="loading">${esc(d.error)}</div>`;
+    parkNotes(); app.innerHTML=`<div class="loading">${esc(d.error)}</div>`;
     // the price feed is paused, but the statements come from elsewhere and change four times a
     // year: show them under the line rather than an empty page
     // no price, but the record does not depend on it: an Indian (home) name keeps the exchange's
     // results, filings and shareholding and its statements; a US name keeps its statements
     if(d.no_price){
       const f=d.filings;
-      app.innerHTML=`<div class="loading">${esc(d.error)}</div>
+      parkNotes(); app.innerHTML=`<div class="loading">${esc(d.error)}</div>
       <div class="grid"><div>
         ${f?`<section class="panel"><div class="panel-h"><h2>Quarterly results</h2><span class="s">${f}${d.units?" · "+d.units:""}</span></div>
           <div class="panel-b" id="if-q"><div class="desc">Loading filings…</div></div></section>
@@ -816,7 +834,7 @@ async function load(){
       if(f) loadInfund(f);
       loadFin();
     }else if(d.resting&&!HOME){
-      app.innerHTML=`<div class="loading">Prices are paused for a few minutes after too many requests in a row and come back on their own. The statements below do not depend on them.</div>`+finPanelHTML();
+      parkNotes(); app.innerHTML=`<div class="loading">Prices are paused for a few minutes after too many requests in a row and come back on their own. The statements below do not depend on them.</div>`+finPanelHTML();
       BARE=true; FINCO=SYM; loadFin();
     }
     return;
@@ -858,6 +876,15 @@ async function loadSiteLink(d){
 }
 
 /* Your own notes about this name, from the research vault (data/research), and the other names they connect it to. */
+// the notes panel belongs to this company, so it sits under its name, not above it
+function placeNotes(){
+  const dock=document.getElementById("notesdock"), sub=document.querySelector("#app > .sub");
+  if(dock&&sub&&sub.nextElementSibling!==dock) sub.after(dock);
+}
+function parkNotes(){
+  const dock=document.getElementById("notesdock"), app=document.getElementById("app");
+  if(dock&&app&&app.contains(dock)) app.before(dock);
+}
 async function loadNotes(){
   const dock=document.getElementById("notesdock"); if(!dock) return;
   try{
@@ -970,11 +997,11 @@ function renderHome(d,app){
   const filings = d.filings||"";
   const w52l = m.w52l ?? q.ylow, w52h = m.w52h ?? q.yhigh;
   const hasRange = (w52l!=null && w52h!=null) || (m.ltl!=null && m.lth!=null);
-  app.innerHTML=`
+  parkNotes(); app.innerHTML=`
   <div class="hero">
-    <span class="sym">${SYM}</span><span class="co">${m.company||q.name||""}</span>
-    <span class="badge">${q.exch||m.exch||""}</span>
-    ${d.exchange_symbol?`<span class="badge">${d.exchange_symbol}</span>`:""}
+    <span class="sym">${esc(SYM)}</span><span class="co">${esc(m.company||q.name||"")}</span>
+    <span class="badge">${esc(q.exch||m.exch||"")}</span>
+    ${d.exchange_symbol?`<span class="badge">${esc(d.exchange_symbol)}</span>`:""}
     <span style="flex:1"></span>
     <span class="px mono">${money(px)}</span>
     <span class="chg mono ${cls(q.day_pct)}">${pct(q.day_pct)}</span>
@@ -985,7 +1012,7 @@ function renderHome(d,app){
       ${chartPanel()}
       <section class="panel">
         <div class="panel-h"><h2>Session</h2></div>
-        <div class="stats">
+        <div class="stats kv">
           ${st("Open",money(q.open))}${st("High",money(q.high))}${st("Low",money(q.low))}
           ${st("Prev close",money(q.prev))}${st("Volume",F(q.ttq,0))}
           ${st("Day move",pct(q.day_pct),cls(q.day_pct))}
@@ -1014,6 +1041,7 @@ function renderHome(d,app){
     </div>
   </div>`;
   if(filings) loadInfund(filings);
+  placeNotes();
   loadFin();
 }
 
@@ -1060,7 +1088,7 @@ async function loadInfund(filings){
   aEl.innerHTML = ann.length
     ? ann.map(x=>`<div class="an-row" style="align-items:baseline;gap:10px">
         <span class="s mono" style="white-space:nowrap">${x.date}</span>
-        <span style="flex:1;font-size:12px">${x.pdf?`<a href="${x.pdf}" target="_blank" style="color:var(--ink);text-decoration:none">${x.desc||"Filing"}</a>`:(x.desc||"Filing")}
+        <span style="flex:1;font-size:12px">${/^https:\/\//i.test(x.pdf||"")?`<a href="${esc(x.pdf)}" target="_blank" rel="noopener" style="color:var(--ink);text-decoration:none">${esc(x.desc||"Filing")}</a>`:esc(x.desc||"Filing")}
           <span class="s"> · ${x.text||""}</span></span></div>`).join("")
     : `<div class="desc">No filings in the last 90 days.</div>`;
 }
@@ -1103,31 +1131,31 @@ function renderUS(d,app){
   const insRows=(d.insiders||[]).slice(0,9).map(i=>{
     const buy=(i.acquisitionOrDisposition==="A");
     return `<tr><td class="mono dim">${(i.transactionDate||"").slice(2)}</td>
-      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis">${(i.reportingName||"").split(" ").slice(0,2).join(" ")}</td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis">${esc((i.reportingName||"").split(" ").slice(0,2).join(" "))}</td>
       <td class="${buy?"pos":"neg"}">${buy?"BUY":"SELL"}</td>
       <td class="mono">${F(i.securitiesTransacted,0)}</td>
       <td class="mono dim">${i.price?usd(i.price):"—"}</td></tr>`;}).join("");
   const newsItems=(d.news||[]).map(n=>`<div class="news-item">
     <span class="t mono">${ago(n.publishedDate)} ago</span>
     <a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a>
-    <span class="pub">${n.publisher||n.site||""}</span></div>`).join("");
+    <span class="pub">${esc(n.publisher||n.site||"")}</span></div>`).join("");
 
-  app.innerHTML=`
+  parkNotes(); app.innerHTML=`
   <div class="hero">
-    <span class="sym">${SYM}</span><span class="co">${p.companyName||q.name||""}</span>
-    <span class="badge">${q.exchange||p.exchange||""}</span>
-    ${p.sector?`<span class="badge">${p.sector}</span>`:""}
+    <span class="sym">${esc(SYM)}</span><span class="co">${esc(p.companyName||q.name||"")}</span>
+    <span class="badge">${esc(q.exchange||p.exchange||"")}</span>
+    ${p.sector?`<span class="badge">${esc(p.sector)}</span>`:""}
     <span style="flex:1"></span>
     <span class="px mono">${usd(px)}</span>
     <span class="chg mono ${cls(q.changePercentage)}">${(q.change>=0?"+":"−")+F(Math.abs(q.change??0))} (${pct(q.changePercentage)})</span>
   </div>
-  <div class="sub">${p.industry||""}${p.ceo?" · CEO "+p.ceo:""}${p.fullTimeEmployees?" · "+F(p.fullTimeEmployees,0)+" employees":""} · data as of ${d.ts}${P.get("from")?` · the closest match on the free feed for "${esc(P.get("from"))}"`:""}</div>
+  <div class="sub">${esc(p.industry||"")}${p.ceo?" · CEO "+esc(p.ceo):""}${p.fullTimeEmployees?" · "+F(p.fullTimeEmployees,0)+" employees":""} · data as of ${d.ts}${P.get("from")?` · the closest match on the free feed for "${esc(P.get("from"))}"`:""}</div>
   <div class="grid">
     <div>
       ${chartPanel()}
       <section class="panel">
         <div class="panel-h"><h2>Valuation</h2><span class="s">TTM</span></div>
-        <div class="stats">
+        <div class="stats kv">
           ${st("P/E",xr(ra.priceToEarningsRatioTTM))}
           ${st("P/S",xr(ra.priceToSalesRatioTTM))}
           ${st("P/B",xr(ra.priceToBookRatioTTM))}
@@ -1144,7 +1172,7 @@ function renderUS(d,app){
       </section>
       <section class="panel">
         <div class="panel-h"><h2>Quality &amp; balance sheet</h2><span class="s">TTM</span></div>
-        <div class="stats">
+        <div class="stats kv">
           ${st("Gross margin",pc(ra.grossProfitMarginTTM))}
           ${st("Op margin",pc(ra.operatingProfitMarginTTM))}
           ${st("Net margin",pc(ra.netProfitMarginTTM))}
@@ -1199,17 +1227,20 @@ function renderUS(d,app){
       </section>
       <section class="panel">
         <div class="panel-h"><h2>About</h2></div>
-        <div class="panel-b desc">${(p.description||"").slice(0,480)}${(p.description||"").length>480?"…":""}</div>
+        <div class="panel-b desc">${esc((p.description||"").slice(0,480))}${(p.description||"").length>480?"…":""}</div>
       </section>
     </div>
   </div>`;
-  FINPX=px; FINCO=p.companyName||q.name||SYM;
+  FINPX=px; FINQCUR=(q.currency||"").toUpperCase(); FINCO=p.companyName||q.name||SYM;
+  placeNotes();
   loadFin();
 }
 
 // ---------- Financials layer (lazy /api/fin bundle) ----------
 let BARE=false;     // the page has no price: a statements panel with nothing to show goes away
-let FINSYM="", FIN=null, FINPX=null, FINCO="", FS={mode:"inc",period:"annual",unit:"M",chg:false,sk:"mktCap",sd:-1};
+let FINSYM="", FIN=null, FINPX=null, FINQCUR="", FINCO="", FS={mode:"inc",period:"annual",unit:"M",chg:false,sk:"mktCap",sd:-1};
+// the statements' currency: the dollar sign for a US filer, the code otherwise (TWD for TSMC's 20-F)
+function finCur(){ const c=(FIN&&FIN.currency||"").toUpperCase(); return FIN&&FIN.free?c:(!c||c==="USD"?"$":c); }
 async function loadFin(){
   if(!document.getElementById("finbody")) return;
   try{ const r=await fetch("/api/fin?symbol="+encodeURIComponent(FINSYM||SYM)); FIN=await r.json(); }
@@ -1279,7 +1310,7 @@ function finStmtHTML(kind){
   const cols=(FIN[key]||[]).slice().sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
   if(!cols.length) return `<div class="fin-note">No ${FS.period} statements for this name on this record.</div>`;
   const rows=stmtRows(kind);
-  const cur=FIN.free?(FIN.currency||""):"$";
+  const cur=finCur();
   let h=`<div class="finwrap"><table class="fintab"><thead><tr><th class="grp">${cur} in ${FS.unit}</th>`+
     cols.map(c=>`<th>${colLabel(c)}</th>`).join("")+`</tr></thead><tbody>`;
   for(const r of rows){
@@ -1405,7 +1436,7 @@ function finPeersHTML(){
     `</tr></thead><tbody>`;
   for(const r of rows){
     const me=r.symbol===SYM;
-    h+=`<tr${me?' class="tot"':""}><td class="grp"><a href="/t?symbol=${r.symbol}">${r.symbol}</a> <span class="dim" style="font-size:10px">${(r.name||"").slice(0,26)}</span></td>
+    h+=`<tr${me?' class="tot"':""}><td class="grp"><a href="/t?symbol=${encodeURIComponent(r.symbol)}">${esc(r.symbol)}</a> <span class="dim" style="font-size:10px">${esc((r.name||"").slice(0,26))}</span></td>
       <td class="mono">${big(r.mktCap)}</td><td class="mono">${usd(r.price)}</td>
       <td class="mono">${fx(r.pe,1)}</td><td class="mono">${fx(r.ps,1)}</td><td class="mono">${fx(r.evx,1)}</td>
       <td class="mono">${r.gm==null?"—":fp(r.gm*100,0)}</td><td class="mono">${r.om==null?"—":fp(r.om*100,0)}</td>
@@ -1434,7 +1465,7 @@ function finDivHTML(){
     h+=`<div class="fin-note" style="padding-bottom:2px"><b>By fiscal year, as filed</b></div>
       <div class="finwrap"><table class="fintab"><thead><tr><th class="grp">Fiscal year</th>`+yrs.map(y=>`<th>FY${y}</th>`).join("")+`</tr></thead><tbody>
       <tr><td>Dividend per share</td>`+yrs.map(y=>`<td class="mono">${dps[y]&&dps[y].dividendPerShare!=null?usd(dps[y].dividendPerShare):"—"}</td>`).join("")+`</tr>
-      <tr><td>Cash paid ($ in ${FS.unit})</td>`+yrs.map(y=>`<td class="mono">${pay[y]?fu(Math.abs(pay[y])):"—"}</td>`).join("")+`</tr>
+      <tr><td>Cash paid (${finCur()} in ${FS.unit})</td>`+yrs.map(y=>`<td class="mono">${pay[y]?fu(Math.abs(pay[y])):"—"}</td>`).join("")+`</tr>
       <tr><td>Payout ratio</td>`+yrs.map(y=>`<td class="mono">${dps[y]&&dps[y].dividendPayoutRatio!=null?fp(dps[y].dividendPayoutRatio*100,0):"—"}</td>`).join("")+`</tr>
       </tbody></table></div>`;
   }
@@ -1456,6 +1487,11 @@ function dcfSeeds(){
         bs=(FIN.bs_a||[]).slice().reverse();
   const li=inc[inc.length-1]||{}, lc=cf[cf.length-1]||{}, lb=bs[bs.length-1]||{};
   const clamp=(v,a,b,d)=>(v==null||isNaN(v))?d:Math.min(b,Math.max(a,v));
+  // a filer whose income statement carries no EBITDA or D&A line (most 20-F filers): D&A from the
+  // cash flow statement, EBITDA as operating income plus D&A; with no D&A anywhere, the default
+  // 4% of revenue, so the model's operating profit still starts at the filed operating income
+  const dna=li.depreciationAndAmortization??lc.depreciationAndAmortization??null;
+  const ebitda=li.ebitda??(li.operatingIncome!=null&&li.revenue?li.operatingIncome+(dna??li.revenue*0.04):null);
   let cagr=8;
   // seed off the last ~3 growth intervals so a distressed base year (e.g. a
   // COVID-era FY) does not inflate the default into fantasy
@@ -1464,8 +1500,8 @@ function dcfSeeds(){
     cagr=(Math.pow(li.revenue/win[0].revenue,1/(win.length-1))-1)*100;
   return {
     g: clamp(Math.round(cagr),-5,30,8),
-    em: clamp(Math.round(li.revenue?li.ebitda/li.revenue*100:20),1,70,20),
-    da: clamp(Math.round(li.revenue?li.depreciationAndAmortization/li.revenue*100:4),0,25,4),
+    em: clamp(li.revenue&&ebitda!=null?Math.round(ebitda/li.revenue*100):null,1,70,20),
+    da: clamp(li.revenue&&dna!=null?Math.round(dna/li.revenue*100):null,0,25,4),
     cx: clamp(Math.round(li.revenue?Math.abs(lc.capitalExpenditure||0)/li.revenue*100:4),0,30,4),
     tax: clamp(Math.round(li.incomeBeforeTax>0?li.incomeTaxExpense/li.incomeBeforeTax*100:21),5,40,21),
     wacc: 9, tg: 2.5,
@@ -1499,13 +1535,18 @@ function dcfOut(){
   const r=dcfCompute();
   if(!r){ el.innerHTML='<div class="fin-note">Not enough filed data to seed a model here.</div>'; return; }
   if(r.err){ el.innerHTML=`<div class="fin-note">${r.err}</div>`; return; }
-  const up=FINPX?(r.ps-FINPX)/FINPX*100:null;
+  // filings in one currency and a price in another (an ADR: dollars per depositary share against
+  // a home currency per ordinary share): the value is worked out in the filings' currency and is
+  // not set against the price
+  const fc=(FIN.currency||"").toUpperCase(), apart=!!(fc&&fc!==(FINQCUR||"USD"));
+  const fm=x=>apart?(x==null||isNaN(x)?"—":fc+" "+(Math.abs(x)>=1e9?F(x/1e9,1)+"B":F(x,2))):null;
+  const up=FINPX&&!apart?(r.ps-FINPX)/FINPX*100:null;
   el.innerHTML=`<div class="an-row"><span class="k">My fair value / share</span></div>
-    <div class="big mono">${usd(r.ps)}</div>
-    <div class="vs mono ${up==null?"":up>=0?"pos":"neg"}">${up==null?"":(up>=0?"+":"")+up.toFixed(1)+"% vs price "+usd(FINPX)}</div>
-    <div class="an-row"><span class="k">Enterprise value</span><span class="mono">${big(r.ev)}</span></div>
-    <div class="an-row"><span class="k">Less net debt</span><span class="mono">${big(DCFA.netDebt)}</span></div>
-    <div class="an-row"><span class="k">Equity value</span><span class="mono">${big(r.eq)}</span></div>
+    <div class="big mono">${apart?fm(r.ps):usd(r.ps)}</div>
+    <div class="vs mono ${up==null?"":up>=0?"pos":"neg"}">${apart?`per share as filed, in ${fc}; ${FINQCUR?`the quote is in ${FINQCUR} and may be per depositary share, so the two are not compared`:"not set against a price"}`:up==null?"":(up>=0?"+":"")+up.toFixed(1)+"% vs price "+usd(FINPX)}</div>
+    <div class="an-row"><span class="k">Enterprise value</span><span class="mono">${apart?fm(r.ev):big(r.ev)}</span></div>
+    <div class="an-row"><span class="k">Less net debt</span><span class="mono">${apart?fm(DCFA.netDebt):big(DCFA.netDebt)}</span></div>
+    <div class="an-row"><span class="k">Equity value</span><span class="mono">${apart?fm(r.eq):big(r.eq)}</span></div>
     <div class="an-row"><span class="k">Terminal value share</span><span class="mono">${r.tvShare==null?"—":r.tvShare.toFixed(0)+"%"}</span></div>
 `;
 }

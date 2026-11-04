@@ -35,6 +35,21 @@ _lock = threading.Lock()
 _throttle = {"until": 0.0}      # chart/search endpoints: five minutes off when every string is throttled
 _why = threading.local()        # why this thread's last request came back empty: "unknown" or "paused"
 
+# Yahoo spells a US share class with a dash (BRK-B, BF-B) where the exchanges, the SEC and the
+# desk use a dot (BRK.B). A dot is also how Yahoo marks another exchange (7203.T, RELIANCE.NS,
+# SHEL.L), so only a single letter after the dot is a share class, and never the four
+# one-letter exchange marks Yahoo uses (London, Tokyo, TSX Venture, Frankfurt).
+_EXCHANGE_LETTERS = {"L", "T", "V", "F"}
+
+
+def ysym(symbol):
+    """The desk's symbol in Yahoo's spelling: BRK.B -> BRK-B; 7203.T, RELIANCE.NS, ^GSPC unchanged."""
+    s = (symbol or "").strip()
+    m = re.fullmatch(r"([A-Za-z]{1,6})\.([A-Za-z])", s)
+    if m and m.group(2).upper() not in _EXCHANGE_LETTERS:
+        return f"{m.group(1)}-{m.group(2)}"
+    return s
+
 
 def _get(path, params):
     """GET against Yahoo: the browser string that last worked first, the others on a 429, the
@@ -117,7 +132,7 @@ def _auth():
 
 def chart(symbol, rng="1y", interval="1d"):
     """-> (meta, rows). rows ascending, {date, price, o, h, l, v}. Keyless."""
-    r = _get(f"/v8/finance/chart/{symbol}", {"range": rng, "interval": interval})
+    r = _get(f"/v8/finance/chart/{ysym(symbol)}", {"range": rng, "interval": interval})
     try:
         res = (r.json().get("chart", {}).get("result") or [None])[0] if r else None
     except Exception:  # noqa: BLE001
@@ -146,7 +161,7 @@ def chart(symbol, rng="1y", interval="1d"):
 def dividends(symbol):
     """Every cash dividend the chart API records, newest first: [{date (ex-date), dividend}], the
     amounts adjusted for later splits. Keyless; [] when the name pays none or the feed rests."""
-    r = _get(f"/v8/finance/chart/{symbol.replace('.', '-')}", {"range": "max", "interval": "3mo", "events": "div"})
+    r = _get(f"/v8/finance/chart/{ysym(symbol)}", {"range": "max", "interval": "3mo", "events": "div"})
     try:
         res = (r.json().get("chart", {}).get("result") or [None])[0] if r else None
     except Exception:  # noqa: BLE001
@@ -164,7 +179,7 @@ def estimates(symbol):
     """The street's averages for this fiscal year and next, in the Estimates tab's shape:
     [{date, revenueAvg, epsAvg, numAnalystsEps, numAnalystsRevenue}]. From quoteSummary's earnings
     trend; [] when the crumb is not available."""
-    s = summary(symbol.replace(".", "-"), ["earningsTrend"])
+    s = summary(symbol, ["earningsTrend"])
     rows, last = [], None
     for t in ((s.get("earningsTrend") or {}).get("trend") or []):
         if t.get("period") not in ("0y", "+1y"):
@@ -183,7 +198,7 @@ def estimates(symbol):
 
 def news(symbol, n=12):
     """Recent headlines on a name from the search API, keyless: [{title, url, publisher, publishedDate}]."""
-    r = _get("/v1/finance/search", {"q": symbol.replace(".", "-"), "quotesCount": 0, "newsCount": n})
+    r = _get("/v1/finance/search", {"q": ysym(symbol), "quotesCount": 0, "newsCount": n})
     try:
         items = (r.json().get("news") or []) if r else []
     except Exception:  # noqa: BLE001
@@ -203,7 +218,7 @@ def summary(symbol, modules):
         return {}
     try:
         r = _Y["session"].get(
-            f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{symbol}",
+            f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ysym(symbol)}",
             params={"modules": ",".join(modules), "crumb": _Y["crumb"]}, timeout=15)
         if r.status_code in (401, 403, 429):
             with _lock:
@@ -272,7 +287,7 @@ def ticker(symbol):
         hist = [r for r in older if r["date"] < first] + hist
     price = _num(meta.get("regularMarketPrice"))
     if price is None or price <= 0:
-        return {"symbol": symbol, "resting": why_empty() == "paused", "error": (f"The free feed has nothing for {symbol} right now. Either the name is spelt another way on the feed (a listing outside the US carries its exchange, HDFCBANK.NS, SHEL.L; a share class uses a dash, BRK-B), or the feed is resting after too many requests in a row and answers again in a few minutes."
+        return {"symbol": symbol, "resting": why_empty() == "paused", "error": (f"The free feed has nothing for {symbol} right now. Either the name is spelt another way on the feed (a listing outside the US carries its exchange: HDFCBANK.NS, SHEL.L, 7203.T), or the feed is resting after too many requests in a row and answers again in a few minutes."
                                             if time.time() >= _throttle["until"] else
                                             "The free feed is resting after too many requests in a row; it answers again in a few minutes. The watchlists keep their last prices meanwhile.")}
     imeta, intra = chart(symbol, "5d", "5m")
@@ -292,8 +307,12 @@ def ticker(symbol):
         "yearHigh": _num(meta.get("fiftyTwoWeekHigh")), "yearLow": _num(meta.get("fiftyTwoWeekLow")),
         "volume": _num(meta.get("regularMarketVolume")), "avgVolume": _num(det.get("averageVolume")),
         "marketCap": _num(det.get("marketCap")), "exchange": meta.get("exchangeName"),
-        "name": meta.get("longName") or meta.get("shortName"),
+        "name": meta.get("longName") or meta.get("shortName"), "currency": meta.get("currency") or "",
     }
+    if quote_["avgVolume"] is None:
+        # the summary refused: three months of the daily record's own volume
+        vols = [r["v"] for r in hist[-63:] if r.get("v")]
+        quote_["avgVolume"] = sum(vols) / len(vols) if len(vols) >= 20 else None
     profile = {
         "companyName": meta.get("longName") or meta.get("shortName"),
         "exchange": meta.get("fullExchangeName") or meta.get("exchangeName"),
@@ -303,6 +322,12 @@ def ticker(symbol):
         "beta": _num(det.get("beta")), "lastDividend": _num(det.get("dividendRate")),
         "averageVolume": _num(det.get("averageVolume")),
     }
+    # the payments from the chart's own events, which need no crumb: the dividend card and, when
+    # the summary refused, the last twelve months' total as the yearly rate
+    pays = dividends(symbol)
+    if profile["lastDividend"] is None and pays:
+        year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).strftime("%Y-%m-%d")
+        profile["lastDividend"] = tidy(sum(x["dividend"] for x in pays if x["date"] > year_ago)) or None
     mcap = _num(det.get("marketCap"))
     fcf = _num(fin.get("freeCashflow"))
     ratios = {
@@ -349,7 +374,7 @@ def ticker(symbol):
         "intraday": {"1D": [p for p in intra if p["date"][:10] in days[-1:]],
                      "5D": [p for p in intra if p["date"][:10] in days[-5:]]},
         "news": news(symbol), "pt": pt, "grades": grades, "earnings": earnings,
-        "insiders": [], "dividends": [],
+        "insiders": [], "dividends": pays[:4],
         "source": "yahoo", "ts": datetime.now().strftime("%H:%M:%S"),
     }
 
@@ -392,7 +417,7 @@ def earnings(tag):
 
 def search(q, limit=8):
     """Symbol search, keyless: [{code, name, exch}]."""
-    r = _get("/v1/finance/search", {"q": q, "quotesCount": limit, "newsCount": 0})
+    r = _get("/v1/finance/search", {"q": ysym(q), "quotesCount": limit, "newsCount": 0})
     try:
         rows = (r.json().get("quotes") or []) if r else []
     except Exception:  # noqa: BLE001
@@ -441,7 +466,7 @@ def statements(symbol, years=6):
     types = ",".join(p + y for p in ("annual", "quarterly") for _, y, _ in pairs)
     now = int(time.time())
     try:
-        r = requests.get(f"https://query2.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/{symbol}",
+        r = requests.get(f"https://query2.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/{ysym(symbol)}",
                          params={"type": types, "period1": now - years * 365 * 86400, "period2": now},
                          headers={"User-Agent": "Mozilla/5.0"}, timeout=20)
         res = (r.json().get("timeseries") or {}).get("result") or []

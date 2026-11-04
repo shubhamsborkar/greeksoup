@@ -192,6 +192,8 @@ footer b{color:var(--ink2)}
 
 <script>
 "use strict";
+// names and codes from outside sources are written as text, never as markup
+const _h=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const POLL_MS = 30000;
 let prevVals = {};   // cell-key -> numeric value (for change flashes)
 let sortState = {};  // tableId -> {key, dir}
@@ -334,7 +336,7 @@ function cryptoPanel(snap){
     ${th(id,"pnl_pct","P&L %",st)}${th(id,"day_pct","Day %",st)}</tr></thead><tbody>`;
   for(const r of sorted){
     const k=r.key;
-    html+=`<tr><td class="name" title="${r.name||""}">${r.code}${r.broker?` <span class="mini dim">${r.broker}</span>`:""}</td>
+    html+=`<tr><td class="name" title="${_h(r.name||"")}">${_h(r.code)}${r.broker?` <span class="mini dim">${_h(r.broker)}</span>`:""}</td>
       ${many?`<td class="dim">${r.acct_label||r.acct}</td>`:""}
       ${cell("cq"+k, inr(r.qty, r.qty!=null&&Math.abs(r.qty)<10?6:2))}
       <td class="mono" data-k="ca${k}" ${r.avg_partial?'title="The average covers the units bought; transfers and rewards carry no cost"':""}>${inr(r.avg,dpx(r.avg))}${r.avg_partial?"*":""}</td>
@@ -366,7 +368,7 @@ function equityTable(acct, eq){
   for(const e of sorted){
     const wt = total?(e.value/total*100):null;
     const sym = reg==="us" ? (e.ysym||e.code) : e.code;
-    html+=`<tr><td class="name"><a href="/t?symbol=${encodeURIComponent(sym)}&region=${reg}" style="color:inherit;text-decoration:none" title="${e.name||""}">${e.code}</a></td>
+    html+=`<tr><td class="name"><a href="/t?symbol=${encodeURIComponent(sym)}&region=${reg}" style="color:inherit;text-decoration:none" title="${_h(e.name||"")}">${_h(e.code)}</a></td>
       ${cell("q"+acct+e.code, inr(e.qty))}
       ${cell("a"+acct+e.code, inr(e.avg,2))}
       ${cell("m"+acct+e.code, inr(e.ltp,2))}

@@ -120,20 +120,22 @@ function lagDays(r){
   if(!r.tx||!r.disclosed) return null;
   return Math.round((new Date(r.disclosed)-new Date(r.tx))/864e5);
 }
+// every field here is from a disclosure someone else filed: written as text, never as markup
+const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function rowHtml(r, held){
   const lag=lagDays(r);
   const sym = r.symbol
-    ? `<a href="/t?symbol=${r.symbol}">${r.symbol}</a>${held.includes(r.symbol)?'<span class="held">HELD</span>':""}`
+    ? `<a href="/t?symbol=${encodeURIComponent(r.symbol)}">${esc(r.symbol)}</a>${held.includes(r.symbol)?'<span class="held">HELD</span>':""}`
     : `<span class="dim">—</span>`;
   return `<tr>
-    <td class="mono dim">${r.tx||"—"}</td>
+    <td class="mono dim">${esc(r.tx||"—")}</td>
     <td class="sym">${sym}</td>
-    <td class="${typeCls(r.type)}">${r.type||"—"}</td>
-    <td class="mono">${r.amount||"—"}</td>
-    <td class="person" title="${r.name}${r.district?" · "+r.district:""}">${r.name}
-      ${r.owner&&!/self|^--?$/i.test(r.owner)?`<span class="dim" style="font-size:10px"> (${r.owner})</span>`:""}</td>
-    <td><span class="ch ${r.chamber}">${r.chamber.toUpperCase()}</span></td>
-    <td class="asset" title="${r.asset}">${r.asset_type&&r.asset_type!=="Stock"?`<span class="dim">[${r.asset_type}]</span> `:""}${r.asset||""}</td>
+    <td class="${typeCls(r.type)}">${esc(r.type||"—")}</td>
+    <td class="mono">${esc(r.amount||"—")}</td>
+    <td class="person" title="${esc(r.name)}${r.district?" · "+esc(r.district):""}">${esc(r.name)}
+      ${r.owner&&!/self|^--?$/i.test(r.owner)?`<span class="dim" style="font-size:10px"> (${esc(r.owner)})</span>`:""}</td>
+    <td><span class="ch ${esc(r.chamber)}">${esc((r.chamber||"").toUpperCase())}</span></td>
+    <td class="asset" title="${esc(r.asset)}">${r.asset_type&&r.asset_type!=="Stock"?`<span class="dim">[${esc(r.asset_type)}]</span> `:""}${esc(r.asset||"")}</td>
     <td class="mono lag ${lag!=null&&lag>30?"slow":"dim"}">${lag!=null?lag+"d":"—"}</td>
   </tr>`;
 }
@@ -151,15 +153,15 @@ function renderMembers(){
   const ms=D.members||[];
   document.getElementById("members").innerHTML = ms.length ? ms.map(m=>{
     const rows=m.rows.map(r=>{
-      const sym=r.symbol?`<a href="/t?symbol=${r.symbol}" style="color:inherit;text-decoration:none">${r.symbol}</a>`:"—";
-      return `<tr><td class="mono dim">${r.tx||"—"}</td>
+      const sym=r.symbol?`<a href="/t?symbol=${encodeURIComponent(r.symbol)}" style="color:inherit;text-decoration:none">${esc(r.symbol)}</a>`:"—";
+      return `<tr><td class="mono dim">${esc(r.tx||"—")}</td>
         <td class="sym">${sym}</td>
-        <td class="${typeCls(r.type)}">${r.type||"—"}</td>
-        <td class="mono">${r.amount||"—"}</td>
-        <td class="asset" title="${r.asset}">${r.asset_type&&r.asset_type!=="Stock"?`<span class="dim">[${r.asset_type}]</span> `:""}${r.asset||""}</td></tr>`;
+        <td class="${typeCls(r.type)}">${esc(r.type||"—")}</td>
+        <td class="mono">${esc(r.amount||"—")}</td>
+        <td class="asset" title="${esc(r.asset)}">${r.asset_type&&r.asset_type!=="Stock"?`<span class="dim">[${esc(r.asset_type)}]</span> `:""}${esc(r.asset||"")}</td></tr>`;
     }).join("");
-    return `<div class="mem"><div class="mem-h"><span class="n">${m.label}</span>
-        <span class="ch ${m.chamber}">${m.chamber.toUpperCase()}</span>
+    return `<div class="mem"><div class="mem-h"><span class="n">${esc(m.label)}</span>
+        <span class="ch ${esc(m.chamber)}">${esc((m.chamber||"").toUpperCase())}</span>
         <span class="cnt">${m.count?`${m.count} filing${m.count===1?"":"s"} on record`+(m.count>m.rows.length?` · the latest ${m.rows.length} below`:""):"none on record in the window read"}</span></div>
       <div class="memscroll"><table><thead><tr><th>Traded</th><th>Ticker</th><th>Type</th><th>Amount</th><th>Asset</th></tr></thead>
       <tbody>${rows||'<tr><td class="dim" style="padding:14px">No filings.</td></tr>'}</tbody></table></div></div>`;
@@ -167,9 +169,9 @@ function renderMembers(){
 }
 function renderDjt(){
   const rows=(D.djt||[]).map(r=>`<tr>
-    <td class="mono dim">${r.filed||"—"}</td>
-    <td class="person" title="${r.name}">${r.name||"—"}</td>
-    <td class="${/buy|purchase|p-/i.test(r.type||"")?"buy":(/sale|sell|s-/i.test(r.type||"")?"sell":"dim")}">${r.type||"—"}</td>
+    <td class="mono dim">${esc(r.filed||"—")}</td>
+    <td class="person" title="${esc(r.name)}">${esc(r.name||"—")}</td>
+    <td class="${/buy|purchase|p-/i.test(r.type||"")?"buy":(/sale|sell|s-/i.test(r.type||"")?"sell":"dim")}">${esc(r.type||"—")}</td>
     <td class="mono">${r.shares!=null?Math.round(r.shares).toLocaleString():"—"}</td>
     <td class="mono dim">${r.price?("$"+r.price.toFixed(2)):"—"}</td></tr>`).join("");
   document.getElementById("djt").innerHTML=rows

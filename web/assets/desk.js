@@ -1254,6 +1254,7 @@ const MARK_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l
 .dsug .sg{display:flex;align-items:baseline;gap:10px;padding:8px 13px;cursor:pointer;border-bottom:1px solid var(--line);font-size:12.5px;text-transform:none}
 .dsug .sg:last-child{border-bottom:none} .dsug .sg:hover,.dsug .sg.sel{background:var(--panel2)}
 .dsug .c{font-weight:800;min-width:74px;font-family:var(--mono,ui-monospace,monospace)} .dsug .n{color:var(--ink2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .dsug .e{color:var(--muted);font-size:10px;white-space:nowrap}`;
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const EXN = { NSE: "NSE", BSE: "BSE", NASDAQ: "Nasdaq", NYSE: "NYSE", AMEX: "NYSE American", NMS: "Nasdaq", NYQ: "NYSE", NGM: "Nasdaq", NCM: "Nasdaq", PCX: "NYSE Arca", BATS: "Cboe" };
   window.deskSuggest = function (input, opts) {
     const o = opts || {};
@@ -1265,7 +1266,7 @@ const MARK_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M22 38l
     const hide = () => { box.style.display = "none"; items = []; sel = -1; };
     const paint = () => {
       if (!items.length) { hide(); return; }
-      box.innerHTML = items.map((r, i) => `<div class="sg ${i === sel ? "sel" : ""}" data-i="${i}"><span class="c">${r.code}</span><span class="n">${r.name || ""}</span><span class="e">${EXN[(r.exch || "").toUpperCase()] || r.exch || ""}</span></div>`).join("");
+      box.innerHTML = items.map((r, i) => `<div class="sg ${i === sel ? "sel" : ""}" data-i="${i}"><span class="c">${esc(r.code)}</span><span class="n">${esc(r.name || "")}</span><span class="e">${esc(EXN[(r.exch || "").toUpperCase()] || r.exch || "")}</span></div>`).join("");
       box.style.display = "block";
       box.querySelectorAll(".sg").forEach(el => { el.onmousedown = e => { e.preventDefault(); pick(+el.dataset.i); }; });
     };
