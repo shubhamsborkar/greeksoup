@@ -150,7 +150,8 @@ function renderFlow(){
   document.getElementById("flowsub").textContent=rows.length+" filings";
 }
 function renderMembers(){
-  const ms=D.members||[];
+  // members with filings first, the quiet ones after them, each keeping its place otherwise (design round 3)
+  const ms=(D.members||[]).map((m,i)=>[m,i]).sort((a,b)=>(!a[0].rows.length-!b[0].rows.length)||a[1]-b[1]).map(x=>x[0]);
   document.getElementById("members").innerHTML = ms.length ? ms.map(m=>{
     const rows=m.rows.map(r=>{
       const sym=r.symbol?`<a href="/t?symbol=${encodeURIComponent(r.symbol)}" style="color:inherit;text-decoration:none">${esc(r.symbol)}</a>`:"—";
@@ -163,8 +164,8 @@ function renderMembers(){
     return `<div class="mem"><div class="mem-h"><span class="n">${esc(m.label)}</span>
         <span class="ch ${esc(m.chamber)}">${esc((m.chamber||"").toUpperCase())}</span>
         <span class="cnt">${m.count?`${m.count} filing${m.count===1?"":"s"} on record`+(m.count>m.rows.length?` · the latest ${m.rows.length} below`:""):"none on record in the window read"}</span></div>
-      <div class="memscroll"><table><thead><tr><th>Traded</th><th>Ticker</th><th>Type</th><th>Amount</th><th>Asset</th></tr></thead>
-      <tbody>${rows||'<tr><td colspan="5" class="dim" style="padding:14px">No filings.</td></tr>'}</tbody></table></div></div>`;
+      ${rows?`<div class="memscroll"><table><thead><tr><th>Traded</th><th>Ticker</th><th>Type</th><th>Amount</th><th>Asset</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`:""}</div>`;
   }).join("") : '<div class="empty">No members tracked yet. Add one with Your list in the top bar.</div>';
 }
 function renderDjt(){

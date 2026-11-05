@@ -12,6 +12,11 @@ body{padding-bottom:50px}
 main{max-width:1420px;margin:0 auto;padding:20px 22px}
 .sub{color:var(--muted);font-size:12px;margin-bottom:16px;max-width:980px;line-height:1.6}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:15px}
+/* design round 3: cards of different heights stack in columns, so a short card no longer leaves a hole
+   beside a tall one; every card stays, read top to bottom in each column */
+#funds{display:block;columns:440px 2;column-gap:15px}
+#funds>*{break-inside:avoid;margin:0 0 15px;display:block;width:100%}
+#funds>.loading{column-span:all}
 .fund{background:var(--panel);border:1px solid var(--line);border-radius:13px;overflow:auto}
 .fund-h{padding:13px 16px;border-bottom:1px solid var(--line)}
 .fund-h .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}

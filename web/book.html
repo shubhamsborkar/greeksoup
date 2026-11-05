@@ -12,6 +12,16 @@ main{max-width:1180px;margin:0 auto;padding:18px 22px}
 .sub{color:var(--muted);font-size:12px;margin-bottom:16px;line-height:1.5}
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:12px;margin-bottom:12px}
 @media (max-width:700px){.tiles{grid-template-columns:1fr}}
+/* design round 3: the currency table, and the paste and cash forms side by side */
+.bycur{margin-bottom:14px} .bycur table{width:100%;border-collapse:collapse}
+.bycur th,.bycur td{text-align:right;padding:8px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+.bycur th:first-child,.bycur td:first-child{text-align:left} .bycur tbody tr:last-child td{border-bottom:none}
+.bycur td.name{font-weight:650}
+.pair{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:start}
+.pair>.panel{margin-top:0}
+.pair .panel-h{flex-wrap:wrap;gap:3px 12px}.pair .panel-h .sub{flex:1 1 100%}
+@media(max-width:1000px){.pair{grid-template-columns:1fr}}
+.bycur{overflow-x:auto} #table{overflow-x:auto}
 .tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 16px}
 .tile .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink2);margin-bottom:7px}
 .tile .v{font-size:20px;font-weight:700}
@@ -46,7 +56,7 @@ td.name .co{color:var(--muted);font-size:10.5px;font-weight:400;display:block}
 .empty{padding:26px 15px;color:var(--muted);font-size:12.5px;line-height:1.6}
 .cc{font-size:9.5px;font-weight:800;border-radius:4px;padding:1.5px 6px;letter-spacing:.05em;background:var(--panel2);color:var(--ink2);margin-left:6px}
 .symwrap{position:relative}
-.form input.sym{width:310px;text-transform:none}
+.form input.sym{width:310px;max-width:100%;text-transform:none} .symwrap{max-width:100%}
 .sugg{position:absolute;left:0;top:calc(100% + 4px);z-index:20;min-width:360px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);overflow:hidden;display:none}
 .sugg.on{display:block}
 .sugg button{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:10px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:8px 12px;color:var(--ink);font:inherit;font-size:12.5px;cursor:pointer;border-radius:0;font-weight:400}
@@ -86,6 +96,7 @@ td.name .co{color:var(--muted);font-size:10.5px;font-weight:400;display:block}
     <div class="msg" id="addmsg"></div>
   </div>
 
+  <div class="pair">
   <div class="panel">
     <div class="panel-h"><h2>Paste your holdings</h2><span class="sub">one position per line: symbol, shares, average cost. Commas, tabs or spaces. A header row is fine. Most broker exports paste straight in once the symbols are Yahoo's.</span></div>
     <div class="form" style="flex-direction:column;align-items:stretch">
@@ -107,6 +118,7 @@ td.name .co{color:var(--muted);font-size:10.5px;font-weight:400;display:block}
       <button id="c_set">Set</button>
       <span id="cashlist" class="dim" style="font-size:11.5px"></span>
     </div>
+  </div>
   </div>
 
   <div class="note"><b>What this is:</b> a book the desk keeps as a plain file in its own folder; these forms edit it. Nothing here places orders and nothing leaves your computer except the price lookups. Each currency is totalled on its own; the desk does not convert between them, because a converted total hides which market moved. <b>Symbols:</b> type the company's name in the box above and pick the listing you hold from the list; the desk fills in Yahoo's symbol (<span class="mono">RELIANCE.NS</span>, <span class="mono">0700.HK</span>, <span class="mono">MC.PA</span>). Pasted lists need Yahoo's symbols already.</div>
@@ -130,7 +142,18 @@ async function load(){
   // one row of three tiles per currency, the largest book first; a whole-book
   // total would need a conversion, and a converted total hides which market moved
   let t="";
-  for(const g of groups){
+  // design round 3: with more than one currency, one row per currency in a small table instead of a
+  // stack of three-tile rows; every figure the tiles carried is a column here
+  if(groups.length>1){
+    t=`<div class="panel bycur"><div class="panel-h"><h2>By currency</h2><span class="sub">each currency totalled on its own, the largest book first</span></div>
+      <table><thead><tr><th>Currency</th><th>Value</th><th>Positions</th><th>Cash</th><th>Today</th><th>Today %</th><th>Since cost</th><th>Since cost %</th></tr></thead><tbody>`+
+      groups.map(g=>`<tr><td class="name">${g.currency}</td><td class="mono">${fmt(g.total,g.currency,0)}</td><td class="mono dim">${g.n}</td>
+        <td class="mono dim">${g.cash?fmt(g.cash,g.currency,0):"—"}</td>
+        <td class="mono ${cls(g.day_pnl,0.5)}">${fmt(g.day_pnl,g.currency,0)}</td><td class="mono ${cls(g.day_pnl,0.5)}">${pct(g.day_pct)}</td>
+        <td class="mono ${cls(g.pnl,0.5)}">${fmt(g.pnl,g.currency,0)}</td><td class="mono ${cls(g.pnl,0.5)}">${pct(g.pnl_pct)}</td></tr>`).join("")+
+      `</tbody></table></div>`;
+  }
+  else for(const g of groups){
     t+=`<div class="tiles">`+
       tile(`${g.currency} · value`,fmt(g.total,g.currency,0),"",`${g.n} position${g.n===1?"":"s"}${g.cash?" · cash "+fmt(g.cash,g.currency,0):""}`)+
       tile(`${g.currency} · today`,fmt(g.day_pnl,g.currency,0),cls(g.day_pnl,0.5),pct(g.day_pct))+

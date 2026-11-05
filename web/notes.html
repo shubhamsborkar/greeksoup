@@ -56,6 +56,12 @@ table.nt{width:100%;border-collapse:collapse;font-size:13px}
 .nt .w{font-size:11.5px;color:var(--ink2);white-space:nowrap} .nt .w .sy{font-family:Menlo,monospace;font-weight:700;margin-right:6px}
 .nt .w .per{color:var(--muted)} .nt .fx{font-size:10px;color:var(--muted);text-align:right;white-space:nowrap}
 .nt .fx.miss{color:var(--neg)}
+/* design round 3: the note list keeps inside its column; long text ends in an ellipsis and the last two
+   columns wrap, instead of the whole table running past the right edge of the screen */
+table.nt{table-layout:fixed}
+.nt th:nth-child(1){width:92px} .nt th:nth-child(2){width:92px} .nt th:nth-child(4){width:27%} .nt th:nth-child(5){width:44px}
+.nt .t{min-width:0;overflow:hidden} .nt .t b{overflow-wrap:anywhere} .nt .t small{max-width:none}
+.nt .w{white-space:normal;overflow-wrap:anywhere}
 .empty{padding:26px 0;color:var(--muted);font-size:12.5px;line-height:1.6}
 .empty b{color:var(--ink2)}
 .foot{font-size:11.5px;color:var(--muted);line-height:1.6;padding:16px 0 0}

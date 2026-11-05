@@ -24,7 +24,7 @@ h2.grp:first-of-type{margin-top:0}
 h2.grp .why{font-size:11px;letter-spacing:0;text-transform:none;color:var(--muted);font-weight:400}
 
 /* ---- book cards ---- */
-.bookgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
+.bookgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));gap:14px}
 .bk{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px 18px}
 .bk .ttl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .bk .ttl .nm{font-size:15px;font-weight:800;letter-spacing:.04em}
@@ -36,6 +36,7 @@ h2.grp .why{font-size:11px;letter-spacing:0;text-transform:none;color:var(--mute
 .bk .navline{font-size:11.5px;color:var(--ink2);margin-top:8px}
 .bk .navline b{color:var(--ink)}
 .statrow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+@media(max-width:700px){.statrow{grid-template-columns:repeat(2,minmax(0,1fr))}.bk{min-width:0;overflow-x:auto}.bk .ttl{flex-wrap:wrap}}
 .stat .l{font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted)}
 .stat .v{font-size:19px;font-weight:800;margin-top:3px}
 .stat .read{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.45}
@@ -98,6 +99,10 @@ td a:hover{color:var(--accent)}
 .legend{display:flex;gap:16px;align-items:center;font-size:10.5px;color:var(--muted);
   margin:8px 2px 0;flex-wrap:wrap}
 .legend .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+/* design round 3: the key sits beside its matrix as a short list, not as a line under it */
+.mxrow{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
+.mxrow .mxwrap{flex:0 1 auto;min-width:0}
+.mxrow .legend{flex-direction:column;align-items:flex-start;gap:9px;margin:6px 0 0;max-width:300px}
 .loadingnote{padding:60px;text-align:center;color:var(--muted)}
 footer{max-width:1420px;margin:28px auto 0;padding:14px 22px;border-top:1px solid var(--line);
   color:var(--muted);font-size:11px;line-height:1.6}
@@ -282,12 +287,12 @@ async function load(){
     <div class="bookgrid">${d.books.map(bookCard).join("")}</div>`;
   if(d.cross&&d.cross.labels.length>1)
     h+=`<h2 class="grp">Do the books hedge each other? <span class="why">correlation of daily returns on overlapping dates</span></h2>
-      <div class="mxwrap">${matrixHTML(d.cross.labels,d.cross.vals,false)}</div>${legendHTML}`;
+      <div class="mxrow"><div class="mxwrap">${matrixHTML(d.cross.labels,d.cross.vals,false)}</div>${legendHTML}</div>`;
   for(const b of d.books){
     h+=`<h2 class="grp">${b.label}: what's inside (${b.positions.length} positions)
       <span class="why">sorted by size; the grid below shows which names move together</span></h2>${posTable(b)}`;
     if(b.matrix&&b.matrix.codes.length>1)
-      h+=`<div class="mxwrap" style="margin-top:12px">${matrixHTML(b.matrix.codes,b.matrix.vals,true)}</div>${legendHTML}`;
+      h+=`<div class="mxrow" style="margin-top:12px"><div class="mxwrap">${matrixHTML(b.matrix.codes,b.matrix.vals,true)}</div>${legendHTML}</div>`;
   }
   document.getElementById("body").innerHTML=h;
 }

@@ -14,6 +14,11 @@ main{max-width:1420px;margin:0 auto;padding:20px 22px}
 .loading{padding:60px;text-align:center;color:var(--muted)}
 .pos{color:var(--pos)} .neg{color:var(--neg)} .dim{color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:14px}
+/* design round 3: cards of different heights stack in columns, so a short card no longer leaves a hole
+   beside a tall one; every card stays, read top to bottom in each column */
+.grid{display:block;columns:430px 2;column-gap:14px}
+.grid>*{break-inside:avoid;margin:0 0 14px;display:block;width:100%}
+.grid>.loading{column-span:all}
 .nm{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .nm.held{border-color:rgba(237,90,36,.5)}
 .nm-h{display:flex;align-items:baseline;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line)}
