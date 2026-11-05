@@ -1350,7 +1350,7 @@ function finStmtHTML(kind){
         const g=(pv!=null&&pv!==0&&v!=null)?(v-pv)/Math.abs(pv)*100:null;
         return `<td class="mono ${g==null?"dim":g>=0?"pos":"neg"}">${g==null?"—":(g>=0?"+":"−")+Math.abs(g).toFixed(1)+"%"}</td>`;}).join("")+"</tr>";
   }
-  h+=`</tbody></table></div><div class="fin-note">${FIN.free?esc(FIN.note||"From the free record."):FIN.sn?"From Shikshan Nivesh Data: the company's SEC filings, in one standard layout so companies compare line for line.":"As filed, from the data provider."} ${FS.chg?"% Chg is the change on the year (or quarter) before it, the column to its right. ":""}Margins and EPS ignore the unit toggle.</div>`;
+  h+=`</tbody></table></div><div class="fin-note">${FIN.free?esc(FIN.note||"From the free record.")+(FIN.no_sn_key?` Shikshan Nivesh Data is not connected on this desk; a free key, saved on <a href="/settings#data" style="color:var(--accent)">Settings → Data</a>, adds the full statements, ratio history, segments, peers and the DCF.`:""):FIN.sn?"From Shikshan Nivesh Data: the company's SEC filings, in one standard layout so companies compare line for line.":"As filed, from the data provider."} ${FS.chg?"% Chg is the change on the year (or quarter) before it, the column to its right. ":""}Margins and EPS ignore the unit toggle.</div>`;
   return h;
 }
 function finRatiosHTML(){

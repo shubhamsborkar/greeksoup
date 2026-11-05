@@ -1639,9 +1639,9 @@ def build_fin(symbol):
                     # a key over its day's calls, or a provider not answering, is asked again next time
                     "sn_wait": bool(sn and (sn.get("error") or {}).get("kind") in ("limit", "busy", "network", "key")),
                     "note": ((sn_said + " Until then, the" if sn_said else "The")
-                             + " statements come from the free record: the last four years and four quarters, fewer lines than a data provider gives. "
-                             + ("Ratio history, segments, peers and the DCF come with Shikshan Nivesh Data, free with a key on Settings." if not (os.getenv("FMP_API_KEY", "").strip() or sn)
-                                else "" if sn else "The data provider does not carry this name; ratio history, segments, peers and the DCF need one that does."))}
+                             + " statements come from the free record: the last four years and four quarters, fewer lines than a data provider gives."
+                             + ("" if sn or not os.getenv("FMP_API_KEY", "").strip()
+                                else " The data provider does not carry this name; ratio history, segments, peers and the DCF need one that does."))}
         kind = (freefeed.chart(symbol, "5d", "1d")[0] or {}).get("instrumentType") or ""
         if kind in FUND_KINDS:
             # a fund, an index, a contract: nothing that files a company's statements
@@ -1849,7 +1849,8 @@ def _fin_source():
     """Which provider fills the statements now, so a copy read through another one (before the
     reader changed it on Settings) is read again rather than kept for its twelve hours."""
     # "sn2": the bundle that names the peer industry and reads the peers on demand (2026-11-04)
-    return "sn2" if sn_on() else "fmp" if os.getenv("FMP_API_KEY", "").strip() else "free"
+    # "free2": the free record's note no longer names the provider itself; the page adds that line (2026-11-05)
+    return "sn2" if sn_on() else "fmp" if os.getenv("FMP_API_KEY", "").strip() else "free2"
 
 
 # the free feed's instrument types that are not a company
@@ -5169,7 +5170,11 @@ class Handler(BaseHTTPRequestHandler):
                 sym = (qs.get("symbol", [""])[0] or "").upper().strip()
                 if not sym:
                     return self.send_error(400)
-                self._send(json.dumps(cached_fin(sym)).encode(), "application/json")
+                fin = cached_fin(sym)
+                if fin.get("free"):
+                    # read at every answer, so a key saved or removed on Settings shows at once
+                    fin = dict(fin, no_sn_key=not desk_sn.key())
+                self._send(json.dumps(fin).encode(), "application/json")
             elif path == "/api/peers":
                 sym = (qs.get("symbol", [""])[0] or "").upper().strip()
                 if not sym:

@@ -51,6 +51,8 @@ button:disabled{opacity:.45;cursor:default}
 .msg.err{color:var(--neg)} .msg.ok{color:var(--pos)}
 .note{font-size:11.5px;color:var(--muted);line-height:1.6;padding:12px 15px;border-top:1px solid var(--line)}
 .note b{color:var(--ink2)}
+.dstate{font-size:12px;line-height:1.6;color:var(--ink2);padding:9px 12px;margin-bottom:12px;border-left:3px solid var(--amber);background:var(--panel2)}
+.dstate.on{border-left-color:var(--pos)}
 table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;max-width:520px}
 td{padding:6px 8px;border-bottom:1px solid var(--line)} td:last-child{text-align:right;color:var(--ink2)}
 td.yes{color:var(--pos)} td.no{color:var(--muted)}
@@ -127,9 +129,10 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
   </div>
 
   <!-- Data provider -->
-  <div class="panel" data-tab="connect">
+  <div class="panel" data-tab="connect" id="data">
     <div class="panel-h"><h2>Data provider</h2><span class="st" id="d_status"></span></div>
     <div class="body">
+      <div class="dstate" id="d_state" style="display:none"></div>
       <div class="row"><label for="d_pick">Your provider</label><select id="d_pick">
         <option value="">None: the free public record only</option>
         <option value="shikshan_nivesh">Shikshan Nivesh Data (recommended, free plan)</option>
@@ -307,7 +310,7 @@ table.others td{text-align:left;vertical-align:top;font-size:11.5px;color:var(--
    remembered, and a link to #ai or #vault opens the right tab and scrolls to the panel */
 (function(){
   const main=document.querySelector("main"); const TABS=["connect","desk","plugins"];
-  const ANCHOR={ai:"connect",vault:"desk",broker:"connect",plugins:"plugins"};
+  const ANCHOR={ai:"connect",data:"connect",vault:"desk",broker:"connect",plugins:"plugins"};
   function show(t){ if(!TABS.includes(t)) t="connect"; main.className="t-"+t; document.querySelectorAll(".stabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t)); try{ localStorage.setItem("settings_tab",t); }catch(e){} }
   document.querySelectorAll(".stabs button").forEach(b=>b.onclick=()=>show(b.dataset.tab));
   function fromHash(){ const hash=(location.hash||"").slice(1); let t=ANCHOR[hash]; if(!t){ try{ t=localStorage.getItem("settings_tab"); }catch(e){} }
@@ -505,15 +508,39 @@ function renderData(s){
   $("d_okey").placeholder = d.other_key ? "saved · "+d.other_key : "not saved";
   $("d_name").value = d.other_name||""; $("d_obase").value = d.other_base||"";
   $("d_snkey").placeholder = d.sn_key ? "saved · "+d.sn_key : "sn_live_…";
+  if(d.sn_key!==SN_SEEN.key) SN_SEEN={key:d.sn_key, ok:null, said:""};   // a new or removed key is checked afresh
   st("d_status", d.provider==="fmp" ? (d.key?"Financial Modeling Prep · key saved":"Financial Modeling Prep · no key")
-    : d.provider==="shikshan_nivesh" ? (d.sn_key?"Shikshan Nivesh Data · key saved":"Shikshan Nivesh Data · no key")
-    : d.provider ? d.provider+" · waiting for its file" : "the free record only", (d.provider==="fmp"&&d.key)||(d.provider==="shikshan_nivesh"&&d.sn_key)?"on":"");
+    : d.provider==="shikshan_nivesh" ? (!d.sn_key?"Shikshan Nivesh Data not connected: free record"
+        : SN_SEEN.ok===true?"Shikshan Nivesh Data · connected" : SN_SEEN.ok===false?"Shikshan Nivesh Data · the check did not go through":"Shikshan Nivesh Data · key saved")
+    : d.provider ? d.provider+" · waiting for its file" : "the free record only",
+    (d.provider==="fmp"&&d.key)||(d.provider==="shikshan_nivesh"&&d.sn_key&&SN_SEEN.ok!==false)?"on":d.provider==="shikshan_nivesh"?"warn":"");
+  snState(d);
   $("d_sncheck").disabled=!d.sn_key;
   $("d_check").disabled=!d.key;
 }
-function onDataPick(){ const v=$("d_pick").value; $("d_fmp").style.display = v==="fmp"?"":"none"; $("d_sn").style.display = v==="shikshan_nivesh"?"":"none"; $("d_other").style.display = v==="other"?"":"none"; }
+/* what the ticker page really reads, said at the top of the panel: server.sn_on() needs the pick
+   and a saved key; without the key (or on a day the key's calls run out) the statements come
+   from the free record. "Connected" only once a check has answered on this page. */
+let SN_SEEN={key:undefined, ok:null, said:""};
+function snState(d){
+  const el=$("d_state"), v=$("d_pick").value;
+  if(v!=="shikshan_nivesh"){ el.style.display="none"; return; }
+  el.style.display=""; el.className="dstate"+(d.sn_key&&SN_SEEN.ok===true?" on":"");
+  if(!d.sn_key){
+    el.innerHTML="<b>Shikshan Nivesh Data is not connected yet.</b> Until a key is saved here, the statements on a ticker page come from "
+      +(d.key?"your Financial Modeling Prep key, and from the free record where it has none.":"the free record: the last four years and four quarters.")
+      +" The steps to a free key are just below.";
+  } else if(SN_SEEN.ok===true){
+    el.innerHTML="<b>Shikshan Nivesh Data is connected.</b> The statements, ratio history, segments and peers on a ticker page come from it. On a day the key's calls run out, or when it does not answer, a company's page uses the free record until the key answers again, and says so under its statements.";
+  } else if(SN_SEEN.ok===false){
+    el.innerHTML="<b>The check of the saved key did not go through.</b> "+esc(SN_SEEN.said)+" Until the key answers, the statements on a ticker page come from the free record: the last four years and four quarters.";
+  } else {
+    el.innerHTML="<b>A Shikshan Nivesh Data key is saved.</b> Press <b>Check it</b> to see that it answers.";
+  }
+}
+function onDataPick(){ const v=$("d_pick").value; $("d_fmp").style.display = v==="fmp"?"":"none"; $("d_sn").style.display = v==="shikshan_nivesh"?"":"none"; $("d_other").style.display = v==="other"?"":"none"; if(S) snState(S.data); }
 $("d_snsave").onclick=async()=>{ const v=$("d_snkey").value.trim(); if(!v) return say("d_msg","Paste the key first.","err"); if(!/^sn_live_/.test(v)) return say("d_msg","A Shikshan Nivesh Data key starts with sn_live_. Copy it again from your account page.","err"); const r=await post("/api/settings/save",{SN_API_KEY:v, DATA_PROVIDER:"shikshan_nivesh"}); if(r.ok){ $("d_snkey").value=""; render(r.state); $("d_sncheck").click(); } else say("d_msg",r.error||("could not save "+window.NEXT_STEP),"err"); };
-$("d_sncheck").onclick=async()=>{ say("d_msg","Asking Shikshan Nivesh Data one question…"); $("d_table").innerHTML=""; const r=await post("/api/settings/check_sn",{}); say("d_msg", r.ok? r.summary : (r.error||"the check did not run"), r.ok?"ok":"err"); };
+$("d_sncheck").onclick=async()=>{ say("d_msg","Asking Shikshan Nivesh Data one question…"); $("d_table").innerHTML=""; const r=await post("/api/settings/check_sn",{}); SN_SEEN.ok=!!r.ok; SN_SEEN.said=r.ok?"":(r.error||""); if(S) renderData(S); say("d_msg", r.ok? r.summary : (r.error||"the check did not run"), r.ok?"ok":"err"); };
 $("d_snclear").onclick=async()=>{ if(!confirm("Remove the Shikshan Nivesh Data key from this desk?")) return; const r=await post("/api/settings/save",{SN_API_KEY:"", DATA_PROVIDER:""}); if(r.ok){ say("d_msg","Removed. The statements come from the free record from the next company you open.","ok"); render(r.state);} };
 $("d_pick").onchange=async()=>{ onDataPick(); const v=$("d_pick").value; if(v!=="other"){ const r=await post("/api/settings/save",{DATA_PROVIDER:v}); if(r.ok) render(r.state); } };
 $("d_save").onclick=async()=>{ const v=$("d_key").value.trim(); if(!v) return say("d_msg","Paste the key first.","err"); const r=await post("/api/settings/save",{FMP_API_KEY:v, DATA_PROVIDER:"fmp"}); if(r.ok){ $("d_key").value=""; say("d_msg","Saved. The screens that use it pick it up on their next refresh; click Check to see what the plan answers.","ok"); $("d_table").innerHTML=""; render(r.state);} else say("d_msg",r.error||("could not save "+window.NEXT_STEP),"err"); };
