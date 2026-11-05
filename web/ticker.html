@@ -1282,7 +1282,9 @@ function stmtRows(kind){
   if(kind==="inc") return [
     R(r=>r.revenue,"Revenue","n"), R(r=>r.costOfRevenue,"Cost of Revenue","n"),
     R(r=>r.grossProfit,"Gross Profit","n"), R(r=>r.revenue&&r.grossProfit!=null?r.grossProfit/r.revenue*100:null,"Gross Margin","p"),
-    R(r=>r.netInterestIncome,"Net Interest Income","n"), R(r=>r.totalExpenses,"Total Expenses","n"),
+    R(r=>r.netInterestIncome,"Net Interest Income","n"), R(r=>r.provisionForCreditLosses,"Provision for Credit Losses","n"),
+    R(r=>r.nonInterestIncome,"Noninterest Revenue","n"), R(r=>r.nonInterestExpense,"Noninterest Expense","n"),
+    R(r=>r.realizedInvestmentGains,"Investment Gains","n"), R(r=>r.totalExpenses,"Total Expenses","n"),
     R(r=>r.sellingGeneralAndAdministrativeExpenses,"SG&A Expenses","n"),
     R(r=>r.researchAndDevelopmentExpenses,"R&D Expenses","n"),
     R(r=>r.operatingExpenses,"Operating Expenses","n"),
@@ -1294,7 +1296,8 @@ function stmtRows(kind){
     R(r=>r.eps,"EPS (Basic)","e"), R(r=>r.epsDiluted,"EPS (Diluted)","e")];
   if(kind==="bs") return [
     R(r=>r.cashAndShortTermInvestments,"Cash & ST Investments","n"), R(r=>r.cashAndShortTermInvestments==null?r.cashAndCashEquivalents:null,"Cash & Equivalents","n"),
-    R(r=>r.netReceivables,"Receivables","n"), R(r=>r.inventory,"Inventory","n"),
+    R(r=>r.netReceivables,"Receivables","n"), R(r=>r.loansNet,"Loans (net)","n"), R(r=>r.inventory,"Inventory","n"),
+    R(r=>r.fixedMaturities,"Fixed Maturities","n"), R(r=>r.equitySecurities,"Equity Securities","n"),
     R(r=>r.totalCurrentAssets,"Total Current Assets","n"),
     R(r=>r.propertyPlantEquipmentNet,"PP&E (net)","n"),
     R(r=>r.goodwillAndIntangibleAssets,"Goodwill & Intangibles","n"),
@@ -1302,6 +1305,7 @@ function stmtRows(kind){
     R(r=>r.shortTermDebt,"Short-Term Debt","n"), R(r=>r.longTermDebt,"Long-Term Debt","n"),
     R(r=>r.totalDebt,"Total Debt","n"), R(r=>r.netDebt,"Net Debt","n"),
     R(r=>r.totalCurrentLiabilities,"Total Current Liabilities","n"),
+    R(r=>r.deposits,"Deposits","n"), R(r=>r.futurePolicyBenefits,"Future Policy Benefits","n"),
     R(r=>r.totalLiabilities,"Total Liabilities","n"),
     R(r=>r.totalStockholdersEquity,"Shareholders' Equity","n"),
     R(r=>r.retainedEarnings,"Retained Earnings","n")];
@@ -1314,6 +1318,7 @@ function stmtRows(kind){
     R(r=>r.freeCashFlow,"Free Cash Flow","n"),
     R(r=>r.acquisitionsNet,"Acquisitions (net)","n"),
     R(r=>r.netCashProvidedByInvestingActivities,"Investing Cash Flow","n"),
+    R(r=>r.netChangeInDeposits,"Net Change in Deposits","n"),
     R(r=>r.netDebtIssuance,"Net Debt Issued","n"),
     R(r=>r.commonStockRepurchased,"Buybacks","n"),
     R(r=>r.netDividendsPaid,"Dividends Paid","n"),

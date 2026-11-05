@@ -715,9 +715,13 @@ def test_plugins_load_install_remove(tmp_path, monkeypatch):
         assert desk_plugins.remove("mine") and desk_plugins.remove("mine") is False
         assert [p["name"] for p in desk_plugins.installed(force=True)] == ["hello", "terminal"] and not any(p.get("builtin") for p in desk_plugins.installed())
         assert desk_plugins.run_door("nothing", "x")["ok"] is False
-        with open(os.path.join(_web_repo(), "docs", "plugins", "index.json"), encoding="utf-8") as fh:
-            lst = json.load(fh)
-        assert {p["name"] for p in lst["plugins"]} >= {"terminal"} and "hello" not in {p["name"] for p in lst["plugins"]} and all(p["zip"].startswith("https://greeksoup.ai/plugins/") for p in lst["plugins"])
+        # the built list: on main until the pages moved to their own store on the VPS (4 Nov 2026);
+        # a checkout without built pages has nothing here to read
+        built_list = os.path.join(_web_repo(), "docs", "plugins", "index.json")
+        if os.path.isfile(built_list):
+            with open(built_list, encoding="utf-8") as fh:
+                lst = json.load(fh)
+            assert {p["name"] for p in lst["plugins"]} >= {"terminal"} and "hello" not in {p["name"] for p in lst["plugins"]} and all(p["zip"].startswith("https://greeksoup.ai/plugins/") for p in lst["plugins"])
     finally:
         desk_notes.RESEARCH_DIR = keep
         desk_plugins.installed(force=True)

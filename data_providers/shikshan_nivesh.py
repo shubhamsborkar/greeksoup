@@ -32,21 +32,31 @@ FIELDS = {
            "int_exp": "interestExpense", "int_inc": "interestIncome", "int_net": "netInterestIncome",
            "pretax": "incomeBeforeTax", "tax": "incomeTaxExpense", "ni": "netIncome",
            "eps_basic": "eps", "eps_dil": "epsDiluted",
-           "shares_basic": "weightedAverageShsOut", "shares_dil": "weightedAverageShsOutDil"},
+           "shares_basic": "weightedAverageShsOut", "shares_dil": "weightedAverageShsOutDil",
+           # a bank's and an insurer's own lines (the provider files them under their own template)
+           "provision": "provisionForCreditLosses", "nonint_inc": "nonInterestIncome",
+           "nonint_exp": "nonInterestExpense", "realized": "realizedInvestmentGains"},
     "BS": {"cash_sti": "cashAndShortTermInvestments", "cash": "cashAndCashEquivalents", "recv": "netReceivables",
            "inv": "inventory", "ca": "totalCurrentAssets", "ppe": "propertyPlantEquipmentNet",
            "intang_total": "goodwillAndIntangibleAssets", "assets": "totalAssets", "st_debt": "shortTermDebt",
            "ltd": "longTermDebt", "total_debt": "totalDebt", "net_debt": "netDebt",
            "cl": "totalCurrentLiabilities", "liabilities": "totalLiabilities",
-           "equity": "totalStockholdersEquity", "re": "retainedEarnings", "shares_out": "sharesOutstanding"},
+           "equity": "totalStockholdersEquity", "re": "retainedEarnings", "shares_out": "sharesOutstanding",
+           "loans_net": "loansNet", "deposits": "deposits", "fixed_mat": "fixedMaturities",
+           "equity_secs": "equitySecurities", "future_benefits": "futurePolicyBenefits"},
     "CF": {"cf_ni": "netIncome", "cf_da": "depreciationAndAmortization", "cf_sbc": "stockBasedCompensation",
            "cf_wc": "changeInWorkingCapital", "cfo": "operatingCashFlow", "capex": "capitalExpenditure",
            "fcf": "freeCashFlow", "acq": "acquisitionsNet", "cfi": "netCashProvidedByInvestingActivities",
            "net_debt_flow": "netDebtIssuance", "buyback": "commonStockRepurchased", "div_paid": "netDividendsPaid",
-           "cff": "netCashProvidedByFinancingActivities", "net_change": "netChangeInCash"},
+           "cff": "netCashProvidedByFinancingActivities", "net_change": "netChangeInCash",
+           "deposits_change": "netChangeInDeposits"},
 }
-# a receivables total the filing does not give falls back to trade receivables
-FALLBACK = {"BS": {"netReceivables": "ar"}}
+# a line the company's template does not carry falls back to the one that means the same there:
+# a receivables total to trade receivables; a bank's or an insurer's total revenue, interest and
+# total expenses (their template names them differently) to the rows the page already has
+FALLBACK = {"BS": {"netReceivables": "ar"},
+            "IS": {"revenue": "total_rev", "interestIncome": "int_income", "interestExpense": "int_expense",
+                   "netInterestIncome": "nii", "totalExpenses": "benefits_exp"}}
 KIND = {"IS": "inc", "BS": "bs", "CF": "cf"}
 
 
@@ -104,13 +114,15 @@ def _rows(block, kind, fy_end_month, quarterly, currency, limit):
         for lid, field in FIELDS[kind].items():
             ln = lines.get(lid)
             v = (ln or {}).get("values", {}).get(p)
-            if v is None and field in FALLBACK.get(kind, {}):
-                v = (lines.get(FALLBACK[kind][field]) or {}).get("values", {}).get(p)
             if v is None:
                 continue
             if kind == "CF" and (ln or {}).get("sign") == "-":
                 v = -v                       # money going out reads negative on the page
             row[field] = v
+        for field, lid in FALLBACK.get(kind, {}).items():
+            v = (lines.get(lid) or {}).get("values", {}).get(p)
+            if row.get(field) is None and v is not None:
+                row[field] = v
         out.append(row)
     return out
 
