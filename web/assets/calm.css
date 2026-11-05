@@ -56,7 +56,9 @@ td.nilcol{color:var(--line2)!important}
 .oisplit i{opacity:.55}
 
 /* 7. Glyphs that repeat what the colour already says. */
-table .arrow{display:none}
+/* A table column goes whole or not at all: its header cell carries the same class as its body cells, or
+   every figure after it slides one header to the left (Watch, 5 November 2026). */
+th.arrow, td.arrow{display:none}
 .mv .bar{display:none}
 
 /* 8. One level of box. Notices are a quiet line, not a coloured callout. */

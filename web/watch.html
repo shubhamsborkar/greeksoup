@@ -203,7 +203,7 @@ function render(){
   }
 
   let thead="<tr>"+COLS.map(([k,l])=>k==="arrow"||k==="rm"
-    ?`<th></th>`:`<th data-s="${k}">${l}${sortKey===k?(sortDir<0?" ▾":" ▴"):""}</th>`).join("")+"</tr>";
+    ?`<th class="${k}"></th>`:`<th data-s="${k}">${l}${sortKey===k?(sortDir<0?" ▾":" ▴"):""}</th>`).join("")+"</tr>";
   document.querySelector("#grid thead").innerHTML=thead;
 
   let html="";
@@ -269,7 +269,7 @@ function render(){
         <td><button class="rm" data-c="${r.code}" title="Remove">×</button></td></tr>`;
     }
   }
-  document.querySelector("#grid tbody").innerHTML=html||`<tr><td class="dim" style="padding:30px">Nothing matches.</td></tr>`;
+  document.querySelector("#grid tbody").innerHTML=html||`<tr><td colspan="${COLS.length}" class="dim" style="padding:30px">Nothing matches.</td></tr>`;
   document.getElementById("count").textContent=rows.filter(r=>!r._head).length+" names";
 
   // flashes

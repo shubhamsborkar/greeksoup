@@ -164,7 +164,7 @@ function renderMembers(){
         <span class="ch ${esc(m.chamber)}">${esc((m.chamber||"").toUpperCase())}</span>
         <span class="cnt">${m.count?`${m.count} filing${m.count===1?"":"s"} on record`+(m.count>m.rows.length?` · the latest ${m.rows.length} below`:""):"none on record in the window read"}</span></div>
       <div class="memscroll"><table><thead><tr><th>Traded</th><th>Ticker</th><th>Type</th><th>Amount</th><th>Asset</th></tr></thead>
-      <tbody>${rows||'<tr><td class="dim" style="padding:14px">No filings.</td></tr>'}</tbody></table></div></div>`;
+      <tbody>${rows||'<tr><td colspan="5" class="dim" style="padding:14px">No filings.</td></tr>'}</tbody></table></div></div>`;
   }).join("") : '<div class="empty">No members tracked yet. Add one with Your list in the top bar.</div>';
 }
 function renderDjt(){
