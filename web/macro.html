@@ -15,6 +15,13 @@ h2.grp{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--
   margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
 h2.grp:first-of-type{margin-top:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:13px}
+/* design round 3: the groups pack side by side on a six-column board (a two-card group sits beside a
+   four-card one), so no row is half empty; every card and every group stays */
+#cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-flow:row dense;column-gap:13px}
+#cards .mgrp{grid-column:span var(--n);min-width:0}
+#cards .mgrp .grid{grid-template-columns:repeat(var(--n),minmax(0,1fr))}
+#cards .mgrp h2.grp{margin-top:22px}
+@media(max-width:1250px){#cards{display:block}#cards .mgrp .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;
   cursor:pointer;transition:border-color .15s}
 .card:hover{border-color:var(--line2)}
@@ -127,7 +134,8 @@ async function load(){
   for(const c of d.cards) if(!groups.includes(c.group)) groups.push(c.group);
   let html="";
   for(const g of groups){
-    html+=`<h2 class="grp">${g}</h2><div class="grid">`;
+    const n=d.cards.filter(x=>x.group===g).length;
+    html+=`<section class="mgrp" style="--n:${Math.min(n,6)}"><h2 class="grp">${g}</h2><div class="grid">`;
     for(const c of d.cards.filter(x=>x.group===g)){
       const delta = c.delta==null?"":`<span class="d ${c.delta>=0?"pos":"neg"}">${c.delta>=0?"▲":"▼"} ${Math.abs(c.delta).toFixed(2)}</span>`;
       html+=`<div class="card" data-id="${c.id}" title="click for full history">
@@ -136,7 +144,7 @@ async function load(){
         ${spark(c.spark)}
         <div class="meta mono">${c.id} · ${c.date}</div></div>`;
     }
-    html+=`</div>`;
+    html+=`</div></section>`;
   }
   document.getElementById("cards").innerHTML=html||'<div class="loading">FRED unreachable.</div>';
   document.querySelectorAll(".card").forEach(el=>el.onclick=()=>openModal(el.dataset.id));

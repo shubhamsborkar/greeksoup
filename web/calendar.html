@@ -56,10 +56,13 @@ td.f a{color:var(--accent);text-decoration:none;font-size:12px;white-space:nowra
 .cell .more{font-size:9.5px;color:var(--muted)}
 .twocol{display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start}
 @media(max-width:1000px){.twocol{grid-template-columns:1fr}}
+.twocol>div{min-width:0} .twocol>div:first-child{overflow-x:auto}
 .side h2{margin-top:26px} .side h2:first-child{margin-top:26px}
 .side .row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12px}
 .side .row .n{font-family:Menlo,monospace;font-weight:700;color:var(--ink);text-decoration:none} .side .row .n:hover{color:var(--accent)}
 .side .row .w{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side .row .w a.sec{color:var(--ink2);text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:2px}
+.side .row .w a.sec:hover{color:var(--ink);text-decoration-color:var(--ink)}
 .side .row .d{font-family:Menlo,monospace;color:var(--muted);font-size:11px;white-space:nowrap}
 </style>
 <link rel="stylesheet" href="/assets/calm.css">
@@ -139,10 +142,12 @@ async function load(){
   h+=`<div class="twocol"><div><h2>Day by day<span>${up.length} event${up.length===1?"":"s"}</span></h2>`;
   h+=up.length?`<table><tbody>${rows(up,true)}</tbody></table>`:`<div class="empty">${d.names?"No results or dividend date inside the window on these names yet. The desk rereads the record on its own; a date appears here as soon as the feed carries it.":"No names yet. A line on <b>Desk · Book</b>, a broker connected on Settings, or a name on any watchlist puts it on this calendar."}</div>`;
   if(d.failed&&d.failed.length) h+=`<div class="warn">Could not be read this time and will be retried within fifteen minutes: ${d.failed.map(esc).join(", ")}.</div>`;
-  h+=`</div><div class="side">${sideLists(up)}</div></div>`;
-  h+=`<h2>Landed at the SEC, the last ${d.back_days} days<span>${la.length} filing${la.length===1?"":"s"} on US listings</span></h2>`;
-  h+=la.length?`<table><thead><tr><th>Filed</th><th>Name</th><th>What</th><th></th></tr></thead><tbody>${rows(la,false)}</tbody></table>`:`<div class="empty">Nothing landed on a US listing you hold or watch in the window.</div>`;
-  if(ma.length){ h+=`<h2>Macro<span>${ma.length} print${ma.length===1?"":"s"} ahead, high and medium impact</span></h2><table><thead><tr><th>Date</th><th>Country</th><th>Print</th><th>Expected</th><th>Previous</th></tr></thead><tbody>`+ma.map(r=>`<tr><td class="d">${esc(r.date)}${r.time?" "+esc(r.time):""}</td><td>${esc(r.country)}</td><td class="w">${esc(r.event)} <span class="imp ${esc(r.impact)}">${esc(r.impact)}</span></td><td class="d">${r.estimate??"—"}</td><td class="d">${r.previous??"—"}</td></tr>`).join("")+`</tbody></table>`; }
+  // design round 3: the filings that landed sit in the right column under Results ahead, beside the
+  // day-by-day list, instead of a second long table under it; every filing and its SEC link stay
+  const filed=r=>`<div class="row"><a class="n" href="/t?symbol=${encodeURIComponent(r.symbol)}"${r.name?` title="${esc(r.name)}"`:""}>${esc(r.symbol)}</a><span class="w">${r.url?`<a class="sec" href="${esc(r.url)}" target="_blank" rel="noopener" title="open at the SEC">${esc(r.what)}${r.form?` · ${esc(r.form)}`:""}</a>`:`${esc(r.what)}${r.form?` · ${esc(r.form)}`:""}`}</span><span class="d">${esc(r.date.slice(5))}</span></div>`;
+  const landed=`<h2>Landed at the SEC<span>last ${d.back_days} days · ${la.length}</span></h2>`+(la.length?la.map(filed).join(""):`<div class="empty">Nothing landed on a US listing you hold or watch in the window.</div>`);
+  h+=`</div><div class="side">${sideLists(up)}${landed}</div></div>`;
+  if(ma.length){ h+=`<h2>Macro<span>${ma.length} print${ma.length===1?"":"s"} ahead, high and medium impact</span></h2><div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Country</th><th>Print</th><th>Expected</th><th>Previous</th></tr></thead><tbody>`+ma.map(r=>`<tr><td class="d">${esc(r.date)}${r.time?" "+esc(r.time):""}</td><td>${esc(r.country)}</td><td class="w">${esc(r.event)} <span class="imp ${esc(r.impact)}">${esc(r.impact)}</span></td><td class="d">${r.estimate??"—"}</td><td class="d">${r.previous??"—"}</td></tr>`).join("")+`</tbody></table></div>`; }
   document.getElementById("body").innerHTML=h;
 }
 load(); setInterval(load,15*60*1000);

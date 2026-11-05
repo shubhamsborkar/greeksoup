@@ -115,6 +115,9 @@ tbody tr:last-child td{border-bottom:none}
 .news-item .pub{color:var(--muted);font-size:10.5px}
 .news-item a{color:var(--ink);font-size:12.5px}
 .news-item a:hover{color:var(--accent)}
+/* design round 3: news sits in the right column under About, so the headline wraps under its time and source */
+.rail-news .news-item{flex-wrap:wrap;gap:2px 10px}.rail-news .news-item a{flex:1 1 100%;min-width:0;order:2;line-height:1.4}
+.rail-news .news-item .t{min-width:0}
 
 .an-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0}
 .an-row .k{color:var(--ink2)}
@@ -1211,10 +1214,6 @@ function renderUS(d,app){
         <table><thead><tr><th>Date</th><th>EPS act</th><th>EPS est</th><th>Result</th><th>Revenue</th></tr></thead>
         <tbody>${eRows||'<tr><td colspan="5" class="dim">No data.</td></tr>'}</tbody></table>
       </section>
-      <section class="panel">
-        <div class="panel-h"><h2>News</h2><span class="s">latest</span></div>
-        ${newsItems||'<div class="panel-b dim">No recent news.</div>'}
-      </section>
     </div>
     <div>
       ${posCard}
@@ -1246,6 +1245,10 @@ function renderUS(d,app){
       <section class="panel">
         <div class="panel-h"><h2>About</h2></div>
         <div class="panel-b desc">${esc((p.description||"").slice(0,480))}${(p.description||"").length>480?"…":""}</div>
+      </section>
+      <section class="panel rail-news">
+        <div class="panel-h"><h2>News</h2><span class="s">latest</span></div>
+        ${newsItems||'<div class="panel-b dim">No recent news.</div>'}
       </section>
     </div>
   </div>`;

@@ -18,20 +18,22 @@ const _hu=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
       <th>Value</th><th>P&amp;L</th><th>P&amp;L %</th><th>Weight</th>
     </tr></thead><tbody id="us_rows"><tr><td class="dim" style="padding:26px">Loading…</td></tr></tbody></table>
   </section>
+  <div class="us-pair">
   <section class="panel">
     <div class="panel-h"><h2>Upcoming earnings</h2><span class="sub" id="us_esub">US names on the book and watchlist</span></div>
     <div class="erail" id="us_erail"><span class="dim" style="font-size:12px">Loading calendar…</span></div>
-  </section>
-  <section class="panel">
-    <div class="panel-h"><h2>US market pulse</h2><span class="sub" id="us_psub"></span></div>
-    <div class="secrow" id="us_secrow"></div>
-    <div class="pulse3" id="us_pulse3"><span class="dim" style="font-size:12px;padding:14px">Loading movers…</span></div>
   </section>
   <section class="panel">
     <div class="panel-h"><h2>Insider tape</h2><span class="sub" id="us_isub">open-market Form 4 buys · whole market</span></div>
     <div id="us_insours"></div>
     <div class="pulse3" style="grid-template-columns:1fr" id="us_insclusters">
       <span class="dim" style="font-size:12px;padding:14px">Loading insider feed…</span></div>
+  </section>
+  </div>
+  <section class="panel">
+    <div class="panel-h"><h2>US market pulse</h2><span class="sub" id="us_psub"></span></div>
+    <div class="secrow" id="us_secrow"></div>
+    <div class="pulse3" id="us_pulse3"><span class="dim" style="font-size:12px;padding:14px">Loading movers…</span></div>
   </section>
   <section class="panel"><div class="note" id="us_note"></div></section>
 `;

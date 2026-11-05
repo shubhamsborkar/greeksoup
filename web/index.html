@@ -123,6 +123,7 @@ td.flash-neg{background:var(--flashneg)!important}
 .acct-head h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase}
 .acct-head .mini{font-size:11px;color:var(--ink2)}
 .acct-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line)}
+.acct-tiles[hidden]{display:none}
 .acct-tiles .at{background:var(--panel);padding:10px 14px}
 .at .l{font-size:9.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
 .at .v{font-size:14.5px;font-weight:700;margin-top:4px}
@@ -410,7 +411,7 @@ function allocBar(eq, reg){
   return `<div class="alloc">${seg}</div>
     <div class="alloc-cap">allocation by value · colour = today's move · hover for detail, click for research</div>`;
 }
-function accountPanel(name,a){
+function accountPanel(name,a,solo){
   const t=a.totals,f=a.funds;
   const frozen = a.stale_funds ?
     `<span class="mini mono" style="color:var(--amber,#d9a441)" title="No login for this account today. Marks are live; cash, margin and quantities are the broker's state from the time shown.">no login today · marks live · funds as of ${a.broker_as_of||"?"}</span>` : "";
@@ -420,7 +421,7 @@ function accountPanel(name,a){
   return `<section class="panel">
     <div class="acct-head"><h2>${a.label||name}</h2>${a.broker?`<span class="mini dim">${a.broker}</span>`:""}${frozen}
       ${hasLimit?`<span class="mini mono">margin used ${t.util_pct!=null?t.util_pct.toFixed(1)+"%":"—"}</span>`:""}</div>
-    <div class="acct-tiles">
+    <div class="acct-tiles"${solo?' hidden':''}>
       <div class="at"><div class="l">Holdings</div><div class="v mono" data-k="ae_${name}">${money(t.equity_value,0,ccy)}</div></div>
       <div class="at"><div class="l">P&L</div><div class="v mono ${cls(t.equity_pnl)}" data-k="ap_${name}">${signed(t.equity_pnl)}</div></div>
       ${hasFno?`<div class="at"><div class="l">Futures & options</div><div class="v mono ${cls(t.fno_mtm)}" data-k="af_${name}">${signed(t.fno_mtm)}</div></div>`:""}
@@ -532,6 +533,9 @@ function render(snap){
       fam.limit+=a.totals.limit_total||0;
     }
     const famUtil = fam.limit?(fam.blocked/fam.limit*100):null;
+    // one account on this desk: the strip above already carries its figures, so the account panel
+    // shows its holdings without a second row of the same totals (design round 3)
+    const solo = g.accounts.length===1 ? g.accounts[0][1] : null;
     const gLimit=g.accounts.some(([,a])=>a.totals.limit_total!=null), gFno=g.accounts.some(([,a])=>(a.futures&&a.futures.length)||a.totals.fno_mtm);
     // a desk head names the desk once there is more than one, or when the only one is not the
     // home desk; the US desk's block carries no head of its own, it sits under The US desk below
@@ -546,9 +550,11 @@ function render(snap){
       ${gLimit?tile("Free trading limit", money(fam.free), "", "cash + collateral headroom"):""}
       ${gLimit?tile("Margin used", famUtil!=null?famUtil.toFixed(1)+"%":"—",
         famUtil>75?"neg":famUtil>50?"":"", `blocked ${money(fam.blocked)}`, utilBar(famUtil)):""}
+      ${solo&&gLimit?tile("Collateral (impl.)", money(solo.funds.implied_collateral)):""}
+      ${solo&&!gLimit&&solo.funds.buying_power!=null?tile("Buying power", money(solo.funds.buying_power)):""}
     </div>
     <div class="grid accounts${g.accounts.length===1?" one":""}">
-      ${g.accounts.map(([n,a])=>accountPanel(n,a)).join("")}
+      ${g.accounts.map(([n,a])=>accountPanel(n,a,!!solo)).join("")}
     </div>`;
     CCY=kept; return h;
   };

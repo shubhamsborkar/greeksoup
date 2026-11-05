@@ -62,7 +62,6 @@
   border:1px solid var(--line2)}
 #usdesk .sec b{font-weight:800;margin-left:5px}
 #usdesk .pulse3{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
-#usdesk .pulse3{grid-template-columns:1fr}
 #usdesk .pcol{border-right:1px solid var(--line);min-width:0}
 #usdesk .pcol:last-child{border-right:none}
 #usdesk .pcol h3{font-size:9.5px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);
@@ -73,3 +72,15 @@
 #usdesk .prow a{color:var(--ink);font-weight:700;text-decoration:none;min-width:52px}
 #usdesk .prow a:hover{color:var(--accent)}
 #usdesk .prow .nm{color:var(--muted);font-size:10.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Design round 3 (5 November 2026): the earnings ahead and the insider tape side by side, the pulse in its
+   three columns, so the US desk reads as one screen instead of a long scroll. Nothing removed. */
+#usdesk .us-pair{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+#usdesk .us-pair > .panel{margin-bottom:16px}
+#usdesk .us-pair .erail{grid-auto-flow:row;grid-template-rows:none;grid-auto-columns:auto;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));overflow:visible}
+#usdesk .us-pair .erail>span.dim{grid-row:auto;grid-column:1/-1}
+@media(max-width:1100px){#usdesk .us-pair{grid-template-columns:1fr}#usdesk .pulse3{grid-template-columns:1fr}
+  #usdesk .pcol{border-right:none}}
+#usdesk .us-pair .panel-h{flex-wrap:wrap;justify-content:flex-start;gap:3px 12px}
+#usdesk .us-pair .panel-h h2{white-space:nowrap}
+#usdesk .us-pair .panel-h .sub{flex:1 1 100%;line-height:1.5}
